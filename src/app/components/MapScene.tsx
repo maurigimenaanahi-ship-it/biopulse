@@ -1,19 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Map, { Marker } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { EnvironmentalEvent } from "@/data/events";
 
 type MapSceneProps = {
   events: EnvironmentalEvent[];
-  bbox?: string | null;
+  bbox?: string | null; // "west,south,east,north"
   onEventClick: (e: EnvironmentalEvent) => void;
 };
 
+// estilo oscuro sin keys
 const DARK_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
+function parseBbox(bbox: string) {
+  const [w, s, e, n] = bbox.split(",").map((v) => Number(v.trim()));
+  return { w, s, e, n };
+}
+
 function bboxToBounds(bbox: string) {
-  const [w, s, e, n] = bbox.split(",").map(Number);
+  const { w, s, e, n } = parseBbox(bbox);
   return [
     [w, s],
     [e, n],
@@ -24,20 +30,44 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [hovered, setHovered] = useState<EnvironmentalEvent | null>(null);
 
-  useEffect(() => {
+  const initialViewState = useMemo(() => {
+    if (!bbox) return { longitude: 0, latitude: 10, zoom: 1.2 };
+    const { w, s, e, n } = parseBbox(bbox);
+    return { longitude: (w + e) / 2, latitude: (s + n) / 2, zoom: 3 };
+  }, [bbox]);
+
+  const fitToBbox = useCallback(() => {
     if (!bbox || !mapRef.current) return;
     mapRef.current.fitBounds(bboxToBounds(bbox), {
-      padding: 80,
-      duration: 800,
+      padding: 100,
+      duration: 700,
     });
   }, [bbox]);
 
+  // Importante: cuando se monta, forzamos resize (soluciona “markers flotando” por layout)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      mapRef.current?.resize();
+      fitToBbox();
+    }, 50);
+    return () => clearTimeout(t);
+  }, [fitToBbox]);
+
+  // Cuando cambia bbox, resize + fit
+  useEffect(() => {
+    const t = setTimeout(() => {
+      mapRef.current?.resize();
+      fitToBbox();
+    }, 50);
+    return () => clearTimeout(t);
+  }, [bbox, fitToBbox]);
+
   return (
+    // Nota: el wrapper NO debe tener transform. Mantenerlo “normal”.
     <div className="absolute inset-0 z-0">
-      {/* MAPA */}
       <Map
         ref={mapRef}
-        initialViewState={{ longitude: -60, latitude: -15, zoom: 3 }}
+        initialViewState={initialViewState}
         mapStyle={DARK_STYLE}
         style={{ width: "100%", height: "100%" }}
         attributionControl={false}
@@ -45,59 +75,71 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         maxZoom={10}
         dragRotate={false}
         pitchWithRotate={false}
+        onLoad={() => {
+          // al cargar, resize + fit (clave)
+          mapRef.current?.resize();
+          fitToBbox();
+        }}
       >
         {events.map((ev) => (
           <Marker
             key={ev.id}
-            longitude={ev.longitude}
-            latitude={ev.latitude}
+            longitude={Number(ev.longitude)}
+            latitude={Number(ev.latitude)}
             anchor="center"
           >
             <button
+              type="button"
               onClick={() => onEventClick(ev)}
               onMouseEnter={() => setHovered(ev)}
               onMouseLeave={() => setHovered(null)}
-              className="relative w-4 h-4"
+              className="relative"
+              style={{ width: 16, height: 16 }}
+              aria-label={`Open alert: ${ev.title}`}
             >
               <span
                 className="absolute inset-0 rounded-full blur-md opacity-70"
                 style={{
                   background:
                     ev.severity === "critical"
-                      ? "rgba(255,0,68,0.8)"
+                      ? "rgba(255, 0, 68, 0.65)"
                       : ev.severity === "high"
-                      ? "rgba(255,102,0,0.7)"
-                      : "rgba(255,170,0,0.6)",
+                      ? "rgba(255, 102, 0, 0.55)"
+                      : ev.severity === "moderate"
+                      ? "rgba(255, 170, 0, 0.45)"
+                      : "rgba(0, 255, 136, 0.35)",
                 }}
               />
               <span
-                className="absolute inset-[3px] rounded-full"
+                className="absolute inset-[4px] rounded-full"
                 style={{
                   background:
                     ev.severity === "critical"
-                      ? "#ff0044"
+                      ? "rgb(255,0,68)"
                       : ev.severity === "high"
-                      ? "#ff6600"
-                      : "#ffaa00",
+                      ? "rgb(255,102,0)"
+                      : ev.severity === "moderate"
+                      ? "rgb(255,170,0)"
+                      : "rgb(0,255,136)",
+                  boxShadow: "0 0 12px rgba(0,0,0,0.35)",
                 }}
               />
             </button>
           </Marker>
         ))}
-      </Map>
 
-      {/* TOOLTIP – FUERA del Map */}
-      {hovered && (
-        <div className="absolute left-4 top-4 z-50 max-w-sm rounded-lg bg-black/70 backdrop-blur-md px-4 py-3 text-white text-sm border border-white/10 pointer-events-none">
-          <div className="font-medium">{hovered.title}</div>
-          <div className="opacity-70 text-xs">
-            {hovered.location} — {hovered.severity.toUpperCase()}
+        {hovered && (
+          <div className="absolute left-4 top-4 max-w-sm rounded-xl border border-white/10 bg-black/60 backdrop-blur-md px-4 py-3">
+            <div className="text-white/85 font-medium">{hovered.title}</div>
+            <div className="text-white/45 text-xs mt-1">
+              {hovered.location} • {hovered.severity.toUpperCase()}
+            </div>
+            <div className="text-white/35 text-xs mt-1">
+              {hovered.latitude.toFixed(2)}, {hovered.longitude.toFixed(2)}
+            </div>
           </div>
-          <div className="opacity-50 text-xs">
-            {hovered.latitude.toFixed(2)}, {hovered.longitude.toFixed(2)}
-          </div>
-        </div>
-      )}
+        )}
+      </Map>
     </div>
   );
 }
