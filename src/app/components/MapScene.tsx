@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import Map, { Marker } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { EnvironmentalEvent } from "@/data/events";
@@ -22,20 +22,16 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
 
   const initialViewState = useMemo(() => {
-    // Si no hay bbox todavía, caemos en una vista global neutra
-    if (!bbox) {
-      return { longitude: 0, latitude: 10, zoom: 1.2 };
-    }
+    if (!bbox) return { longitude: 0, latitude: 10, zoom: 1.2 };
+
     const { w, s, e, n } = bboxToView(bbox);
     const lon = (w + e) / 2;
     const lat = (s + n) / 2;
 
-    // Zoom aproximado por tamaño del bbox (simple pero funciona bien)
     const spanLon = Math.abs(e - w);
     const spanLat = Math.abs(n - s);
     const span = Math.max(spanLon, spanLat);
 
-    // Ajuste heurístico
     const zoom =
       span > 140 ? 1.4 :
       span > 90 ? 2.0 :
@@ -47,10 +43,8 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
     return { longitude: lon, latitude: lat, zoom };
   }, [bbox]);
 
-  // Hover simple (opcional)
   const [hovered, setHovered] = useState<EnvironmentalEvent | null>(null);
 
-  // ✅ Reencuadrar mapa cuando cambia bbox (si no, los puntos quedan fuera de pantalla)
   useEffect(() => {
     if (!bbox || !mapRef.current) return;
 
@@ -78,7 +72,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         dragRotate={false}
         pitchWithRotate={false}
       >
-        {/* Nodos glow */}
         {events.map((ev) => (
           <Marker
             key={ev.id}
@@ -94,7 +87,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
               style={{ width: 18, height: 18 }}
               aria-label={`Open alert: ${ev.title}`}
             >
-              {/* halo */}
               <span
                 className="absolute inset-0 rounded-full blur-md opacity-70"
                 style={{
@@ -108,7 +100,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
                       : "rgba(0, 255, 136, 0.35)",
                 }}
               />
-              {/* core */}
               <span
                 className="absolute inset-[4px] rounded-full"
                 style={{
@@ -126,17 +117,17 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
             </button>
           </Marker>
         ))}
-
-        {/* Tooltip simple */}
-        {hovered && (
-          <div className="absolute left-6 top-24 max-w-sm rounded-xl border border-white/10 bg-black/50 backdrop-blur-md px-4 py-3">
-            <div className="text-white/85 font-medium">{hovered.title}</div>
-            <div className="text-white/45 text-xs mt-1">
-              {hovered.location} • {hovered.severity.toUpperCase()}
-            </div>
-          </div>
-        )}
       </Map>
+
+      {/* Tooltip: FUERA del Map, así no flota raro */}
+      {hovered && (
+        <div className="absolute left-6 top-24 max-w-sm rounded-xl border border-white/10 bg-black/50 backdrop-blur-md px-4 py-3 pointer-events-none">
+          <div className="text-white/85 font-medium">{hovered.title}</div>
+          <div className="text-white/45 text-xs mt-1">
+            {hovered.location} • {hovered.severity.toUpperCase()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
