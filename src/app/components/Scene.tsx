@@ -14,12 +14,10 @@ export function Scene({ events, activeCategories, onEventClick, bbox }: ScenePro
   );
 
   return (
-    <div className="w-full h-full">
-      <MapScene
-        events={filteredEvents}
-        bbox={bbox}
-        onEventClick={onEventClick}
-      />
-    </div>
+    <MapScene
+      events={filteredEvents}
+      bbox={bbox ?? null}
+      onEventClick={onEventClick}
+    />
   );
 }
