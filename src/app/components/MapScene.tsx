@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Map, { Marker } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { EnvironmentalEvent } from "@/data/events";
@@ -10,7 +10,8 @@ type MapSceneProps = {
 };
 
 // Mapa oscuro (sin keys)
-const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const DARK_STYLE =
+  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
 function bboxToView(bbox: string) {
   const [w, s, e, n] = bbox.split(",").map(Number);
@@ -48,20 +49,21 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
 
   // Hover simple (opcional)
   const [hovered, setHovered] = useState<EnvironmentalEvent | null>(null);
+
+  // ✅ Reencuadrar mapa cuando cambia bbox (si no, los puntos quedan fuera de pantalla)
   useEffect(() => {
-  if (!bbox || !mapRef.current) return;
+    if (!bbox || !mapRef.current) return;
 
-  const { w, s, e, n } = bboxToView(bbox);
+    const { w, s, e, n } = bboxToView(bbox);
 
-  // Ajusta la vista al bbox elegido (evita que los puntos queden fuera de pantalla)
-  mapRef.current.fitBounds(
-    [
-      [w, s],
-      [e, n],
-    ],
-    { padding: 120, duration: 800 }
-  );
-}, [bbox]);
+    mapRef.current.fitBounds(
+      [
+        [w, s],
+        [e, n],
+      ],
+      { padding: 120, duration: 800 }
+    );
+  }, [bbox]);
 
   return (
     <div className="absolute inset-0 z-0">
@@ -71,10 +73,8 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         mapStyle={DARK_STYLE}
         attributionControl={false}
         style={{ width: "100%", height: "100%" }}
-        // Limites suaves para que no se vaya a cualquier lado
         minZoom={1}
         maxZoom={8}
-        // UX
         dragRotate={false}
         pitchWithRotate={false}
       >
