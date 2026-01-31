@@ -1,5 +1,5 @@
+import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { MapScene } from "./MapScene";
-import { EnvironmentalEvent, EventCategory } from "@/data/events";
 
 interface SceneProps {
   events: EnvironmentalEvent[];
@@ -14,10 +14,8 @@ export function Scene({ events, activeCategories, onEventClick, bbox }: ScenePro
   );
 
   return (
-    <MapScene
-      events={filteredEvents}
-      bbox={bbox ?? null}
-      onEventClick={onEventClick}
-    />
+    <div className="w-full h-full">
+      <MapScene events={filteredEvents} bbox={bbox ?? null} onEventClick={onEventClick} />
+    </div>
   );
 }
