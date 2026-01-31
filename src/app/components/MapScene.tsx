@@ -34,6 +34,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
 
   return (
     <div className="absolute inset-0 z-0">
+      {/* MAPA */}
       <Map
         ref={mapRef}
         initialViewState={{ longitude: -60, latitude: -15, zoom: 3 }}
@@ -83,19 +84,20 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
             </button>
           </Marker>
         ))}
-
-        {hovered && (
-          <div className="absolute left-4 top-4 max-w-sm rounded-lg bg-black/70 backdrop-blur-md px-4 py-3 text-white text-sm border border-white/10">
-            <div className="font-medium">{hovered.title}</div>
-            <div className="opacity-70 text-xs">
-              {hovered.location} — {hovered.severity.toUpperCase()}
-            </div>
-            <div className="opacity-50 text-xs">
-              {hovered.latitude.toFixed(2)}, {hovered.longitude.toFixed(2)}
-            </div>
-          </div>
-        )}
       </Map>
+
+      {/* TOOLTIP – FUERA del Map */}
+      {hovered && (
+        <div className="absolute left-4 top-4 z-50 max-w-sm rounded-lg bg-black/70 backdrop-blur-md px-4 py-3 text-white text-sm border border-white/10 pointer-events-none">
+          <div className="font-medium">{hovered.title}</div>
+          <div className="opacity-70 text-xs">
+            {hovered.location} — {hovered.severity.toUpperCase()}
+          </div>
+          <div className="opacity-50 text-xs">
+            {hovered.latitude.toFixed(2)}, {hovered.longitude.toFixed(2)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
