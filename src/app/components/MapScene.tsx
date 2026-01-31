@@ -48,6 +48,20 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
 
   // Hover simple (opcional)
   const [hovered, setHovered] = useState<EnvironmentalEvent | null>(null);
+  useEffect(() => {
+  if (!bbox || !mapRef.current) return;
+
+  const { w, s, e, n } = bboxToView(bbox);
+
+  // Ajusta la vista al bbox elegido (evita que los puntos queden fuera de pantalla)
+  mapRef.current.fitBounds(
+    [
+      [w, s],
+      [e, n],
+    ],
+    { padding: 120, duration: 800 }
+  );
+}, [bbox]);
 
   return (
     <div className="absolute inset-0 z-0">
