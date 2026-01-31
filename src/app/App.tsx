@@ -6,15 +6,11 @@ import { Timeline } from "./components/Timeline";
 import { StatsPanel } from "./components/StatsPanel";
 import { SplashScreen } from "./components/SplashScreen";
 import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
-
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 
 // 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
-
-// 🧯 Para que no se muera el navegador con 1500+ markers
-const MAX_POINTS = 500; // probá 300 / 500 / 800
 
 type AppStage = "splash" | "setup" | "dashboard";
 
@@ -22,9 +18,13 @@ export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
 
+  // 1 categoría activa
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
+
+  // región activa por key
   const [selectedRegionKey, setSelectedRegionKey] = useState<string | null>(null);
 
+  // eventos cargados
   const [events, setEvents] = useState<EnvironmentalEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -50,43 +50,32 @@ export default function App() {
 
         const data = await res.json();
 
-        const rawFeatures: any[] = Array.isArray(data.features) ? data.features : [];
-        const features = rawFeatures.slice(0, MAX_POINTS);
-
-        const fires: EnvironmentalEvent[] = features
-          .map((f: any, i: number) => {
-            const latitude = Number(f.latitude);
-            const longitude = Number(f.longitude);
-
-            return {
-              id: f.id || `fire-${i}`,
-              category: "fire" as EventCategory,
-              severity:
-                f.confidence === "h"
-                  ? "critical"
-                  : f.confidence === "n"
-                  ? "high"
-                  : "moderate",
-              title: "Active Fire",
-              description: `FRP ${f.frp ?? "n/a"} • Confidence ${f.confidence ?? "n/a"}`,
-              latitude,
-              longitude,
-              location: args.region.label,
-              // opcional: usar fecha real si viene, sino "now"
-              timestamp: f.acq_date ? new Date(`${f.acq_date}T00:00:00Z`) : new Date(),
-              affectedArea: 1,
-              riskIndicators: [],
-            };
-          })
-          .filter((ev) => Number.isFinite(ev.latitude) && Number.isFinite(ev.longitude));
+        const fires: EnvironmentalEvent[] = (data.features ?? [])
+          .map((f: any, i: number) => ({
+            id: f.id || `fire-${i}`,
+            category: "fire" as EventCategory,
+            severity:
+              f.confidence === "h"
+                ? "critical"
+                : f.confidence === "n"
+                ? "high"
+                : "moderate",
+            title: "Active Fire",
+            description: `FRP ${f.frp ?? "n/a"} • Confidence ${f.confidence ?? "n/a"}`,
+            latitude: Number(f.latitude),
+            longitude: Number(f.longitude),
+            location: args.region.label,
+            timestamp: new Date(`${f.acq_date}T00:00:00Z`),
+            affectedArea: 1,
+            riskIndicators: [],
+          }))
+          .filter((ev: any) => Number.isFinite(ev.latitude) && Number.isFinite(ev.longitude));
 
         setEvents(fires);
         setStage("dashboard");
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
-
-        // fallback a mock
         const filtered = mockEvents.filter((e) => e.category === "fire");
         setEvents(filtered);
         setStage("dashboard");
@@ -94,7 +83,7 @@ export default function App() {
       }
     }
 
-    // Otras categorías: por ahora mock (MVP)
+    // Otras categorías: mock (MVP)
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setStage("dashboard");
@@ -111,16 +100,12 @@ export default function App() {
   }, [events]);
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#050a14] relative">
+    // ⚠️ Importante: NO usamos overflow-hidden acá para no romper el render del map
+    <div className="w-screen h-screen bg-[#050a14] relative">
       {/* Splash overlay */}
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      {/* Background gradient effects */}
-      <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
-
-      {/* Header */}
+      {/* Header (siempre visible, encima del mapa) */}
       <Header activeView={activeView} onViewChange={setActiveView} />
 
       {/* Setup overlay */}
@@ -136,37 +121,47 @@ export default function App() {
 
       {/* Dashboard */}
       {stage === "dashboard" && (
-        <>
-          <StatsPanel
-            totalEvents={stats.total}
-            criticalEvents={stats.critical}
-            affectedRegions={stats.regions}
-          />
-
-          <MapScene
-            events={events}
-            bbox={selectedRegion?.bbox ?? null}
-            onEventClick={setSelectedEvent}
-          />
-
-          <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
-
-          <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-
-          {/* Context badge */}
-          <div className="absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-            <div className="text-white/70 text-sm font-medium">Scan active</div>
-            <div className="text-white/45 text-xs mt-1">
-              {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"} • bbox{" "}
-              {selectedRegion?.bbox}
-            </div>
-            <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
+        <div className="absolute inset-0">
+          {/* ✅ MAPA en contenedor LIMPIO (sin blur/filters encima) */}
+          <div className="absolute inset-0 z-0">
+            <MapScene
+              events={events}
+              bbox={selectedRegion?.bbox ?? null}
+              onEventClick={setSelectedEvent}
+            />
           </div>
-        </>
-      )}
 
-      {/* Ambient particles overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,212,255,0.03),transparent_50%)]" />
+          {/* ✅ EFECTOS como HERMANOS del mapa (no padres) */}
+          <div className="pointer-events-none absolute inset-0 z-[1]">
+            <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,212,255,0.03),transparent_50%)]" />
+          </div>
+
+          {/* ✅ UI overlays arriba */}
+          <div className="absolute inset-0 z-[2]">
+            <StatsPanel
+              totalEvents={stats.total}
+              criticalEvents={stats.critical}
+              affectedRegions={stats.regions}
+            />
+
+            <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+
+            <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+
+            <div className="absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+              <div className="text-white/70 text-sm font-medium">Scan active</div>
+              <div className="text-white/45 text-xs mt-1">
+                {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"} • bbox{" "}
+                {selectedRegion?.bbox}
+              </div>
+              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
