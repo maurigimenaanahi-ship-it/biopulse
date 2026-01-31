@@ -1,0 +1,37 @@
+/* BioPulse Custom Styles */
+
+/* Radial gradient utility */
+.bg-gradient-radial {
+  background-image: radial-gradient(var(--tw-gradient-stops));
+}
+
+/* Smooth scrollbar for panels */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.5);
+}
+
+/* Prevent text selection on UI elements */
+button, .no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* WebGL canvas */
+canvas {
+  display: block;
+  outline: none;
+}
