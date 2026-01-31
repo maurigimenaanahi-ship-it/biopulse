@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Map, { Marker } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { EnvironmentalEvent } from "@/data/events";
@@ -9,7 +9,6 @@ type MapSceneProps = {
   onEventClick: (e: EnvironmentalEvent) => void;
 };
 
-// Mapa oscuro (sin keys)
 const DARK_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
@@ -24,38 +23,42 @@ function bboxToBounds(bbox: string) {
 export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [hovered, setHovered] = useState<EnvironmentalEvent | null>(null);
-  const [mapReady, setMapReady] = useState(false);
 
-  // 1) Esperamos a que el mapa esté cargado (onLoad)
-  // 2) Recién ahí hacemos fitBounds (y cada vez que cambia bbox)
-  useEffect(() => {
-    if (!mapReady) return;
-    if (!bbox) return;
-    if (!mapRef.current) return;
+  const fitToBbox = useCallback(() => {
+    if (!bbox || !mapRef.current) return;
 
-    const bounds = bboxToBounds(bbox);
+    // ⚠️ Importantísimo: asegurar que el map ya midió su contenedor
+    mapRef.current.resize();
 
-    // fitBounds seguro cuando el mapa ya cargó
-    mapRef.current.fitBounds(bounds, {
+    mapRef.current.fitBounds(bboxToBounds(bbox), {
       padding: 120,
-      duration: 700,
+      duration: 600,
     });
-  }, [mapReady, bbox]);
+  }, [bbox]);
+
+  // Cuando cambia bbox, re-encuadramos (con raf para esperar layout)
+  useEffect(() => {
+    if (!bbox) return;
+    const id = requestAnimationFrame(() => fitToBbox());
+    return () => cancelAnimationFrame(id);
+  }, [bbox, fitToBbox]);
 
   return (
-    <div className="absolute inset-0 z-0">
+    // ✅ contenedor real con tamaño (NO absolute acá)
+    <div className="w-full h-full">
       <Map
         ref={mapRef}
-        onLoad={() => setMapReady(true)}
+        // un init neutral (después fitBounds lo acomoda)
+        initialViewState={{ longitude: -60, latitude: -15, zoom: 3 }}
         mapStyle={DARK_STYLE}
         attributionControl={false}
         style={{ width: "100%", height: "100%" }}
-        // Vista inicial neutra (después la bbox manda)
-        initialViewState={{ longitude: -60, latitude: -15, zoom: 3 }}
         minZoom={1}
         maxZoom={10}
         dragRotate={false}
         pitchWithRotate={false}
+        // ✅ encuadrar cuando terminó de cargar el mapa
+        onLoad={() => fitToBbox()}
       >
         {events.map((ev) => (
           <Marker
@@ -65,7 +68,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
             anchor="center"
           >
             <button
-              type="button"
               onClick={() => onEventClick(ev)}
               onMouseEnter={() => setHovered(ev)}
               onMouseLeave={() => setHovered(null)}
@@ -78,12 +80,10 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
                 style={{
                   background:
                     ev.severity === "critical"
-                      ? "rgba(255, 0, 68, 0.75)"
+                      ? "rgba(255,0,68,0.75)"
                       : ev.severity === "high"
-                      ? "rgba(255, 102, 0, 0.65)"
-                      : ev.severity === "moderate"
-                      ? "rgba(255, 170, 0, 0.55)"
-                      : "rgba(0, 255, 136, 0.45)",
+                      ? "rgba(255,102,0,0.65)"
+                      : "rgba(255,170,0,0.55)",
                 }}
               />
               <span
@@ -94,9 +94,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
                       ? "#ff0044"
                       : ev.severity === "high"
                       ? "#ff6600"
-                      : ev.severity === "moderate"
-                      ? "#ffaa00"
-                      : "#00ff88",
+                      : "#ffaa00",
                 }}
               />
             </button>
@@ -104,12 +102,12 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         ))}
 
         {hovered && (
-          <div className="absolute left-6 top-24 max-w-sm rounded-xl border border-white/10 bg-black/60 backdrop-blur-md px-4 py-3">
-            <div className="text-white/85 font-medium">{hovered.title}</div>
-            <div className="text-white/45 text-xs mt-1">
-              {hovered.location} • {hovered.severity.toUpperCase()}
+          <div className="absolute left-4 top-4 max-w-sm rounded-lg bg-black/70 backdrop-blur-md px-4 py-3 text-white text-sm border border-white/10">
+            <div className="font-medium">{hovered.title}</div>
+            <div className="opacity-70 text-xs">
+              {hovered.location} — {hovered.severity.toUpperCase()}
             </div>
-            <div className="text-white/35 text-[11px] mt-1">
+            <div className="opacity-50 text-xs">
               {hovered.latitude.toFixed(2)}, {hovered.longitude.toFixed(2)}
             </div>
           </div>
