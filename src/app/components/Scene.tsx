@@ -1,21 +1,25 @@
-import { Globe2D } from './Globe2D';
-import { EnvironmentalEvent, EventCategory } from '@/data/events';
+import { MapScene } from "./MapScene";
+import { EnvironmentalEvent, EventCategory } from "@/data/events";
 
 interface SceneProps {
   events: EnvironmentalEvent[];
   activeCategories: Set<EventCategory>;
   onEventClick: (event: EnvironmentalEvent) => void;
+  bbox?: string | null;
 }
 
-export function Scene({ events, activeCategories, onEventClick }: SceneProps) {
-  // Filter events by active categories
+export function Scene({ events, activeCategories, onEventClick, bbox }: SceneProps) {
   const filteredEvents = events.filter((event) =>
     activeCategories.has(event.category)
   );
 
   return (
     <div className="w-full h-full">
-      <Globe2D events={filteredEvents} onEventClick={onEventClick} />
+      <MapScene
+        events={filteredEvents}
+        bbox={bbox}
+        onEventClick={onEventClick}
+      />
     </div>
   );
 }
