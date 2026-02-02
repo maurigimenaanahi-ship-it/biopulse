@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -13,6 +13,12 @@ import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
+
+// 👇 helper: detectar móvil (para limitar markers y que no se arrastre)
+function isMobile() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia?.("(pointer: coarse)").matches || window.innerWidth < 820;
+}
 
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
@@ -71,7 +77,10 @@ export default function App() {
           }))
           .filter((ev: any) => Number.isFinite(ev.latitude) && Number.isFinite(ev.longitude));
 
-        setEvents(fires);
+        // ✅ performance: limitar markers en móvil
+        const limited = isMobile() ? fires.slice(0, 700) : fires;
+
+        setEvents(limited);
         setStage("dashboard");
         return;
       } catch (error) {
@@ -122,7 +131,7 @@ export default function App() {
       {/* Dashboard */}
       {stage === "dashboard" && (
         <div className="absolute inset-0">
-          {/* ✅ MAPA en contenedor LIMPIO (sin blur/filters encima) */}
+          {/* ✅ MAPA en contenedor LIMPIO */}
           <div className="absolute inset-0 z-0">
             <MapScene
               events={events}
@@ -139,19 +148,26 @@ export default function App() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,212,255,0.03),transparent_50%)]" />
           </div>
 
-          {/* ✅ UI overlays arriba */}
-          <div className="absolute inset-0 z-[2]">
-            <StatsPanel
-              totalEvents={stats.total}
-              criticalEvents={stats.critical}
-              affectedRegions={stats.regions}
-            />
+          {/* ✅ UI overlays arriba: NO deben bloquear el mapa */}
+          <div className="absolute inset-0 z-[2] pointer-events-none">
+            {/* paneles interactivos */}
+            <div className="pointer-events-auto">
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+              />
+            </div>
 
-            <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+            <div className="pointer-events-auto">
+              <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+            </div>
 
-            <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            </div>
 
-            <div className="absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+            <div className="pointer-events-auto absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <div className="text-white/70 text-sm font-medium">Scan active</div>
               <div className="text-white/45 text-xs mt-1">
                 {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"} • bbox{" "}
