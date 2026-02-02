@@ -10,16 +10,13 @@ import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 
-// 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
-
 type AppStage = "splash" | "setup" | "dashboard";
 
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
 
-  // Selección activa
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
   const [selectedRegionKey, setSelectedRegionKey] = useState<string | null>(null);
 
@@ -27,7 +24,6 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Control de vista del mapa
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
 
@@ -41,15 +37,12 @@ export default function App() {
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
-    // 🔥 Incendios reales (FIRMS)
     if (args.category === "fire") {
       try {
         const bbox = encodeURIComponent(args.region.bbox);
         const url = `${FIRMS_PROXY}/fires?bbox=${bbox}&days=2&source=VIIRS_SNPP_NRT`;
-
         const res = await fetch(url);
         if (!res.ok) throw new Error(`FIRMS proxy error: ${res.status}`);
-
         const data = await res.json();
 
         const points: FirePoint[] = (data.features ?? [])
@@ -86,7 +79,6 @@ export default function App() {
         setShowZoomOut(false);
         return;
       } catch (error) {
-        console.error("Error fetching FIRMS data:", error);
         const filtered = mockEvents.filter((e) => e.category === "fire");
         setEvents(filtered);
         setStage("dashboard");
@@ -96,7 +88,6 @@ export default function App() {
       }
     }
 
-    // Otras categorías: mock
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setStage("dashboard");
@@ -117,7 +108,11 @@ export default function App() {
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
-      <Header activeView={activeView} onViewChange={setActiveView} />
+
+      {/* Header now correctly disabled behind AlertPanel */}
+      <div className={selectedEvent ? "pointer-events-none opacity-30" : ""}>
+        <Header activeView={activeView} onViewChange={setActiveView} />
+      </div>
 
       {stage === "setup" && (
         <SetupPanel
@@ -131,7 +126,6 @@ export default function App() {
 
       {stage === "dashboard" && (
         <div className="absolute inset-0">
-          {/* MAPA */}
           <div className="absolute inset-0 z-0">
             <MapScene
               events={events}
@@ -142,14 +136,12 @@ export default function App() {
             />
           </div>
 
-          {/* EFECTOS */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
           </div>
 
-          {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
             <div className="pointer-events-auto">
               <StatsPanel
@@ -177,11 +169,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* Botón contextual (animado, se oculta si hay panel abierto) */}
             <div
               className={[
                 "fixed right-[22rem] top-1/2 -translate-y-1/2 z-[9999]",
-                "transition-all duration-300 ease-out will-change-transform",
+                "transition-all duration-300 ease-out",
                 showZoomOut && !selectedEvent
                   ? "opacity-100 translate-x-0 pointer-events-auto"
                   : "opacity-0 translate-x-4 pointer-events-none",
@@ -189,17 +180,7 @@ export default function App() {
             >
               <button
                 onClick={() => setResetKey((k) => k + 1)}
-                className={[
-                  "px-4 py-3 rounded-2xl shadow-lg",
-                  "backdrop-blur-md border",
-                  "border-cyan-400/30 bg-cyan-400/15",
-                  "text-cyan-100 hover:text-white",
-                  "hover:bg-cyan-400/25",
-                  "transition-colors",
-                  "active:scale-[0.98] transition-transform",
-                ].join(" ")}
-                title="Volver a la vista general"
-                aria-label="Volver a la vista general"
+                className="px-4 py-3 rounded-2xl border border-cyan-400/30 bg-cyan-400/15 backdrop-blur-md text-cyan-100 hover:bg-cyan-400/25 hover:text-white shadow-lg transition"
               >
                 ⤴ Volver
               </button>
