@@ -27,6 +27,10 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // 👇 NUEVO: reset de vista + botón contextual de “volver”
+  const [resetKey, setResetKey] = useState(0);
+  const [showZoomOut, setShowZoomOut] = useState(false);
+
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
@@ -77,19 +81,21 @@ export default function App() {
           timestamp: new Date(),
           affectedArea: 1,
           riskIndicators: [],
-          // opcional: si después querés expandir “ver focos dentro”
-          // members: c.members,
-          // focusCount: c.focusCount,
         }));
 
         setEvents(clusteredEvents);
         setStage("dashboard");
+        // Resetear UI de navegación
+        setResetKey((k) => k + 1);
+        setShowZoomOut(false);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
         const filtered = mockEvents.filter((e) => e.category === "fire");
         setEvents(filtered);
         setStage("dashboard");
+        setResetKey((k) => k + 1);
+        setShowZoomOut(false);
         return;
       }
     }
@@ -98,6 +104,8 @@ export default function App() {
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setStage("dashboard");
+    setResetKey((k) => k + 1);
+    setShowZoomOut(false);
   };
 
   const stats = useMemo(() => {
@@ -138,6 +146,8 @@ export default function App() {
               events={events}
               bbox={selectedRegion?.bbox ?? null}
               onEventClick={setSelectedEvent}
+              resetKey={resetKey}
+              onZoomedInChange={setShowZoomOut}
             />
           </div>
 
@@ -151,7 +161,7 @@ export default function App() {
 
           {/* UI (NO bloquea el mapa salvo en controles) */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Paneles / controles: vuelven a ser clickeables */}
+            {/* Paneles / controles: clickeables */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -175,6 +185,20 @@ export default function App() {
               </div>
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
+
+            {/* Botón contextual: aparece solo si estás con zoom-in */}
+            {showZoomOut && (
+              <div className="pointer-events-auto absolute right-6 top-1/2 -translate-y-1/2">
+                <button
+                  onClick={() => setResetKey((k) => k + 1)}
+                  className="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md text-white/80 hover:text-white shadow-lg"
+                  title="Volver a la vista general"
+                  aria-label="Volver a la vista general"
+                >
+                  Volver
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
