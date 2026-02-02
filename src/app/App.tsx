@@ -177,16 +177,32 @@ export default function App() {
               </div>
             </div>
 
-            {showZoomOut && (
-              <div className="pointer-events-auto fixed right-6 top-1/2 -translate-y-1/2 z-[9999]">
-                <button
-                  onClick={() => setResetKey((k) => k + 1)}
-                  className="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md text-white/80 hover:text-white shadow-lg"
-                >
-                  Volver
-                </button>
-              </div>
-            )}
+            {/* Botón contextual (animado, sin lag) */}
+            <div
+              className={[
+                "fixed right-[22rem] top-1/2 -translate-y-1/2 z-[9999]",
+                "transition-all duration-300 ease-out will-change-transform",
+                showZoomOut
+                  ? "opacity-100 translate-x-0 pointer-events-auto"
+                  : "opacity-0 translate-x-4 pointer-events-none",
+              ].join(" ")}
+            >
+              <button
+                onClick={() => setResetKey((k) => k + 1)}
+                className={[
+                  "px-4 py-3 rounded-2xl shadow-lg",
+                  "backdrop-blur-md border",
+                  "border-cyan-400/30 bg-cyan-400/15",
+                  "text-cyan-100 hover:text-white",
+                  "hover:bg-cyan-400/25",
+                  "transition-colors",
+                ].join(" ")}
+                title="Volver a la vista general"
+                aria-label="Volver a la vista general"
+              >
+                ⤴ Volver
+              </button>
+            </div>
           </div>
         </div>
       )}
