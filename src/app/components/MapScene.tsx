@@ -7,11 +7,16 @@ type MapSceneProps = {
   events: EnvironmentalEvent[];
   bbox?: string | null; // "west,south,east,north"
   onEventClick: (e: EnvironmentalEvent) => void;
+
+  // 👇 NUEVO: fuerza volver al encuadre bbox cuando cambia
+  resetKey?: number;
+
+  // 👇 NUEVO: le avisa a App si estamos “zoom-in” para mostrar botón
+  onZoomedInChange?: (zoomedIn: boolean) => void;
 };
 
 // Mapa oscuro (sin keys)
-const DARK_STYLE =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
 function bboxToBounds(bbox: string) {
   const [w, s, e, n] = bbox.split(",").map(Number);
@@ -35,17 +40,26 @@ function sevRank(sev: EnvironmentalEvent["severity"]) {
   }
 }
 
-export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
+export function MapScene({
+  events,
+  bbox,
+  onEventClick,
+  resetKey = 0,
+  onZoomedInChange,
+}: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
 
-  // Ajustar vista al bbox elegido
+  // Guardamos el último estado para no spamear setState en App
+  const lastZoomedInRef = useRef<boolean>(false);
+
+  // Ajustar vista al bbox elegido (y al reset)
   useEffect(() => {
     if (!bbox || !mapRef.current) return;
     mapRef.current.fitBounds(bboxToBounds(bbox), {
       padding: 80,
       duration: 800,
     });
-  }, [bbox]);
+  }, [bbox, resetKey]);
 
   // GeoJSON para clustering (más rápido que miles de Markers DOM)
   const geojson = useMemo(() => {
@@ -143,6 +157,20 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
     },
   };
 
+  // 👇 Detectar zoom-in para mostrar el botón “Volver”
+  const handleMove = () => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const z = map.getZoom();
+    const zoomedIn = z >= 3.2; // umbral (ajustable)
+
+    if (zoomedIn !== lastZoomedInRef.current) {
+      lastZoomedInRef.current = zoomedIn;
+      onZoomedInChange?.(zoomedIn);
+    }
+  };
+
   // Click handler: cluster => zoom, punto => abrir panel
   const handleClick = (e: MapLayerMouseEvent) => {
     const map = mapRef.current?.getMap();
@@ -182,7 +210,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-0" style={{ touchAction: "none" }}>
       <Map
         ref={(r) => (mapRef.current = r)}
         initialViewState={{ longitude: 0, latitude: 10, zoom: 1.2 }}
@@ -195,6 +223,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         pitchWithRotate={false}
         interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
         onClick={handleClick}
+        onMove={handleMove}
       >
         <Source
           id="events"
