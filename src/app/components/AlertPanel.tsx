@@ -56,11 +56,12 @@ function AlertPanelInner({
 
   return (
     <motion.div
-      // Overlay: usar mouseDown es MUCHO más confiable que click
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto"
+      // 🔥 clave: estar por arriba del Header y cualquier overlay
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-auto"
+      // ✅ usar mouseDown es más confiable que click
       onMouseDown={() => onClose()}
     >
       {/* Backdrop */}
@@ -72,7 +73,7 @@ function AlertPanelInner({
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.96, y: 18, opacity: 0 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
-        // Evita que el click dentro cierre el overlay
+        // ✅ evita cerrar si clickeas dentro del panel
         onMouseDown={(e) => e.stopPropagation()}
         className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border bg-[#0a0f1a] shadow-2xl"
         style={{
@@ -90,7 +91,7 @@ function AlertPanelInner({
 
         {/* Close button */}
         <button
-          // mouseDown para que no se “pierda” el click
+          // ✅ mouseDown + stopPropagation = cierre garantizado
           onMouseDown={(e) => {
             e.stopPropagation();
             onClose();
