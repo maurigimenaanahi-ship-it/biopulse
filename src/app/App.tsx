@@ -149,26 +149,31 @@ export default function App() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,212,255,0.03),transparent_50%)]" />
           </div>
 
-          {/* UI */}
-          <div className="absolute inset-0 z-[2]">
-            <StatsPanel
-              totalEvents={stats.total}
-              criticalEvents={stats.critical}
-              affectedRegions={stats.regions}
-            />
+          {/* UI (NO bloquea el mapa salvo en controles) */}
+          <div className="absolute inset-0 z-[2] pointer-events-none">
+            {/* Paneles / controles: vuelven a ser clickeables */}
+            <div className="pointer-events-auto">
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+              />
+            </div>
 
-            <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+            <div className="pointer-events-auto">
+              <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+            </div>
 
-            <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            </div>
 
-            <div className="absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+            <div className="pointer-events-auto absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <div className="text-white/70 text-sm font-medium">Scan active</div>
               <div className="text-white/45 text-xs mt-1">
                 {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
               </div>
-              <div className="text-white/30 text-[11px] mt-1">
-                events loaded: {events.length}
-              </div>
+              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
           </div>
         </div>
