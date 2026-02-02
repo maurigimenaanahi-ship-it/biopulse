@@ -58,8 +58,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
           coordinates: [ev.longitude, ev.latitude],
         },
         properties: {
-          // IMPORTANTE: todo en properties para poder recuperar luego
-          id: ev.id,
+          id: String(ev.id),
           title: ev.title,
           location: ev.location,
           severity: ev.severity,
@@ -69,7 +68,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
     };
   }, [events]);
 
-  // Layers
+  // Layer IDs
   const CLUSTERS_LAYER_ID = "clusters";
   const CLUSTER_COUNT_LAYER_ID = "cluster-count";
   const UNCLUSTERED_LAYER_ID = "unclustered-point";
@@ -80,7 +79,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
     source: "events",
     filter: ["has", "point_count"],
     paint: {
-      // Color por severidad máxima dentro del cluster (maxSev)
       "circle-color": [
         "case",
         [">=", ["get", "maxSev"], 3],
@@ -91,18 +89,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         "#ffaa00", // moderate
         "#00ff88", // low
       ],
-      // Tamaño por cantidad
-      "circle-radius": [
-        "step",
-        ["get", "point_count"],
-        14,
-        50,
-        18,
-        200,
-        22,
-        800,
-        28,
-      ],
+      "circle-radius": ["step", ["get", "point_count"], 14, 50, 18, 200, 22, 800, 28],
       "circle-opacity": 0.85,
       "circle-stroke-width": 2,
       "circle-stroke-color": "rgba(255,255,255,0.15)",
@@ -157,11 +144,10 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
   };
 
   // Click handler: cluster => zoom, punto => abrir panel
-  const handleClick = async (e: MapLayerMouseEvent) => {
+  const handleClick = (e: MapLayerMouseEvent) => {
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    // buscar features en capas interactivas
     const features = map.queryRenderedFeatures(e.point, {
       layers: [CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID],
     });
@@ -175,7 +161,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
     if (props.cluster) {
       const clusterId = props.cluster_id;
       const source: any = map.getSource("events");
-
       if (!source?.getClusterExpansionZoom) return;
 
       source.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
@@ -190,7 +175,7 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
       return;
     }
 
-    // Si es punto individual: mapear de vuelta al EnvironmentalEvent
+    // Punto individual: abrir panel
     const id = String(props.id ?? "");
     const ev = events.find((x) => String(x.id) === id);
     if (ev) onEventClick(ev);
@@ -208,7 +193,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
         maxZoom={10}
         dragRotate={false}
         pitchWithRotate={false}
-        // ✅ clave para que el click funcione en layers
         interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
         onClick={handleClick}
       >
@@ -219,7 +203,6 @@ export function MapScene({ events, bbox, onEventClick }: MapSceneProps) {
           cluster={true}
           clusterRadius={50}
           clusterMaxZoom={8}
-          // ✅ clusterProperties: maxSev = máximo sevRank dentro del cluster
           clusterProperties={{
             maxSev: ["max", ["get", "sevRank"]],
           }}
