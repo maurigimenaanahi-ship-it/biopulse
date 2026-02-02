@@ -177,12 +177,12 @@ export default function App() {
               </div>
             </div>
 
-            {/* Botón contextual (animado, sin lag) */}
+            {/* Botón contextual (animado, se oculta si hay panel abierto) */}
             <div
               className={[
                 "fixed right-[22rem] top-1/2 -translate-y-1/2 z-[9999]",
                 "transition-all duration-300 ease-out will-change-transform",
-                showZoomOut
+                showZoomOut && !selectedEvent
                   ? "opacity-100 translate-x-0 pointer-events-auto"
                   : "opacity-0 translate-x-4 pointer-events-none",
               ].join(" ")}
@@ -196,6 +196,7 @@ export default function App() {
                   "text-cyan-100 hover:text-white",
                   "hover:bg-cyan-400/25",
                   "transition-colors",
+                  "active:scale-[0.98] transition-transform",
                 ].join(" ")}
                 title="Volver a la vista general"
                 aria-label="Volver a la vista general"
