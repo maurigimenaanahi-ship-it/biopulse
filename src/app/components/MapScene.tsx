@@ -210,21 +210,26 @@ export function MapScene({
   };
 
   return (
-    <div className="absolute inset-0 z-0" style={{ touchAction: "none" }}>
-      <Map
-        ref={(r) => (mapRef.current = r)}
-        initialViewState={{ longitude: 0, latitude: 10, zoom: 1.2 }}
-        mapStyle={DARK_STYLE}
-        style={{ width: "100%", height: "100%" }}
-        attributionControl={false}
-        minZoom={1}
-        maxZoom={10}
-        dragRotate={false}
-        pitchWithRotate={false}
-        interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
-        onClick={handleClick}
-        onMove={handleMove}
-      >
+  <div className="absolute inset-0 z-0" style={{ touchAction: "none" }}>
+    <Map
+      ref={(r) => (mapRef.current = r)}
+      initialViewState={{ longitude: 0, latitude: 10, zoom: 1.2 }}
+      mapStyle={DARK_STYLE}
+      style={{ width: "100%", height: "100%" }}
+      attributionControl={false}
+      minZoom={1}
+      maxZoom={10}
+      dragRotate={false}
+      pitchWithRotate={false}
+      interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
+      onClick={handleClick}
+
+      /* 👇 estas cuatro líneas son la clave */
+      onMove={handleMove}
+      onZoom={handleMove}
+      onMoveEnd={handleMove}
+      onZoomEnd={handleMove}
+    >
         <Source
           id="events"
           type="geojson"
