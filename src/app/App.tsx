@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -9,7 +9,6 @@ import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
-import { SlidersHorizontal, Activity, AlertTriangle, MapPin } from "lucide-react";
 
 // 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -31,9 +30,6 @@ export default function App() {
   // Control de vista del mapa
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
-
-  // Mobile UX: stats expand/collapse
-  const [statsExpandedMobile, setStatsExpandedMobile] = useState(true);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -95,7 +91,6 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-        setStatsExpandedMobile(true);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
@@ -105,7 +100,6 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-        setStatsExpandedMobile(true);
         return;
       }
     }
@@ -117,7 +111,6 @@ export default function App() {
     setStage("dashboard");
     setResetKey((k) => k + 1);
     setShowZoomOut(false);
-    setStatsExpandedMobile(true);
   };
 
   const stats = useMemo(() => {
@@ -130,26 +123,7 @@ export default function App() {
     };
   }, [events]);
 
-  // Volver aparece cuando hay zoom y NO hay panel abierto
   const shouldShowZoomOut = showZoomOut && !selectedEvent;
-
-  // ✅ Regla: apenas hay zoom en mobile, colapsamos stats automáticamente
-  useEffect(() => {
-    // solo colapsamos si hay zoom y no hay alerta abierta
-    if (showZoomOut && !selectedEvent) {
-      setStatsExpandedMobile(false);
-    }
-    // cuando volvés a vista general, expandimos de nuevo
-    if (!showZoomOut && !selectedEvent) {
-      setStatsExpandedMobile(true);
-    }
-  }, [showZoomOut, selectedEvent]);
-
-  // ✅ Dock compacto (mobile) – aparece cuando stats están colapsados
-  const showMobileDock = !statsExpandedMobile && !selectedEvent;
-
-  const timelineSafeBottomMobile = "bottom-[12.75rem]"; // evita pisar la timeline + playback
-  const timelineSafeBottomMobileVolver = "bottom-[18.25rem]"; // un poco más arriba que el botón Cambiar
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
@@ -194,99 +168,30 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Botón "Cambiar búsqueda" */}
-            <div
-              className={[
-                "pointer-events-auto fixed z-[9999]",
-                // MOBILE: abajo, pero arriba de la timeline
-                `left-4 ${timelineSafeBottomMobile}`,
-                // DESKTOP: arriba
-                "md:left-6 md:bottom-auto md:top-24",
-              ].join(" ")}
-            >
+            {/* Botón Cambiar búsqueda */}
+            <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
               <button
                 onClick={openSetup}
                 className={[
-                  "px-4 py-3 rounded-2xl shadow-lg",
-                  "backdrop-blur-md border border-cyan-400/25",
-                  "bg-cyan-400/15 hover:bg-cyan-400/22",
-                  "text-white/90 hover:text-white",
+                  "px-4 py-2 rounded-xl shadow-lg",
+                  "backdrop-blur-md border border-white/10 bg-white/5",
+                  "text-white/80 hover:text-white hover:bg-white/10",
                   "transition-colors",
-                  "min-w-[12.5rem] md:min-w-[16rem]",
                 ].join(" ")}
                 title="Cambiar categoría o región"
                 aria-label="Cambiar categoría o región"
               >
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-cyan-200" />
-                  <div className="font-medium leading-none">
-                    <span className="md:hidden">Cambiar</span>
-                    <span className="hidden md:inline">Cambiar búsqueda</span>
-                  </div>
-                </div>
-                <div className="hidden md:block text-white/55 text-xs mt-1">
-                  Categoría • Región
-                </div>
+                Cambiar búsqueda
               </button>
             </div>
 
-            {/* ✅ Stats: en mobile se pueden colapsar */}
             <div className="pointer-events-auto">
-              <div className={statsExpandedMobile ? "block" : "hidden md:block"}>
-                <StatsPanel
-                  totalEvents={stats.total}
-                  criticalEvents={stats.critical}
-                  affectedRegions={stats.regions}
-                />
-              </div>
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+              />
             </div>
-
-            {/* ✅ Dock compacto (solo mobile cuando colapsado) */}
-            {showMobileDock && (
-              <div className="pointer-events-auto fixed right-4 top-24 z-[9999] md:hidden">
-                <div className="flex flex-col gap-3">
-                  {[
-                    {
-                      icon: <Activity className="w-5 h-5" />,
-                      value: stats.total,
-                      pill: "bg-cyan-400/15 border-cyan-400/25 text-cyan-100",
-                      label: "Active events",
-                    },
-                    {
-                      icon: <AlertTriangle className="w-5 h-5" />,
-                      value: stats.critical,
-                      pill: "bg-rose-400/15 border-rose-400/25 text-rose-100",
-                      label: "Critical alerts",
-                    },
-                    {
-                      icon: <MapPin className="w-5 h-5" />,
-                      value: stats.regions,
-                      pill: "bg-amber-400/15 border-amber-400/25 text-amber-100",
-                      label: "Affected regions",
-                    },
-                  ].map((item, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setStatsExpandedMobile(true)}
-                      className={[
-                        "w-[3.25rem] h-[3.25rem] rounded-2xl",
-                        "border shadow-lg backdrop-blur-md",
-                        "flex flex-col items-center justify-center gap-1",
-                        "transition-colors",
-                        item.pill,
-                      ].join(" ")}
-                      aria-label={`Expandir panel: ${item.label}`}
-                      title={`Mostrar ${item.label}`}
-                    >
-                      <div className="opacity-90">{item.icon}</div>
-                      <div className="text-[11px] leading-none font-semibold tabular-nums">
-                        {item.value}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="pointer-events-auto">
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
@@ -301,19 +206,14 @@ export default function App() {
               <div className="text-white/45 text-xs mt-1">
                 {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
               </div>
-              <div className="text-white/30 text-[11px] mt-1">
-                events loaded: {events.length}
-              </div>
+              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Botón "Volver" */}
+            {/* ✅ Botón Volver (separado del dock derecho) */}
             <div
               className={[
-                "fixed z-[9999] transition-all duration-300 ease-out will-change-transform",
-                // DESKTOP: al centro derecha
-                "md:right-6 md:top-1/2 md:-translate-y-1/2",
-                // MOBILE: lo bajamos para que no se pegue al dock/paneles
-                `right-4 ${timelineSafeBottomMobileVolver} md:bottom-auto md:translate-y-0`,
+                "fixed right-[92px] md:right-[120px] top-1/2 -translate-y-1/2 z-[9999]",
+                "transition-all duration-300 ease-out will-change-transform",
                 shouldShowZoomOut
                   ? "opacity-100 translate-x-0 pointer-events-auto"
                   : "opacity-0 translate-x-4 pointer-events-none",
