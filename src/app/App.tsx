@@ -115,7 +115,6 @@ export default function App() {
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
 
-        // reset UI
         setStatsDocked(false);
         setStatsExpanded(false);
         setMapZoom(1.2);
@@ -169,7 +168,6 @@ export default function App() {
     }
   }, [mapZoom]);
 
-  // Si hay alerta abierta, cerramos stats expandido
   useEffect(() => {
     if (selectedEvent) setStatsExpanded(false);
   }, [selectedEvent]);
@@ -182,16 +180,29 @@ export default function App() {
     });
   };
 
-  // ✅ “Volver” NO aparece si hay panel abierto o si stats están expandidos
   const shouldShowZoomOut = showZoomOut && !selectedEvent && !statsExpanded;
 
   const headerOverlayActive = !!selectedEvent || stage === "setup";
+
+  // ✅ cuando NO están dockeados, es el estado “desde arriba”
+  // ahí es donde chocaban nav + cambiar + stats: compactamos header
+  const headerCompact = !statsDocked && stage === "dashboard";
+
+  // ✅ “Cambiar búsqueda” baja en el modo “desde arriba” para no pisar Active Events
+  const changeBtnTopClass = statsDocked
+    ? "top-20 md:top-24"
+    : "top-28 md:top-32"; // 👈 baja un poco para dejar respirar a stats + header
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      <Header activeView={activeView} onViewChange={setActiveView} overlayActive={headerOverlayActive} />
+      <Header
+        activeView={activeView}
+        onViewChange={setActiveView}
+        overlayActive={headerOverlayActive}
+        compact={isMobile || headerCompact || statsExpanded || !!selectedEvent}
+      />
 
       {stage === "setup" && (
         <SetupPanel
@@ -229,7 +240,7 @@ export default function App() {
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
             {/* ✅ Cambiar (más claro + más visible) */}
-            <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
+            <div className={`pointer-events-auto fixed left-4 md:left-6 ${changeBtnTopClass} z-[9999]`}>
               <button
                 onClick={openSetup}
                 className={[
@@ -252,10 +263,11 @@ export default function App() {
               </button>
             </div>
 
-            {/* Stats normal */}
+            {/* ✅ Stats normal: le damos “aire” arriba en desktop para no chocar con header */}
             <div
               className={[
                 "pointer-events-auto transition-all duration-300 ease-out",
+                "pt-20 md:pt-24", // 👈 empuja stats hacia abajo (soluciona overlap con tabs)
                 statsDocked ? "opacity-0 -translate-x-2 pointer-events-none" : "opacity-100 translate-x-0",
               ].join(" ")}
             >
@@ -350,11 +362,11 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Volver (reubicado abajo-derecha para NO pegarse al dock) */}
+            {/* Volver (abajo-derecha, no se pega al dock) */}
             <div
               className={[
                 "fixed right-4 md:right-6 z-[9999]",
-                "bottom-[11.5rem] md:bottom-[12.5rem]", // arriba del timeline
+                "bottom-[11.5rem] md:bottom-[12.5rem]",
                 "transition-all duration-300 ease-out will-change-transform",
                 shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
