@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -10,20 +10,19 @@ import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 
-// lucide icons
-import { BarChart3, Clock3, Radio, Settings2 } from "lucide-react";
+import { Flame, AlertTriangle, Globe2 } from "lucide-react";
 
+// 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
-
-// panel ids para mobile dock
-type MobilePanel = "none" | "stats" | "timeline" | "status" | "setup";
+type StatDockKey = "live" | "critical" | "regions";
 
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
 
+  // Selección activa
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
   const [selectedRegionKey, setSelectedRegionKey] = useState<string | null>(null);
 
@@ -31,18 +30,12 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Control de vista del mapa
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
 
-  // ✅ mobile detection
+  // ✅ Mobile detect (para ajustar distancias/padding)
   const [isMobile, setIsMobile] = useState(false);
-
-  // ✅ “colapsado” = panels ocultos y solo dock visible
-  const [mobileCollapsed, setMobileCollapsed] = useState(false);
-
-  // ✅ cuál panel está abierto desde el dock
-  const [mobileOpenPanel, setMobileOpenPanel] = useState<MobilePanel>("none");
-
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
     const apply = () => setIsMobile(mq.matches);
@@ -51,14 +44,17 @@ export default function App() {
     return () => mq.removeEventListener?.("change", apply);
   }, []);
 
+  // ✅ Lo que pediste: stats se “meten” al explorar y quedan como pictogramas
+  const [statsDocked, setStatsDocked] = useState(false); // true = colapsado a pictos
+  const [statsExpanded, setStatsExpanded] = useState(false); // true = stats completos visibles
+  const [activeStatDock, setActiveStatDock] = useState<StatDockKey>("live");
+
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
   const openSetup = () => {
     setSelectedEvent(null);
     setShowZoomOut(false);
-    setMobileOpenPanel("none");
-    setMobileCollapsed(false);
     setStage("setup");
   };
 
@@ -69,6 +65,7 @@ export default function App() {
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
+    // 🔥 Incendios reales (FIRMS)
     if (args.category === "fire") {
       try {
         const bbox = encodeURIComponent(args.region.bbox);
@@ -113,9 +110,9 @@ export default function App() {
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
 
-        // ✅ mobile: arrancamos sin colapsar
-        setMobileCollapsed(false);
-        setMobileOpenPanel("none");
+        // ✅ reset de UI
+        setStatsDocked(false);
+        setStatsExpanded(false);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
@@ -125,20 +122,23 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-        setMobileCollapsed(false);
-        setMobileOpenPanel("none");
+
+        setStatsDocked(false);
+        setStatsExpanded(false);
         return;
       }
     }
 
+    // Otras categorías: mock
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setSelectedEvent(null);
     setStage("dashboard");
     setResetKey((k) => k + 1);
     setShowZoomOut(false);
-    setMobileCollapsed(false);
-    setMobileOpenPanel("none");
+
+    setStatsDocked(false);
+    setStatsExpanded(false);
   };
 
   const stats = useMemo(() => {
@@ -151,55 +151,45 @@ export default function App() {
     };
   }, [events]);
 
-  const shouldShowZoomOut = showZoomOut && !selectedEvent;
+  // ✅ Cuando el mapa se considera “zoom-in” (exploración) -> dock automático
+  useEffect(() => {
+    if (showZoomOut) {
+      setStatsDocked(true);
+      setStatsExpanded(false);
+    } else {
+      // si volvés a vista general, stats vuelven normales
+      setStatsDocked(false);
+      setStatsExpanded(false);
+    }
+  }, [showZoomOut]);
 
-  const headerOverlayActive = !!selectedEvent || stage === "setup";
-
-  // ✅ si se abre modal, no colapses y cerrá panel dock
+  // ✅ Si hay alerta abierta, no metemos overlay raro
   useEffect(() => {
     if (selectedEvent) {
-      setMobileCollapsed(false);
-      setMobileOpenPanel("none");
+      setStatsExpanded(false);
     }
   }, [selectedEvent]);
 
-  // ✅ cuando el usuario interactúa con el mapa: colapsa UI en mobile
-  const handleMapInteracting = () => {
-    if (!isMobile) return;
-    if (selectedEvent) return;
-
-    // si estaba abierto algún panel desde dock, lo cerramos y colapsamos
-    setMobileOpenPanel("none");
-    setMobileCollapsed(true);
+  // ✅ Toggle: tocar pictograma despliega / vuelve a meter
+  const toggleStatsFromDock = (key: StatDockKey) => {
+    setActiveStatDock(key);
+    setStatsExpanded((prev) => {
+      // si estaba desplegado y tocás el mismo, se cierra
+      if (prev && activeStatDock === key) return false;
+      return true;
+    });
   };
 
-  // en mobile, si está colapsado, escondemos paneles
-  const showPanels = !(isMobile && mobileCollapsed);
+  // ✅ Volver: SOLO si zoom-in y NO hay alerta abierta y NO stats desplegados
+  const shouldShowZoomOut = showZoomOut && !selectedEvent && !statsExpanded;
 
-  // ✅ abrir/cerrar panel desde dock
-  const toggleMobilePanel = (id: MobilePanel) => {
-    // si abrís panel: expandimos UI (no colapsada)
-    setMobileCollapsed(false);
-    setMobileOpenPanel((cur) => (cur === id ? "none" : id));
-  };
-
-  // ✅ si tocás “afuera” en mobile (sobre el mapa), colapsamos
-  const collapseMobile = () => {
-    if (!isMobile) return;
-    if (selectedEvent) return;
-    setMobileOpenPanel("none");
-    setMobileCollapsed(true);
-  };
+  const headerOverlayActive = !!selectedEvent || stage === "setup";
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      <Header
-        activeView={activeView}
-        onViewChange={setActiveView}
-        overlayActive={headerOverlayActive}
-      />
+      <Header activeView={activeView} onViewChange={setActiveView} overlayActive={headerOverlayActive} />
 
       {stage === "setup" && (
         <SetupPanel
@@ -215,17 +205,14 @@ export default function App() {
 
       {stage === "dashboard" && (
         <div className="absolute inset-0">
-          {/* MAP */}
+          {/* MAPA */}
           <div className="absolute inset-0 z-0">
-            {/* “tap outside” para colapsar en mobile */}
-            <div className="absolute inset-0" onClick={collapseMobile} />
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
               onEventClick={setSelectedEvent}
               resetKey={resetKey}
               onZoomedInChange={setShowZoomOut}
-              onUserInteracting={handleMapInteracting}
             />
           </div>
 
@@ -238,226 +225,161 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Mobile Dock (solo mobile, y no cuando hay modal) */}
-            {isMobile && !selectedEvent && (
-              <div className="pointer-events-auto fixed right-3 top-1/2 -translate-y-1/2 z-[9999]">
-                <div className="flex flex-col gap-2">
+            {/* Botón Cambiar (siempre disponible) */}
+            <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
+              <button
+                onClick={openSetup}
+                className={[
+                  "px-4 py-2 rounded-xl shadow-lg",
+                  "backdrop-blur-md border border-white/10 bg-white/5",
+                  "text-white/80 hover:text-white hover:bg-white/10",
+                  "transition-colors",
+                ].join(" ")}
+                title="Cambiar categoría o región"
+                aria-label="Cambiar categoría o región"
+              >
+                Cambiar
+              </button>
+            </div>
+
+            {/* ✅ Stats: normal o dock + expand */}
+            {/* Normal (como estaba) */}
+            <div
+              className={[
+                "pointer-events-auto transition-all duration-300 ease-out",
+                statsDocked ? "opacity-0 -translate-x-2 pointer-events-none" : "opacity-100 translate-x-0",
+              ].join(" ")}
+            >
+              <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} />
+            </div>
+
+            {/* Dock reducido a pictogramas (aparece al explorar) */}
+            {statsDocked && !selectedEvent && (
+              <div className="pointer-events-auto fixed right-3 top-28 md:top-28 z-[9999]">
+                <div
+                  className={[
+                    "flex flex-col gap-2",
+                    "transition-all duration-300 ease-out",
+                    "opacity-100 translate-x-0",
+                  ].join(" ")}
+                >
                   <button
-                    onClick={() => toggleMobilePanel("stats")}
+                    onClick={() => toggleStatsFromDock("live")}
                     className={[
-                      "w-12 h-12 rounded-2xl shadow-lg",
-                      "backdrop-blur-md border border-cyan-400/25 bg-cyan-400/12",
+                      "w-12 rounded-2xl px-0 py-2",
+                      "border border-cyan-400/25 bg-cyan-400/12 backdrop-blur-md shadow-lg",
                       "grid place-items-center",
-                      "transition-transform active:scale-95",
-                      mobileOpenPanel === "stats" ? "ring-2 ring-cyan-400/35" : "",
+                      activeStatDock === "live" && statsExpanded ? "ring-2 ring-cyan-400/30" : "",
                     ].join(" ")}
-                    aria-label="Estadísticas"
-                    title="Estadísticas"
+                    aria-label="Live events"
+                    title="Live events"
                   >
-                    <BarChart3 className="w-5 h-5 text-cyan-100" />
+                    <Flame className="w-5 h-5 text-cyan-100" />
+                    <div className="text-[11px] mt-1 text-cyan-100/90">{stats.total}</div>
                   </button>
 
                   <button
-                    onClick={() => toggleMobilePanel("timeline")}
+                    onClick={() => toggleStatsFromDock("critical")}
                     className={[
-                      "w-12 h-12 rounded-2xl shadow-lg",
-                      "backdrop-blur-md border border-cyan-400/25 bg-cyan-400/12",
+                      "w-12 rounded-2xl px-0 py-2",
+                      "border border-cyan-400/25 bg-cyan-400/12 backdrop-blur-md shadow-lg",
                       "grid place-items-center",
-                      "transition-transform active:scale-95",
-                      mobileOpenPanel === "timeline" ? "ring-2 ring-cyan-400/35" : "",
+                      activeStatDock === "critical" && statsExpanded ? "ring-2 ring-cyan-400/30" : "",
                     ].join(" ")}
-                    aria-label="Timeline"
-                    title="Timeline"
+                    aria-label="Critical"
+                    title="Critical"
                   >
-                    <Clock3 className="w-5 h-5 text-cyan-100" />
+                    <AlertTriangle className="w-5 h-5 text-cyan-100" />
+                    <div className="text-[11px] mt-1 text-cyan-100/90">{stats.critical}</div>
                   </button>
 
                   <button
-                    onClick={() => toggleMobilePanel("status")}
+                    onClick={() => toggleStatsFromDock("regions")}
                     className={[
-                      "w-12 h-12 rounded-2xl shadow-lg",
-                      "backdrop-blur-md border border-cyan-400/25 bg-cyan-400/12",
+                      "w-12 rounded-2xl px-0 py-2",
+                      "border border-cyan-400/25 bg-cyan-400/12 backdrop-blur-md shadow-lg",
                       "grid place-items-center",
-                      "transition-transform active:scale-95",
-                      mobileOpenPanel === "status" ? "ring-2 ring-cyan-400/35" : "",
+                      activeStatDock === "regions" && statsExpanded ? "ring-2 ring-cyan-400/30" : "",
                     ].join(" ")}
-                    aria-label="Estado"
-                    title="Estado"
+                    aria-label="Regions"
+                    title="Regions"
                   >
-                    <Radio className="w-5 h-5 text-cyan-100" />
-                  </button>
-
-                  <button
-                    onClick={() => toggleMobilePanel("setup")}
-                    className={[
-                      "w-12 h-12 rounded-2xl shadow-lg",
-                      "backdrop-blur-md border border-cyan-400/25 bg-cyan-400/12",
-                      "grid place-items-center",
-                      "transition-transform active:scale-95",
-                      mobileOpenPanel === "setup" ? "ring-2 ring-cyan-400/35" : "",
-                    ].join(" ")}
-                    aria-label="Cambiar categoría o región"
-                    title="Cambiar categoría o región"
-                  >
-                    <Settings2 className="w-5 h-5 text-cyan-100" />
+                    <Globe2 className="w-5 h-5 text-cyan-100" />
+                    <div className="text-[11px] mt-1 text-cyan-100/90">{stats.regions}</div>
                   </button>
                 </div>
               </div>
             )}
 
-            {/* ✅ Panels (desktop normal, mobile controlado por dock/collapse) */}
-            <div
-              className={[
-                "transition-all duration-300 ease-out",
-                showPanels ? "opacity-100" : "opacity-0 pointer-events-none",
-              ].join(" ")}
-            >
-              {/* Desktop: botón Cambiar */}
-              {!isMobile && (
-                <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
-                  <button
-                    onClick={openSetup}
-                    className={[
-                      "px-4 py-2 rounded-xl shadow-lg",
-                      "backdrop-blur-md border border-white/10 bg-white/5",
-                      "text-white/80 hover:text-white hover:bg-white/10",
-                      "transition-colors",
-                    ].join(" ")}
-                    title="Cambiar categoría o región"
-                    aria-label="Cambiar categoría o región"
-                  >
-                    Cambiar
-                  </button>
-                </div>
-              )}
-
-              {/* Desktop: Stats normal */}
-              {!isMobile && (
-                <div className="pointer-events-auto">
+            {/* Expand overlay: cuando tocás un pictograma se despliega el StatsPanel completo */}
+            {statsDocked && statsExpanded && !selectedEvent && (
+              <div className="pointer-events-auto fixed inset-0 z-[9998]">
+                {/* backdrop suave: tocás afuera y se vuelve a meter */}
+                <div
+                  className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
+                  onClick={() => setStatsExpanded(false)}
+                />
+                <div
+                  className={[
+                    "absolute",
+                    "left-4 right-16",
+                    isMobile ? "top-24" : "top-28",
+                    "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
+                    "p-3",
+                  ].join(" ")}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <StatsPanel
                     totalEvents={stats.total}
                     criticalEvents={stats.critical}
                     affectedRegions={stats.regions}
                   />
                 </div>
-              )}
-
-              {/* Desktop: Timeline normal */}
-              {!isMobile && (
-                <div className="pointer-events-auto">
-                  <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
-                </div>
-              )}
-
-              {/* Desktop: status card */}
-              {!isMobile && (
-                <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                  <div className="text-white/70 text-sm font-medium">Scan active</div>
-                  <div className="text-white/45 text-xs mt-1">
-                    {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
-                  </div>
-                  <div className="text-white/30 text-[11px] mt-1">
-                    events loaded: {events.length}
-                  </div>
-                </div>
-              )}
-
-              {/* Zoom-out (desktop + mobile, pero se controla con selectedEvent) */}
-              <div
-                className={[
-                  "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
-                  "transition-all duration-300 ease-out will-change-transform",
-                  shouldShowZoomOut
-                    ? "opacity-100 translate-x-0 pointer-events-auto"
-                    : "opacity-0 translate-x-4 pointer-events-none",
-                ].join(" ")}
-              >
-                <button
-                  onClick={() => setResetKey((k) => k + 1)}
-                  className={[
-                    "px-4 py-3 rounded-2xl shadow-lg",
-                    "backdrop-blur-md border",
-                    "border-cyan-400/30 bg-cyan-400/15",
-                    "text-cyan-100 hover:text-white",
-                    "hover:bg-cyan-400/25",
-                    "transition-colors",
-                  ].join(" ")}
-                  title="Volver a la vista general"
-                  aria-label="Volver a la vista general"
-                >
-                  ⤴ Volver
-                </button>
-              </div>
-            </div>
-
-            {/* ✅ Mobile “opened panel” overlays from dock */}
-            {isMobile && !selectedEvent && mobileOpenPanel !== "none" && (
-              <div className="pointer-events-auto fixed inset-0 z-[9998]" onClick={collapseMobile}>
-                <div
-                  className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-                  aria-hidden="true"
-                />
-                <div
-                  className="absolute left-3 right-16 top-20 bottom-20 rounded-2xl border border-white/10 bg-[#0a0f1a]/95 overflow-hidden"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Panel header */}
-                  <div className="px-5 py-4 border-b border-white/10 text-white/85 font-medium">
-                    {mobileOpenPanel === "stats" && "Estadísticas"}
-                    {mobileOpenPanel === "timeline" && "Timeline"}
-                    {mobileOpenPanel === "status" && "Estado"}
-                    {mobileOpenPanel === "setup" && "Cambiar"}
-                  </div>
-
-                  {/* Panel content */}
-                  <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
-                    {mobileOpenPanel === "stats" && (
-                      <StatsPanel
-                        totalEvents={stats.total}
-                        criticalEvents={stats.critical}
-                        affectedRegions={stats.regions}
-                      />
-                    )}
-
-                    {mobileOpenPanel === "timeline" && (
-                      <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
-                    )}
-
-                    {mobileOpenPanel === "status" && (
-                      <div className="px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                        <div className="text-white/70 text-sm font-medium">Scan active</div>
-                        <div className="text-white/45 text-xs mt-1">
-                          {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
-                        </div>
-                        <div className="text-white/30 text-[11px] mt-1">
-                          events loaded: {events.length}
-                        </div>
-                      </div>
-                    )}
-
-                    {mobileOpenPanel === "setup" && (
-                      <div className="space-y-3">
-                        <div className="text-white/60 text-sm">
-                          Volvés a elegir categoría o región.
-                        </div>
-                        <button
-                          onClick={openSetup}
-                          className={[
-                            "w-full px-5 py-4 rounded-xl text-lg font-medium transition",
-                            "border border-cyan-400/30 bg-cyan-400/12 text-cyan-100",
-                            "hover:bg-cyan-400/18",
-                          ].join(" ")}
-                        >
-                          Abrir configuración
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             )}
 
-            {/* Alert modal */}
+            {/* Timeline (como estaba) */}
+            <div className="pointer-events-auto">
+              <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+            </div>
+
+            {/* Scan Active (como estaba) */}
+            <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+              <div className="text-white/70 text-sm font-medium">Scan active</div>
+              <div className="text-white/45 text-xs mt-1">
+                {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
+              </div>
+              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
+            </div>
+
+            {/* Volver (solo si zoom-in y NO hay panel abierto y NO hay stats desplegados) */}
+            <div
+              className={[
+                "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
+                "transition-all duration-300 ease-out will-change-transform",
+                shouldShowZoomOut
+                  ? "opacity-100 translate-x-0 pointer-events-auto"
+                  : "opacity-0 translate-x-4 pointer-events-none",
+              ].join(" ")}
+            >
+              <button
+                onClick={() => setResetKey((k) => k + 1)}
+                className={[
+                  "px-4 py-3 rounded-2xl shadow-lg",
+                  "backdrop-blur-md border",
+                  "border-cyan-400/30 bg-cyan-400/15",
+                  "text-cyan-100 hover:text-white",
+                  "hover:bg-cyan-400/25",
+                  "transition-colors",
+                ].join(" ")}
+                title="Volver a la vista general"
+                aria-label="Volver a la vista general"
+              >
+                ⤴ Volver
+              </button>
+            </div>
+
+            {/* AlertPanel modal */}
             <div className="pointer-events-auto">
               <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
             </div>
