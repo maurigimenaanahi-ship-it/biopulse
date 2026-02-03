@@ -126,12 +126,19 @@ export default function App() {
 
   const shouldShowZoomOut = showZoomOut && !selectedEvent;
 
+  // ✅ Header overlay: cuando hay modal (alerta) o cuando estás en Setup
+  const headerOverlayActive = !!selectedEvent || stage === "setup";
+
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
       {/* Header */}
-      <Header activeView={activeView} onViewChange={setActiveView} />
+      <Header
+        activeView={activeView}
+        onViewChange={setActiveView}
+        overlayActive={headerOverlayActive}
+      />
 
       {/* Setup overlay */}
       {stage === "setup" && (
