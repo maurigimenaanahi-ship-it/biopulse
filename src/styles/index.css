@@ -2,3 +2,18 @@
 @import './tailwind.css';
 @import './theme.css';
 @import './custom.css';
+
+/* =========================================================
+   Mobile layout hardening (prevents horizontal overflow
+   + fixes 100vh issues on mobile browsers)
+   ========================================================= */
+
+html, body, #root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Optional: smoother scroll + safer touch behavior */
+body {
+  overscroll-behavior: none;
+}
