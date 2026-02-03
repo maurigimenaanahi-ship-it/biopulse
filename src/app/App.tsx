@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -9,17 +9,12 @@ import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
-
-import { Flame, AlertTriangle, Globe2, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 // 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
-type StatDockKey = "live" | "critical" | "regions";
-
-// ✅ Ajustá esto a gusto (más bajo = se oculta antes)
-const STATS_DOCK_ZOOM = 2.2;
 
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
@@ -37,28 +32,11 @@ export default function App() {
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
 
-  // ✅ zoom real del mapa (para esconder stats “antes”)
-  const [mapZoom, setMapZoom] = useState(1.2);
-
-  // ✅ Dock / expand de Stats
-  const [statsDocked, setStatsDocked] = useState(false);
-  const [statsExpanded, setStatsExpanded] = useState(false);
-  const [activeStatDock, setActiveStatDock] = useState<StatDockKey>("live");
-
-  // Mobile detect (solo para spacing/padding)
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 768px)");
-    const apply = () => setIsMobile(mq.matches);
-    apply();
-    mq.addEventListener?.("change", apply);
-    return () => mq.removeEventListener?.("change", apply);
-  }, []);
-
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
   const openSetup = () => {
+    // Opción A: NO borramos categoría/región, solo volvemos a configurar
     setSelectedEvent(null);
     setShowZoomOut(false);
     setStage("setup");
@@ -71,6 +49,7 @@ export default function App() {
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
+    // 🔥 Incendios reales (FIRMS)
     if (args.category === "fire") {
       try {
         const bbox = encodeURIComponent(args.region.bbox);
@@ -114,10 +93,6 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-
-        setStatsDocked(false);
-        setStatsExpanded(false);
-        setMapZoom(1.2);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
@@ -127,24 +102,17 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-
-        setStatsDocked(false);
-        setStatsExpanded(false);
-        setMapZoom(1.2);
         return;
       }
     }
 
+    // Otras categorías: mock
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setSelectedEvent(null);
     setStage("dashboard");
     setResetKey((k) => k + 1);
     setShowZoomOut(false);
-
-    setStatsDocked(false);
-    setStatsExpanded(false);
-    setMapZoom(1.2);
   };
 
   const stats = useMemo(() => {
@@ -157,53 +125,16 @@ export default function App() {
     };
   }, [events]);
 
-  // ✅ Dockear “más temprano” por zoom real
-  useEffect(() => {
-    if (mapZoom >= STATS_DOCK_ZOOM) {
-      setStatsDocked(true);
-      setStatsExpanded(false);
-    } else {
-      setStatsDocked(false);
-      setStatsExpanded(false);
-    }
-  }, [mapZoom]);
-
-  useEffect(() => {
-    if (selectedEvent) setStatsExpanded(false);
-  }, [selectedEvent]);
-
-  const toggleStatsFromDock = (key: StatDockKey) => {
-    setActiveStatDock(key);
-    setStatsExpanded((prev) => {
-      if (prev && activeStatDock === key) return false;
-      return true;
-    });
-  };
-
-  const shouldShowZoomOut = showZoomOut && !selectedEvent && !statsExpanded;
-
-  const headerOverlayActive = !!selectedEvent || stage === "setup";
-
-  // ✅ cuando NO están dockeados, es el estado “desde arriba”
-  // ahí es donde chocaban nav + cambiar + stats: compactamos header
-  const headerCompact = !statsDocked && stage === "dashboard";
-
-  // ✅ “Cambiar búsqueda” baja en el modo “desde arriba” para no pisar Active Events
-  const changeBtnTopClass = statsDocked
-    ? "top-20 md:top-24"
-    : "top-28 md:top-32"; // 👈 baja un poco para dejar respirar a stats + header
+  const shouldShowZoomOut = showZoomOut && !selectedEvent;
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      <Header
-        activeView={activeView}
-        onViewChange={setActiveView}
-        overlayActive={headerOverlayActive}
-        compact={isMobile || headerCompact || statsExpanded || !!selectedEvent}
-      />
+      {/* Header */}
+      <Header activeView={activeView} onViewChange={setActiveView} />
 
+      {/* Setup overlay */}
       {stage === "setup" && (
         <SetupPanel
           category={selectedCategory}
@@ -216,6 +147,7 @@ export default function App() {
         />
       )}
 
+      {/* Dashboard */}
       {stage === "dashboard" && (
         <div className="absolute inset-0">
           {/* MAPA */}
@@ -226,7 +158,6 @@ export default function App() {
               onEventClick={setSelectedEvent}
               resetKey={resetKey}
               onZoomedInChange={setShowZoomOut}
-              onZoomChange={setMapZoom}
             />
           </div>
 
@@ -239,144 +170,86 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Cambiar (más claro + más visible) */}
-            <div className={`pointer-events-auto fixed left-4 md:left-6 ${changeBtnTopClass} z-[9999]`}>
+            {/* Botón "Cambiar búsqueda" */}
+            <div
+              className={[
+                "pointer-events-auto fixed z-[9999]",
+                // ✅ MOBILE: abajo (no se pisa con Stats/Header)
+                "left-4 bottom-[9.5rem]",
+                // ✅ DESKTOP: arriba como antes
+                "md:left-6 md:bottom-auto md:top-24",
+              ].join(" ")}
+            >
               <button
                 onClick={openSetup}
                 className={[
-                  "rounded-2xl shadow-lg",
-                  "backdrop-blur-md border",
-                  "border-cyan-400/25 bg-cyan-400/10",
-                  "hover:bg-cyan-400/16 hover:border-cyan-300/30",
+                  "px-4 py-3 rounded-2xl shadow-lg",
+                  "backdrop-blur-md border border-cyan-400/25",
+                  "bg-cyan-400/15 hover:bg-cyan-400/22",
+                  "text-white/90 hover:text-white",
                   "transition-colors",
-                  "px-4 py-3",
-                  "text-left",
+                  "min-w-[12.5rem] md:min-w-[16rem]",
                 ].join(" ")}
                 title="Cambiar categoría o región"
                 aria-label="Cambiar categoría o región"
               >
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="w-4 h-4 text-cyan-200" />
-                  <div className="text-white/90 font-medium leading-none">Cambiar búsqueda</div>
+                  <div className="font-medium leading-none">
+                    <span className="md:hidden">Cambiar</span>
+                    <span className="hidden md:inline">Cambiar búsqueda</span>
+                  </div>
                 </div>
-                <div className="text-white/55 text-xs mt-1">Categoría • Región</div>
+                <div className="hidden md:block text-white/55 text-xs mt-1">
+                  Categoría • Región
+                </div>
               </button>
             </div>
 
-            {/* ✅ Stats normal: le damos “aire” arriba en desktop para no chocar con header */}
-            <div
-              className={[
-                "pointer-events-auto transition-all duration-300 ease-out",
-                "pt-20 md:pt-24", // 👈 empuja stats hacia abajo (soluciona overlap con tabs)
-                statsDocked ? "opacity-0 -translate-x-2 pointer-events-none" : "opacity-100 translate-x-0",
-              ].join(" ")}
-            >
-              <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} />
+            <div className="pointer-events-auto">
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+              />
             </div>
 
-            {/* Dock pictos */}
-            {statsDocked && !selectedEvent && (
-              <div className="pointer-events-auto fixed right-3 top-28 z-[9999]">
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => toggleStatsFromDock("live")}
-                    className={[
-                      "w-12 rounded-2xl px-0 py-2",
-                      "border border-cyan-400/25 bg-cyan-400/12 backdrop-blur-md shadow-lg",
-                      "grid place-items-center",
-                      activeStatDock === "live" && statsExpanded ? "ring-2 ring-cyan-400/30" : "",
-                    ].join(" ")}
-                    aria-label="Live events"
-                    title="Live events"
-                  >
-                    <Flame className="w-5 h-5 text-cyan-100" />
-                    <div className="text-[11px] mt-1 text-cyan-100/90">{stats.total}</div>
-                  </button>
-
-                  <button
-                    onClick={() => toggleStatsFromDock("critical")}
-                    className={[
-                      "w-12 rounded-2xl px-0 py-2",
-                      "border border-cyan-400/25 bg-cyan-400/12 backdrop-blur-md shadow-lg",
-                      "grid place-items-center",
-                      activeStatDock === "critical" && statsExpanded ? "ring-2 ring-cyan-400/30" : "",
-                    ].join(" ")}
-                    aria-label="Critical"
-                    title="Critical"
-                  >
-                    <AlertTriangle className="w-5 h-5 text-cyan-100" />
-                    <div className="text-[11px] mt-1 text-cyan-100/90">{stats.critical}</div>
-                  </button>
-
-                  <button
-                    onClick={() => toggleStatsFromDock("regions")}
-                    className={[
-                      "w-12 rounded-2xl px-0 py-2",
-                      "border border-cyan-400/25 bg-cyan-400/12 backdrop-blur-md shadow-lg",
-                      "grid place-items-center",
-                      activeStatDock === "regions" && statsExpanded ? "ring-2 ring-cyan-400/30" : "",
-                    ].join(" ")}
-                    aria-label="Regions"
-                    title="Regions"
-                  >
-                    <Globe2 className="w-5 h-5 text-cyan-100" />
-                    <div className="text-[11px] mt-1 text-cyan-100/90">{stats.regions}</div>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Expand stats */}
-            {statsDocked && statsExpanded && !selectedEvent && (
-              <div className="pointer-events-auto fixed inset-0 z-[9998]">
-                <div
-                  className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
-                  onClick={() => setStatsExpanded(false)}
-                />
-                <div
-                  className={[
-                    "absolute",
-                    "left-4 right-16",
-                    isMobile ? "top-24" : "top-28",
-                    "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
-                    "p-3",
-                  ].join(" ")}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} />
-                </div>
-              </div>
-            )}
-
-            {/* Timeline */}
             <div className="pointer-events-auto">
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
-            {/* Scan active */}
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            </div>
+
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <div className="text-white/70 text-sm font-medium">Scan active</div>
               <div className="text-white/45 text-xs mt-1">
                 {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
               </div>
-              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
+              <div className="text-white/30 text-[11px] mt-1">
+                events loaded: {events.length}
+              </div>
             </div>
 
-            {/* Volver (abajo-derecha, no se pega al dock) */}
+            {/* Botón "Volver" (solo si zoom-in y NO hay panel abierto) */}
             <div
               className={[
-                "fixed right-4 md:right-6 z-[9999]",
-                "bottom-[11.5rem] md:bottom-[12.5rem]",
+                "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
+                shouldShowZoomOut
+                  ? "opacity-100 translate-x-0 pointer-events-auto"
+                  : "opacity-0 translate-x-4 pointer-events-none",
               ].join(" ")}
             >
               <button
                 onClick={() => setResetKey((k) => k + 1)}
                 className={[
                   "px-4 py-3 rounded-2xl shadow-lg",
-                  "backdrop-blur-md border border-cyan-400/30 bg-cyan-400/15",
-                  "text-cyan-100 hover:text-white hover:bg-cyan-400/25",
+                  "backdrop-blur-md border",
+                  "border-cyan-400/30 bg-cyan-400/15",
+                  "text-cyan-100 hover:text-white",
+                  "hover:bg-cyan-400/25",
                   "transition-colors",
                 ].join(" ")}
                 title="Volver a la vista general"
@@ -384,11 +257,6 @@ export default function App() {
               >
                 ⤴ Volver
               </button>
-            </div>
-
-            {/* AlertPanel */}
-            <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
             </div>
           </div>
         </div>
