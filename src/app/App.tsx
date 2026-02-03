@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -10,7 +10,6 @@ import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 
-// 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
@@ -19,7 +18,6 @@ export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
 
-  // Selección activa
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
   const [selectedRegionKey, setSelectedRegionKey] = useState<string | null>(null);
 
@@ -27,15 +25,26 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Control de vista del mapa
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
+
+  // ✅ Mobile UI behavior
+  const [isMobile, setIsMobile] = useState(false);
+  const [uiHiddenMobile, setUiHiddenMobile] = useState(false);
+  const [autoHideOnMove, setAutoHideOnMove] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener?.("change", apply);
+    return () => mq.removeEventListener?.("change", apply);
+  }, []);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
   const openSetup = () => {
-    // Opción A: NO borramos categoría/región, solo volvemos a configurar
     setSelectedEvent(null);
     setShowZoomOut(false);
     setStage("setup");
@@ -48,7 +57,6 @@ export default function App() {
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
-    // 🔥 Incendios reales (FIRMS)
     if (args.category === "fire") {
       try {
         const bbox = encodeURIComponent(args.region.bbox);
@@ -92,6 +100,9 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
+
+        // ✅ When entering dashboard on mobile, start with UI visible
+        setUiHiddenMobile(false);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
@@ -101,17 +112,18 @@ export default function App() {
         setStage("dashboard");
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
+        setUiHiddenMobile(false);
         return;
       }
     }
 
-    // Otras categorías: mock
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setSelectedEvent(null);
     setStage("dashboard");
     setResetKey((k) => k + 1);
     setShowZoomOut(false);
+    setUiHiddenMobile(false);
   };
 
   const stats = useMemo(() => {
@@ -126,21 +138,33 @@ export default function App() {
 
   const shouldShowZoomOut = showZoomOut && !selectedEvent;
 
-  // ✅ Header overlay: cuando hay modal (alerta) o cuando estás en Setup
   const headerOverlayActive = !!selectedEvent || stage === "setup";
+
+  // ✅ if alert opens, make sure UI isn't hidden (so user can close etc.)
+  useEffect(() => {
+    if (selectedEvent) setUiHiddenMobile(false);
+  }, [selectedEvent]);
+
+  // ✅ Map movement callback to auto-hide mobile UI
+  const handleMapMove = () => {
+    if (!isMobile) return;
+    if (!autoHideOnMove) return;
+    if (selectedEvent) return; // if modal open, don't mess
+    setUiHiddenMobile(true);
+  };
+
+  const showPanels = !(isMobile && uiHiddenMobile);
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      {/* Header */}
       <Header
         activeView={activeView}
         onViewChange={setActiveView}
         overlayActive={headerOverlayActive}
       />
 
-      {/* Setup overlay */}
       {stage === "setup" && (
         <SetupPanel
           category={selectedCategory}
@@ -149,14 +173,13 @@ export default function App() {
           onChangeRegion={setSelectedRegionKey}
           onStart={startMonitoring}
           onClose={() => setStage("dashboard")}
-          canClose={stage === "setup" && events.length > 0} // permite cerrar si ya venís del dashboard
+          canClose={stage === "setup" && events.length > 0}
         />
       )}
 
-      {/* Dashboard */}
       {stage === "dashboard" && (
         <div className="absolute inset-0">
-          {/* MAPA */}
+          {/* MAP */}
           <div className="absolute inset-0 z-0">
             <MapScene
               events={events}
@@ -164,10 +187,11 @@ export default function App() {
               onEventClick={setSelectedEvent}
               resetKey={resetKey}
               onZoomedInChange={setShowZoomOut}
+              onUserInteracting={handleMapMove} // ✅ NEW PROP (we’ll add in MapScene)
             />
           </div>
 
-          {/* EFECTOS */}
+          {/* Effects */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
@@ -176,72 +200,121 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Botón "Cambiar" (volver a Setup) */}
-            <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
-              <button
-                onClick={openSetup}
-                className={[
-                  "px-4 py-2 rounded-xl shadow-lg",
-                  "backdrop-blur-md border border-white/10 bg-white/5",
-                  "text-white/80 hover:text-white hover:bg-white/10",
-                  "transition-colors",
-                ].join(" ")}
-                title="Cambiar categoría o región"
-                aria-label="Cambiar categoría o región"
-              >
-                Cambiar
-              </button>
-            </div>
-
-            <div className="pointer-events-auto">
-              <StatsPanel
-                totalEvents={stats.total}
-                criticalEvents={stats.critical}
-                affectedRegions={stats.regions}
-              />
-            </div>
-
-            <div className="pointer-events-auto">
-              <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
-            </div>
-
-            <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-            </div>
-
-            <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-              <div className="text-white/70 text-sm font-medium">Scan active</div>
-              <div className="text-white/45 text-xs mt-1">
-                {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
+            {/* Mobile UI toggle button */}
+            {isMobile && !selectedEvent && (
+              <div className="pointer-events-auto fixed right-4 bottom-4 z-[9999]">
+                <button
+                  onClick={() => setUiHiddenMobile((v) => !v)}
+                  className={[
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border border-white/10 bg-white/5",
+                    "text-white/85 hover:text-white hover:bg-white/10",
+                    "transition-all duration-200",
+                  ].join(" ")}
+                  aria-label="Mostrar u ocultar interfaz"
+                  title="Mostrar u ocultar interfaz"
+                >
+                  {uiHiddenMobile ? "Mostrar UI" : "Ocultar UI"}
+                </button>
               </div>
-              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
-            </div>
+            )}
 
-            {/* Botón "Volver" (solo si zoom-in y NO hay panel abierto) */}
+            {/* Optional: auto-hide toggle (only mobile, tiny) */}
+            {isMobile && !selectedEvent && (
+              <div className="pointer-events-auto fixed right-4 bottom-20 z-[9999]">
+                <button
+                  onClick={() => setAutoHideOnMove((v) => !v)}
+                  className={[
+                    "px-3 py-2 rounded-xl shadow",
+                    "backdrop-blur-md border border-white/10 bg-white/5",
+                    "text-white/70 hover:text-white hover:bg-white/10",
+                    "transition-all duration-200 text-xs",
+                  ].join(" ")}
+                  aria-label="Auto ocultar al mover el mapa"
+                  title="Auto ocultar al mover el mapa"
+                >
+                  Auto: {autoHideOnMove ? "ON" : "OFF"}
+                </button>
+              </div>
+            )}
+
+            {/* Panels block (hidden on mobile when exploring) */}
             <div
               className={[
-                "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
-                "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut
-                  ? "opacity-100 translate-x-0 pointer-events-auto"
-                  : "opacity-0 translate-x-4 pointer-events-none",
+                "transition-all duration-300 ease-out",
+                showPanels ? "opacity-100" : "opacity-0 pointer-events-none",
               ].join(" ")}
             >
-              <button
-                onClick={() => setResetKey((k) => k + 1)}
+              {/* "Cambiar" */}
+              <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
+                <button
+                  onClick={openSetup}
+                  className={[
+                    "px-4 py-2 rounded-xl shadow-lg",
+                    "backdrop-blur-md border border-white/10 bg-white/5",
+                    "text-white/80 hover:text-white hover:bg-white/10",
+                    "transition-colors",
+                  ].join(" ")}
+                  title="Cambiar categoría o región"
+                  aria-label="Cambiar categoría o región"
+                >
+                  Cambiar
+                </button>
+              </div>
+
+              <div className="pointer-events-auto">
+                <StatsPanel
+                  totalEvents={stats.total}
+                  criticalEvents={stats.critical}
+                  affectedRegions={stats.regions}
+                />
+              </div>
+
+              <div className="pointer-events-auto">
+                <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+              </div>
+
+              <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+                <div className="text-white/70 text-sm font-medium">Scan active</div>
+                <div className="text-white/45 text-xs mt-1">
+                  {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
+                </div>
+                <div className="text-white/30 text-[11px] mt-1">
+                  events loaded: {events.length}
+                </div>
+              </div>
+
+              {/* Zoom-out */}
+              <div
                 className={[
-                  "px-4 py-3 rounded-2xl shadow-lg",
-                  "backdrop-blur-md border",
-                  "border-cyan-400/30 bg-cyan-400/15",
-                  "text-cyan-100 hover:text-white",
-                  "hover:bg-cyan-400/25",
-                  "transition-colors",
+                  "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
+                  "transition-all duration-300 ease-out will-change-transform",
+                  shouldShowZoomOut
+                    ? "opacity-100 translate-x-0 pointer-events-auto"
+                    : "opacity-0 translate-x-4 pointer-events-none",
                 ].join(" ")}
-                title="Volver a la vista general"
-                aria-label="Volver a la vista general"
               >
-                ⤴ Volver
-              </button>
+                <button
+                  onClick={() => setResetKey((k) => k + 1)}
+                  className={[
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border",
+                    "border-cyan-400/30 bg-cyan-400/15",
+                    "text-cyan-100 hover:text-white",
+                    "hover:bg-cyan-400/25",
+                    "transition-colors",
+                  ].join(" ")}
+                  title="Volver a la vista general"
+                  aria-label="Volver a la vista general"
+                >
+                  ⤴ Volver
+                </button>
+              </div>
+            </div>
+
+            {/* Alert modal */}
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
             </div>
           </div>
         </div>
