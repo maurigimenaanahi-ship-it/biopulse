@@ -14,6 +14,9 @@ type MapSceneProps = {
 
   // nuevo: para “dockear” stats antes
   onZoomChange?: (zoom: number) => void;
+
+  // ✅ nuevo: request de centrado desde AlertPanel / App
+  centerRequest?: { latitude: number; longitude: number; zoom?: number; key: number } | null;
 };
 
 // Mapa oscuro (sin keys)
@@ -42,11 +45,10 @@ function sevRank(sev: EnvironmentalEvent["severity"]) {
 
 function getExploreZoomThreshold(width: number) {
   // Ajustes pensados para que en celu se escondan paneles ANTES
-  // Podés retocar estos números con tranquilidad.
   if (width <= 480) return 2.05; // celulares chicos
-  if (width <= 768) return 2.20; // celulares grandes / tablets vertical
+  if (width <= 768) return 2.2; // celulares grandes / tablets vertical
   if (width <= 1024) return 2.55; // tablets / notebooks chicos
-  return 2.80; // desktop (tu valor original)
+  return 2.8; // desktop (tu valor original)
 }
 
 export function MapScene({
@@ -56,6 +58,7 @@ export function MapScene({
   resetKey,
   onZoomedInChange,
   onZoomChange,
+  centerRequest,
 }: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
 
@@ -93,8 +96,10 @@ export function MapScene({
   }, []);
 
   // ✅ Anti-parpadeo: cuando entrás en modo explorar, no salgas por micro cambios
-  // (tenemos un margen para “volver” a mostrar UI)
-  const exploreExitThreshold = useMemo(() => Math.max(1.5, exploreThreshold - 0.25), [exploreThreshold]);
+  const exploreExitThreshold = useMemo(
+    () => Math.max(1.5, exploreThreshold - 0.25),
+    [exploreThreshold]
+  );
   const [isExploring, setIsExploring] = useState(false);
 
   // Ajustar vista al bbox elegido
@@ -105,6 +110,18 @@ export function MapScene({
       duration: 800,
     });
   }, [bbox]);
+
+  // ✅ NUEVO: Centrar desde App (AlertPanel)
+  useEffect(() => {
+    if (!centerRequest) return;
+    if (!mapRef.current) return;
+
+    mapRef.current.flyTo({
+      center: [centerRequest.longitude, centerRequest.latitude],
+      zoom: centerRequest.zoom ?? 4,
+      duration: 850,
+    });
+  }, [centerRequest?.key]);
 
   // ✅ Reset “Volver” (fitBounds al bbox)
   useEffect(() => {
@@ -284,7 +301,14 @@ export function MapScene({
         "#ffaa00",
         "#00ff88",
       ],
-      "circle-radius": ["case", [">=", ["get", "sevRank"], 3], 7, [">=", ["get", "sevRank"], 2], 6, 5],
+      "circle-radius": [
+        "case",
+        [">=", ["get", "sevRank"], 3],
+        7,
+        [">=", ["get", "sevRank"], 2],
+        6,
+        5,
+      ],
       "circle-opacity": 0.95,
       "circle-stroke-width": 2,
       "circle-stroke-color": "rgba(0,0,0,0.35)",
@@ -465,8 +489,6 @@ export function MapScene({
           onZoomChange?.(z);
 
           // ✅ responsive + hysteresis
-          // - entra a “explorar” cuando z >= exploreThreshold
-          // - sale cuando z <= exploreExitThreshold
           if (!isExploring && z >= exploreThreshold) {
             setIsExploring(true);
             onZoomedInChange?.(true);
