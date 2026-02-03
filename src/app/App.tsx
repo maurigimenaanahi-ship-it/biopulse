@@ -9,6 +9,7 @@ import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 // 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -168,20 +169,30 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Botón Cambiar búsqueda */}
+            {/* ✅ Cambiar búsqueda (con estilo cyan + subtítulo) */}
             <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
               <button
                 onClick={openSetup}
                 className={[
-                  "px-4 py-2 rounded-xl shadow-lg",
-                  "backdrop-blur-md border border-white/10 bg-white/5",
-                  "text-white/80 hover:text-white hover:bg-white/10",
+                  "group flex items-center gap-3",
+                  "px-4 py-3 rounded-2xl shadow-lg",
+                  "backdrop-blur-md border border-cyan-300/25",
+                  "bg-cyan-400/12 hover:bg-cyan-400/18",
+                  "text-white/90 hover:text-white",
                   "transition-colors",
+                  "min-w-[220px]",
                 ].join(" ")}
                 title="Cambiar categoría o región"
                 aria-label="Cambiar categoría o región"
               >
-                Cambiar búsqueda
+                <div className="h-10 w-10 rounded-xl border border-cyan-300/20 bg-black/20 flex items-center justify-center">
+                  <SlidersHorizontal className="h-5 w-5 text-cyan-200" />
+                </div>
+
+                <div className="text-left leading-tight">
+                  <div className="text-sm md:text-base font-semibold">Cambiar búsqueda</div>
+                  <div className="text-xs text-white/55 mt-0.5">Categoría • Región</div>
+                </div>
               </button>
             </div>
 
@@ -209,19 +220,22 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Botón Volver (separado del dock derecho) */}
+            {/* ✅ Volver: ahora queda DEBAJO del dock derecho (nunca se pega) */}
             <div
               className={[
-                "fixed right-[92px] md:right-[120px] top-1/2 -translate-y-1/2 z-[9999]",
+                "fixed right-4 md:right-6 z-[9999]",
+                // debajo del dock (ajuste fino): en desktop funciona perfecto; en mobile también respira
+                "top-[240px] md:top-[260px]",
                 "transition-all duration-300 ease-out will-change-transform",
                 shouldShowZoomOut
                   ? "opacity-100 translate-x-0 pointer-events-auto"
-                  : "opacity-0 translate-x-4 pointer-events-none",
+                  : "opacity-0 translate-x-3 pointer-events-none",
               ].join(" ")}
             >
               <button
                 onClick={() => setResetKey((k) => k + 1)}
                 className={[
+                  "flex items-center gap-2",
                   "px-4 py-3 rounded-2xl shadow-lg",
                   "backdrop-blur-md border",
                   "border-cyan-400/30 bg-cyan-400/15",
@@ -232,7 +246,8 @@ export default function App() {
                 title="Volver a la vista general"
                 aria-label="Volver a la vista general"
               >
-                ⤴ Volver
+                <CornerUpLeft className="h-5 w-5 text-cyan-200" />
+                <span className="font-medium">Volver</span>
               </button>
             </div>
           </div>
