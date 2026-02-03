@@ -40,6 +40,15 @@ function sevRank(sev: EnvironmentalEvent["severity"]) {
   }
 }
 
+function getExploreZoomThreshold(width: number) {
+  // Ajustes pensados para que en celu se escondan paneles ANTES
+  // Podés retocar estos números con tranquilidad.
+  if (width <= 480) return 2.05; // celulares chicos
+  if (width <= 768) return 2.20; // celulares grandes / tablets vertical
+  if (width <= 1024) return 2.55; // tablets / notebooks chicos
+  return 2.80; // desktop (tu valor original)
+}
+
 export function MapScene({
   events,
   bbox,
@@ -72,6 +81,22 @@ export function MapScene({
     sev: number;
   } | null>(null);
 
+  // ✅ Responsive: umbral “exploring” según viewport
+  const [exploreThreshold, setExploreThreshold] = useState<number>(() =>
+    typeof window === "undefined" ? 2.8 : getExploreZoomThreshold(window.innerWidth)
+  );
+
+  useEffect(() => {
+    const onResize = () => setExploreThreshold(getExploreZoomThreshold(window.innerWidth));
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // ✅ Anti-parpadeo: cuando entrás en modo explorar, no salgas por micro cambios
+  // (tenemos un margen para “volver” a mostrar UI)
+  const exploreExitThreshold = useMemo(() => Math.max(1.5, exploreThreshold - 0.25), [exploreThreshold]);
+  const [isExploring, setIsExploring] = useState(false);
+
   // Ajustar vista al bbox elegido
   useEffect(() => {
     if (!bbox || !mapRef.current) return;
@@ -96,6 +121,7 @@ export function MapScene({
     setHovered(null);
     setRipple(null);
 
+    setIsExploring(false);
     onZoomedInChange?.(false);
   }, [resetKey, bbox, onZoomedInChange]);
 
@@ -178,9 +204,6 @@ export function MapScene({
     if (!ripple) return;
     let raf = 0;
     const tick = () => {
-      // Forzamos recomputo de rippleGeo recalculando "t" no, pero sí re-render
-      // Trick: setRipple con el mismo objeto NO re-render. Entonces usamos requestAnimationFrame
-      // para disparar un setState mínimo.
       setRipple((r) => (r ? { ...r } : r));
       raf = requestAnimationFrame(tick);
     };
@@ -285,12 +308,7 @@ export function MapScene({
         "rgba(255,170,0,0.18)",
         "rgba(0,255,136,0.16)",
       ],
-      "circle-radius": [
-        "case",
-        ["==", ["get", "isCluster"], 1],
-        34,
-        22,
-      ],
+      "circle-radius": ["case", ["==", ["get", "isCluster"], 1], 34, 22],
       "circle-blur": 0.6,
       "circle-opacity": 1,
       "circle-stroke-width": 2,
@@ -298,7 +316,6 @@ export function MapScene({
     },
   };
 
-  // “Respira” con una ilusión: capa doble (halo + núcleo) (sin animar con tiempo todavía)
   const activeLayer: any = {
     id: FX_ACTIVE_ID,
     type: "circle",
@@ -327,7 +344,6 @@ export function MapScene({
     type: "circle",
     source: "fx-ripple",
     paint: {
-      // color por severidad
       "circle-color": [
         "case",
         [">=", ["get", "sevRank"], 3],
@@ -338,9 +354,7 @@ export function MapScene({
         "rgba(255,170,0,0.14)",
         "rgba(0,255,136,0.12)",
       ],
-      // radio: 0..1 -> 12..60
       "circle-radius": ["+", 12, ["*", 48, ["get", "p"]]],
-      // opacidad: 1 -> 0
       "circle-opacity": ["-", 1, ["get", "p"]],
       "circle-stroke-width": 2,
       "circle-stroke-color": "rgba(255,255,255,0.14)",
@@ -410,7 +424,6 @@ export function MapScene({
     if (!map) return;
 
     // solo hover “real” en desktop (mouse). En touch se ignora.
-    // react-map-gl igual dispara, pero pointerType puede faltar: lo tratamos suave.
     const pt: any = (e as any).originalEvent?.pointerType;
     if (pt && pt !== "mouse") return;
 
@@ -451,8 +464,16 @@ export function MapScene({
 
           onZoomChange?.(z);
 
-          // umbral para mostrar “Volver”
-          onZoomedInChange?.(z >= 2.8);
+          // ✅ responsive + hysteresis
+          // - entra a “explorar” cuando z >= exploreThreshold
+          // - sale cuando z <= exploreExitThreshold
+          if (!isExploring && z >= exploreThreshold) {
+            setIsExploring(true);
+            onZoomedInChange?.(true);
+          } else if (isExploring && z <= exploreExitThreshold) {
+            setIsExploring(false);
+            onZoomedInChange?.(false);
+          }
         }}
       >
         {/* FX: Ripple */}
