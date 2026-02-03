@@ -10,7 +10,7 @@ import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 
-import { Flame, AlertTriangle, Globe2 } from "lucide-react";
+import { Flame, AlertTriangle, Globe2, SlidersHorizontal } from "lucide-react";
 
 // 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -182,7 +182,9 @@ export default function App() {
     });
   };
 
+  // ✅ “Volver” NO aparece si hay panel abierto o si stats están expandidos
   const shouldShowZoomOut = showZoomOut && !selectedEvent && !statsExpanded;
+
   const headerOverlayActive = !!selectedEvent || stage === "setup";
 
   return (
@@ -226,20 +228,27 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Cambiar */}
+            {/* ✅ Cambiar (más claro + más visible) */}
             <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
               <button
                 onClick={openSetup}
                 className={[
-                  "px-4 py-2 rounded-xl shadow-lg",
-                  "backdrop-blur-md border border-white/10 bg-white/5",
-                  "text-white/80 hover:text-white hover:bg-white/10",
+                  "rounded-2xl shadow-lg",
+                  "backdrop-blur-md border",
+                  "border-cyan-400/25 bg-cyan-400/10",
+                  "hover:bg-cyan-400/16 hover:border-cyan-300/30",
                   "transition-colors",
+                  "px-4 py-3",
+                  "text-left",
                 ].join(" ")}
                 title="Cambiar categoría o región"
                 aria-label="Cambiar categoría o región"
               >
-                Cambiar
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-cyan-200" />
+                  <div className="text-white/90 font-medium leading-none">Cambiar búsqueda</div>
+                </div>
+                <div className="text-white/55 text-xs mt-1">Categoría • Región</div>
               </button>
             </div>
 
@@ -341,12 +350,13 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Volver */}
+            {/* ✅ Volver (reubicado abajo-derecha para NO pegarse al dock) */}
             <div
               className={[
-                "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
+                "fixed right-4 md:right-6 z-[9999]",
+                "bottom-[11.5rem] md:bottom-[12.5rem]", // arriba del timeline
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 translate-x-4 pointer-events-none",
+                shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
             >
               <button
