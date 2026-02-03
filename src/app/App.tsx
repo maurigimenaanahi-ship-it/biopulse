@@ -31,11 +31,15 @@ export default function App() {
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
 
-  // ✅ NUEVO: HUD mobile (mostrar/ocultar paneles grandes)
-  const [mobileHudOpen, setMobileHudOpen] = useState(false);
-
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
+
+  const openSetup = () => {
+    // Opción A: NO borramos categoría/región, solo volvemos a configurar
+    setSelectedEvent(null);
+    setShowZoomOut(false);
+    setStage("setup");
+  };
 
   const startMonitoring = async (args: {
     category: EventCategory;
@@ -84,24 +88,19 @@ export default function App() {
         }));
 
         setEvents(clusteredEvents);
+        setSelectedEvent(null);
         setStage("dashboard");
-
-        // reset UI
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-        setMobileHudOpen(false);
-        setSelectedEvent(null);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
         const filtered = mockEvents.filter((e) => e.category === "fire");
         setEvents(filtered);
+        setSelectedEvent(null);
         setStage("dashboard");
-
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
-        setMobileHudOpen(false);
-        setSelectedEvent(null);
         return;
       }
     }
@@ -109,12 +108,10 @@ export default function App() {
     // Otras categorías: mock
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
+    setSelectedEvent(null);
     setStage("dashboard");
-
     setResetKey((k) => k + 1);
     setShowZoomOut(false);
-    setMobileHudOpen(false);
-    setSelectedEvent(null);
   };
 
   const stats = useMemo(() => {
@@ -127,18 +124,14 @@ export default function App() {
     };
   }, [events]);
 
-  const alertOpen = !!selectedEvent;
-  const shouldShowZoomOut = showZoomOut && !alertOpen; // ✅ ocultar “Volver” si hay alerta abierta
+  const shouldShowZoomOut = showZoomOut && !selectedEvent;
 
   return (
-    <div className="w-screen h-[100dvh] bg-[#050a14] relative overflow-x-hidden">
-      {/* Splash overlay */}
+    <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      {/* ✅ Header: oculto cuando hay AlertPanel abierto (evita superposición en mobile) */}
-      <div className={alertOpen ? "opacity-0 pointer-events-none" : "opacity-100"}>
-        <Header activeView={activeView} onViewChange={setActiveView} />
-      </div>
+      {/* Header */}
+      <Header activeView={activeView} onViewChange={setActiveView} />
 
       {/* Setup overlay */}
       {stage === "setup" && (
@@ -148,6 +141,8 @@ export default function App() {
           onChangeCategory={setSelectedCategory}
           onChangeRegion={setSelectedRegionKey}
           onStart={startMonitoring}
+          onClose={() => setStage("dashboard")}
+          canClose={stage === "setup" && events.length > 0} // permite cerrar si ya venís del dashboard
         />
       )}
 
@@ -159,11 +154,7 @@ export default function App() {
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
-              onEventClick={(ev) => {
-                setSelectedEvent(ev);
-                // ✅ si abren alerta en mobile, cerramos HUD grande para que no pelee
-                setMobileHudOpen(false);
-              }}
+              onEventClick={setSelectedEvent}
               resetKey={resetKey}
               onZoomedInChange={setShowZoomOut}
             />
@@ -178,27 +169,24 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Mobile quick controls: botón Paneles */}
-            {!alertOpen && (
-              <div className="pointer-events-auto md:hidden fixed top-20 right-4 z-[9999]">
-                <button
-                  onClick={() => setMobileHudOpen((v) => !v)}
-                  className={[
-                    "px-4 py-2 rounded-2xl shadow-lg",
-                    "backdrop-blur-md border border-white/10",
-                    "bg-white/10 text-white/85 hover:text-white",
-                    "transition-colors",
-                  ].join(" ")}
-                  aria-label="Mostrar u ocultar paneles"
-                  title="Mostrar u ocultar paneles"
-                >
-                  {mobileHudOpen ? "Ocultar" : "Paneles"}
-                </button>
-              </div>
-            )}
+            {/* Botón "Cambiar" (volver a Setup) */}
+            <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
+              <button
+                onClick={openSetup}
+                className={[
+                  "px-4 py-2 rounded-xl shadow-lg",
+                  "backdrop-blur-md border border-white/10 bg-white/5",
+                  "text-white/80 hover:text-white hover:bg-white/10",
+                  "transition-colors",
+                ].join(" ")}
+                title="Cambiar categoría o región"
+                aria-label="Cambiar categoría o región"
+              >
+                Cambiar
+              </button>
+            </div>
 
-            {/* ✅ Desktop HUD (siempre visible) */}
-            <div className="hidden md:block pointer-events-auto">
+            <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
                 criticalEvents={stats.critical}
@@ -206,11 +194,15 @@ export default function App() {
               />
             </div>
 
-            <div className="hidden md:block pointer-events-auto">
+            <div className="pointer-events-auto">
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
-            <div className="hidden md:block pointer-events-auto absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            </div>
+
+            <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <div className="text-white/70 text-sm font-medium">Scan active</div>
               <div className="text-white/45 text-xs mt-1">
                 {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
@@ -218,42 +210,10 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Mobile HUD (aparece solo cuando tocás “Paneles”) */}
-            {!alertOpen && (
-              <div className={mobileHudOpen ? "md:hidden" : "hidden md:hidden"}>
-                <div className="pointer-events-auto">
-                  <StatsPanel
-                    totalEvents={stats.total}
-                    criticalEvents={stats.critical}
-                    affectedRegions={stats.regions}
-                  />
-                </div>
-
-                <div className="pointer-events-auto">
-                  <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
-                </div>
-
-                <div className="pointer-events-auto absolute left-4 bottom-4 right-4 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                  <div className="text-white/70 text-sm font-medium">Scan active</div>
-                  <div className="text-white/45 text-xs mt-1">
-                    {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
-                  </div>
-                  <div className="text-white/30 text-[11px] mt-1">
-                    events loaded: {events.length}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* AlertPanel (modal) */}
-            <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-            </div>
-
-            {/* Botón “Volver” (solo si estás con zoom-in y NO hay alerta) */}
+            {/* Botón "Volver" (solo si zoom-in y NO hay panel abierto) */}
             <div
               className={[
-                "fixed right-4 md:right-[22rem] top-1/2 -translate-y-1/2 z-[9999]",
+                "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
                 "transition-all duration-300 ease-out will-change-transform",
                 shouldShowZoomOut
                   ? "opacity-100 translate-x-0 pointer-events-auto"
