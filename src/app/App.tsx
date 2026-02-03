@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -18,6 +18,9 @@ const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 type StatDockKey = "live" | "critical" | "regions";
 
+// ✅ Ajustá esto a gusto (más bajo = se oculta antes)
+const STATS_DOCK_ZOOM = 2.2;
+
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
@@ -34,7 +37,15 @@ export default function App() {
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
 
-  // ✅ Mobile detect (para ajustar distancias/padding)
+  // ✅ zoom real del mapa (para esconder stats “antes”)
+  const [mapZoom, setMapZoom] = useState(1.2);
+
+  // ✅ Dock / expand de Stats
+  const [statsDocked, setStatsDocked] = useState(false);
+  const [statsExpanded, setStatsExpanded] = useState(false);
+  const [activeStatDock, setActiveStatDock] = useState<StatDockKey>("live");
+
+  // Mobile detect (solo para spacing/padding)
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
@@ -43,11 +54,6 @@ export default function App() {
     mq.addEventListener?.("change", apply);
     return () => mq.removeEventListener?.("change", apply);
   }, []);
-
-  // ✅ Lo que pediste: stats se “meten” al explorar y quedan como pictogramas
-  const [statsDocked, setStatsDocked] = useState(false); // true = colapsado a pictos
-  const [statsExpanded, setStatsExpanded] = useState(false); // true = stats completos visibles
-  const [activeStatDock, setActiveStatDock] = useState<StatDockKey>("live");
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -65,7 +71,6 @@ export default function App() {
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
-    // 🔥 Incendios reales (FIRMS)
     if (args.category === "fire") {
       try {
         const bbox = encodeURIComponent(args.region.bbox);
@@ -110,9 +115,10 @@ export default function App() {
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
 
-        // ✅ reset de UI
+        // reset UI
         setStatsDocked(false);
         setStatsExpanded(false);
+        setMapZoom(1.2);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
@@ -125,11 +131,11 @@ export default function App() {
 
         setStatsDocked(false);
         setStatsExpanded(false);
+        setMapZoom(1.2);
         return;
       }
     }
 
-    // Otras categorías: mock
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setSelectedEvent(null);
@@ -139,6 +145,7 @@ export default function App() {
 
     setStatsDocked(false);
     setStatsExpanded(false);
+    setMapZoom(1.2);
   };
 
   const stats = useMemo(() => {
@@ -151,38 +158,31 @@ export default function App() {
     };
   }, [events]);
 
-  // ✅ Cuando el mapa se considera “zoom-in” (exploración) -> dock automático
+  // ✅ Dockear “más temprano” por zoom real
   useEffect(() => {
-    if (showZoomOut) {
+    if (mapZoom >= STATS_DOCK_ZOOM) {
       setStatsDocked(true);
       setStatsExpanded(false);
     } else {
-      // si volvés a vista general, stats vuelven normales
       setStatsDocked(false);
       setStatsExpanded(false);
     }
-  }, [showZoomOut]);
+  }, [mapZoom]);
 
-  // ✅ Si hay alerta abierta, no metemos overlay raro
+  // Si hay alerta abierta, cerramos stats expandido
   useEffect(() => {
-    if (selectedEvent) {
-      setStatsExpanded(false);
-    }
+    if (selectedEvent) setStatsExpanded(false);
   }, [selectedEvent]);
 
-  // ✅ Toggle: tocar pictograma despliega / vuelve a meter
   const toggleStatsFromDock = (key: StatDockKey) => {
     setActiveStatDock(key);
     setStatsExpanded((prev) => {
-      // si estaba desplegado y tocás el mismo, se cierra
       if (prev && activeStatDock === key) return false;
       return true;
     });
   };
 
-  // ✅ Volver: SOLO si zoom-in y NO hay alerta abierta y NO stats desplegados
   const shouldShowZoomOut = showZoomOut && !selectedEvent && !statsExpanded;
-
   const headerOverlayActive = !!selectedEvent || stage === "setup";
 
   return (
@@ -213,6 +213,7 @@ export default function App() {
               onEventClick={setSelectedEvent}
               resetKey={resetKey}
               onZoomedInChange={setShowZoomOut}
+              onZoomChange={setMapZoom}
             />
           </div>
 
@@ -225,7 +226,7 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Botón Cambiar (siempre disponible) */}
+            {/* Cambiar */}
             <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
               <button
                 onClick={openSetup}
@@ -242,8 +243,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* ✅ Stats: normal o dock + expand */}
-            {/* Normal (como estaba) */}
+            {/* Stats normal */}
             <div
               className={[
                 "pointer-events-auto transition-all duration-300 ease-out",
@@ -253,16 +253,10 @@ export default function App() {
               <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} />
             </div>
 
-            {/* Dock reducido a pictogramas (aparece al explorar) */}
+            {/* Dock pictos */}
             {statsDocked && !selectedEvent && (
-              <div className="pointer-events-auto fixed right-3 top-28 md:top-28 z-[9999]">
-                <div
-                  className={[
-                    "flex flex-col gap-2",
-                    "transition-all duration-300 ease-out",
-                    "opacity-100 translate-x-0",
-                  ].join(" ")}
-                >
+              <div className="pointer-events-auto fixed right-3 top-28 z-[9999]">
+                <div className="flex flex-col gap-2">
                   <button
                     onClick={() => toggleStatsFromDock("live")}
                     className={[
@@ -311,10 +305,9 @@ export default function App() {
               </div>
             )}
 
-            {/* Expand overlay: cuando tocás un pictograma se despliega el StatsPanel completo */}
+            {/* Expand stats */}
             {statsDocked && statsExpanded && !selectedEvent && (
               <div className="pointer-events-auto fixed inset-0 z-[9998]">
-                {/* backdrop suave: tocás afuera y se vuelve a meter */}
                 <div
                   className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
                   onClick={() => setStatsExpanded(false)}
@@ -329,21 +322,17 @@ export default function App() {
                   ].join(" ")}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <StatsPanel
-                    totalEvents={stats.total}
-                    criticalEvents={stats.critical}
-                    affectedRegions={stats.regions}
-                  />
+                  <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} />
                 </div>
               </div>
             )}
 
-            {/* Timeline (como estaba) */}
+            {/* Timeline */}
             <div className="pointer-events-auto">
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
-            {/* Scan Active (como estaba) */}
+            {/* Scan active */}
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <div className="text-white/70 text-sm font-medium">Scan active</div>
               <div className="text-white/45 text-xs mt-1">
@@ -352,24 +341,20 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Volver (solo si zoom-in y NO hay panel abierto y NO hay stats desplegados) */}
+            {/* Volver */}
             <div
               className={[
                 "fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-[9999]",
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut
-                  ? "opacity-100 translate-x-0 pointer-events-auto"
-                  : "opacity-0 translate-x-4 pointer-events-none",
+                shouldShowZoomOut ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 translate-x-4 pointer-events-none",
               ].join(" ")}
             >
               <button
                 onClick={() => setResetKey((k) => k + 1)}
                 className={[
                   "px-4 py-3 rounded-2xl shadow-lg",
-                  "backdrop-blur-md border",
-                  "border-cyan-400/30 bg-cyan-400/15",
-                  "text-cyan-100 hover:text-white",
-                  "hover:bg-cyan-400/25",
+                  "backdrop-blur-md border border-cyan-400/30 bg-cyan-400/15",
+                  "text-cyan-100 hover:text-white hover:bg-cyan-400/25",
                   "transition-colors",
                 ].join(" ")}
                 title="Volver a la vista general"
@@ -379,7 +364,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* AlertPanel modal */}
+            {/* AlertPanel */}
             <div className="pointer-events-auto">
               <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
             </div>
