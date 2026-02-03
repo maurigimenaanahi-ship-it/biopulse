@@ -31,14 +31,6 @@ export default function App() {
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
-  // ✅ nuevo: request para centrar desde AlertPanel
-  const [centerReq, setCenterReq] = useState<{
-    latitude: number;
-    longitude: number;
-    zoom?: number;
-    key: number;
-  } | null>(null);
-
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
@@ -83,13 +75,24 @@ export default function App() {
           category: "fire",
           severity: c.severity,
           title: c.focusCount > 1 ? `Fire event (${c.focusCount} detections)` : "Active Fire",
-          description: `FRP max ${c.frpMax.toFixed(2)} • FRP sum ${c.frpSum.toFixed(2)}`,
+          description: `Satellite detections indicate active fire behavior. FRP max ${c.frpMax.toFixed(
+            2
+          )} • FRP sum ${c.frpSum.toFixed(2)}.`,
           latitude: c.latitude,
           longitude: c.longitude,
-          location: args.region.label,
+          location: args.region.label, // ✅ esto debería verse fuerte ahora
           timestamp: new Date(),
           affectedArea: 1,
-          riskIndicators: [],
+          affectedPopulation: undefined,
+          riskIndicators: ["Satellite detections", "Potential spread", "Continuous monitoring"],
+          status: "active",
+          evacuationLevel: "none",
+          aiInsight: {
+            probabilityNext12h: c.severity === "critical" ? 72 : c.severity === "high" ? 58 : 41,
+            narrative:
+              "BioPulse estimates a moderate-to-high chance of spread in the next 12 hours depending on wind and humidity trends. Maintain observation and readiness.",
+            recommendations: ["Monitor wind & humidity", "Track new detections", "Prepare response coordination"],
+          },
         }));
 
         setEvents(clusteredEvents);
@@ -118,7 +121,6 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  // ✅ Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   // ✅ Share URL para el evento actual
@@ -163,7 +165,6 @@ export default function App() {
               resetKey={resetKey}
               onZoomedInChange={setIsExploring}
               onZoomChange={setMapZoom}
-              centerRequest={centerReq}
             />
           </div>
 
@@ -176,7 +177,7 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Cambiar búsqueda */}
+            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -202,7 +203,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* ✅ StatsPanel */}
+            {/* Stats */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -216,20 +217,11 @@ export default function App() {
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
-            {/* ✅ AlertPanel: ahora con Center + Share */}
+            {/* Alert panel */}
             <div className="pointer-events-auto">
               <AlertPanel
                 event={selectedEvent}
                 onClose={() => setSelectedEvent(null)}
-                onCenter={(ev) => {
-                  // deja el panel abierto (así se siente HUD)
-                  setCenterReq({
-                    latitude: ev.latitude,
-                    longitude: ev.longitude,
-                    zoom: Math.max(mapZoom, 4),
-                    key: Date.now(),
-                  });
-                }}
                 shareUrl={shareUrl}
               />
             </div>
@@ -242,7 +234,7 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Volver */}
+            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
