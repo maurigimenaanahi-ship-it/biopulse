@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -30,6 +30,9 @@ export default function App() {
   // Control de vista del mapa
   const [resetKey, setResetKey] = useState(0);
   const [showZoomOut, setShowZoomOut] = useState(false);
+
+  // ✅ NUEVO: HUD mobile (mostrar/ocultar paneles grandes)
+  const [mobileHudOpen, setMobileHudOpen] = useState(false);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -82,16 +85,23 @@ export default function App() {
 
         setEvents(clusteredEvents);
         setStage("dashboard");
+
+        // reset UI
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
+        setMobileHudOpen(false);
+        setSelectedEvent(null);
         return;
       } catch (error) {
         console.error("Error fetching FIRMS data:", error);
         const filtered = mockEvents.filter((e) => e.category === "fire");
         setEvents(filtered);
         setStage("dashboard");
+
         setResetKey((k) => k + 1);
         setShowZoomOut(false);
+        setMobileHudOpen(false);
+        setSelectedEvent(null);
         return;
       }
     }
@@ -100,8 +110,11 @@ export default function App() {
     const filtered = mockEvents.filter((e) => e.category === args.category);
     setEvents(filtered);
     setStage("dashboard");
+
     setResetKey((k) => k + 1);
     setShowZoomOut(false);
+    setMobileHudOpen(false);
+    setSelectedEvent(null);
   };
 
   const stats = useMemo(() => {
@@ -114,12 +127,20 @@ export default function App() {
     };
   }, [events]);
 
-  return (
-    // ✅ Mobile fixes: 100dvh + no horizontal overflow
-    <div className="w-screen h-[100dvh] bg-[#050a14] relative overflow-x-hidden">
-      <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
-      <Header activeView={activeView} onViewChange={setActiveView} />
+  const alertOpen = !!selectedEvent;
+  const shouldShowZoomOut = showZoomOut && !alertOpen; // ✅ ocultar “Volver” si hay alerta abierta
 
+  return (
+    <div className="w-screen h-[100dvh] bg-[#050a14] relative overflow-x-hidden">
+      {/* Splash overlay */}
+      <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
+
+      {/* ✅ Header: oculto cuando hay AlertPanel abierto (evita superposición en mobile) */}
+      <div className={alertOpen ? "opacity-0 pointer-events-none" : "opacity-100"}>
+        <Header activeView={activeView} onViewChange={setActiveView} />
+      </div>
+
+      {/* Setup overlay */}
       {stage === "setup" && (
         <SetupPanel
           category={selectedCategory}
@@ -130,6 +151,7 @@ export default function App() {
         />
       )}
 
+      {/* Dashboard */}
       {stage === "dashboard" && (
         <div className="absolute inset-0">
           {/* MAPA */}
@@ -137,7 +159,11 @@ export default function App() {
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
-              onEventClick={setSelectedEvent}
+              onEventClick={(ev) => {
+                setSelectedEvent(ev);
+                // ✅ si abren alerta en mobile, cerramos HUD grande para que no pelee
+                setMobileHudOpen(false);
+              }}
               resetKey={resetKey}
               onZoomedInChange={setShowZoomOut}
             />
@@ -152,7 +178,27 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            <div className="pointer-events-auto">
+            {/* ✅ Mobile quick controls: botón Paneles */}
+            {!alertOpen && (
+              <div className="pointer-events-auto md:hidden fixed top-20 right-4 z-[9999]">
+                <button
+                  onClick={() => setMobileHudOpen((v) => !v)}
+                  className={[
+                    "px-4 py-2 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border border-white/10",
+                    "bg-white/10 text-white/85 hover:text-white",
+                    "transition-colors",
+                  ].join(" ")}
+                  aria-label="Mostrar u ocultar paneles"
+                  title="Mostrar u ocultar paneles"
+                >
+                  {mobileHudOpen ? "Ocultar" : "Paneles"}
+                </button>
+              </div>
+            )}
+
+            {/* ✅ Desktop HUD (siempre visible) */}
+            <div className="hidden md:block pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
                 criticalEvents={stats.critical}
@@ -160,30 +206,56 @@ export default function App() {
               />
             </div>
 
-            <div className="pointer-events-auto">
+            <div className="hidden md:block pointer-events-auto">
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
-            <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-            </div>
-
-            <div className="pointer-events-auto absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+            <div className="hidden md:block pointer-events-auto absolute left-6 bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <div className="text-white/70 text-sm font-medium">Scan active</div>
               <div className="text-white/45 text-xs mt-1">
                 {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
               </div>
-              <div className="text-white/30 text-[11px] mt-1">
-                events loaded: {events.length}
-              </div>
+              <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Botón contextual (animado) */}
+            {/* ✅ Mobile HUD (aparece solo cuando tocás “Paneles”) */}
+            {!alertOpen && (
+              <div className={mobileHudOpen ? "md:hidden" : "hidden md:hidden"}>
+                <div className="pointer-events-auto">
+                  <StatsPanel
+                    totalEvents={stats.total}
+                    criticalEvents={stats.critical}
+                    affectedRegions={stats.regions}
+                  />
+                </div>
+
+                <div className="pointer-events-auto">
+                  <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
+                </div>
+
+                <div className="pointer-events-auto absolute left-4 bottom-4 right-4 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+                  <div className="text-white/70 text-sm font-medium">Scan active</div>
+                  <div className="text-white/45 text-xs mt-1">
+                    {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
+                  </div>
+                  <div className="text-white/30 text-[11px] mt-1">
+                    events loaded: {events.length}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AlertPanel (modal) */}
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            </div>
+
+            {/* Botón “Volver” (solo si estás con zoom-in y NO hay alerta) */}
             <div
               className={[
-                "fixed right-[22rem] top-1/2 -translate-y-1/2 z-[9999]",
+                "fixed right-4 md:right-[22rem] top-1/2 -translate-y-1/2 z-[9999]",
                 "transition-all duration-300 ease-out will-change-transform",
-                showZoomOut
+                shouldShowZoomOut
                   ? "opacity-100 translate-x-0 pointer-events-auto"
                   : "opacity-0 translate-x-4 pointer-events-none",
               ].join(" ")}
