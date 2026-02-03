@@ -31,6 +31,14 @@ export default function App() {
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
+  // ✅ nuevo: request para centrar desde AlertPanel
+  const [centerReq, setCenterReq] = useState<{
+    latitude: number;
+    longitude: number;
+    zoom?: number;
+    key: number;
+  } | null>(null);
+
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
@@ -113,6 +121,20 @@ export default function App() {
   // ✅ Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
+  // ✅ Share URL para el evento actual
+  const shareUrl = useMemo(() => {
+    if (!selectedEvent) return "";
+    if (typeof window === "undefined") return "";
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("event", selectedEvent.id);
+    url.searchParams.set("cat", selectedEvent.category);
+    if (selectedRegion?.bbox) url.searchParams.set("bbox", selectedRegion.bbox);
+    url.searchParams.set("z", String(mapZoom));
+
+    return url.toString();
+  }, [selectedEvent?.id, selectedEvent?.category, selectedRegion?.bbox, mapZoom]);
+
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
@@ -141,6 +163,7 @@ export default function App() {
               resetKey={resetKey}
               onZoomedInChange={setIsExploring}
               onZoomChange={setMapZoom}
+              centerRequest={centerReq}
             />
           </div>
 
@@ -153,7 +176,7 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Cambiar búsqueda: en mobile baja un poco para no tapar el panel Active Events */}
+            {/* ✅ Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -179,7 +202,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* ✅ StatsPanel: se colapsa cuando estás explorando */}
+            {/* ✅ StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -193,8 +216,22 @@ export default function App() {
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
+            {/* ✅ AlertPanel: ahora con Center + Share */}
             <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+              <AlertPanel
+                event={selectedEvent}
+                onClose={() => setSelectedEvent(null)}
+                onCenter={(ev) => {
+                  // deja el panel abierto (así se siente HUD)
+                  setCenterReq({
+                    latitude: ev.latitude,
+                    longitude: ev.longitude,
+                    zoom: Math.max(mapZoom, 4),
+                    key: Date.now(),
+                  });
+                }}
+                shareUrl={shareUrl}
+              />
             </div>
 
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
@@ -205,7 +242,7 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Volver: en mobile más arriba para no pisar Timeline */}
+            {/* ✅ Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
