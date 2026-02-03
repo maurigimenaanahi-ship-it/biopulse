@@ -1,257 +1,264 @@
-export type EventCategory = 
-  | 'flood'
-  | 'fire'
-  | 'storm'
-  | 'heatwave'
-  | 'air-pollution'
-  | 'ocean-anomaly';
+export type EventCategory =
+  | "flood"
+  | "fire"
+  | "storm"
+  | "heatwave"
+  | "air-pollution"
+  | "ocean-anomaly";
+
+export type EvacuationLevel = "none" | "recommended" | "mandatory";
+export type EventStatus = "active" | "contained" | "escalating" | "stabilizing" | "resolved";
+
+export interface AIInsight {
+  probabilityNext12h?: number; // 0..100
+  narrative?: string; // texto narrativo
+  recommendations?: string[]; // bullets cortos
+}
 
 export interface EnvironmentalEvent {
   id: string;
   category: EventCategory;
+
+  // ✅ lugar (lo que querés que se vea fuerte)
   location: string;
+
   latitude: number;
   longitude: number;
-  severity: 'low' | 'moderate' | 'high' | 'critical';
+
+  severity: "low" | "moderate" | "high" | "critical";
+
+  // ✅ identidad
   title: string;
   description: string;
+
+  // Date (como ya lo tenías)
   timestamp: Date;
+
+  // ✅ condiciones
   temperature?: number;
   windSpeed?: number;
   humidity?: number;
   airQualityIndex?: number;
   waterLevel?: number;
-  affectedArea: number; // in square kilometers
+
+  // ✅ impacto básico
+  affectedArea: number; // km²
   affectedPopulation?: number;
+
+  // ✅ riesgo
   riskIndicators: string[];
+
+  // ✅ visual sources
   satelliteImageUrl?: string;
-  liveFeedUrl?: string;
+  liveFeedUrl?: string; // idealmente URL real
+
+  // ====== NUEVO (opción B) ======
+  status?: EventStatus;
+  evacuationLevel?: EvacuationLevel;
+
+  nearbyInfrastructure?: string[]; // ciudades, rutas, centrales, reservas
+  ecosystems?: string[]; // humedales, bosques, selva...
+  speciesAtRisk?: string[]; // especies
+
+  aiInsight?: AIInsight; // “inteligencia viva”
 }
 
 export const categoryColors: Record<EventCategory, string> = {
-  'flood': '#00d4ff',
-  'fire': '#ff4400',
-  'storm': '#9d00ff',
-  'heatwave': '#ffaa00',
-  'air-pollution': '#88ff00',
-  'ocean-anomaly': '#00ffaa',
+  flood: "#00d4ff",
+  fire: "#ff4400",
+  storm: "#9d00ff",
+  heatwave: "#ffaa00",
+  "air-pollution": "#88ff00",
+  "ocean-anomaly": "#00ffaa",
 };
 
 export const categoryLabels: Record<EventCategory, string> = {
-  'flood': 'Floods',
-  'fire': 'Fires',
-  'storm': 'Storms',
-  'heatwave': 'Heatwaves',
-  'air-pollution': 'Air Pollution',
-  'ocean-anomaly': 'Ocean Anomalies',
+  flood: "Floods",
+  fire: "Fires",
+  storm: "Storms",
+  heatwave: "Heatwaves",
+  "air-pollution": "Air Pollution",
+  "ocean-anomaly": "Ocean Anomalies",
 };
 
-// Mock environmental events data
+// Mock environmental events data (enriquecido para panel PRO)
 export const mockEvents: EnvironmentalEvent[] = [
   {
-    id: '1',
-    category: 'fire',
-    location: 'California, USA',
+    id: "1",
+    category: "fire",
+    location: "California, USA",
     latitude: 36.7783,
     longitude: -119.4179,
-    severity: 'critical',
-    title: 'Wildfire Outbreak',
-    description: 'Major wildfire spreading rapidly due to high winds and dry conditions',
-    timestamp: new Date('2026-01-30T14:30:00'),
+    severity: "critical",
+    title: "Wildfire Outbreak",
+    description:
+      "Satellite sensors detected multiple high-intensity fire fronts. Strong winds and very low humidity increase the risk of rapid spread toward populated zones.",
+    timestamp: new Date("2026-01-30T14:30:00Z"),
     temperature: 42,
     windSpeed: 45,
     humidity: 12,
     affectedArea: 2500,
     affectedPopulation: 15000,
-    riskIndicators: ['Rapid spread', 'High winds', 'Dense smoke', 'Evacuation zones'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1615092296061-e2ccfeb2f3d6?w=800',
-    liveFeedUrl: 'Live camera feed available',
+    riskIndicators: ["Rapid spread", "High winds", "Dense smoke", "Evacuation zones"],
+    satelliteImageUrl: "https://images.unsplash.com/photo-1615092296061-e2ccfeb2f3d6?w=800",
+    liveFeedUrl: "https://www.youtube.com", // poné una URL real si tenés
+    status: "escalating",
+    evacuationLevel: "mandatory",
+    nearbyInfrastructure: ["Highway corridors", "Power lines", "Protected areas"],
+    ecosystems: ["Dry forests", "Shrublands"],
+    speciesAtRisk: ["Raptors", "Small mammals"],
+    aiInsight: {
+      probabilityNext12h: 78,
+      narrative:
+        "BioPulse estimates a high probability of expansion in the next 12 hours if wind conditions persist. Continuous monitoring and readiness for evacuation are recommended.",
+      recommendations: ["Maintain evacuation readiness", "Prioritize air quality alerts", "Monitor wind changes"],
+    },
   },
   {
-    id: '2',
-    category: 'flood',
-    location: 'Bangladesh',
+    id: "2",
+    category: "flood",
+    location: "Bangladesh",
     latitude: 23.685,
     longitude: 90.3563,
-    severity: 'high',
-    title: 'Monsoon Flooding',
-    description: 'Severe flooding affecting multiple districts',
-    timestamp: new Date('2026-01-30T08:15:00'),
+    severity: "high",
+    title: "Monsoon Flooding",
+    description:
+      "Persistent monsoon rainfall is raising river levels across multiple districts. Low-lying areas show signs of overflow and infrastructure disruption.",
+    timestamp: new Date("2026-01-30T08:15:00Z"),
     temperature: 28,
     humidity: 95,
     waterLevel: 4.5,
     affectedArea: 1800,
     affectedPopulation: 500000,
-    riskIndicators: ['Rising water levels', 'Infrastructure damage', 'Disease risk'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800',
+    riskIndicators: ["Rising water levels", "Infrastructure damage", "Disease risk"],
+    satelliteImageUrl: "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800",
+    status: "active",
+    evacuationLevel: "recommended",
+    nearbyInfrastructure: ["River crossings", "Primary roads", "Hospitals (regional)"],
+    ecosystems: ["River floodplains", "Wetlands"],
+    speciesAtRisk: ["Aquatic birds", "Fish nurseries"],
+    aiInsight: {
+      probabilityNext12h: 62,
+      narrative:
+        "BioPulse projects continued flooding pressure over the next 12 hours. Risk is concentrated in low elevation districts; prioritize safe routes and health advisories.",
+      recommendations: ["Monitor water level trends", "Prepare temporary shelters", "Issue health & sanitation alerts"],
+    },
   },
   {
-    id: '3',
-    category: 'storm',
-    location: 'Atlantic Ocean',
+    id: "3",
+    category: "storm",
+    location: "Atlantic Ocean",
     latitude: 25.7617,
     longitude: -80.1918,
-    severity: 'critical',
-    title: 'Hurricane Formation',
-    description: 'Category 4 hurricane approaching coastline',
-    timestamp: new Date('2026-01-30T12:00:00'),
+    severity: "critical",
+    title: "Hurricane Formation",
+    description:
+      "A Category 4 system is intensifying while approaching coastal areas. Expect extreme winds, heavy rainfall, and storm surge conditions.",
+    timestamp: new Date("2026-01-30T12:00:00Z"),
     temperature: 29,
     windSpeed: 220,
     humidity: 88,
     affectedArea: 5000,
     affectedPopulation: 2000000,
-    riskIndicators: ['Extreme winds', 'Storm surge', 'Heavy rainfall', 'Power outages'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=800',
-    liveFeedUrl: 'NOAA satellite feed',
+    riskIndicators: ["Extreme winds", "Storm surge", "Heavy rainfall", "Power outages"],
+    satelliteImageUrl: "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=800",
+    liveFeedUrl: "https://www.noaa.gov", // URL real si querés
+    status: "escalating",
+    evacuationLevel: "recommended",
+    nearbyInfrastructure: ["Coastal cities", "Ports", "Power grid nodes"],
+    ecosystems: ["Coastal wetlands", "Reefs"],
+    speciesAtRisk: ["Sea turtles", "Coastal birds"],
+    aiInsight: {
+      probabilityNext12h: 81,
+      narrative:
+        "BioPulse indicates a very high chance of intensification and coastline impact. Prepare for storm surge and widespread outages.",
+      recommendations: ["Prioritize coastal warnings", "Secure critical infrastructure", "Monitor surge models"],
+    },
   },
   {
-    id: '4',
-    category: 'heatwave',
-    location: 'New Delhi, India',
+    id: "4",
+    category: "heatwave",
+    location: "New Delhi, India",
     latitude: 28.6139,
-    longitude: 77.2090,
-    severity: 'critical',
-    title: 'Extreme Heatwave',
-    description: 'Record-breaking temperatures causing health emergency',
-    timestamp: new Date('2026-01-30T11:00:00'),
+    longitude: 77.209,
+    severity: "critical",
+    title: "Extreme Heatwave",
+    description:
+      "Record-breaking temperatures are triggering a health emergency. Heat stress risk is elevated, especially for vulnerable populations and outdoor workers.",
+    timestamp: new Date("2026-01-30T11:00:00Z"),
     temperature: 48,
     humidity: 35,
     affectedArea: 800,
     affectedPopulation: 20000000,
-    riskIndicators: ['Heat exhaustion', 'Power grid stress', 'Water shortage'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800',
+    riskIndicators: ["Heat exhaustion", "Power grid stress", "Water shortage"],
+    satelliteImageUrl: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800",
+    status: "active",
+    evacuationLevel: "none",
+    nearbyInfrastructure: ["Urban districts", "Hospitals", "Power grid"],
+    ecosystems: ["Urban heat islands"],
+    speciesAtRisk: ["Urban wildlife"],
+    aiInsight: {
+      probabilityNext12h: 55,
+      narrative:
+        "BioPulse projects sustained extreme heat in the next 12 hours. Focus on hydration guidance and power demand management.",
+      recommendations: ["Issue hydration advisories", "Monitor grid demand", "Open cooling centers"],
+    },
   },
   {
-    id: '5',
-    category: 'air-pollution',
-    location: 'Beijing, China',
+    id: "5",
+    category: "air-pollution",
+    location: "Beijing, China",
     latitude: 39.9042,
     longitude: 116.4074,
-    severity: 'high',
-    title: 'Severe Air Quality Crisis',
-    description: 'Hazardous smog levels affecting millions',
-    timestamp: new Date('2026-01-30T09:30:00'),
+    severity: "high",
+    title: "Severe Air Quality Crisis",
+    description:
+      "Air quality levels are hazardous. Reduced visibility and elevated particulate concentrations increase respiratory risk across the metropolitan area.",
+    timestamp: new Date("2026-01-30T09:30:00Z"),
     temperature: 8,
     humidity: 45,
     airQualityIndex: 387,
     affectedArea: 1200,
     affectedPopulation: 21000000,
-    riskIndicators: ['Respiratory hazard', 'Visibility < 200m', 'School closures'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800',
+    riskIndicators: ["Respiratory hazard", "Visibility < 200m", "School closures"],
+    satelliteImageUrl: "https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800",
+    status: "stabilizing",
+    evacuationLevel: "none",
+    nearbyInfrastructure: ["Urban core", "Schools", "Hospitals"],
+    ecosystems: ["Urban air basin"],
+    speciesAtRisk: ["Bird populations (urban)"],
+    aiInsight: {
+      probabilityNext12h: 44,
+      narrative:
+        "BioPulse indicates a moderate chance of improvement if wind dispersal increases. Avoid outdoor activity until AQI drops.",
+      recommendations: ["Limit outdoor exposure", "Promote mask usage", "Monitor AQI hourly"],
+    },
   },
   {
-    id: '6',
-    category: 'ocean-anomaly',
-    location: 'Great Barrier Reef, Australia',
+    id: "6",
+    category: "ocean-anomaly",
+    location: "Great Barrier Reef, Australia",
     latitude: -18.2871,
     longitude: 147.6992,
-    severity: 'high',
-    title: 'Coral Bleaching Event',
-    description: 'Mass coral bleaching due to elevated water temperatures',
-    timestamp: new Date('2026-01-30T06:00:00'),
+    severity: "high",
+    title: "Coral Bleaching Event",
+    description:
+      "Elevated sea surface temperatures are causing widespread coral stress. Bleaching risk is high across sensitive reef zones.",
+    timestamp: new Date("2026-01-30T06:00:00Z"),
     temperature: 32,
     affectedArea: 3500,
-    riskIndicators: ['Marine ecosystem collapse', 'Temperature anomaly +3°C', 'Biodiversity loss'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800',
-  },
-  {
-    id: '7',
-    category: 'fire',
-    location: 'Amazon Rainforest, Brazil',
-    latitude: -3.4653,
-    longitude: -62.2159,
-    severity: 'critical',
-    title: 'Rainforest Fire',
-    description: 'Multiple fire fronts in protected areas',
-    timestamp: new Date('2026-01-30T13:45:00'),
-    temperature: 38,
-    windSpeed: 25,
-    humidity: 28,
-    affectedArea: 4200,
-    riskIndicators: ['Deforestation', 'Carbon emissions', 'Wildlife displacement', 'Smoke plume'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1615092296061-e2ccfeb2f3d6?w=800',
-  },
-  {
-    id: '8',
-    category: 'storm',
-    location: 'Philippines',
-    latitude: 12.8797,
-    longitude: 121.7740,
-    severity: 'high',
-    title: 'Typhoon Alert',
-    description: 'Tropical storm making landfall',
-    timestamp: new Date('2026-01-30T10:20:00'),
-    temperature: 26,
-    windSpeed: 165,
-    humidity: 92,
-    affectedArea: 2800,
-    affectedPopulation: 3000000,
-    riskIndicators: ['Landslides', 'Flooding', 'Infrastructure damage'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=800',
-  },
-  {
-    id: '9',
-    category: 'flood',
-    location: 'Venice, Italy',
-    latitude: 45.4408,
-    longitude: 12.3155,
-    severity: 'moderate',
-    title: 'Acqua Alta',
-    description: 'High tide flooding in historic city',
-    timestamp: new Date('2026-01-30T15:00:00'),
-    waterLevel: 1.4,
-    humidity: 78,
-    affectedArea: 50,
-    affectedPopulation: 50000,
-    riskIndicators: ['Cultural heritage at risk', 'Economic disruption'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800',
-  },
-  {
-    id: '10',
-    category: 'heatwave',
-    location: 'Sahara Desert, Africa',
-    latitude: 23.4162,
-    longitude: 25.6628,
-    severity: 'moderate',
-    title: 'Desert Heat Surge',
-    description: 'Extreme temperatures recorded',
-    timestamp: new Date('2026-01-30T12:30:00'),
-    temperature: 52,
-    humidity: 8,
-    affectedArea: 12000,
-    riskIndicators: ['Sand storms', 'Heat records'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800',
-  },
-  {
-    id: '11',
-    category: 'air-pollution',
-    location: 'Los Angeles, USA',
-    latitude: 34.0522,
-    longitude: -118.2437,
-    severity: 'moderate',
-    title: 'Urban Smog',
-    description: 'Poor air quality due to traffic and weather patterns',
-    timestamp: new Date('2026-01-30T14:00:00'),
-    temperature: 24,
-    airQualityIndex: 168,
-    affectedArea: 1200,
-    affectedPopulation: 13000000,
-    riskIndicators: ['Ozone levels', 'Respiratory advisories'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800',
-  },
-  {
-    id: '12',
-    category: 'ocean-anomaly',
-    location: 'Pacific Ocean, Chile Coast',
-    latitude: -33.4489,
-    longitude: -70.6693,
-    severity: 'moderate',
-    title: 'Red Tide Bloom',
-    description: 'Harmful algal bloom affecting marine life',
-    timestamp: new Date('2026-01-30T07:45:00'),
-    temperature: 19,
-    affectedArea: 800,
-    riskIndicators: ['Marine toxins', 'Fish kill', 'Economic impact on fisheries'],
-    satelliteImageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800',
+    riskIndicators: ["Marine ecosystem stress", "Temperature anomaly +3°C", "Biodiversity loss"],
+    satelliteImageUrl: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800",
+    status: "active",
+    evacuationLevel: "none",
+    nearbyInfrastructure: ["Marine protected areas"],
+    ecosystems: ["Coral reef"],
+    speciesAtRisk: ["Corals", "Reef fish"],
+    aiInsight: {
+      probabilityNext12h: 49,
+      narrative:
+        "BioPulse expects continued thermal stress over the next 12 hours. Prioritize reef monitoring and temperature anomaly tracking.",
+      recommendations: ["Track SST anomalies", "Increase observation frequency", "Coordinate with marine teams"],
+    },
   },
 ];
