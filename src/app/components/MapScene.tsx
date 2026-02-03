@@ -5,17 +5,15 @@ import type { EnvironmentalEvent } from "@/data/events";
 
 type MapSceneProps = {
   events: EnvironmentalEvent[];
-  bbox?: string | null; // "west,south,east,north"
+  bbox?: string | null;
   onEventClick: (e: EnvironmentalEvent) => void;
-
-  // 👇 para “Volver” y para re-centrar al entrar al dashboard
   resetKey: number;
-
-  // 👇 para que App muestre/oculte el botón Volver según zoom
   onZoomedInChange?: (v: boolean) => void;
+
+  // ✅ NEW: avisa a App para auto-ocultar UI en mobile
+  onUserInteracting?: () => void;
 };
 
-// Mapa oscuro (sin keys)
 const DARK_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
@@ -40,10 +38,16 @@ function sevRank(sev: EnvironmentalEvent["severity"]) {
   }
 }
 
-export function MapScene({ events, bbox, onEventClick, resetKey, onZoomedInChange }: MapSceneProps) {
+export function MapScene({
+  events,
+  bbox,
+  onEventClick,
+  resetKey,
+  onZoomedInChange,
+  onUserInteracting,
+}: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
 
-  // GeoJSON para clustering
   const geojson = useMemo(() => {
     return {
       type: "FeatureCollection" as const,
@@ -64,7 +68,6 @@ export function MapScene({ events, bbox, onEventClick, resetKey, onZoomedInChang
     };
   }, [events]);
 
-  // Layer IDs
   const CLUSTERS_LAYER_ID = "clusters";
   const CLUSTER_COUNT_LAYER_ID = "cluster-count";
   const UNCLUSTERED_LAYER_ID = "unclustered-point";
@@ -149,13 +152,11 @@ export function MapScene({ events, bbox, onEventClick, resetKey, onZoomedInChang
     });
   }, [bbox]);
 
-  // ✅ mobile-safe: cuando cambia bbox o resetKey, re-centrar
   useEffect(() => {
     if (!bbox || !mapRef.current) return;
     fitToSelectedRegion();
   }, [bbox, resetKey, fitToSelectedRegion]);
 
-  // Click: cluster => zoom, punto => abrir panel
   const handleClick = (e: MapLayerMouseEvent) => {
     const map = mapRef.current?.getMap();
     if (!map) return;
@@ -190,11 +191,12 @@ export function MapScene({ events, bbox, onEventClick, resetKey, onZoomedInChang
     if (ev) onEventClick(ev);
   };
 
-  // ✅ avisar a App si estamos “zoomeados”
   const handleMove = () => {
     const z = mapRef.current?.getZoom?.();
-    if (typeof z !== "number") return;
-    onZoomedInChange?.(z >= 4); // umbral simple
+    if (typeof z === "number") {
+      onZoomedInChange?.(z >= 4);
+    }
+    onUserInteracting?.();
   };
 
   return (
@@ -212,10 +214,7 @@ export function MapScene({ events, bbox, onEventClick, resetKey, onZoomedInChang
         interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
         onClick={handleClick}
         onMove={handleMove}
-        onLoad={() => {
-          // ✅ clave: en mobile el fitBounds tiene que correr cuando el mapa está listo
-          fitToSelectedRegion();
-        }}
+        onLoad={() => fitToSelectedRegion()}
       >
         <Source
           id="events"
