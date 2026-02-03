@@ -1,21 +1,23 @@
-import { useEffect, useMemo, useRef, useCallback } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Map, { Layer, Source } from "react-map-gl/maplibre";
 import type { MapRef, MapLayerMouseEvent } from "react-map-gl/maplibre";
 import type { EnvironmentalEvent } from "@/data/events";
 
 type MapSceneProps = {
   events: EnvironmentalEvent[];
-  bbox?: string | null;
+  bbox?: string | null; // "west,south,east,north"
   onEventClick: (e: EnvironmentalEvent) => void;
-  resetKey: number;
+
+  // extras que ya veníamos usando
+  resetKey?: number;
   onZoomedInChange?: (v: boolean) => void;
 
-  // ✅ NEW: avisa a App para auto-ocultar UI en mobile
-  onUserInteracting?: () => void;
+  // ✅ nuevo: para “dockear” stats antes
+  onZoomChange?: (zoom: number) => void;
 };
 
-const DARK_STYLE =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+// Mapa oscuro (sin keys)
+const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
 function bboxToBounds(bbox: string) {
   const [w, s, e, n] = bbox.split(",").map(Number);
@@ -44,9 +46,32 @@ export function MapScene({
   onEventClick,
   resetKey,
   onZoomedInChange,
-  onUserInteracting,
+  onZoomChange,
 }: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
+
+  // Ajustar vista al bbox elegido
+  useEffect(() => {
+    if (!bbox || !mapRef.current) return;
+    mapRef.current.fitBounds(bboxToBounds(bbox), {
+      padding: 80,
+      duration: 800,
+    });
+  }, [bbox]);
+
+  // ✅ Reset “Volver” (fitBounds al bbox)
+  useEffect(() => {
+    if (!resetKey) return;
+    if (!bbox || !mapRef.current) return;
+
+    mapRef.current.fitBounds(bboxToBounds(bbox), {
+      padding: 80,
+      duration: 800,
+    });
+
+    // también informamos que ya no estamos “zoom-in”
+    onZoomedInChange?.(false);
+  }, [resetKey, bbox, onZoomedInChange]);
 
   const geojson = useMemo(() => {
     return {
@@ -68,6 +93,7 @@ export function MapScene({
     };
   }, [events]);
 
+  // Layer IDs
   const CLUSTERS_LAYER_ID = "clusters";
   const CLUSTER_COUNT_LAYER_ID = "cluster-count";
   const UNCLUSTERED_LAYER_ID = "unclustered-point";
@@ -127,35 +153,13 @@ export function MapScene({
         "#ffaa00",
         "#00ff88",
       ],
-      "circle-radius": [
-        "case",
-        [">=", ["get", "sevRank"], 3],
-        7,
-        [">=", ["get", "sevRank"], 2],
-        6,
-        5,
-      ],
+      "circle-radius": ["case", [">=", ["get", "sevRank"], 3], 7, [">=", ["get", "sevRank"], 2], 6, 5],
       "circle-opacity": 0.95,
       "circle-stroke-width": 2,
       "circle-stroke-color": "rgba(0,0,0,0.35)",
       "circle-blur": 0.15,
     },
   };
-
-  const fitToSelectedRegion = useCallback(() => {
-    const ref = mapRef.current;
-    if (!ref || !bbox) return;
-
-    ref.fitBounds(bboxToBounds(bbox), {
-      padding: 80,
-      duration: 750,
-    });
-  }, [bbox]);
-
-  useEffect(() => {
-    if (!bbox || !mapRef.current) return;
-    fitToSelectedRegion();
-  }, [bbox, resetKey, fitToSelectedRegion]);
 
   const handleClick = (e: MapLayerMouseEvent) => {
     const map = mapRef.current?.getMap();
@@ -170,6 +174,7 @@ export function MapScene({
     const f: any = features[0];
     const props = f.properties || {};
 
+    // cluster => zoom
     if (props.cluster) {
       const clusterId = props.cluster_id;
       const source: any = map.getSource("events");
@@ -183,24 +188,18 @@ export function MapScene({
           duration: 650,
         });
       });
+
       return;
     }
 
+    // point => open panel
     const id = String(props.id ?? "");
     const ev = events.find((x) => String(x.id) === id);
     if (ev) onEventClick(ev);
   };
 
-  const handleMove = () => {
-    const z = mapRef.current?.getZoom?.();
-    if (typeof z === "number") {
-      onZoomedInChange?.(z >= 4);
-    }
-    onUserInteracting?.();
-  };
-
   return (
-    <div className="absolute inset-0 z-0" style={{ touchAction: "none" }}>
+    <div className="absolute inset-0 z-0">
       <Map
         ref={(r) => (mapRef.current = r)}
         initialViewState={{ longitude: 0, latitude: 10, zoom: 1.2 }}
@@ -213,8 +212,16 @@ export function MapScene({
         pitchWithRotate={false}
         interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
         onClick={handleClick}
-        onMove={handleMove}
-        onLoad={() => fitToSelectedRegion()}
+        onMove={(evt) => {
+          const z = evt.viewState.zoom;
+
+          // ✅ avisa zoom siempre
+          onZoomChange?.(z);
+
+          // ✅ tu lógica previa: “cuando estás explorando”
+          // umbral para mostrar “Volver” (no tan temprano)
+          onZoomedInChange?.(z >= 2.8);
+        }}
       >
         <Source
           id="events"
