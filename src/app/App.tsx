@@ -11,16 +11,13 @@ import type { EnvironmentalEvent, EventCategory } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
-// 🔥 FIRMS Proxy URL (verificado)
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
-
 type AppStage = "splash" | "setup" | "dashboard";
 
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
 
-  // Selección activa
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
   const [selectedRegionKey, setSelectedRegionKey] = useState<string | null>(null);
 
@@ -28,16 +25,18 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Control de vista del mapa
   const [resetKey, setResetKey] = useState(0);
-  const [showZoomOut, setShowZoomOut] = useState(false);
+
+  // ✅ “Explorando” (zoom-in) => colapsa panels
+  const [isExploring, setIsExploring] = useState(false);
+  const [mapZoom, setMapZoom] = useState(1.2);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
   const openSetup = () => {
     setSelectedEvent(null);
-    setShowZoomOut(false);
+    setIsExploring(false);
     setStage("setup");
   };
 
@@ -48,7 +47,6 @@ export default function App() {
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
-    // 🔥 Incendios reales (FIRMS)
     if (args.category === "fire") {
       try {
         const bbox = encodeURIComponent(args.region.bbox);
@@ -56,7 +54,6 @@ export default function App() {
 
         const res = await fetch(url);
         if (!res.ok) throw new Error(`FIRMS proxy error: ${res.status}`);
-
         const data = await res.json();
 
         const points: FirePoint[] = (data.features ?? [])
@@ -88,52 +85,40 @@ export default function App() {
         }));
 
         setEvents(clusteredEvents);
-        setSelectedEvent(null);
-        setStage("dashboard");
-        setResetKey((k) => k + 1);
-        setShowZoomOut(false);
-        return;
-      } catch (error) {
-        console.error("Error fetching FIRMS data:", error);
-        const filtered = mockEvents.filter((e) => e.category === "fire");
-        setEvents(filtered);
-        setSelectedEvent(null);
-        setStage("dashboard");
-        setResetKey((k) => k + 1);
-        setShowZoomOut(false);
-        return;
+      } catch (err) {
+        console.error("Error fetching FIRMS data:", err);
+        setEvents(mockEvents.filter((e) => e.category === "fire"));
       }
+
+      setSelectedEvent(null);
+      setStage("dashboard");
+      setResetKey((k) => k + 1);
+      setIsExploring(false);
+      return;
     }
 
-    // Otras categorías: mock
-    const filtered = mockEvents.filter((e) => e.category === args.category);
-    setEvents(filtered);
+    setEvents(mockEvents.filter((e) => e.category === args.category));
     setSelectedEvent(null);
     setStage("dashboard");
     setResetKey((k) => k + 1);
-    setShowZoomOut(false);
+    setIsExploring(false);
   };
 
   const stats = useMemo(() => {
     const criticalCount = events.filter((e) => e.severity === "critical").length;
     const uniqueLocations = new Set(events.map((e) => e.location.split(",")[0]));
-    return {
-      total: events.length,
-      critical: criticalCount,
-      regions: uniqueLocations.size,
-    };
+    return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  const shouldShowZoomOut = showZoomOut && !selectedEvent;
+  // ✅ Botón Volver solo si estás explorando y NO hay alerta abierta
+  const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      {/* Header */}
       <Header activeView={activeView} onViewChange={setActiveView} />
 
-      {/* Setup overlay */}
       {stage === "setup" && (
         <SetupPanel
           category={selectedCategory}
@@ -142,25 +127,24 @@ export default function App() {
           onChangeRegion={setSelectedRegionKey}
           onStart={startMonitoring}
           onClose={() => setStage("dashboard")}
-          canClose={stage === "setup" && events.length > 0}
+          canClose={events.length > 0}
         />
       )}
 
-      {/* Dashboard */}
       {stage === "dashboard" && (
         <div className="absolute inset-0">
-          {/* MAPA */}
           <div className="absolute inset-0 z-0">
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
               onEventClick={setSelectedEvent}
               resetKey={resetKey}
-              onZoomedInChange={setShowZoomOut}
+              onZoomedInChange={setIsExploring}
+              onZoomChange={setMapZoom}
             />
           </div>
 
-          {/* EFECTOS */}
+          {/* efectos */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
@@ -169,8 +153,8 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Cambiar búsqueda (CTA cyan + subtítulo) */}
-            <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
+            {/* ✅ Cambiar búsqueda: en mobile baja un poco para no tapar el panel Active Events */}
+            <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
                 className={[
@@ -188,7 +172,6 @@ export default function App() {
                 <div className="h-10 w-10 rounded-xl border border-cyan-300/20 bg-black/20 flex items-center justify-center">
                   <SlidersHorizontal className="h-5 w-5 text-cyan-200" />
                 </div>
-
                 <div className="text-left leading-tight">
                   <div className="text-sm md:text-base font-semibold">Cambiar búsqueda</div>
                   <div className="text-xs text-white/55 mt-0.5">Categoría • Región</div>
@@ -196,11 +179,13 @@ export default function App() {
               </button>
             </div>
 
+            {/* ✅ StatsPanel: se colapsa cuando estás explorando */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
                 criticalEvents={stats.critical}
                 affectedRegions={stats.regions}
+                collapsed={isExploring}
               />
             </div>
 
@@ -220,12 +205,11 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Volver: se mueve ABAJO A LA DERECHA (evita encimes con dock derecho) */}
+            {/* ✅ Volver: en mobile más arriba para no pisar Timeline */}
             <div
               className={[
-                "fixed right-4 md:right-6 z-[9999]",
-                // abajo y a la derecha: no compite con panels de arriba
-                "bottom-24 md:bottom-28",
+                "fixed right-4 z-[9999]",
+                "bottom-[180px] md:right-6 md:bottom-28",
                 "transition-all duration-300 ease-out will-change-transform",
                 shouldShowZoomOut
                   ? "opacity-100 translate-y-0 pointer-events-auto"
