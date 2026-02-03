@@ -5,14 +5,20 @@ type Props = {
   totalEvents: number;
   criticalEvents: number;
   affectedRegions: number;
-  collapsed?: boolean; // ✅ nuevo
+  collapsed?: boolean; // true cuando estás explorando (zoom-in)
 };
 
-export function StatsPanel({ totalEvents, criticalEvents, affectedRegions, collapsed = false }: Props) {
+export function StatsPanel({
+  totalEvents,
+  criticalEvents,
+  affectedRegions,
+  collapsed = false,
+}: Props) {
   // si el usuario toca un pictograma, puede “expandir” momentáneamente aun estando colapsado
   const [manualOpen, setManualOpen] = useState<null | "total" | "critical" | "regions">(null);
 
-  const isCollapsed = collapsed && manualOpen === null;
+  // Desktop: colapsa si "collapsed" y NO hay manualOpen
+  const isCollapsedDesktop = collapsed && manualOpen === null;
 
   const items = useMemo(
     () => [
@@ -93,60 +99,96 @@ export function StatsPanel({ totalEvents, criticalEvents, affectedRegions, colla
     );
   };
 
+  const livePill = (
+    <div className="rounded-full border border-white/10 bg-black/35 backdrop-blur-md px-4 py-2 text-xs text-white/65 w-fit">
+      <span className="text-green-400">●</span> Live data • Updates every 30s
+    </div>
+  );
+
+  const getItem = (k: "total" | "critical" | "regions") => items.find((x) => x.key === k)!;
+
   return (
     <div className="fixed right-4 md:right-6 z-[9998] top-[calc(env(safe-area-inset-top)+72px)] md:top-24 pointer-events-auto">
-      {/* estado online */}
-      <div className="mb-3 flex justify-end">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/35 border border-white/10 backdrop-blur-md">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-white/70">System Online</span>
-        </div>
-      </div>
-
-      {/* ✅ Colapsado: pictogramas */}
-      {isCollapsed ? (
-        <div className="flex flex-col gap-3 items-end">
-          {items.map((it) => (
-            <Pict key={it.key} key={it.key} value={it.value} icon={it.icon} color={it.color} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4 w-[280px]">
-          {/* si abrimos manual en modo colapsado, mostramos solo esa tarjeta + botón de cerrar */}
-          {manualOpen ? (
-            <>
+      {/* =========================
+          MOBILE (siempre compacto)
+          ========================= */}
+      <div className="md:hidden">
+        {/* si el usuario abrió manualmente, mostramos 1 tarjeta; si no, pictos */}
+        {manualOpen ? (
+          <div className="flex flex-col gap-3 items-end">
+            <div className="w-[260px]">
               <Card
-                title={items.find((x) => x.key === manualOpen)!.title}
-                value={items.find((x) => x.key === manualOpen)!.value}
-                icon={items.find((x) => x.key === manualOpen)!.icon}
-                color={items.find((x) => x.key === manualOpen)!.color}
+                title={getItem(manualOpen).title}
+                value={getItem(manualOpen).value}
+                icon={getItem(manualOpen).icon}
+                color={getItem(manualOpen).color}
               />
+            </div>
+
+            <div className="flex items-center justify-between w-[260px] gap-3">
+              {livePill}
               <button
                 onClick={() => setManualOpen(null)}
-                className="ml-auto px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white/75 hover:bg-white/10 transition-colors"
+                className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white/75 hover:bg-white/10 transition-colors whitespace-nowrap"
               >
                 Ocultar
               </button>
-            </>
-          ) : (
-            <>
-              {items.map((it) => (
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 items-end">
+            {items.map((it) => (
+              <Pict key={it.key} value={it.value} icon={it.icon} color={it.color} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* =========================
+          DESKTOP (comportamiento actual)
+          ========================= */}
+      <div className="hidden md:block">
+        {isCollapsedDesktop ? (
+          <div className="flex flex-col gap-3 items-end">
+            {items.map((it) => (
+              <Pict key={it.key} value={it.value} icon={it.icon} color={it.color} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 w-[280px]">
+            {manualOpen ? (
+              <>
                 <Card
-                  key={it.key}
-                  title={it.title}
-                  value={it.value}
-                  icon={it.icon}
-                  color={it.color}
-                  onClick={collapsed ? () => setManualOpen(it.key) : undefined}
+                  title={getItem(manualOpen).title}
+                  value={getItem(manualOpen).value}
+                  icon={getItem(manualOpen).icon}
+                  color={getItem(manualOpen).color}
                 />
-              ))}
-              <div className="rounded-full border border-white/10 bg-black/35 backdrop-blur-md px-4 py-2 text-xs text-white/65 w-fit">
-                <span className="text-green-400">●</span> Live data • Updates every 30s
-              </div>
-            </>
-          )}
-        </div>
-      )}
+                <button
+                  onClick={() => setManualOpen(null)}
+                  className="ml-auto px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white/75 hover:bg-white/10 transition-colors"
+                >
+                  Ocultar
+                </button>
+              </>
+            ) : (
+              <>
+                {items.map((it) => (
+                  <Card
+                    key={it.key}
+                    title={it.title}
+                    value={it.value}
+                    icon={it.icon}
+                    color={it.color}
+                    onClick={collapsed ? () => setManualOpen(it.key) : undefined}
+                  />
+                ))}
+                {livePill}
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
