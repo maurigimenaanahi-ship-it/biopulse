@@ -169,7 +169,7 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Cambiar búsqueda (con estilo cyan + subtítulo) */}
+            {/* ✅ Cambiar búsqueda (CTA cyan + subtítulo) */}
             <div className="pointer-events-auto fixed left-4 top-20 md:left-6 md:top-24 z-[9999]">
               <button
                 onClick={openSetup}
@@ -220,16 +220,16 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Volver: ahora queda DEBAJO del dock derecho (nunca se pega) */}
+            {/* ✅ Volver: se mueve ABAJO A LA DERECHA (evita encimes con dock derecho) */}
             <div
               className={[
                 "fixed right-4 md:right-6 z-[9999]",
-                // debajo del dock (ajuste fino): en desktop funciona perfecto; en mobile también respira
-                "top-[240px] md:top-[260px]",
+                // abajo y a la derecha: no compite con panels de arriba
+                "bottom-24 md:bottom-28",
                 "transition-all duration-300 ease-out will-change-transform",
                 shouldShowZoomOut
-                  ? "opacity-100 translate-x-0 pointer-events-auto"
-                  : "opacity-0 translate-x-3 pointer-events-none",
+                  ? "opacity-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
             >
               <button
