@@ -1,11 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { EnvironmentalEvent } from "@/data/events";
 
 export function AlertPanel(props: {
   event: EnvironmentalEvent | null;
   onClose: () => void;
+  onCenter: (e: EnvironmentalEvent) => void;
+  shareUrl?: string;
 }) {
-  const { event, onClose } = props;
+  const { event, onClose, onCenter, shareUrl } = props;
+
+  const [copied, setCopied] = useState(false);
 
   // ESC para cerrar (desktop)
   useEffect(() => {
@@ -19,7 +23,32 @@ export function AlertPanel(props: {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [event, onClose]);
 
+  useEffect(() => {
+    // reset “copied” cuando cambia el evento
+    setCopied(false);
+  }, [event?.id]);
+
+  const timestampText = useMemo(() => {
+    if (!event) return "";
+    // event.timestamp es Date (según tu type)
+    // igual lo protegemos por si viniera string en algún caso
+    const d = event.timestamp instanceof Date ? event.timestamp : new Date(event.timestamp as any);
+    return d.toUTCString();
+  }, [event]);
+
   if (!event) return null;
+
+  async function handleCopyLink() {
+    if (!shareUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      window.prompt("Copiá el link:", shareUrl);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
@@ -73,7 +102,7 @@ export function AlertPanel(props: {
           {/* Header */}
           <div className="pr-12">
             <div className="text-white/55 text-xs uppercase tracking-wider">
-              {event.category} • {new Date(event.timestamp).toUTCString()}
+              {event.category} • {timestampText}
             </div>
 
             <div className="mt-2 text-white text-2xl md:text-3xl font-semibold leading-tight">
@@ -97,42 +126,54 @@ export function AlertPanel(props: {
                     : "bg-emerald-400",
                 ].join(" ")}
               />
-              <span className="text-white/80 text-sm">
-                {event.severity.toUpperCase()} Severity
-              </span>
+              <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
+            </div>
+
+            {/* ✅ ACTIONS (nuevo) */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
+                onClick={() => onCenter(event)}
+                title="Centrar en el mapa"
+              >
+                Centrar
+              </button>
+
+              <button
+                type="button"
+                className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
+                onClick={handleCopyLink}
+                disabled={!shareUrl}
+                title={shareUrl ? "Copiar link" : "Link no disponible"}
+              >
+                {copied ? "Link copiado" : "Copiar link"}
+              </button>
             </div>
           </div>
 
           {/* Content */}
           <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">
-                Environmental Data
-              </div>
+              <div className="text-white/45 text-xs uppercase tracking-wider">Environmental Data</div>
               <div className="mt-2 text-white/85 text-sm leading-relaxed">
                 {event.description || "No additional description available."}
               </div>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">
-                Impact Assessment
-              </div>
+              <div className="text-white/45 text-xs uppercase tracking-wider">Impact Assessment</div>
 
               <div className="mt-3 space-y-3">
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">
-                    Affected Area
-                  </div>
+                  <div className="text-white/40 text-xs uppercase tracking-wider">Affected Area</div>
                   <div className="text-white/85 text-lg font-medium mt-1">
                     {event.affectedArea ?? 1} km²
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">
-                    Event Status
-                  </div>
+                  <div className="text-white/40 text-xs uppercase tracking-wider">Event Status</div>
                   <div className="text-white/80 text-sm mt-1">
                     <span className="inline-flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-red-500" />
