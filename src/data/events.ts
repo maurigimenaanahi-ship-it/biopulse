@@ -1,3 +1,5 @@
+// src/data/events.ts
+
 export type EventCategory =
   | "flood"
   | "fire"
@@ -13,6 +15,15 @@ export interface AIInsight {
   probabilityNext12h?: number; // 0..100
   narrative?: string; // texto narrativo
   recommendations?: string[]; // bullets cortos
+}
+
+/** Punto histórico (para comparar “antes vs ahora”) */
+export interface EventHistoryPoint {
+  t: Date; // timestamp de observación
+  focusCount?: number; // detecciones (para fire)
+  frpSum?: number; // fire radiative power sum
+  frpMax?: number; // fire radiative power max
+  severity?: EnvironmentalEvent["severity"];
 }
 
 export interface EnvironmentalEvent {
@@ -52,7 +63,7 @@ export interface EnvironmentalEvent {
   satelliteImageUrl?: string;
   liveFeedUrl?: string; // idealmente URL real
 
-  // ====== NUEVO (opción B) ======
+  // ====== PRO (opción B) ======
   status?: EventStatus;
   evacuationLevel?: EvacuationLevel;
 
@@ -61,6 +72,22 @@ export interface EnvironmentalEvent {
   speciesAtRisk?: string[]; // especies
 
   aiInsight?: AIInsight; // “inteligencia viva”
+
+  // ====== MEMORIA / HISTORIA ======
+  /** Primer vez que el sistema lo vio */
+  firstSeen?: Date;
+  /** Última vez que el sistema lo vio (si después desaparece, queda guardado acá) */
+  lastSeen?: Date;
+  /** Si no apareció en el último escaneo, lo marcamos como “stale” */
+  stale?: boolean;
+
+  /** Series temporal mínima para comparar cambios */
+  history?: EventHistoryPoint[];
+
+  // ====== MÉTRICAS FIRE (para clusters DBSCAN) ======
+  focusCount?: number;
+  frpSum?: number;
+  frpMax?: number;
 }
 
 export const categoryColors: Record<EventCategory, string> = {
@@ -101,7 +128,7 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedPopulation: 15000,
     riskIndicators: ["Rapid spread", "High winds", "Dense smoke", "Evacuation zones"],
     satelliteImageUrl: "https://images.unsplash.com/photo-1615092296061-e2ccfeb2f3d6?w=800",
-    liveFeedUrl: "https://www.youtube.com", // poné una URL real si tenés
+    liveFeedUrl: "https://www.youtube.com",
     status: "escalating",
     evacuationLevel: "mandatory",
     nearbyInfrastructure: ["Highway corridors", "Power lines", "Protected areas"],
@@ -162,7 +189,7 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedPopulation: 2000000,
     riskIndicators: ["Extreme winds", "Storm surge", "Heavy rainfall", "Power outages"],
     satelliteImageUrl: "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=800",
-    liveFeedUrl: "https://www.noaa.gov", // URL real si querés
+    liveFeedUrl: "https://www.noaa.gov",
     status: "escalating",
     evacuationLevel: "recommended",
     nearbyInfrastructure: ["Coastal cities", "Ports", "Power grid nodes"],
