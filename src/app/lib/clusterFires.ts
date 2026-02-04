@@ -1,12 +1,13 @@
 // src/app/lib/clusterFires.ts
+
 export type FirePoint = {
   id: string;
   latitude: number;
   longitude: number;
   frp?: number;
   confidence?: string; // "h" | "n" | "l" (depende del feed)
-  acq_date?: string;
-  acq_time?: string;
+  acq_date?: string;   // "YYYY-MM-DD"
+  acq_time?: string;   // "HHMM" (a veces viene "HMM")
 };
 
 function toRad(v: number) {
@@ -28,15 +29,57 @@ function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+/** Convierte (acq_date + acq_time) de FIRMS a Date (UTC aproximado).
+ *  - acq_date suele ser "YYYY-MM-DD"
+ *  - acq_time suele venir como "HHMM" (ej "0345") o "HMM" (ej "945")
+ */
+function parseFirmsDateUTC(acq_date?: string, acq_time?: string): Date | null {
+  if (!acq_date || typeof acq_date !== "string") return null;
+
+  const time = (acq_time ?? "").toString().trim();
+  if (!time) {
+    // Si no hay hora, usamos medianoche UTC
+    const d = new Date(`${acq_date}T00:00:00Z`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  // Normalizamos a 4 dígitos
+  const padded = time.padStart(4, "0"); // "945" -> "0945"
+  const hh = Number(padded.slice(0, 2));
+  const mm = Number(padded.slice(2, 4));
+
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
+
+  const iso = `${acq_date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00Z`;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export type ClusteredFireEvent = {
   id: string;
   latitude: number;
   longitude: number;
+
   focusCount: number;
+
   frpSum: number;
   frpMax: number;
+
   severity: "low" | "moderate" | "high" | "critical";
+
+  // ✅ miembros (puntos FIRMS crudos)
   members: FirePoint[];
+
+  // ✅ tiempo (para saber si “ya se apagó” / está viejo)
+  firstSeen: Date | null;
+  lastSeen: Date | null;
+
+  /** horas desde la última detección (null si no se puede calcular) */
+  ageHours: number | null;
+
+  /** true si ageHours >= staleAfterHours (default 24) */
+  isStale: boolean;
 };
 
 function severityFrom(frps: number[], confidences: (string | undefined)[]) {
@@ -56,11 +99,28 @@ function severityFrom(frps: number[], confidences: (string | undefined)[]) {
   return { severity, frpMax, frpSum };
 }
 
+function computeSeenWindow(members: FirePoint[]) {
+  const times: Date[] = [];
+
+  for (const m of members) {
+    const d = parseFirmsDateUTC(m.acq_date, m.acq_time);
+    if (d) times.push(d);
+  }
+
+  if (!times.length) {
+    return { firstSeen: null as Date | null, lastSeen: null as Date | null };
+  }
+
+  times.sort((a, b) => a.getTime() - b.getTime());
+  return { firstSeen: times[0], lastSeen: times[times.length - 1] };
+}
+
 export function clusterFiresDBSCAN(
   points: FirePoint[],
-  epsKm = 8,     // radio de agrupación en KM (8–12 suele ir bien)
-  minPts = 4,    // mínimo de puntos para formar cluster
-  includeNoiseAsSingleEvents = true
+  epsKm = 8, // radio de agrupación en KM (8–12 suele ir bien)
+  minPts = 4, // mínimo de puntos para formar cluster
+  includeNoiseAsSingleEvents = true,
+  staleAfterHours = 24 // ✅ umbral para considerar “evento viejo”
 ): ClusteredFireEvent[] {
   const visited = new Set<number>();
   const assigned = new Array(points.length).fill(false);
@@ -126,6 +186,16 @@ export function clusterFiresDBSCAN(
 
     const { severity, frpMax, frpSum } = severityFrom(frps, confidences);
 
+    const { firstSeen, lastSeen } = computeSeenWindow(members);
+
+    const ageHours =
+      lastSeen ? (Date.now() - lastSeen.getTime()) / (1000 * 60 * 60) : null;
+
+    const isStale =
+      typeof ageHours === "number" && Number.isFinite(ageHours)
+        ? ageHours >= staleAfterHours
+        : false;
+
     return {
       id,
       latitude: lat,
@@ -135,6 +205,10 @@ export function clusterFiresDBSCAN(
       frpMax,
       severity,
       members,
+      firstSeen,
+      lastSeen,
+      ageHours: typeof ageHours === "number" && Number.isFinite(ageHours) ? ageHours : null,
+      isStale,
     };
   }
 
