@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -13,6 +13,21 @@ import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
+
+function isEventCategory(x: string | null): x is EventCategory {
+  return (
+    x === "fire" ||
+    x === "flood" ||
+    x === "storm" ||
+    x === "heatwave" ||
+    x === "air-pollution" ||
+    x === "ocean-anomaly"
+  );
+}
+
+function findRegionByBbox(bbox: string) {
+  return REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.bbox === bbox) ?? null;
+}
 
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
@@ -30,6 +45,10 @@ export default function App() {
   // ✅ “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
+
+  // ✅ Deep link pending state
+  const [pendingOpenEventId, setPendingOpenEventId] = useState<string | null>(null);
+  const deepLinkRanRef = useRef(false);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -80,7 +99,7 @@ export default function App() {
           )} • FRP sum ${c.frpSum.toFixed(2)}.`,
           latitude: c.latitude,
           longitude: c.longitude,
-          location: args.region.label, // ✅ esto debería verse fuerte ahora
+          location: args.region.label,
           timestamp: new Date(),
           affectedArea: 1,
           affectedPopulation: undefined,
@@ -114,6 +133,46 @@ export default function App() {
     setResetKey((k) => k + 1);
     setIsExploring(false);
   };
+
+  // ✅ Deep link boot: cat + bbox + event
+  useEffect(() => {
+    if (deepLinkRanRef.current) return;
+    deepLinkRanRef.current = true;
+
+    if (typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+    const cat = url.searchParams.get("cat");
+    const bbox = url.searchParams.get("bbox");
+    const eventId = url.searchParams.get("event");
+
+    if (!cat || !bbox) return;
+    if (!isEventCategory(cat)) return;
+
+    const region = findRegionByBbox(bbox);
+    if (!region) return;
+
+    // si venís por link, vamos directo a dashboard (saltamos setup)
+    setStage("dashboard");
+
+    // guardamos el evento a abrir cuando llegue la data
+    if (eventId) setPendingOpenEventId(eventId);
+
+    // arranca el monitoreo
+    void startMonitoring({ category: cat, region });
+  }, []);
+
+  // ✅ cuando llegan events, abrimos el panel del event del link
+  useEffect(() => {
+    if (!pendingOpenEventId) return;
+    if (!events.length) return;
+
+    const ev = events.find((e) => String(e.id) === String(pendingOpenEventId));
+    if (ev) {
+      setSelectedEvent(ev);
+      setPendingOpenEventId(null);
+    }
+  }, [pendingOpenEventId, events]);
 
   const stats = useMemo(() => {
     const criticalCount = events.filter((e) => e.severity === "critical").length;
@@ -219,11 +278,7 @@ export default function App() {
 
             {/* Alert panel */}
             <div className="pointer-events-auto">
-              <AlertPanel
-                event={selectedEvent}
-                onClose={() => setSelectedEvent(null)}
-                shareUrl={shareUrl}
-              />
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} shareUrl={shareUrl} />
             </div>
 
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
