@@ -14,9 +14,11 @@ import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== Reverse geocode via tu Worker (evita CORS / bloqueos) ===== */
+/** ===== Reverse geocode via Worker (Cloudflare) =====
+ * Esto evita CORS / rate limit / user-agent issues en browser.
+ * Endpoint: /reverse-geocode?lat=..&lon=..
+ */
 const GEO_CACHE = new Map<string, string>();
-
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
@@ -29,19 +31,26 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
     if (!res.ok) return null;
 
     const data: any = await res.json();
-    const label = typeof data?.label === "string" ? data.label : null;
+    const label = data?.label;
 
-    if (label) {
+    if (label && typeof label === "string") {
       GEO_CACHE.set(key, label);
       return label;
     }
+
     return null;
   } catch {
     return null;
   }
 }
 
-/** ===== status automático por “edad” ===== */
+/** ===== status automático =====
+ * Si tenés “última detección” (lastSeen), usamos edad en horas:
+ * - > 48h => resolved
+ * - > 18h => contained
+ * - > 6h  => stabilizing
+ * - si no => active/escalating (según severity)
+ */
 function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
   if (!lastSeen) return severity === "critical" ? "escalating" : "active";
 
@@ -58,7 +67,9 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
 
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
+    4
+  )},${lat.toFixed(4)},7z`;
 }
 
 export default function App() {
@@ -74,7 +85,7 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
-  // ✅ “Explorando” (zoom-in) => colapsa panels
+  // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
@@ -117,7 +128,7 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ límite para no spamear reverse geocode
+        // ✅ limitamos cantidad para no pegarle 200 requests al worker
         const MAX_GEOCODE = 35;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
@@ -125,7 +136,7 @@ export default function App() {
             const lat = Number(c.latitude);
             const lon = Number(c.longitude);
 
-            // clusterFiresDBSCAN no trae lastSeen todavía → queda null
+            // si tu clusterFiresDBSCAN no trae lastSeen, queda null y el status cae a active/escalating
             const lastSeen: Date | null =
               c.lastSeen instanceof Date
                 ? c.lastSeen
@@ -135,7 +146,9 @@ export default function App() {
 
             const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
 
-            // ✅ si no hay localidad (ej: punto en agua / zona sin address), caemos a región
+            // 🔎 log corto para verificar que sí llega la localidad
+            console.log("[reverse-geocode]", { lat: lat.toFixed(4), lon: lon.toFixed(4), place });
+
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
@@ -143,43 +156,37 @@ export default function App() {
             const frpSum = Number(c.frpSum ?? 0);
 
             const narrative =
-              `Detección satelital VIIRS cerca de ${locationLabel}. ` +
-              `Señales: ${c.focusCount}. Intensidad estimada: ${sev}.`;
+              `Satellite sensors detected ${c.focusCount} fire ` +
+              `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
 
             return {
               id: c.id || `cluster-${i}`,
               category: "fire",
               severity: sev,
 
-              // ✅ título más “humano”
-              title: c.focusCount > 1 ? `Active Fire (${c.focusCount} detections)` : "Active Fire",
-
-              // ✅ resumen narrativo + FRP
+              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
               longitude: lon,
 
-              // ✅ ahora sí: localidad / fallback región
+              // ✅ ACÁ está la clave:
               location: locationLabel,
 
-              // ✅ timestamp: lastSeen si existiera, sino now
               timestamp: lastSeen ?? new Date(),
 
               affectedArea: 1,
               affectedPopulation: undefined,
 
-              // ✅ indicadores (para que “no quede vacío”)
               riskIndicators: [
                 sev === "critical" ? "Rapid spread potential" : "Monitoring",
                 "Satellite detection (VIIRS)",
                 `FRP max ${frpMax.toFixed(1)}`,
               ],
 
-              // ✅ observación directa: FIRMS viewer
               liveFeedUrl: firmsViewerUrl(lat, lon),
 
-              // ✅ status automático
               status: statusFromLastSeen(lastSeen, sev),
 
               evacuationLevel: undefined,
@@ -191,12 +198,12 @@ export default function App() {
                   sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
                 narrative:
                   sev === "critical" || sev === "high"
-                    ? "BioPulse estima probabilidad relevante de continuidad en próximas 12h. Mantener vigilancia y verificar fuentes locales."
-                    : "BioPulse continúa monitoreando esta señal. Verificar con fuentes locales si existieran.",
+                    ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
+                    : "BioPulse continues monitoring this signal. Verify with local sources if available.",
                 recommendations:
                   sev === "critical" || sev === "high"
-                    ? ["Monitorear viento/humedad", "Vigilar cercanía a poblados", "Preparar respuesta"]
-                    : ["Continuar observación", "Buscar nuevas detecciones", "Confirmar condiciones locales"],
+                    ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
+                    : ["Continue observation", "Check for new detections", "Confirm local conditions"],
               },
             };
           })
@@ -228,7 +235,7 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  // ✅ Botón Volver solo si estás explorando y NO hay alerta abierta
+  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
@@ -299,12 +306,7 @@ export default function App() {
 
             {/* StatsPanel */}
             <div className="pointer-events-auto">
-              <StatsPanel
-                totalEvents={stats.total}
-                criticalEvents={stats.critical}
-                affectedRegions={stats.regions}
-                collapsed={isExploring}
-              />
+              <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} collapsed={isExploring} />
             </div>
 
             <div className="pointer-events-auto">
@@ -329,9 +331,7 @@ export default function App() {
                 "fixed right-4 z-[9999]",
                 "bottom-[180px] md:right-6 md:bottom-28",
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut
-                  ? "opacity-100 translate-y-0 pointer-events-auto"
-                  : "opacity-0 translate-y-2 pointer-events-none",
+                shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
             >
               <button
