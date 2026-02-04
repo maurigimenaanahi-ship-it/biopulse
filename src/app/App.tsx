@@ -26,11 +26,10 @@ async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
   try {
-    const url =
-      `${GEO_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+    const url = `${GEO_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
 
     const res = await fetch(url, {
-      headers: { "Accept": "application/json" },
+      headers: { Accept: "application/json" },
     });
     if (!res.ok) return null;
 
@@ -64,9 +63,7 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
 
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(
-    4
-  )},7z`;
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
 }
 
 export default function App() {
@@ -94,6 +91,31 @@ export default function App() {
     setIsExploring(false);
     setStage("setup");
   };
+
+  /** ✅ On-demand reverse geocode:
+   * Si el usuario clickea un evento que todavía tiene "América del Sur" (o similar),
+   * resolvemos la localidad en ese momento y actualizamos:
+   * - selectedEvent (panel)
+   * - events[] (para que no vuelva al fallback)
+   */
+  async function ensureSelectedEventHasLocation(ev: EnvironmentalEvent) {
+    const regionLabel = selectedRegion?.label ?? "";
+
+    const loc = (ev.location ?? "").trim();
+    const looksLikeFallback =
+      !loc ||
+      loc === regionLabel ||
+      loc.toLowerCase().includes("américa") ||
+      loc.toLowerCase().includes("america");
+
+    if (!looksLikeFallback) return;
+
+    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
+    if (!place) return;
+
+    setSelectedEvent((curr) => (curr && curr.id === ev.id ? { ...curr, location: place } : curr));
+    setEvents((prev) => prev.map((x) => (x.id === ev.id ? { ...x, location: place } : x)));
+  }
 
   const startMonitoring = async (args: {
     category: EventCategory;
@@ -158,10 +180,7 @@ export default function App() {
               category: "fire",
               severity: sev,
 
-              title:
-                c.focusCount > 1
-                  ? `Active Fire Cluster (${c.focusCount} detections)`
-                  : "Active Fire",
+              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
 
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
@@ -188,8 +207,7 @@ export default function App() {
               ecosystems: undefined,
               speciesAtRisk: undefined,
               aiInsight: {
-                probabilityNext12h:
-                  sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
+                probabilityNext12h: sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
                 narrative:
                   sev === "critical" || sev === "high"
                     ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
@@ -256,7 +274,10 @@ export default function App() {
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
-              onEventClick={setSelectedEvent}
+              onEventClick={(ev) => {
+                setSelectedEvent(ev);
+                ensureSelectedEventHasLocation(ev);
+              }}
               resetKey={resetKey}
               onZoomedInChange={setIsExploring}
               onZoomChange={setMapZoom}
@@ -300,12 +321,7 @@ export default function App() {
 
             {/* StatsPanel */}
             <div className="pointer-events-auto">
-              <StatsPanel
-                totalEvents={stats.total}
-                criticalEvents={stats.critical}
-                affectedRegions={stats.regions}
-                collapsed={isExploring}
-              />
+              <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} collapsed={isExploring} />
             </div>
 
             <div className="pointer-events-auto">
@@ -330,9 +346,7 @@ export default function App() {
                 "fixed right-4 z-[9999]",
                 "bottom-[180px] md:right-6 md:bottom-28",
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut
-                  ? "opacity-100 translate-y-0 pointer-events-auto"
-                  : "opacity-0 translate-y-2 pointer-events-none",
+                shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
             >
               <button
