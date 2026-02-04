@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -9,6 +9,7 @@ import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import { loadEventsMemory, saveEventsMemory, upsertFireEvent } from "./lib/eventLife";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -83,6 +84,13 @@ export default function App() {
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
+  // ✅ memoria viva (localStorage)
+  const memoryRef = useRef<Record<string, EnvironmentalEvent>>({});
+
+  useEffect(() => {
+    memoryRef.current = loadEventsMemory();
+  }, []);
+
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
 
@@ -150,76 +158,80 @@ export default function App() {
         // ✅ reverse geocode: limitamos cantidad para no spamear
         const MAX_GEOCODE = 45;
 
-        const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
-          clusters.map(async (c: any, i: number) => {
-            const lat = Number(c.latitude);
-            const lon = Number(c.longitude);
+        // ✅ memoria + upsert para “vida” del evento
+        const now = new Date();
+        let store = memoryRef.current;
 
-            const lastSeen: Date | null =
-              c.lastSeen instanceof Date
-                ? c.lastSeen
-                : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
-                ? new Date(c.lastSeen)
-                : null;
+        const clusteredEvents: EnvironmentalEvent[] = [];
 
-            // ✅ ahora usamos el worker
-            const place = i < MAX_GEOCODE ? await reverseGeocodeViaWorker(lat, lon) : null;
-            const locationLabel = place ?? args.region.label;
+        for (let i = 0; i < clusters.length; i++) {
+          const c: any = clusters[i];
 
-            const sev = c.severity as EnvironmentalEvent["severity"];
-            const frpMax = Number(c.frpMax ?? 0);
-            const frpSum = Number(c.frpSum ?? 0);
+          const lat = Number(c.latitude);
+          const lon = Number(c.longitude);
 
-            const narrative =
-              `Satellite sensors detected ${c.focusCount} fire ` +
-              `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
-              `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
+          const lastSeen: Date =
+            c.lastSeen instanceof Date
+              ? c.lastSeen
+              : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
+              ? new Date(c.lastSeen)
+              : now;
 
-            return {
-              id: c.id || `cluster-${i}`,
-              category: "fire",
-              severity: sev,
+          const place = i < MAX_GEOCODE ? await reverseGeocodeViaWorker(lat, lon) : null;
+          const locationLabel = place ?? args.region.label;
 
-              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
+          const sev = c.severity as EnvironmentalEvent["severity"];
+          const frpMax = Number(c.frpMax ?? 0);
+          const frpSum = Number(c.frpSum ?? 0);
+          const focusCount = Number(c.focusCount ?? 1);
 
-              description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
+          const narrative =
+            `Satellite sensors detected ${focusCount} fire ` +
+            `${focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+            `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
 
-              latitude: lat,
-              longitude: lon,
-              location: locationLabel,
+          const baseEvent: EnvironmentalEvent = {
+            // id temporal: upsertFireEvent lo reemplaza por id estable si corresponde
+            id: "temp",
+            category: "fire",
+            severity: sev,
 
-              timestamp: lastSeen ?? new Date(),
+            title: focusCount > 1 ? `Active Fire Cluster (${focusCount} detections)` : "Active Fire",
+            description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
-              affectedArea: 1,
-              affectedPopulation: undefined,
+            latitude: lat,
+            longitude: lon,
+            location: locationLabel,
 
-              riskIndicators: [
-                sev === "critical" ? "Rapid spread potential" : "Monitoring",
-                "Satellite detection (VIIRS)",
-                `FRP max ${frpMax.toFixed(1)}`,
-              ],
+            timestamp: lastSeen,
 
-              liveFeedUrl: firmsViewerUrl(lat, lon),
-              status: statusFromLastSeen(lastSeen, sev),
+            affectedArea: 1,
+            affectedPopulation: undefined,
 
-              evacuationLevel: undefined,
-              nearbyInfrastructure: undefined,
-              ecosystems: undefined,
-              speciesAtRisk: undefined,
-              aiInsight: {
-                probabilityNext12h: sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
-                narrative:
-                  sev === "critical" || sev === "high"
-                    ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
-                    : "BioPulse continues monitoring this signal. Verify with local sources if available.",
-                recommendations:
-                  sev === "critical" || sev === "high"
-                    ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
-                    : ["Continue observation", "Check for new detections", "Confirm local conditions"],
-              },
-            };
-          })
-        );
+            riskIndicators: [
+              sev === "critical" ? "Rapid spread potential" : "Monitoring",
+              "Satellite detection (VIIRS)",
+              `FRP max ${frpMax.toFixed(1)}`,
+            ],
+
+            liveFeedUrl: firmsViewerUrl(lat, lon),
+            status: statusFromLastSeen(lastSeen, sev),
+
+            // métricas fire
+            focusCount,
+            frpSum,
+            frpMax,
+          };
+
+          const { event, store: nextStore } = upsertFireEvent(store, baseEvent, now);
+          store = nextStore;
+
+          clusteredEvents.push(event);
+        }
+
+        // ✅ persistir memoria viva
+        memoryRef.current = store;
+        saveEventsMemory(store);
 
         setEvents(clusteredEvents);
       } catch (err) {
@@ -321,7 +333,12 @@ export default function App() {
 
             {/* StatsPanel */}
             <div className="pointer-events-auto">
-              <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} collapsed={isExploring} />
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+                collapsed={isExploring}
+              />
             </div>
 
             <div className="pointer-events-auto">
