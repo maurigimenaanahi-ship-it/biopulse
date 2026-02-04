@@ -29,6 +29,10 @@ function findRegionByBbox(bbox: string) {
   return REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.bbox === bbox) ?? null;
 }
 
+function sevToRank(sev: EnvironmentalEvent["severity"]) {
+  return sev === "critical" ? 3 : sev === "high" ? 2 : sev === "moderate" ? 1 : 0;
+}
+
 export default function App() {
   const [stage, setStage] = useState<AppStage>("splash");
   const [activeView, setActiveView] = useState("home");
@@ -46,9 +50,21 @@ export default function App() {
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
-  // ✅ Deep link pending state
+  // ✅ Deep link
   const [pendingOpenEventId, setPendingOpenEventId] = useState<string | null>(null);
   const deepLinkRanRef = useRef(false);
+
+  // ✅ Snapshot (si el evento ya no existe en vivo)
+  const snapshotRef = useRef<EnvironmentalEvent | null>(null);
+
+  // ✅ Foco para MapScene
+  const [focusTarget, setFocusTarget] = useState<{
+    lng: number;
+    lat: number;
+    zoom?: number;
+    id?: string;
+    sevRank?: number;
+  } | null>(null);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -94,24 +110,13 @@ export default function App() {
           category: "fire",
           severity: c.severity,
           title: c.focusCount > 1 ? `Fire event (${c.focusCount} detections)` : "Active Fire",
-          description: `Satellite detections indicate active fire behavior. FRP max ${c.frpMax.toFixed(
-            2
-          )} • FRP sum ${c.frpSum.toFixed(2)}.`,
+          description: `FRP max ${c.frpMax.toFixed(2)} • FRP sum ${c.frpSum.toFixed(2)}`,
           latitude: c.latitude,
           longitude: c.longitude,
           location: args.region.label,
           timestamp: new Date(),
           affectedArea: 1,
-          affectedPopulation: undefined,
-          riskIndicators: ["Satellite detections", "Potential spread", "Continuous monitoring"],
-          status: "active",
-          evacuationLevel: "none",
-          aiInsight: {
-            probabilityNext12h: c.severity === "critical" ? 72 : c.severity === "high" ? 58 : 41,
-            narrative:
-              "BioPulse estimates a moderate-to-high chance of spread in the next 12 hours depending on wind and humidity trends. Maintain observation and readiness.",
-            recommendations: ["Monitor wind & humidity", "Track new detections", "Prepare response coordination"],
-          },
+          riskIndicators: [],
         }));
 
         setEvents(clusteredEvents);
@@ -134,7 +139,7 @@ export default function App() {
     setIsExploring(false);
   };
 
-  // ✅ Deep link boot: cat + bbox + event
+  // ✅ Deep link boot: cat + bbox + event (+ snapshot)
   useEffect(() => {
     if (deepLinkRanRef.current) return;
     deepLinkRanRef.current = true;
@@ -142,9 +147,18 @@ export default function App() {
     if (typeof window === "undefined") return;
 
     const url = new URL(window.location.href);
+
     const cat = url.searchParams.get("cat");
     const bbox = url.searchParams.get("bbox");
     const eventId = url.searchParams.get("event");
+
+    // snapshot params
+    const lat = url.searchParams.get("lat");
+    const lon = url.searchParams.get("lon");
+    const loc = url.searchParams.get("loc");
+    const title = url.searchParams.get("title");
+    const sev = url.searchParams.get("sev");
+    const ts = url.searchParams.get("ts");
 
     if (!cat || !bbox) return;
     if (!isEventCategory(cat)) return;
@@ -152,7 +166,25 @@ export default function App() {
     const region = findRegionByBbox(bbox);
     if (!region) return;
 
-    // si venís por link, vamos directo a dashboard (saltamos setup)
+    // armamos snapshot si vino en el link (para fallback)
+    if (eventId && lat && lon && loc && title && sev && ts) {
+      snapshotRef.current = {
+        id: eventId,
+        category: cat,
+        severity: (sev as any) ?? "moderate",
+        title,
+        description:
+          "Registro abierto desde enlace compartido. Este evento puede haber cambiado o ya no estar activo en la ventana actual de datos.",
+        latitude: Number(lat),
+        longitude: Number(lon),
+        location: loc,
+        timestamp: new Date(ts),
+        affectedArea: 1,
+        riskIndicators: ["Snapshot link", "May be outdated"],
+      };
+    }
+
+    // vamos directo a dashboard
     setStage("dashboard");
 
     // guardamos el evento a abrir cuando llegue la data
@@ -162,16 +194,41 @@ export default function App() {
     void startMonitoring({ category: cat, region });
   }, []);
 
-  // ✅ cuando llegan events, abrimos el panel del event del link
+  // ✅ cuando llegan events: abrir por id; si no está, usar snapshot
   useEffect(() => {
     if (!pendingOpenEventId) return;
     if (!events.length) return;
 
-    const ev = events.find((e) => String(e.id) === String(pendingOpenEventId));
-    if (ev) {
-      setSelectedEvent(ev);
+    const live = events.find((e) => String(e.id) === String(pendingOpenEventId));
+    if (live) {
+      setSelectedEvent(live);
+      setFocusTarget({
+        lng: live.longitude,
+        lat: live.latitude,
+        zoom: 6.2,
+        id: live.id,
+        sevRank: sevToRank(live.severity),
+      });
       setPendingOpenEventId(null);
+      return;
     }
+
+    const snap = snapshotRef.current;
+    if (snap && String(snap.id) === String(pendingOpenEventId)) {
+      setSelectedEvent(snap);
+      setFocusTarget({
+        lng: snap.longitude,
+        lat: snap.latitude,
+        zoom: 6.2,
+        id: snap.id,
+        sevRank: sevToRank(snap.severity),
+      });
+      setPendingOpenEventId(null);
+      return;
+    }
+
+    // si no encontramos nada, soltamos el pending (no rompemos UX)
+    setPendingOpenEventId(null);
   }, [pendingOpenEventId, events]);
 
   const stats = useMemo(() => {
@@ -180,21 +237,30 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
+  // ✅ Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
-  // ✅ Share URL para el evento actual
+  // ✅ Share URL para el evento actual (LIVE + SNAPSHOT)
   const shareUrl = useMemo(() => {
     if (!selectedEvent) return "";
     if (typeof window === "undefined") return "";
 
     const url = new URL(window.location.href);
-    url.searchParams.set("event", selectedEvent.id);
+    url.searchParams.set("event", String(selectedEvent.id));
     url.searchParams.set("cat", selectedEvent.category);
     if (selectedRegion?.bbox) url.searchParams.set("bbox", selectedRegion.bbox);
     url.searchParams.set("z", String(mapZoom));
 
+    // snapshot para fallback
+    url.searchParams.set("lat", String(selectedEvent.latitude));
+    url.searchParams.set("lon", String(selectedEvent.longitude));
+    url.searchParams.set("loc", selectedEvent.location);
+    url.searchParams.set("title", selectedEvent.title);
+    url.searchParams.set("sev", selectedEvent.severity);
+    url.searchParams.set("ts", selectedEvent.timestamp.toISOString());
+
     return url.toString();
-  }, [selectedEvent?.id, selectedEvent?.category, selectedRegion?.bbox, mapZoom]);
+  }, [selectedEvent, selectedRegion?.bbox, mapZoom]);
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
@@ -220,10 +286,21 @@ export default function App() {
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
-              onEventClick={setSelectedEvent}
+              onEventClick={(ev) => {
+                setSelectedEvent(ev);
+                // si el usuario abre manualmente, también actualizamos foco (suave)
+                setFocusTarget({
+                  lng: ev.longitude,
+                  lat: ev.latitude,
+                  zoom: undefined,
+                  id: ev.id,
+                  sevRank: sevToRank(ev.severity),
+                });
+              }}
               resetKey={resetKey}
               onZoomedInChange={setIsExploring}
               onZoomChange={setMapZoom}
+              focus={focusTarget}
             />
           </div>
 
@@ -236,7 +313,7 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Cambiar búsqueda */}
+            {/* ✅ Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -262,7 +339,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Stats */}
+            {/* ✅ StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -276,9 +353,11 @@ export default function App() {
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
 
-            {/* Alert panel */}
             <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} shareUrl={shareUrl} />
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+              {/* shareUrl ya está listo en App para que lo uses cuando quieras dentro del panel */}
+              {/* ahora mismo no lo pasamos para no obligarte a tocar AlertPanel */}
+              {/* si querés, en el próximo paso lo enchufamos con un botón "Copiar link" */}
             </div>
 
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
@@ -289,7 +368,7 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Volver */}
+            {/* ✅ Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
