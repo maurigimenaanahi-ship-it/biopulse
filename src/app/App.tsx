@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -14,110 +14,41 @@ import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== Reverse geocode (OSM / Nominatim) - client safe-ish =====
- * Vercel estático (Vite) => NO existe /api runtime.
- * Entonces lo hacemos client-side, pero con:
- * - throttle
- * - cache en memoria
- * - cache persistente en localStorage
+/** ===== Reverse geocode via Worker =====
+ * (evita CORS + bloqueos de Nominatim)
  */
 const GEO_CACHE = new Map<string, string>();
-const GEO_LS_KEY = "biopulse:geocache:v1";
-let lastGeoAt = 0;
-
-function loadGeoCacheFromLS() {
-  try {
-    const raw = localStorage.getItem(GEO_LS_KEY);
-    if (!raw) return;
-    const obj = JSON.parse(raw);
-    if (!obj || typeof obj !== "object") return;
-    for (const [k, v] of Object.entries(obj)) {
-      if (typeof k === "string" && typeof v === "string") GEO_CACHE.set(k, v);
-    }
-  } catch {}
-}
-
-function saveGeoCacheToLS() {
-  try {
-    const obj: Record<string, string> = {};
-    // guardamos máx 300 para no inflar
-    const entries = Array.from(GEO_CACHE.entries()).slice(-300);
-    for (const [k, v] of entries) obj[k] = v;
-    localStorage.setItem(GEO_LS_KEY, JSON.stringify(obj));
-  } catch {}
-}
-
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
-  // throttle ~1.1s (Nominatim se enoja si spameamos)
-  const now = Date.now();
-  const wait = Math.max(0, 1100 - (now - lastGeoAt));
-  if (wait) await new Promise((r) => setTimeout(r, wait));
-  lastGeoAt = Date.now();
-
-  async function fetchLabel(zoom: number) {
+  try {
     const url =
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2` +
-      `&lat=${encodeURIComponent(lat)}` +
-      `&lon=${encodeURIComponent(lon)}` +
-      `&zoom=${zoom}` +
-      `&addressdetails=1`;
+      `${FIRMS_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
 
-    const res = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
-      },
-    });
+    const res = await fetch(url);
     if (!res.ok) return null;
 
     const data: any = await res.json();
-    const a = data?.address ?? {};
+    const label = data?.label;
 
-    const locality =
-      a.city ||
-      a.town ||
-      a.village ||
-      a.hamlet ||
-      a.municipality ||
-      a.county ||
-      a.state_district;
-
-    const state = a.state;
-    const country = a.country;
-
-    const parts = [locality, state, country].filter(Boolean);
-    const label = parts.length ? parts.join(", ") : (data?.display_name ?? null);
-
-    return typeof label === "string" && label.trim().length ? label.trim() : null;
-  }
-
-  try {
-    // zoom 10 suele dar ciudad/partido; si no, zoom 6 da provincia/estado
-    const label = (await fetchLabel(10)) ?? (await fetchLabel(6));
-    if (!label) return null;
-
-    GEO_CACHE.set(key, label);
-    saveGeoCacheToLS();
-    return label;
+    if (label && typeof label === "string") {
+      GEO_CACHE.set(key, label);
+      return label;
+    }
+    return null;
   } catch {
     return null;
   }
 }
 
 /** ===== status automático =====
- * Si tenés “última detección” (lastSeen), usamos edad en horas:
  * - > 48h => resolved
  * - > 18h => contained
  * - > 6h  => stabilizing
  * - si no => active/escalating (según severity)
  */
-function statusFromLastSeen(
-  lastSeen: Date | null,
-  severity: EnvironmentalEvent["severity"]
-): EventStatus {
+function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
   if (!lastSeen) return severity === "critical" ? "escalating" : "active";
 
   const ageMs = Date.now() - lastSeen.getTime();
@@ -127,15 +58,13 @@ function statusFromLastSeen(
   if (ageH > 18) return "contained";
   if (ageH > 6) return "stabilizing";
 
-  // reciente => si es grave, lo tratamos como escalando
   if (severity === "critical" || severity === "high") return "escalating";
   return "active";
 }
 
-/** ===== Link FIRMS centrado en el punto =====
- * No es “cámara” real, pero sirve como “observación directa” para abrir el visor.
- */
+/** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
+  // Nota: FIRMS usa fecha en hash; luego lo hacemos dinámico si querés.
   return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
     4
   )},${lat.toFixed(4)},7z`;
@@ -154,15 +83,8 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
-  // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
-
-  // ✅ cargar cache persistente una sola vez
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    loadGeoCacheFromLS();
-  }, []);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -203,7 +125,7 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ reverse geocode: limitamos cantidad para no pegarle 200 requests a Nominatim
+        // ✅ reverse geocode: limitamos cantidad
         const MAX_GEOCODE = 35;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
@@ -211,7 +133,6 @@ export default function App() {
             const lat = Number(c.latitude);
             const lon = Number(c.longitude);
 
-            // si tu clusterFiresDBSCAN no trae lastSeen, queda null y el status cae a active/escalating
             const lastSeen: Date | null =
               c.lastSeen instanceof Date
                 ? c.lastSeen
@@ -220,10 +141,6 @@ export default function App() {
                 : null;
 
             const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
-
-            // 🔎 DEBUG (si querés ver si el geocode devuelve algo)
-            // console.log("[geo]", i, lat.toFixed(4), lon.toFixed(4), "=>", place);
-
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
@@ -241,41 +158,30 @@ export default function App() {
               category: "fire",
               severity: sev,
 
-              // ✅ título más “humano”
-              title:
-                c.focusCount > 1
-                  ? `Active Fire Cluster (${c.focusCount} detections)`
-                  : "Active Fire",
-
-              // ✅ descripción narrativo + FRP abajo
+              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
               longitude: lon,
 
-              // ✅ ahora sí: localidad (si pudo), si no región
+              // ✅ ACÁ TIENE QUE APARECER LA LOCALIDAD REAL
               location: locationLabel,
 
-              // ✅ timestamp: idealmente lastSeen, si no now
               timestamp: lastSeen ?? new Date(),
 
               affectedArea: 1,
               affectedPopulation: undefined,
 
-              // ✅ riesgo (podemos enriquecer después)
               riskIndicators: [
                 sev === "critical" ? "Rapid spread potential" : "Monitoring",
                 "Satellite detection (VIIRS)",
                 `FRP max ${frpMax.toFixed(1)}`,
               ],
 
-              // ✅ observación directa: link al visor FIRMS
               liveFeedUrl: firmsViewerUrl(lat, lon),
 
-              // ✅ status automático
               status: statusFromLastSeen(lastSeen, sev),
 
-              // opcionales
               evacuationLevel: undefined,
               nearbyInfrastructure: undefined,
               ecosystems: undefined,
@@ -322,7 +228,6 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
@@ -356,16 +261,13 @@ export default function App() {
             />
           </div>
 
-          {/* efectos */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
           </div>
 
-          {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -391,7 +293,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -417,7 +318,6 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
