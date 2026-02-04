@@ -12,27 +12,30 @@ import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
-const GEOCODE_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev"; // ✅ mismo worker
+const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+
 type AppStage = "splash" | "setup" | "dashboard";
 
 /** ===== Reverse geocode via Cloudflare Worker =====
- * - NO usamos /api en Vercel porque este proyecto NO es Next App Router.
- * - Usamos directo el Worker que ya devuelve { label }.
+ * Mucho más estable que pegarle a Nominatim directo desde el browser.
  */
 const GEO_CACHE = new Map<string, string>();
-async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+
+async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
   try {
     const url =
-      `${GEOCODE_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+      `${GEO_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
 
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json" },
+    });
     if (!res.ok) return null;
 
     const data: any = await res.json();
-    const label = data?.label;
+    const label = data?.label ?? null;
 
     if (label && typeof label === "string") {
       GEO_CACHE.set(key, label);
@@ -44,17 +47,8 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
   }
 }
 
-/** ===== status automático =====
- * Si tenés “última detección” (lastSeen), usamos edad en horas:
- * - > 48h => resolved
- * - > 18h => contained
- * - > 6h  => stabilizing
- * - si no => active/escalating (según severity)
- */
-function statusFromLastSeen(
-  lastSeen: Date | null,
-  severity: EnvironmentalEvent["severity"]
-): EventStatus {
+/** ===== status automático ===== */
+function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
   if (!lastSeen) return severity === "critical" ? "escalating" : "active";
 
   const ageMs = Date.now() - lastSeen.getTime();
@@ -70,9 +64,9 @@ function statusFromLastSeen(
 
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(
     4
-  )},${lat.toFixed(4)},7z`;
+  )},7z`;
 }
 
 export default function App() {
@@ -131,8 +125,8 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ reverse geocode: limitamos cantidad para no pegarle 200 requests
-        const MAX_GEOCODE = 35;
+        // ✅ reverse geocode: limitamos cantidad para no spamear
+        const MAX_GEOCODE = 45;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
           clusters.map(async (c: any, i: number) => {
@@ -146,11 +140,11 @@ export default function App() {
                 ? new Date(c.lastSeen)
                 : null;
 
-            const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
+            // ✅ ahora usamos el worker
+            const place = i < MAX_GEOCODE ? await reverseGeocodeViaWorker(lat, lon) : null;
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
-
             const frpMax = Number(c.frpMax ?? 0);
             const frpSum = Number(c.frpSum ?? 0);
 
@@ -168,6 +162,7 @@ export default function App() {
                 c.focusCount > 1
                   ? `Active Fire Cluster (${c.focusCount} detections)`
                   : "Active Fire",
+
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
@@ -186,7 +181,6 @@ export default function App() {
               ],
 
               liveFeedUrl: firmsViewerUrl(lat, lon),
-
               status: statusFromLastSeen(lastSeen, sev),
 
               evacuationLevel: undefined,
@@ -235,6 +229,7 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
+  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
