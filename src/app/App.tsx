@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -7,30 +7,92 @@ import { StatsPanel } from "./components/StatsPanel";
 import { SplashScreen } from "./components/SplashScreen";
 import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { mockEvents } from "@/data/events";
-import type { EnvironmentalEvent, EventCategory } from "@/data/events";
+import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
-function isEventCategory(x: string | null): x is EventCategory {
-  return (
-    x === "fire" ||
-    x === "flood" ||
-    x === "storm" ||
-    x === "heatwave" ||
-    x === "air-pollution" ||
-    x === "ocean-anomaly"
-  );
+/** ===== Reverse geocode (OSM / Nominatim) =====
+ * - Gratis, sin key, pero hay que ser amable:
+ *   - cache
+ *   - limitar cantidad por corrida
+ *   - no spamear en loops enormes
+ */
+const GEO_CACHE = new Map<string, string>();
+async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
+
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(
+        lat
+      )}&lon=${encodeURIComponent(lon)}&zoom=10&addressdetails=1`;
+
+    const res = await fetch(url, {
+      headers: {
+        // Nominatim pide UA/identificación; en web esto es lo máximo razonable.
+        "Accept": "application/json",
+      },
+    });
+    if (!res.ok) return null;
+
+    const data: any = await res.json();
+    const a = data?.address ?? {};
+
+    // Elegimos algo “humano”:
+    const locality =
+      a.city || a.town || a.village || a.hamlet || a.municipality || a.county || a.state_district;
+
+    const state = a.state;
+    const country = a.country;
+
+    const parts = [locality, state, country].filter(Boolean);
+    const label = parts.length ? parts.join(", ") : (data?.display_name ?? null);
+
+    if (label && typeof label === "string") {
+      GEO_CACHE.set(key, label);
+      return label;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
-function findRegionByBbox(bbox: string) {
-  return REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.bbox === bbox) ?? null;
+/** ===== status automático =====
+ * Si tenés “última detección” (lastSeen), usamos edad en horas:
+ * - > 48h => resolved
+ * - > 18h => contained
+ * - > 6h  => stabilizing
+ * - si no => active/escalating (según severity)
+ */
+function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
+  if (!lastSeen) return severity === "critical" ? "escalating" : "active";
+
+  const ageMs = Date.now() - lastSeen.getTime();
+  const ageH = ageMs / (1000 * 60 * 60);
+
+  if (ageH > 48) return "resolved";
+  if (ageH > 18) return "contained";
+  if (ageH > 6) return "stabilizing";
+
+  // reciente => si es grave, lo tratamos como escalando
+  if (severity === "critical" || severity === "high") return "escalating";
+  return "active";
 }
 
-function sevToRank(sev: EnvironmentalEvent["severity"]) {
-  return sev === "critical" ? 3 : sev === "high" ? 2 : sev === "moderate" ? 1 : 0;
+/** ===== Link FIRMS centrado en el punto =====
+ * No es “cámara” real, pero sirve como “observación directa” para abrir el visor.
+ */
+function firmsViewerUrl(lat: number, lon: number) {
+  // FIRMS Map suele aceptar hash params; dejamos algo simple:
+  // Si en tu caso querés un link exacto con bbox/zoom, lo afinamos después.
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
+    4
+  )},${lat.toFixed(4)},7z`;
 }
 
 export default function App() {
@@ -46,22 +108,9 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
+  // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
-
-  // deep link
-  const [pendingOpenEventId, setPendingOpenEventId] = useState<string | null>(null);
-  const deepLinkRanRef = useRef(false);
-  const snapshotRef = useRef<EnvironmentalEvent | null>(null);
-
-  // foco externo
-  const [focusTarget, setFocusTarget] = useState<{
-    lng: number;
-    lat: number;
-    zoom?: number;
-    id?: string;
-    sevRank?: number;
-  } | null>(null);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -102,19 +151,92 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        const clusteredEvents: EnvironmentalEvent[] = clusters.map((c, i) => ({
-          id: c.id || `cluster-${i}`,
-          category: "fire",
-          severity: c.severity,
-          title: c.focusCount > 1 ? `Fire event (${c.focusCount} detections)` : "Active Fire",
-          description: `FRP max ${c.frpMax.toFixed(2)} • FRP sum ${c.frpSum.toFixed(2)}`,
-          latitude: c.latitude,
-          longitude: c.longitude,
-          location: args.region.label,
-          timestamp: new Date(),
-          affectedArea: 1,
-          riskIndicators: [],
-        }));
+        // ✅ reverse geocode: limitamos cantidad para no pegarle 200 requests a Nominatim
+        const MAX_GEOCODE = 35;
+
+        const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
+          clusters.map(async (c: any, i: number) => {
+            const lat = Number(c.latitude);
+            const lon = Number(c.longitude);
+
+            // si tu clusterFiresDBSCAN no trae lastSeen, queda null y el status cae a active/escalating
+            const lastSeen: Date | null =
+              c.lastSeen instanceof Date
+                ? c.lastSeen
+                : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
+                ? new Date(c.lastSeen)
+                : null;
+
+            const place =
+              i < MAX_GEOCODE ? (await reverseGeocode(lat, lon)) : null;
+
+            const locationLabel = place ?? args.region.label;
+
+            const sev = c.severity as EnvironmentalEvent["severity"];
+
+            const frpMax = Number(c.frpMax ?? 0);
+            const frpSum = Number(c.frpSum ?? 0);
+
+            const narrative =
+              `Satellite sensors detected ${c.focusCount} fire ` +
+              `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
+
+            return {
+              id: c.id || `cluster-${i}`,
+              category: "fire",
+              severity: sev,
+
+              // ✅ título más “humano”
+              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
+              // ✅ descripción narrativo + FRP abajo
+              description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
+
+              latitude: lat,
+              longitude: lon,
+
+              // ✅ ahora sí: localidad (si pudo), si no región
+              location: locationLabel,
+
+              // ✅ timestamp: idealmente lastSeen, si no now
+              timestamp: lastSeen ?? new Date(),
+
+              affectedArea: 1,
+              affectedPopulation: undefined,
+
+              // ✅ riesgo (podemos enriquecer después)
+              riskIndicators: [
+                sev === "critical" ? "Rapid spread potential" : "Monitoring",
+                "Satellite detection (VIIRS)",
+                `FRP max ${frpMax.toFixed(1)}`,
+              ],
+
+              // ✅ observación directa: link al visor FIRMS
+              liveFeedUrl: firmsViewerUrl(lat, lon),
+
+              // ✅ status automático
+              status: statusFromLastSeen(lastSeen, sev),
+
+              // opcionales
+              evacuationLevel: undefined,
+              nearbyInfrastructure: undefined,
+              ecosystems: undefined,
+              speciesAtRisk: undefined,
+              aiInsight: {
+                probabilityNext12h:
+                  sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
+                narrative:
+                  sev === "critical" || sev === "high"
+                    ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
+                    : "BioPulse continues monitoring this signal. Verify with local sources if available.",
+                recommendations:
+                  sev === "critical" || sev === "high"
+                    ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
+                    : ["Continue observation", "Check for new detections", "Confirm local conditions"],
+              },
+            };
+          })
+        );
 
         setEvents(clusteredEvents);
       } catch (err) {
@@ -136,120 +258,14 @@ export default function App() {
     setIsExploring(false);
   };
 
-  // deep link boot
-  useEffect(() => {
-    if (deepLinkRanRef.current) return;
-    deepLinkRanRef.current = true;
-    if (typeof window === "undefined") return;
-
-    const url = new URL(window.location.href);
-
-    const cat = url.searchParams.get("cat");
-    const bbox = url.searchParams.get("bbox");
-    const eventId = url.searchParams.get("event");
-
-    const lat = url.searchParams.get("lat");
-    const lon = url.searchParams.get("lon");
-    const loc = url.searchParams.get("loc");
-    const title = url.searchParams.get("title");
-    const sev = url.searchParams.get("sev");
-    const ts = url.searchParams.get("ts");
-
-    if (!cat || !bbox) return;
-    if (!isEventCategory(cat)) return;
-
-    const region = findRegionByBbox(bbox);
-    if (!region) return;
-
-    // snapshot para fallback
-    if (eventId && lat && lon && loc && title && sev && ts) {
-      snapshotRef.current = {
-        id: eventId,
-        category: cat,
-        severity: (sev as any) ?? "moderate",
-        title,
-        description:
-          "Registro abierto desde enlace compartido. Este evento puede haber cambiado o ya no estar activo en la ventana actual de datos.",
-        latitude: Number(lat),
-        longitude: Number(lon),
-        location: loc,
-        timestamp: new Date(ts),
-        affectedArea: 1,
-        riskIndicators: ["Snapshot link", "May be outdated"],
-        status: "resolved",
-      };
-    }
-
-    setStage("dashboard");
-    if (eventId) setPendingOpenEventId(eventId);
-
-    void startMonitoring({ category: cat, region });
-  }, []);
-
-  // cuando llegan events: abrir live o snapshot
-  useEffect(() => {
-    if (!pendingOpenEventId) return;
-    if (!events.length) return;
-
-    const live = events.find((e) => String(e.id) === String(pendingOpenEventId));
-    if (live) {
-      setSelectedEvent(live);
-      setFocusTarget({
-        lng: live.longitude,
-        lat: live.latitude,
-        zoom: 6.2,
-        id: live.id,
-        sevRank: sevToRank(live.severity),
-      });
-      setPendingOpenEventId(null);
-      return;
-    }
-
-    const snap = snapshotRef.current;
-    if (snap && String(snap.id) === String(pendingOpenEventId)) {
-      setSelectedEvent(snap);
-      setFocusTarget({
-        lng: snap.longitude,
-        lat: snap.latitude,
-        zoom: 6.2,
-        id: snap.id,
-        sevRank: sevToRank(snap.severity),
-      });
-      setPendingOpenEventId(null);
-      return;
-    }
-
-    setPendingOpenEventId(null);
-  }, [pendingOpenEventId, events]);
-
   const stats = useMemo(() => {
     const criticalCount = events.filter((e) => e.severity === "critical").length;
     const uniqueLocations = new Set(events.map((e) => e.location.split(",")[0]));
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
+  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
-
-  // share URL (LIVE + snapshot params)
-  const shareUrl = useMemo(() => {
-    if (!selectedEvent) return "";
-    if (typeof window === "undefined") return "";
-
-    const url = new URL(window.location.href);
-    url.searchParams.set("event", String(selectedEvent.id));
-    url.searchParams.set("cat", selectedEvent.category);
-    if (selectedRegion?.bbox) url.searchParams.set("bbox", selectedRegion.bbox);
-    url.searchParams.set("z", String(mapZoom));
-
-    url.searchParams.set("lat", String(selectedEvent.latitude));
-    url.searchParams.set("lon", String(selectedEvent.longitude));
-    url.searchParams.set("loc", selectedEvent.location);
-    url.searchParams.set("title", selectedEvent.title);
-    url.searchParams.set("sev", selectedEvent.severity);
-    url.searchParams.set("ts", selectedEvent.timestamp.toISOString());
-
-    return url.toString();
-  }, [selectedEvent, selectedRegion?.bbox, mapZoom]);
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
@@ -275,20 +291,10 @@ export default function App() {
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
-              onEventClick={(ev) => {
-                setSelectedEvent(ev);
-                setFocusTarget({
-                  lng: ev.longitude,
-                  lat: ev.latitude,
-                  zoom: undefined,
-                  id: ev.id,
-                  sevRank: sevToRank(ev.severity),
-                });
-              }}
+              onEventClick={setSelectedEvent}
               resetKey={resetKey}
               onZoomedInChange={setIsExploring}
               onZoomChange={setMapZoom}
-              focus={focusTarget}
             />
           </div>
 
@@ -301,6 +307,7 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
+            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -326,6 +333,7 @@ export default function App() {
               </button>
             </div>
 
+            {/* StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -340,7 +348,7 @@ export default function App() {
             </div>
 
             <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} shareUrl={shareUrl} />
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
             </div>
 
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
@@ -351,6 +359,7 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
+            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
