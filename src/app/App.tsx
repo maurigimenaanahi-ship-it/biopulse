@@ -12,13 +12,12 @@ import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+const GEOCODE_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev"; // ✅ mismo worker
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== Reverse geocode (via our Vercel API -> Cloudflare Worker) =====
- * IMPORTANT: do NOT call Nominatim directly from the browser.
- * We call our own endpoint:
- *   /api/reverse-geocode?lat=..&lon=..
- * which then calls the Worker (cached) that calls Nominatim.
+/** ===== Reverse geocode via Cloudflare Worker =====
+ * - NO usamos /api en Vercel porque este proyecto NO es Next App Router.
+ * - Usamos directo el Worker que ya devuelve { label }.
  */
 const GEO_CACHE = new Map<string, string>();
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
@@ -26,7 +25,9 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
   try {
-    const url = `/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+    const url =
+      `${GEOCODE_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+
     const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) return null;
 
@@ -50,7 +51,10 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
  * - > 6h  => stabilizing
  * - si no => active/escalating (según severity)
  */
-function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
+function statusFromLastSeen(
+  lastSeen: Date | null,
+  severity: EnvironmentalEvent["severity"]
+): EventStatus {
   if (!lastSeen) return severity === "critical" ? "escalating" : "active";
 
   const ageMs = Date.now() - lastSeen.getTime();
@@ -66,7 +70,9 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
 
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
+    4
+  )},${lat.toFixed(4)},7z`;
 }
 
 export default function App() {
@@ -82,6 +88,7 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
+  // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
@@ -124,7 +131,7 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ reverse geocode: limitamos cantidad por corrida (para no spamear)
+        // ✅ reverse geocode: limitamos cantidad para no pegarle 200 requests
         const MAX_GEOCODE = 35;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
@@ -140,8 +147,6 @@ export default function App() {
                 : null;
 
             const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
-
-            // ✅ si falla geocode, caemos a la región seleccionada
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
@@ -159,13 +164,14 @@ export default function App() {
               category: "fire",
               severity: sev,
 
-              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
+              title:
+                c.focusCount > 1
+                  ? `Active Fire Cluster (${c.focusCount} detections)`
+                  : "Active Fire",
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
               longitude: lon,
-
-              // ✅ ACÁ queda la localidad real (ej: Tacuarembó, Uruguay)
               location: locationLabel,
 
               timestamp: lastSeen ?? new Date(),
@@ -262,13 +268,16 @@ export default function App() {
             />
           </div>
 
+          {/* efectos */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
           </div>
 
+          {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
+            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -294,8 +303,14 @@ export default function App() {
               </button>
             </div>
 
+            {/* StatsPanel */}
             <div className="pointer-events-auto">
-              <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} collapsed={isExploring} />
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+                collapsed={isExploring}
+              />
             </div>
 
             <div className="pointer-events-auto">
@@ -314,12 +329,15 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
+            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
                 "bottom-[180px] md:right-6 md:bottom-28",
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
+                shouldShowZoomOut
+                  ? "opacity-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
             >
               <button
