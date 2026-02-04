@@ -1,3 +1,4 @@
+// src/app/App.tsx
 import { useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
@@ -9,13 +10,16 @@ import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import { mergeAndPersist, statusFromLastSeen } from "./lib/eventStore";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== Reverse geocode via Worker =====
- * (evita CORS + bloqueos de Nominatim)
+/** ===== Reverse geocode (OSM / Nominatim) =====
+ * - Gratis, sin key, pero hay que ser amable:
+ *   - cache
+ *   - limitar cantidad por corrida
  */
 const GEO_CACHE = new Map<string, string>();
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
@@ -24,13 +28,28 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
 
   try {
     const url =
-      `${FIRMS_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(
+        lat
+      )}&lon=${encodeURIComponent(lon)}&zoom=10&addressdetails=1`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
     if (!res.ok) return null;
 
     const data: any = await res.json();
-    const label = data?.label;
+    const a = data?.address ?? {};
+
+    const locality =
+      a.city || a.town || a.village || a.hamlet || a.municipality || a.county || a.state_district;
+
+    const state = a.state;
+    const country = a.country;
+
+    const parts = [locality, state, country].filter(Boolean);
+    const label = parts.length ? parts.join(", ") : (data?.display_name ?? null);
 
     if (label && typeof label === "string") {
       GEO_CACHE.set(key, label);
@@ -42,29 +61,8 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
   }
 }
 
-/** ===== status automático =====
- * - > 48h => resolved
- * - > 18h => contained
- * - > 6h  => stabilizing
- * - si no => active/escalating (según severity)
- */
-function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
-  if (!lastSeen) return severity === "critical" ? "escalating" : "active";
-
-  const ageMs = Date.now() - lastSeen.getTime();
-  const ageH = ageMs / (1000 * 60 * 60);
-
-  if (ageH > 48) return "resolved";
-  if (ageH > 18) return "contained";
-  if (ageH > 6) return "stabilizing";
-
-  if (severity === "critical" || severity === "high") return "escalating";
-  return "active";
-}
-
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  // Nota: FIRMS usa fecha en hash; luego lo hacemos dinámico si querés.
   return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
     4
   )},${lat.toFixed(4)},7z`;
@@ -83,6 +81,7 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
+  // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
@@ -128,7 +127,7 @@ export default function App() {
         // ✅ reverse geocode: limitamos cantidad
         const MAX_GEOCODE = 35;
 
-        const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
+        const clusteredEventsRaw: EnvironmentalEvent[] = await Promise.all(
           clusters.map(async (c: any, i: number) => {
             const lat = Number(c.latitude);
             const lon = Number(c.longitude);
@@ -140,34 +139,36 @@ export default function App() {
                 ? new Date(c.lastSeen)
                 : null;
 
-            const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
+            const place = i < MAX_GEOCODE ? (await reverseGeocode(lat, lon)) : null;
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
 
             const frpMax = Number(c.frpMax ?? 0);
             const frpSum = Number(c.frpSum ?? 0);
+            const focusCount = Number(c.focusCount ?? 1);
 
             const narrative =
-              `Satellite sensors detected ${c.focusCount} fire ` +
-              `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Satellite sensors detected ${focusCount} fire ` +
+              `${focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
               `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
+
+            const ts = lastSeen ?? new Date();
 
             return {
               id: c.id || `cluster-${i}`,
               category: "fire",
               severity: sev,
 
-              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
+              title: focusCount > 1 ? `Active Fire Cluster (${focusCount} detections)` : "Active Fire",
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
               longitude: lon,
 
-              // ✅ ACÁ TIENE QUE APARECER LA LOCALIDAD REAL
               location: locationLabel,
 
-              timestamp: lastSeen ?? new Date(),
+              timestamp: ts,
 
               affectedArea: 1,
               affectedPopulation: undefined,
@@ -180,8 +181,15 @@ export default function App() {
 
               liveFeedUrl: firmsViewerUrl(lat, lon),
 
-              status: statusFromLastSeen(lastSeen, sev),
+              // ✅ status automático (por recencia)
+              status: statusFromLastSeen(ts, sev),
 
+              // ✅ métricas para historia
+              focusCount,
+              frpSum,
+              frpMax,
+
+              // opcionales
               evacuationLevel: undefined,
               nearbyInfrastructure: undefined,
               ecosystems: undefined,
@@ -202,7 +210,15 @@ export default function App() {
           })
         );
 
-        setEvents(clusteredEvents);
+        // ✅ MEMORIA: merge + history + stale
+        const merged = mergeAndPersist({
+          category: "fire",
+          regionKey: args.region.key,
+          next: clusteredEventsRaw,
+          keepStaleHours: 72,
+        });
+
+        setEvents(merged);
       } catch (err) {
         console.error("Error fetching FIRMS data:", err);
         setEvents(mockEvents.filter((e) => e.category === "fire"));
@@ -215,6 +231,7 @@ export default function App() {
       return;
     }
 
+    // No-fire: por ahora sin memoria (cuando quieras lo extendemos)
     setEvents(mockEvents.filter((e) => e.category === args.category));
     setSelectedEvent(null);
     setStage("dashboard");
@@ -223,11 +240,12 @@ export default function App() {
   };
 
   const stats = useMemo(() => {
-    const criticalCount = events.filter((e) => e.severity === "critical").length;
-    const uniqueLocations = new Set(events.map((e) => e.location.split(",")[0]));
-    return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
+    const criticalCount = events.filter((e) => e.severity === "critical" && !e.stale).length;
+    const uniqueLocations = new Set(events.filter((e) => !e.stale).map((e) => e.location.split(",")[0]));
+    return { total: events.filter((e) => !e.stale).length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
+  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
@@ -252,7 +270,7 @@ export default function App() {
         <div className="absolute inset-0">
           <div className="absolute inset-0 z-0">
             <MapScene
-              events={events}
+              events={events.filter((e) => !e.stale)} // ✅ no mostramos stale en el mapa
               bbox={selectedRegion?.bbox ?? null}
               onEventClick={setSelectedEvent}
               resetKey={resetKey}
@@ -261,13 +279,16 @@ export default function App() {
             />
           </div>
 
+          {/* efectos */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
           </div>
 
+          {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
+            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -293,6 +314,7 @@ export default function App() {
               </button>
             </div>
 
+            {/* StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -318,6 +340,7 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
+            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
