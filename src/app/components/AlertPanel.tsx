@@ -24,9 +24,33 @@ function toggleFollow(id: string): string[] {
 }
 
 // ===== helpers =====
+function toDateSafe(d: any): Date | null {
+  if (!d) return null;
+  if (d instanceof Date) return d;
+  const parsed = new Date(d);
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
 function formatTimeUTC(d: Date) {
   const date = d instanceof Date ? d : new Date(d as any);
   return date.toUTCString();
+}
+
+function formatShortUTC(d: Date) {
+  const dt = d instanceof Date ? d : new Date(d as any);
+  return dt.toUTCString().replace(" GMT", "").replace(", ", " • ");
+}
+
+function relAge(d: Date | null) {
+  if (!d) return "—";
+  const ms = Date.now() - d.getTime();
+  const m = Math.floor(ms / (1000 * 60));
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h}h ago`;
+  const days = Math.floor(h / 24);
+  return `${days}d ago`;
 }
 
 function km2(n: number) {
@@ -54,6 +78,19 @@ function statusLabel(s?: EnvironmentalEvent["status"]) {
       return "Resolved";
     default:
       return "Active";
+  }
+}
+
+function trendLabel(t?: EnvironmentalEvent["trend"]) {
+  switch (t) {
+    case "rising":
+      return { text: "Rising", icon: "↗" };
+    case "falling":
+      return { text: "Falling", icon: "↘" };
+    case "stable":
+      return { text: "Stable", icon: "→" };
+    default:
+      return { text: "—", icon: "•" };
   }
 }
 
@@ -141,6 +178,20 @@ export function AlertPanel(props: {
   // ✅ LIVE vs SNAPSHOT (lo marca App cuando abre desde link y no existe live)
   const isSnapshot = event.riskIndicators?.includes("Snapshot link");
 
+  // ✅ vida (eventLife)
+  const firstSeen = toDateSafe((event as any).firstSeen);
+  const lastSeen = toDateSafe((event as any).lastSeen) ?? toDateSafe(event.timestamp);
+  const scans = typeof (event as any).scanCount === "number" ? (event as any).scanCount : undefined;
+  const trend = trendLabel((event as any).trend);
+  const isStale = Boolean((event as any).stale);
+
+  const history = Array.isArray((event as any).history) ? (event as any).history : [];
+  const historyTail = history.slice(-6).reverse(); // últimos 6, más reciente primero
+
+  // pequeño parche visual: si summary menciona "América/Region" pero location ya es específico, lo dejamos aclarado
+  const summaryHasAmerica = /am[eé]rica/i.test(summary);
+  const showResolvedLocationHint = summaryHasAmerica && event.location && event.location.length > 3;
+
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
       {/* Backdrop */}
@@ -197,10 +248,11 @@ export function AlertPanel(props: {
 
           {/* ===== Identity ===== */}
           <div className="pr-12">
-            <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
+            <div className="text-white/55 text-xs uppercase tracking-wider flex flex-wrap items-center gap-2">
               <span>
                 {header.cat} • {utc}
               </span>
+
               {isSnapshot ? (
                 <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
                   SNAPSHOT
@@ -208,6 +260,16 @@ export function AlertPanel(props: {
               ) : (
                 <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
                   LIVE
+                </span>
+              )}
+
+              {isStale ? (
+                <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-100/80">
+                  STALE • not detected this scan
+                </span>
+              ) : (
+                <span className="rounded-full border border-emerald-300/15 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-100/75">
+                  DETECTED • this scan
                 </span>
               )}
             </div>
@@ -249,26 +311,44 @@ export function AlertPanel(props: {
               </button>
             </div>
 
-            {/* Severidad + Estado */}
-            <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-              <span
-                className={[
-                  "inline-block h-2 w-2 rounded-full",
-                  event.severity === "critical"
-                    ? "bg-red-500"
-                    : event.severity === "high"
-                    ? "bg-orange-500"
-                    : event.severity === "moderate"
-                    ? "bg-yellow-500"
-                    : "bg-emerald-400",
-                ].join(" ")}
-              />
-              <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
+            {/* Severidad + Estado + Trend */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <span
+                  className={[
+                    "inline-block h-2 w-2 rounded-full",
+                    event.severity === "critical"
+                      ? "bg-red-500"
+                      : event.severity === "high"
+                      ? "bg-orange-500"
+                      : event.severity === "moderate"
+                      ? "bg-yellow-500"
+                      : "bg-emerald-400",
+                  ].join(" ")}
+                />
+                <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
 
-              <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
-                <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
-                {statusLabel(event.status)}
-              </span>
+                <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
+                  <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
+                  {statusLabel(event.status)}
+                </span>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <span className="text-white/55 text-xs uppercase tracking-wider">Trend</span>
+                <span
+                  className={[
+                    "ml-1 text-sm font-medium",
+                    (event as any).trend === "rising"
+                      ? "text-orange-200"
+                      : (event as any).trend === "falling"
+                      ? "text-emerald-200"
+                      : "text-white/80",
+                  ].join(" ")}
+                >
+                  {trend.icon} {trend.text}
+                </span>
+              </div>
             </div>
 
             {/* acciones livianas */}
@@ -291,9 +371,15 @@ export function AlertPanel(props: {
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
               <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
+
+              {showResolvedLocationHint ? (
+                <div className="mt-3 text-white/55 text-xs">
+                  Location resolved to: <span className="text-white/75 font-medium">{event.location}</span>
+                </div>
+              ) : null}
             </section>
 
-            {/* Estado / Evacuación */}
+            {/* Estado / Evacuación + Vida */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Estado operativo</div>
 
@@ -312,6 +398,43 @@ export function AlertPanel(props: {
                   <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
                   <div className="mt-1 text-white/85 text-sm">
                     {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                  </div>
+                </div>
+
+                {/* ✅ VIDA */}
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <div className="text-white/40 text-xs uppercase tracking-wider">Event Life</div>
+
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-white/35 text-[11px] uppercase tracking-wider">First seen</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">
+                        {firstSeen ? formatShortUTC(firstSeen) : "—"}
+                      </div>
+                      <div className="text-white/40 text-[11px] mt-0.5">{relAge(firstSeen)}</div>
+                    </div>
+
+                    <div>
+                      <div className="text-white/35 text-[11px] uppercase tracking-wider">Last seen</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">
+                        {lastSeen ? formatShortUTC(lastSeen) : "—"}
+                      </div>
+                      <div className="text-white/40 text-[11px] mt-0.5">{relAge(lastSeen)}</div>
+                    </div>
+
+                    <div>
+                      <div className="text-white/35 text-[11px] uppercase tracking-wider">Scans</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">
+                        {typeof scans === "number" ? scans : "—"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-white/35 text-[11px] uppercase tracking-wider">Trend</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">
+                        {trend.icon} {trend.text}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -416,6 +539,46 @@ export function AlertPanel(props: {
                     ? "potencialmente favorables para escalamiento."
                     : "en observación."}
                 </div>
+              )}
+            </section>
+
+            {/* Actividad reciente (history) */}
+            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="text-white/45 text-xs uppercase tracking-wider">Actividad reciente</div>
+
+              {historyTail.length ? (
+                <div className="mt-3 space-y-2">
+                  {historyTail.map((h: any, idx: number) => {
+                    const t = toDateSafe(h.t);
+                    const fc = typeof h.focusCount === "number" ? h.focusCount : undefined;
+                    const sum = typeof h.frpSum === "number" ? h.frpSum : undefined;
+                    const mx = typeof h.frpMax === "number" ? h.frpMax : undefined;
+
+                    return (
+                      <div
+                        key={`${t?.toISOString?.() ?? idx}-${idx}`}
+                        className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-white/80 text-sm font-medium">
+                            {t ? t.toUTCString().slice(17, 25) : "—"} UTC
+                          </div>
+                          <div className="text-white/45 text-[11px] mt-0.5">
+                            {fc != null ? `${fc} detections` : "—"} •{" "}
+                            {sum != null ? `FRP Σ ${sum.toFixed(1)}` : "FRP Σ —"} •{" "}
+                            {mx != null ? `max ${mx.toFixed(1)}` : "max —"}
+                          </div>
+                        </div>
+
+                        <div className="text-white/45 text-[11px] shrink-0">
+                          {h.severity ? String(h.severity).toUpperCase() : ""}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="mt-3 text-white/50 text-sm">—</div>
               )}
             </section>
 
