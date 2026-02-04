@@ -60,10 +60,9 @@ function statusLabel(s?: EnvironmentalEvent["status"]) {
 function fallbackSummary(ev: EnvironmentalEvent) {
   const cat = categoryLabels[ev.category] ?? ev.category;
   const sev = ev.severity;
+
   const parts: string[] = [];
-  parts.push(
-    `A ${sev} intensity ${cat.toLowerCase()} event was detected in ${ev.location}.`
-  );
+  parts.push(`A ${sev} intensity ${cat.toLowerCase()} event was detected in ${ev.location}.`);
 
   const cond: string[] = [];
   if (typeof ev.windSpeed === "number") cond.push(`wind ${Math.round(ev.windSpeed)} km/h`);
@@ -72,9 +71,7 @@ function fallbackSummary(ev: EnvironmentalEvent) {
   if (typeof ev.waterLevel === "number") cond.push(`river level ${ev.waterLevel} m`);
   if (typeof ev.airQualityIndex === "number") cond.push(`AQI ${ev.airQualityIndex}`);
 
-  if (cond.length) {
-    parts.push(`Current conditions: ${cond.join(" • ")}.`);
-  }
+  if (cond.length) parts.push(`Current conditions: ${cond.join(" • ")}.`);
 
   if (ev.severity === "critical" || ev.severity === "high") {
     parts.push(`Risk of escalation is elevated. Continuous monitoring is recommended.`);
@@ -107,6 +104,7 @@ export function AlertPanel(props: {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [event, onClose]);
 
+  // leer favoritos + reset del "copiado" cada vez que cambia el evento
   useEffect(() => {
     if (typeof window === "undefined") return;
     setFollowed(readFollowed());
@@ -135,11 +133,13 @@ export function AlertPanel(props: {
     }
   }
 
-  const summary = (event.description && event.description.trim().length > 0)
-    ? event.description
-    : fallbackSummary(event);
+  const summary =
+    event.description && event.description.trim().length > 0 ? event.description : fallbackSummary(event);
 
   const utc = formatTimeUTC(event.timestamp);
+
+  // ✅ LIVE vs SNAPSHOT (lo marca App cuando abre desde link y no existe live)
+  const isSnapshot = event.riskIndicators?.includes("Snapshot link");
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
@@ -197,8 +197,19 @@ export function AlertPanel(props: {
 
           {/* ===== Identity ===== */}
           <div className="pr-12">
-            <div className="text-white/55 text-xs uppercase tracking-wider">
-              {header.cat} • {utc}
+            <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
+              <span>
+                {header.cat} • {utc}
+              </span>
+              {isSnapshot ? (
+                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
+                  SNAPSHOT
+                </span>
+              ) : (
+                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
+                  LIVE
+                </span>
+              )}
             </div>
 
             {/* Título + Seguir */}
@@ -208,10 +219,8 @@ export function AlertPanel(props: {
                   {event.title}
                 </div>
 
-                {/* ✅ Lugar visible (lo que pediste) */}
-                <div className="mt-2 text-white/80 text-sm md:text-base font-medium">
-                  {event.location}
-                </div>
+                {/* Lugar visible */}
+                <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
 
                 {/* Coordenadas visibles para técnicos */}
                 <div className="mt-1 text-white/45 text-xs">
@@ -219,7 +228,7 @@ export function AlertPanel(props: {
                 </div>
               </div>
 
-              {/* ✅ Seguir alerta (botón pequeño al lado del título) */}
+              {/* Seguir alerta */}
               <button
                 type="button"
                 onClick={() => {
@@ -240,7 +249,7 @@ export function AlertPanel(props: {
               </button>
             </div>
 
-            {/* Severidad */}
+            {/* Severidad + Estado */}
             <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
               <span
                 className={[
@@ -256,7 +265,6 @@ export function AlertPanel(props: {
               />
               <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
 
-              {/* Estado con pulso */}
               <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
                 <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
                 {statusLabel(event.status)}
@@ -279,13 +287,13 @@ export function AlertPanel(props: {
 
           {/* ===== Layout ===== */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 2) Resumen claro */}
+            {/* Resumen claro */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
               <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
             </section>
 
-            {/* 8) Estado / Evacuación */}
+            {/* Estado / Evacuación */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Estado operativo</div>
 
@@ -309,7 +317,7 @@ export function AlertPanel(props: {
               </div>
             </section>
 
-            {/* 3) Impacto humano */}
+            {/* Impacto humano */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Impacto humano</div>
 
@@ -346,7 +354,7 @@ export function AlertPanel(props: {
               ) : null}
             </section>
 
-            {/* 4) Impacto ambiental */}
+            {/* Impacto ambiental */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Impacto ambiental</div>
 
@@ -367,7 +375,7 @@ export function AlertPanel(props: {
               </div>
             </section>
 
-            {/* 5) Condiciones */}
+            {/* Condiciones */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Condiciones</div>
 
@@ -399,18 +407,19 @@ export function AlertPanel(props: {
                 </div>
               </div>
 
-              {/* indicador narrativo simple */}
               {(typeof event.windSpeed === "number" ||
                 typeof event.humidity === "number" ||
                 typeof event.temperature === "number") && (
                 <div className="mt-3 text-white/60 text-xs">
                   → Condiciones{" "}
-                  {(event.severity === "critical" || event.severity === "high") ? "potencialmente favorables para escalamiento." : "en observación."}
+                  {event.severity === "critical" || event.severity === "high"
+                    ? "potencialmente favorables para escalamiento."
+                    : "en observación."}
                 </div>
               )}
             </section>
 
-            {/* 6) Fuentes visuales */}
+            {/* Fuentes visuales */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Observación directa</div>
 
@@ -441,16 +450,14 @@ export function AlertPanel(props: {
                       <span className="text-white/40 text-xs">(externo)</span>
                     </a>
                   ) : (
-                    <div className="text-white/50 text-sm">
-                      {event.liveFeedUrl ? event.liveFeedUrl : "—"}
-                    </div>
+                    <div className="text-white/50 text-sm">{event.liveFeedUrl ? event.liveFeedUrl : "—"}</div>
                   )}
                 </div>
               </div>
             </section>
           </div>
 
-          {/* 7) Indicadores de riesgo (sección full width) */}
+          {/* Indicadores de riesgo */}
           <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
             <div className="text-white/45 text-xs uppercase tracking-wider">Indicadores de riesgo</div>
             {event.riskIndicators?.length ? (
@@ -469,7 +476,7 @@ export function AlertPanel(props: {
             )}
           </div>
 
-          {/* 9) AI Insight */}
+          {/* AI Insight */}
           <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
             <div className="text-white/45 text-xs uppercase tracking-wider">BioPulse Insight</div>
 
