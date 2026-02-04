@@ -188,7 +188,6 @@ export function AlertPanel(props: {
   const history = Array.isArray((event as any).history) ? (event as any).history : [];
   const historyTail = history.slice(-6).reverse(); // últimos 6, más reciente primero
 
-  // pequeño parche visual: si summary menciona "América/Region" pero location ya es específico, lo dejamos aclarado
   const summaryHasAmerica = /am[eé]rica/i.test(summary);
   const showResolvedLocationHint = summaryHasAmerica && event.location && event.location.length > 3;
 
@@ -211,6 +210,7 @@ export function AlertPanel(props: {
           "max-h-[82vh] overflow-hidden",
           "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
           "backdrop-blur-md",
+          "flex flex-col", // ✅ para poder scrollear contenido interno
         ].join(" ")}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -218,13 +218,14 @@ export function AlertPanel(props: {
       >
         {/* top accent */}
         <div
-          className="h-1.5"
+          className="h-1.5 shrink-0"
           style={{
             background: `linear-gradient(90deg, ${header.color}CC, ${header.color}14, transparent)`,
           }}
         />
 
-        <div className="relative p-5 md:p-6">
+        {/* ✅ SCROLL AREA */}
+        <div className="relative p-5 md:p-6 overflow-y-auto pr-2 md:pr-3">
           {/* Close */}
           <button
             type="button"
@@ -281,16 +282,13 @@ export function AlertPanel(props: {
                   {event.title}
                 </div>
 
-                {/* Lugar visible */}
                 <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
 
-                {/* Coordenadas visibles para técnicos */}
                 <div className="mt-1 text-white/45 text-xs">
                   {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
                 </div>
               </div>
 
-              {/* Seguir alerta */}
               <button
                 type="button"
                 onClick={() => {
@@ -311,7 +309,6 @@ export function AlertPanel(props: {
               </button>
             </div>
 
-            {/* Severidad + Estado + Trend */}
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                 <span
@@ -336,22 +333,12 @@ export function AlertPanel(props: {
 
               <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                 <span className="text-white/55 text-xs uppercase tracking-wider">Trend</span>
-                <span
-                  className={[
-                    "ml-1 text-sm font-medium",
-                    (event as any).trend === "rising"
-                      ? "text-orange-200"
-                      : (event as any).trend === "falling"
-                      ? "text-emerald-200"
-                      : "text-white/80",
-                  ].join(" ")}
-                >
+                <span className="ml-1 text-sm font-medium text-white/80">
                   {trend.icon} {trend.text}
                 </span>
               </div>
             </div>
 
-            {/* acciones livianas */}
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -367,7 +354,6 @@ export function AlertPanel(props: {
 
           {/* ===== Layout ===== */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Resumen claro */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
               <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
@@ -379,7 +365,6 @@ export function AlertPanel(props: {
               ) : null}
             </section>
 
-            {/* Estado / Evacuación + Vida */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Estado operativo</div>
 
@@ -401,7 +386,6 @@ export function AlertPanel(props: {
                   </div>
                 </div>
 
-                {/* ✅ VIDA */}
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <div className="text-white/40 text-xs uppercase tracking-wider">Event Life</div>
 
@@ -459,43 +443,6 @@ export function AlertPanel(props: {
                   <div className="mt-1 text-white/85 text-sm font-medium">{km2(event.affectedArea)}</div>
                 </div>
               </div>
-
-              {event.nearbyInfrastructure?.length ? (
-                <div className="mt-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Infraestructura cercana</div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {event.nearbyInfrastructure.slice(0, 10).map((x) => (
-                      <span
-                        key={x}
-                        className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/75"
-                      >
-                        {x}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {/* Impacto ambiental */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Impacto ambiental</div>
-
-              <div className="mt-3 space-y-3">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Ecosistemas</div>
-                  <div className="mt-1 text-white/85 text-sm">
-                    {event.ecosystems?.length ? event.ecosystems.join(" • ") : "—"}
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Especies en riesgo</div>
-                  <div className="mt-1 text-white/85 text-sm">
-                    {event.speciesAtRisk?.length ? event.speciesAtRisk.join(" • ") : "—"}
-                  </div>
-                </div>
-              </div>
             </section>
 
             {/* Condiciones */}
@@ -529,20 +476,9 @@ export function AlertPanel(props: {
                   </div>
                 </div>
               </div>
-
-              {(typeof event.windSpeed === "number" ||
-                typeof event.humidity === "number" ||
-                typeof event.temperature === "number") && (
-                <div className="mt-3 text-white/60 text-xs">
-                  → Condiciones{" "}
-                  {event.severity === "critical" || event.severity === "high"
-                    ? "potencialmente favorables para escalamiento."
-                    : "en observación."}
-                </div>
-              )}
             </section>
 
-            {/* Actividad reciente (history) */}
+            {/* Actividad reciente */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Actividad reciente</div>
 
@@ -580,43 +516,6 @@ export function AlertPanel(props: {
               ) : (
                 <div className="mt-3 text-white/50 text-sm">—</div>
               )}
-            </section>
-
-            {/* Fuentes visuales */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Observación directa</div>
-
-              {event.satelliteImageUrl ? (
-                <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
-                  <img
-                    src={event.satelliteImageUrl}
-                    alt=""
-                    className="h-40 w-full object-cover opacity-90"
-                    loading="lazy"
-                  />
-                </div>
-              ) : (
-                <div className="mt-3 text-white/50 text-sm">—</div>
-              )}
-
-              <div className="mt-3">
-                <div className="text-white/40 text-xs uppercase tracking-wider">Cámaras / feeds</div>
-                <div className="mt-2">
-                  {event.liveFeedUrl && /^https?:\/\//.test(event.liveFeedUrl) ? (
-                    <a
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-                      href={event.liveFeedUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Abrir live feed
-                      <span className="text-white/40 text-xs">(externo)</span>
-                    </a>
-                  ) : (
-                    <div className="text-white/50 text-sm">{event.liveFeedUrl ? event.liveFeedUrl : "—"}</div>
-                  )}
-                </div>
-              </div>
             </section>
           </div>
 
