@@ -12,11 +12,11 @@ type MapSceneProps = {
   resetKey?: number;
   onZoomedInChange?: (v: boolean) => void;
 
-  // nuevo: para “dockear” stats antes
+  // para UI adaptativa
   onZoomChange?: (zoom: number) => void;
 
-  // ✅ nuevo: request de centrado desde AlertPanel / App
-  centerRequest?: { latitude: number; longitude: number; zoom?: number; key: number } | null;
+  // ✅ NUEVO: foco externo (deep link / watchlist)
+  focus?: { lng: number; lat: number; zoom?: number; id?: string; sevRank?: number } | null;
 };
 
 // Mapa oscuro (sin keys)
@@ -44,11 +44,10 @@ function sevRank(sev: EnvironmentalEvent["severity"]) {
 }
 
 function getExploreZoomThreshold(width: number) {
-  // Ajustes pensados para que en celu se escondan paneles ANTES
-  if (width <= 480) return 2.05; // celulares chicos
-  if (width <= 768) return 2.2; // celulares grandes / tablets vertical
-  if (width <= 1024) return 2.55; // tablets / notebooks chicos
-  return 2.8; // desktop (tu valor original)
+  if (width <= 480) return 2.05;
+  if (width <= 768) return 2.2;
+  if (width <= 1024) return 2.55;
+  return 2.8;
 }
 
 export function MapScene({
@@ -58,7 +57,7 @@ export function MapScene({
   resetKey,
   onZoomedInChange,
   onZoomChange,
-  centerRequest,
+  focus,
 }: MapSceneProps) {
   const mapRef = useRef<MapRef | null>(null);
 
@@ -95,12 +94,33 @@ export function MapScene({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ✅ Anti-parpadeo: cuando entrás en modo explorar, no salgas por micro cambios
   const exploreExitThreshold = useMemo(
     () => Math.max(1.5, exploreThreshold - 0.25),
     [exploreThreshold]
   );
   const [isExploring, setIsExploring] = useState(false);
+
+  // ✅ FlyTo externo (deep link / watchlist)
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !focus) return;
+
+    map.easeTo({
+      center: [focus.lng, focus.lat],
+      zoom: typeof focus.zoom === "number" ? focus.zoom : Math.max(5.2, map.getZoom()),
+      duration: 850,
+    });
+
+    // marcar halo activo si hay id
+    if (focus.id) {
+      setActive({
+        lng: focus.lng,
+        lat: focus.lat,
+        sev: Number(focus.sevRank ?? 0),
+        id: String(focus.id),
+      });
+    }
+  }, [focus?.lng, focus?.lat, focus?.zoom, focus?.id, focus?.sevRank]);
 
   // Ajustar vista al bbox elegido
   useEffect(() => {
@@ -110,18 +130,6 @@ export function MapScene({
       duration: 800,
     });
   }, [bbox]);
-
-  // ✅ NUEVO: Centrar desde App (AlertPanel)
-  useEffect(() => {
-    if (!centerRequest) return;
-    if (!mapRef.current) return;
-
-    mapRef.current.flyTo({
-      center: [centerRequest.longitude, centerRequest.latitude],
-      zoom: centerRequest.zoom ?? 4,
-      duration: 850,
-    });
-  }, [centerRequest?.key]);
 
   // ✅ Reset “Volver” (fitBounds al bbox)
   useEffect(() => {
@@ -163,11 +171,9 @@ export function MapScene({
     };
   }, [events]);
 
-  // GeoJSON hover/active/ripple (capas súper livianas: 1 feature)
+  // GeoJSON hover/active/ripple
   const hoverGeo = useMemo(() => {
-    if (!hovered) {
-      return { type: "FeatureCollection" as const, features: [] as any[] };
-    }
+    if (!hovered) return { type: "FeatureCollection" as const, features: [] as any[] };
     return {
       type: "FeatureCollection" as const,
       features: [
@@ -181,9 +187,7 @@ export function MapScene({
   }, [hovered]);
 
   const activeGeo = useMemo(() => {
-    if (!active) {
-      return { type: "FeatureCollection" as const, features: [] as any[] };
-    }
+    if (!active) return { type: "FeatureCollection" as const, features: [] as any[] };
     return {
       type: "FeatureCollection" as const,
       features: [
@@ -197,26 +201,20 @@ export function MapScene({
   }, [active]);
 
   const rippleGeo = useMemo(() => {
-    if (!ripple) {
-      return { type: "FeatureCollection" as const, features: [] as any[] };
-    }
+    if (!ripple) return { type: "FeatureCollection" as const, features: [] as any[] };
     return {
       type: "FeatureCollection" as const,
       features: [
         {
           type: "Feature" as const,
           geometry: { type: "Point" as const, coordinates: [ripple.lng, ripple.lat] },
-          properties: {
-            sevRank: ripple.sev,
-            // progreso 0..1 (1.1s)
-            p: Math.min(1, (Date.now() - ripple.t) / 1100),
-          },
+          properties: { sevRank: ripple.sev, p: Math.min(1, (Date.now() - ripple.t) / 1100) },
         },
       ],
     };
   }, [ripple]);
 
-  // Animación del ripple (dispara repaints suaves)
+  // Animación del ripple
   useEffect(() => {
     if (!ripple) return;
     let raf = 0;
@@ -301,14 +299,7 @@ export function MapScene({
         "#ffaa00",
         "#00ff88",
       ],
-      "circle-radius": [
-        "case",
-        [">=", ["get", "sevRank"], 3],
-        7,
-        [">=", ["get", "sevRank"], 2],
-        6,
-        5,
-      ],
+      "circle-radius": ["case", [">=", ["get", "sevRank"], 3], 7, [">=", ["get", "sevRank"], 2], 6, 5],
       "circle-opacity": 0.95,
       "circle-stroke-width": 2,
       "circle-stroke-color": "rgba(0,0,0,0.35)",
@@ -316,7 +307,6 @@ export function MapScene({
     },
   };
 
-  // ✅ FX layers (hover/active/ripple)
   const hoverLayer: any = {
     id: FX_HOVER_ID,
     type: "circle",
@@ -447,7 +437,6 @@ export function MapScene({
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    // solo hover “real” en desktop (mouse). En touch se ignora.
     const pt: any = (e as any).originalEvent?.pointerType;
     if (pt && pt !== "mouse") return;
 
@@ -488,7 +477,6 @@ export function MapScene({
 
           onZoomChange?.(z);
 
-          // ✅ responsive + hysteresis
           if (!isExploring && z >= exploreThreshold) {
             setIsExploring(true);
             onZoomedInChange?.(true);
