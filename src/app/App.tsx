@@ -14,6 +14,9 @@ import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
+/** ✅ Debug temporal (ponelo en true si querés logs en consola) */
+const DEBUG_FIRE_TIME = false;
+
 /** ===== Reverse geocode (OSM / Nominatim) =====
  * - Gratis, sin key, pero hay que ser amable:
  *   - cache
@@ -33,8 +36,7 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
 
     const res = await fetch(url, {
       headers: {
-        // Nominatim pide UA/identificación; en web esto es lo máximo razonable.
-        "Accept": "application/json",
+        Accept: "application/json",
       },
     });
     if (!res.ok) return null;
@@ -42,7 +44,6 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
     const data: any = await res.json();
     const a = data?.address ?? {};
 
-    // Elegimos algo “humano”:
     const locality =
       a.city || a.town || a.village || a.hamlet || a.municipality || a.county || a.state_district;
 
@@ -63,14 +64,14 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
 }
 
 /** ===== status automático =====
- * Si tenés “última detección” (lastSeen), usamos edad en horas:
+ * Si tenemos lastSeen:
  * - > 48h => resolved
  * - > 18h => contained
  * - > 6h  => stabilizing
- * - si no => active/escalating (según severity)
+ * - reciente => escalando si es grave
  */
 function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
-  if (!lastSeen) return severity === "critical" ? "escalating" : "active";
+  if (!lastSeen) return severity === "critical" || severity === "high" ? "escalating" : "active";
 
   const ageMs = Date.now() - lastSeen.getTime();
   const ageH = ageMs / (1000 * 60 * 60);
@@ -79,17 +80,27 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
   if (ageH > 18) return "contained";
   if (ageH > 6) return "stabilizing";
 
-  // reciente => si es grave, lo tratamos como escalando
   if (severity === "critical" || severity === "high") return "escalating";
   return "active";
 }
 
-/** ===== Link FIRMS centrado en el punto =====
- * No es “cámara” real, pero sirve como “observación directa” para abrir el visor.
- */
+function ageLabelFromLastSeen(lastSeen: Date | null) {
+  if (!lastSeen) return null;
+  const ageMs = Date.now() - lastSeen.getTime();
+  const ageH = ageMs / (1000 * 60 * 60);
+
+  if (!Number.isFinite(ageH) || ageH < 0) return null;
+
+  if (ageH < 1) return "Last detection: < 1h";
+  if (ageH < 24) return `Last detection: ${Math.round(ageH)}h ago`;
+
+  const days = ageH / 24;
+  if (days < 7) return `Last detection: ${days.toFixed(1)}d ago`;
+  return `Last detection: ${Math.round(days)}d ago`;
+}
+
+/** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  // FIRMS Map suele aceptar hash params; dejamos algo simple:
-  // Si en tu caso querés un link exacto con bbox/zoom, lo afinamos después.
   return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
     4
   )},${lat.toFixed(4)},7z`;
@@ -149,9 +160,10 @@ export default function App() {
           }))
           .filter((p: any) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
+        // ✅ ahora clusterFiresDBSCAN ya calcula lastSeen/age/isStale
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ reverse geocode: limitamos cantidad para no pegarle 200 requests a Nominatim
+        // ✅ reverse geocode: limitamos requests para no spamear Nominatim
         const MAX_GEOCODE = 35;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
@@ -159,78 +171,116 @@ export default function App() {
             const lat = Number(c.latitude);
             const lon = Number(c.longitude);
 
-            // si tu clusterFiresDBSCAN no trae lastSeen, queda null y el status cae a active/escalating
+            // lastSeen viene como Date o null desde clusterFires.ts
             const lastSeen: Date | null =
-              c.lastSeen instanceof Date
+              c?.lastSeen instanceof Date
                 ? c.lastSeen
-                : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
+                : typeof c?.lastSeen === "string" || typeof c?.lastSeen === "number"
                 ? new Date(c.lastSeen)
                 : null;
 
-            const place =
-              i < MAX_GEOCODE ? (await reverseGeocode(lat, lon)) : null;
-
+            const place = i < MAX_GEOCODE ? (await reverseGeocode(lat, lon)) : null;
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
-
             const frpMax = Number(c.frpMax ?? 0);
             const frpSum = Number(c.frpSum ?? 0);
 
+            const status = statusFromLastSeen(lastSeen, sev);
+            const lastDet = ageLabelFromLastSeen(lastSeen);
+
+            if (DEBUG_FIRE_TIME) {
+              // log breve por cluster (no explota la consola)
+              // eslint-disable-next-line no-console
+              console.log("[BioPulse] fire cluster", {
+                id: c.id,
+                focusCount: c.focusCount,
+                lastSeen,
+                ageHours: c.ageHours,
+                isStale: c.isStale,
+                status,
+              });
+            }
+
+            // ✅ narrativa simple + FRP
             const narrative =
               `Satellite sensors detected ${c.focusCount} fire ` +
               `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
               `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
+
+            // ✅ indicadores de riesgo: SIEMPRE (incluye “last detection”)
+            const riskIndicators: string[] = [];
+            if (sev === "critical") riskIndicators.push("Rapid spread potential");
+            else if (sev === "high") riskIndicators.push("High intensity signal");
+            else if (sev === "moderate") riskIndicators.push("Moderate intensity");
+            else riskIndicators.push("Low intensity / monitoring");
+
+            riskIndicators.push("Satellite detection (VIIRS)");
+            riskIndicators.push(`FRP max ${frpMax.toFixed(1)}`);
+
+            if (lastDet) riskIndicators.push(lastDet);
+
+            // ✅ si está stale, lo dejamos explícito (esto responde tu “y si ya lo apagaron?”)
+            if (c?.isStale) riskIndicators.push("No recent detections (possible containment)");
 
             return {
               id: c.id || `cluster-${i}`,
               category: "fire",
               severity: sev,
 
-              // ✅ título más “humano”
+              // ✅ título humano
               title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
-              // ✅ descripción narrativo + FRP abajo
+
+              // ✅ descripción narrativo + FRP
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
               longitude: lon,
 
-              // ✅ ahora sí: localidad (si pudo), si no región
+              // ✅ localidad (si pudo), si no región
               location: locationLabel,
 
-              // ✅ timestamp: idealmente lastSeen, si no now
+              // ✅ timestamp: usamos lastSeen si existe (si no now)
               timestamp: lastSeen ?? new Date(),
 
               affectedArea: 1,
               affectedPopulation: undefined,
 
-              // ✅ riesgo (podemos enriquecer después)
-              riskIndicators: [
-                sev === "critical" ? "Rapid spread potential" : "Monitoring",
-                "Satellite detection (VIIRS)",
-                `FRP max ${frpMax.toFixed(1)}`,
-              ],
+              riskIndicators,
 
-              // ✅ observación directa: link al visor FIRMS
+              // ✅ “observación directa”: link FIRMS (no cámara real)
               liveFeedUrl: firmsViewerUrl(lat, lon),
 
-              // ✅ status automático
-              status: statusFromLastSeen(lastSeen, sev),
+              // ✅ status automático real
+              status,
 
-              // opcionales
+              // opcionales (por ahora)
               evacuationLevel: undefined,
               nearbyInfrastructure: undefined,
               ecosystems: undefined,
               speciesAtRisk: undefined,
+
               aiInsight: {
                 probabilityNext12h:
-                  sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
+                  status === "resolved"
+                    ? 8
+                    : sev === "critical"
+                    ? 78
+                    : sev === "high"
+                    ? 62
+                    : sev === "moderate"
+                    ? 48
+                    : 35,
                 narrative:
-                  sev === "critical" || sev === "high"
+                  status === "resolved"
+                    ? "BioPulse indicates no recent satellite detections for this cluster. This may suggest containment, but ground confirmation is recommended."
+                    : sev === "critical" || sev === "high"
                     ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
                     : "BioPulse continues monitoring this signal. Verify with local sources if available.",
                 recommendations:
-                  sev === "critical" || sev === "high"
+                  status === "resolved"
+                    ? ["Confirm containment with local sources", "Continue periodic monitoring", "Review nearby risk areas"]
+                    : sev === "critical" || sev === "high"
                     ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
                     : ["Continue observation", "Check for new detections", "Confirm local conditions"],
               },
