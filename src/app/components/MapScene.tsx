@@ -12,10 +12,10 @@ type MapSceneProps = {
   resetKey?: number;
   onZoomedInChange?: (v: boolean) => void;
 
-  // para UI adaptativa
+  // UI adaptativa
   onZoomChange?: (zoom: number) => void;
 
-  // ✅ NUEVO: foco externo (deep link / watchlist)
+  // ✅ NUEVO: foco externo (deep link / follow list / etc)
   focus?: { lng: number; lat: number; zoom?: number; id?: string; sevRank?: number } | null;
 };
 
@@ -83,7 +83,7 @@ export function MapScene({
     sev: number;
   } | null>(null);
 
-  // ✅ Responsive: umbral “exploring” según viewport
+  // ✅ Responsive threshold
   const [exploreThreshold, setExploreThreshold] = useState<number>(() =>
     typeof window === "undefined" ? 2.8 : getExploreZoomThreshold(window.innerWidth)
   );
@@ -100,7 +100,7 @@ export function MapScene({
   );
   const [isExploring, setIsExploring] = useState(false);
 
-  // ✅ FlyTo externo (deep link / watchlist)
+  // ✅ FlyTo externo (deep link / etc)
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !focus) return;
@@ -111,7 +111,6 @@ export function MapScene({
       duration: 850,
     });
 
-    // marcar halo activo si hay id
     if (focus.id) {
       setActive({
         lng: focus.lng,
@@ -122,7 +121,7 @@ export function MapScene({
     }
   }, [focus?.lng, focus?.lat, focus?.zoom, focus?.id, focus?.sevRank]);
 
-  // Ajustar vista al bbox elegido
+  // Ajustar vista al bbox
   useEffect(() => {
     if (!bbox || !mapRef.current) return;
     mapRef.current.fitBounds(bboxToBounds(bbox), {
@@ -131,7 +130,7 @@ export function MapScene({
     });
   }, [bbox]);
 
-  // ✅ Reset “Volver” (fitBounds al bbox)
+  // ✅ Reset “Volver”
   useEffect(() => {
     if (!resetKey) return;
     if (!bbox || !mapRef.current) return;
@@ -141,7 +140,6 @@ export function MapScene({
       duration: 800,
     });
 
-    // apagar estados visuales
     setActive(null);
     setHovered(null);
     setRipple(null);
@@ -214,7 +212,7 @@ export function MapScene({
     };
   }, [ripple]);
 
-  // Animación del ripple
+  // Animación ripple
   useEffect(() => {
     if (!ripple) return;
     let raf = 0;
@@ -234,12 +232,11 @@ export function MapScene({
     };
   }, [ripple?.t]);
 
-  // Layer IDs base
+  // IDs
   const CLUSTERS_LAYER_ID = "clusters";
   const CLUSTER_COUNT_LAYER_ID = "cluster-count";
   const UNCLUSTERED_LAYER_ID = "unclustered-point";
 
-  // Layers IDs fx
   const FX_HOVER_ID = "fx-hover";
   const FX_ACTIVE_ID = "fx-active";
   const FX_RIPPLE_ID = "fx-ripple";
@@ -278,9 +275,7 @@ export function MapScene({
       "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
       "text-size": 12,
     },
-    paint: {
-      "text-color": "rgba(255,255,255,0.92)",
-    },
+    paint: { "text-color": "rgba(255,255,255,0.92)" },
   };
 
   const unclusteredLayer: any = {
@@ -402,11 +397,9 @@ export function MapScene({
     const lng = coords[0];
     const lat = coords[1];
 
-    // ripple siempre
     const sev = Number(props.maxSev ?? props.sevRank ?? 0);
     setRipple({ lng, lat, t: Date.now(), sev });
 
-    // cluster => zoom
     if (props.cluster) {
       const clusterId = props.cluster_id;
       const source: any = map.getSource("events");
@@ -424,7 +417,6 @@ export function MapScene({
       return;
     }
 
-    // point => open panel + active halo
     const id = String(props.id ?? "");
     const ev = events.find((x) => String(x.id) === id);
     if (ev) {
@@ -486,22 +478,18 @@ export function MapScene({
           }
         }}
       >
-        {/* FX: Ripple */}
         <Source id="fx-ripple" type="geojson" data={rippleGeo as any}>
           <Layer {...rippleLayer} />
         </Source>
 
-        {/* FX: Hover */}
         <Source id="fx-hover" type="geojson" data={hoverGeo as any}>
           <Layer {...hoverLayer} />
         </Source>
 
-        {/* FX: Active */}
         <Source id="fx-active" type="geojson" data={activeGeo as any}>
           <Layer {...activeLayer} />
         </Source>
 
-        {/* Eventos base + clustering */}
         <Source
           id="events"
           type="geojson"
