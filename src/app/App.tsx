@@ -14,9 +14,11 @@ import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== Reverse geocode via Worker (Cloudflare) =====
- * Esto evita CORS / rate limit / user-agent issues en browser.
- * Endpoint: /reverse-geocode?lat=..&lon=..
+/** ===== Reverse geocode (via our Vercel API -> Cloudflare Worker) =====
+ * IMPORTANT: do NOT call Nominatim directly from the browser.
+ * We call our own endpoint:
+ *   /api/reverse-geocode?lat=..&lon=..
+ * which then calls the Worker (cached) that calls Nominatim.
  */
 const GEO_CACHE = new Map<string, string>();
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
@@ -24,10 +26,8 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
   try {
-    const url =
-      `${FIRMS_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-
-    const res = await fetch(url);
+    const url = `/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) return null;
 
     const data: any = await res.json();
@@ -37,7 +37,6 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
       GEO_CACHE.set(key, label);
       return label;
     }
-
     return null;
   } catch {
     return null;
@@ -67,9 +66,7 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
 
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
-    4
-  )},${lat.toFixed(4)},7z`;
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
 }
 
 export default function App() {
@@ -85,7 +82,6 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
-  // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
@@ -128,7 +124,7 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ limitamos cantidad para no pegarle 200 requests al worker
+        // ✅ reverse geocode: limitamos cantidad por corrida (para no spamear)
         const MAX_GEOCODE = 35;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
@@ -136,7 +132,6 @@ export default function App() {
             const lat = Number(c.latitude);
             const lon = Number(c.longitude);
 
-            // si tu clusterFiresDBSCAN no trae lastSeen, queda null y el status cae a active/escalating
             const lastSeen: Date | null =
               c.lastSeen instanceof Date
                 ? c.lastSeen
@@ -146,12 +141,11 @@ export default function App() {
 
             const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
 
-            // 🔎 log corto para verificar que sí llega la localidad
-            console.log("[reverse-geocode]", { lat: lat.toFixed(4), lon: lon.toFixed(4), place });
-
+            // ✅ si falla geocode, caemos a la región seleccionada
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
+
             const frpMax = Number(c.frpMax ?? 0);
             const frpSum = Number(c.frpSum ?? 0);
 
@@ -171,7 +165,7 @@ export default function App() {
               latitude: lat,
               longitude: lon,
 
-              // ✅ ACÁ está la clave:
+              // ✅ ACÁ queda la localidad real (ej: Tacuarembó, Uruguay)
               location: locationLabel,
 
               timestamp: lastSeen ?? new Date(),
@@ -235,7 +229,6 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
@@ -269,16 +262,13 @@ export default function App() {
             />
           </div>
 
-          {/* efectos */}
           <div className="pointer-events-none absolute inset-0 z-[1]">
             <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
           </div>
 
-          {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -304,7 +294,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel totalEvents={stats.total} criticalEvents={stats.critical} affectedRegions={stats.regions} collapsed={isExploring} />
             </div>
@@ -325,7 +314,6 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
