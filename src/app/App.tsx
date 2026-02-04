@@ -46,18 +46,15 @@ export default function App() {
 
   const [resetKey, setResetKey] = useState(0);
 
-  // ✅ “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
-  // ✅ Deep link
+  // deep link
   const [pendingOpenEventId, setPendingOpenEventId] = useState<string | null>(null);
   const deepLinkRanRef = useRef(false);
-
-  // ✅ Snapshot (si el evento ya no existe en vivo)
   const snapshotRef = useRef<EnvironmentalEvent | null>(null);
 
-  // ✅ Foco para MapScene
+  // foco externo
   const [focusTarget, setFocusTarget] = useState<{
     lng: number;
     lat: number;
@@ -139,11 +136,10 @@ export default function App() {
     setIsExploring(false);
   };
 
-  // ✅ Deep link boot: cat + bbox + event (+ snapshot)
+  // deep link boot
   useEffect(() => {
     if (deepLinkRanRef.current) return;
     deepLinkRanRef.current = true;
-
     if (typeof window === "undefined") return;
 
     const url = new URL(window.location.href);
@@ -152,7 +148,6 @@ export default function App() {
     const bbox = url.searchParams.get("bbox");
     const eventId = url.searchParams.get("event");
 
-    // snapshot params
     const lat = url.searchParams.get("lat");
     const lon = url.searchParams.get("lon");
     const loc = url.searchParams.get("loc");
@@ -166,7 +161,7 @@ export default function App() {
     const region = findRegionByBbox(bbox);
     if (!region) return;
 
-    // armamos snapshot si vino en el link (para fallback)
+    // snapshot para fallback
     if (eventId && lat && lon && loc && title && sev && ts) {
       snapshotRef.current = {
         id: eventId,
@@ -181,20 +176,17 @@ export default function App() {
         timestamp: new Date(ts),
         affectedArea: 1,
         riskIndicators: ["Snapshot link", "May be outdated"],
+        status: "resolved",
       };
     }
 
-    // vamos directo a dashboard
     setStage("dashboard");
-
-    // guardamos el evento a abrir cuando llegue la data
     if (eventId) setPendingOpenEventId(eventId);
 
-    // arranca el monitoreo
     void startMonitoring({ category: cat, region });
   }, []);
 
-  // ✅ cuando llegan events: abrir por id; si no está, usar snapshot
+  // cuando llegan events: abrir live o snapshot
   useEffect(() => {
     if (!pendingOpenEventId) return;
     if (!events.length) return;
@@ -227,7 +219,6 @@ export default function App() {
       return;
     }
 
-    // si no encontramos nada, soltamos el pending (no rompemos UX)
     setPendingOpenEventId(null);
   }, [pendingOpenEventId, events]);
 
@@ -237,10 +228,9 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  // ✅ Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
-  // ✅ Share URL para el evento actual (LIVE + SNAPSHOT)
+  // share URL (LIVE + snapshot params)
   const shareUrl = useMemo(() => {
     if (!selectedEvent) return "";
     if (typeof window === "undefined") return "";
@@ -251,7 +241,6 @@ export default function App() {
     if (selectedRegion?.bbox) url.searchParams.set("bbox", selectedRegion.bbox);
     url.searchParams.set("z", String(mapZoom));
 
-    // snapshot para fallback
     url.searchParams.set("lat", String(selectedEvent.latitude));
     url.searchParams.set("lon", String(selectedEvent.longitude));
     url.searchParams.set("loc", selectedEvent.location);
@@ -288,7 +277,6 @@ export default function App() {
               bbox={selectedRegion?.bbox ?? null}
               onEventClick={(ev) => {
                 setSelectedEvent(ev);
-                // si el usuario abre manualmente, también actualizamos foco (suave)
                 setFocusTarget({
                   lng: ev.longitude,
                   lat: ev.latitude,
@@ -313,7 +301,6 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* ✅ Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -339,7 +326,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* ✅ StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -354,10 +340,7 @@ export default function App() {
             </div>
 
             <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-              {/* shareUrl ya está listo en App para que lo uses cuando quieras dentro del panel */}
-              {/* ahora mismo no lo pasamos para no obligarte a tocar AlertPanel */}
-              {/* si querés, en el próximo paso lo enchufamos con un botón "Copiar link" */}
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} shareUrl={shareUrl} />
             </div>
 
             <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
@@ -368,7 +351,6 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* ✅ Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
