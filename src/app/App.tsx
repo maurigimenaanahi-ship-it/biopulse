@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -14,29 +14,61 @@ import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ✅ Debug temporal (ponelo en true si querés logs en consola) */
-const DEBUG_FIRE_TIME = false;
-
-/** ===== Reverse geocode (OSM / Nominatim) =====
- * - Gratis, sin key, pero hay que ser amable:
- *   - cache
- *   - limitar cantidad por corrida
- *   - no spamear en loops enormes
+/** ===== Reverse geocode (OSM / Nominatim) - client safe-ish =====
+ * Vercel estático (Vite) => NO existe /api runtime.
+ * Entonces lo hacemos client-side, pero con:
+ * - throttle
+ * - cache en memoria
+ * - cache persistente en localStorage
  */
 const GEO_CACHE = new Map<string, string>();
+const GEO_LS_KEY = "biopulse:geocache:v1";
+let lastGeoAt = 0;
+
+function loadGeoCacheFromLS() {
+  try {
+    const raw = localStorage.getItem(GEO_LS_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== "object") return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof k === "string" && typeof v === "string") GEO_CACHE.set(k, v);
+    }
+  } catch {}
+}
+
+function saveGeoCacheToLS() {
+  try {
+    const obj: Record<string, string> = {};
+    // guardamos máx 300 para no inflar
+    const entries = Array.from(GEO_CACHE.entries()).slice(-300);
+    for (const [k, v] of entries) obj[k] = v;
+    localStorage.setItem(GEO_LS_KEY, JSON.stringify(obj));
+  } catch {}
+}
+
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
-  try {
+  // throttle ~1.1s (Nominatim se enoja si spameamos)
+  const now = Date.now();
+  const wait = Math.max(0, 1100 - (now - lastGeoAt));
+  if (wait) await new Promise((r) => setTimeout(r, wait));
+  lastGeoAt = Date.now();
+
+  async function fetchLabel(zoom: number) {
     const url =
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(
-        lat
-      )}&lon=${encodeURIComponent(lon)}&zoom=10&addressdetails=1`;
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2` +
+      `&lat=${encodeURIComponent(lat)}` +
+      `&lon=${encodeURIComponent(lon)}` +
+      `&zoom=${zoom}` +
+      `&addressdetails=1`;
 
     const res = await fetch(url, {
       headers: {
         Accept: "application/json",
+        "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
       },
     });
     if (!res.ok) return null;
@@ -45,7 +77,13 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
     const a = data?.address ?? {};
 
     const locality =
-      a.city || a.town || a.village || a.hamlet || a.municipality || a.county || a.state_district;
+      a.city ||
+      a.town ||
+      a.village ||
+      a.hamlet ||
+      a.municipality ||
+      a.county ||
+      a.state_district;
 
     const state = a.state;
     const country = a.country;
@@ -53,25 +91,34 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
     const parts = [locality, state, country].filter(Boolean);
     const label = parts.length ? parts.join(", ") : (data?.display_name ?? null);
 
-    if (label && typeof label === "string") {
-      GEO_CACHE.set(key, label);
-      return label;
-    }
-    return null;
+    return typeof label === "string" && label.trim().length ? label.trim() : null;
+  }
+
+  try {
+    // zoom 10 suele dar ciudad/partido; si no, zoom 6 da provincia/estado
+    const label = (await fetchLabel(10)) ?? (await fetchLabel(6));
+    if (!label) return null;
+
+    GEO_CACHE.set(key, label);
+    saveGeoCacheToLS();
+    return label;
   } catch {
     return null;
   }
 }
 
 /** ===== status automático =====
- * Si tenemos lastSeen:
+ * Si tenés “última detección” (lastSeen), usamos edad en horas:
  * - > 48h => resolved
  * - > 18h => contained
  * - > 6h  => stabilizing
- * - reciente => escalando si es grave
+ * - si no => active/escalating (según severity)
  */
-function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
-  if (!lastSeen) return severity === "critical" || severity === "high" ? "escalating" : "active";
+function statusFromLastSeen(
+  lastSeen: Date | null,
+  severity: EnvironmentalEvent["severity"]
+): EventStatus {
+  if (!lastSeen) return severity === "critical" ? "escalating" : "active";
 
   const ageMs = Date.now() - lastSeen.getTime();
   const ageH = ageMs / (1000 * 60 * 60);
@@ -80,26 +127,14 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
   if (ageH > 18) return "contained";
   if (ageH > 6) return "stabilizing";
 
+  // reciente => si es grave, lo tratamos como escalando
   if (severity === "critical" || severity === "high") return "escalating";
   return "active";
 }
 
-function ageLabelFromLastSeen(lastSeen: Date | null) {
-  if (!lastSeen) return null;
-  const ageMs = Date.now() - lastSeen.getTime();
-  const ageH = ageMs / (1000 * 60 * 60);
-
-  if (!Number.isFinite(ageH) || ageH < 0) return null;
-
-  if (ageH < 1) return "Last detection: < 1h";
-  if (ageH < 24) return `Last detection: ${Math.round(ageH)}h ago`;
-
-  const days = ageH / 24;
-  if (days < 7) return `Last detection: ${days.toFixed(1)}d ago`;
-  return `Last detection: ${Math.round(days)}d ago`;
-}
-
-/** ===== Link FIRMS centrado en el punto ===== */
+/** ===== Link FIRMS centrado en el punto =====
+ * No es “cámara” real, pero sirve como “observación directa” para abrir el visor.
+ */
 function firmsViewerUrl(lat: number, lon: number) {
   return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(
     4
@@ -122,6 +157,12 @@ export default function App() {
   // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
+
+  // ✅ cargar cache persistente una sola vez
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    loadGeoCacheFromLS();
+  }, []);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -160,10 +201,9 @@ export default function App() {
           }))
           .filter((p: any) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
-        // ✅ ahora clusterFiresDBSCAN ya calcula lastSeen/age/isStale
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ reverse geocode: limitamos requests para no spamear Nominatim
+        // ✅ reverse geocode: limitamos cantidad para no pegarle 200 requests a Nominatim
         const MAX_GEOCODE = 35;
 
         const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
@@ -171,116 +211,84 @@ export default function App() {
             const lat = Number(c.latitude);
             const lon = Number(c.longitude);
 
-            // lastSeen viene como Date o null desde clusterFires.ts
+            // si tu clusterFiresDBSCAN no trae lastSeen, queda null y el status cae a active/escalating
             const lastSeen: Date | null =
-              c?.lastSeen instanceof Date
+              c.lastSeen instanceof Date
                 ? c.lastSeen
-                : typeof c?.lastSeen === "string" || typeof c?.lastSeen === "number"
+                : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
                 ? new Date(c.lastSeen)
                 : null;
 
-            const place = i < MAX_GEOCODE ? (await reverseGeocode(lat, lon)) : null;
+            const place = i < MAX_GEOCODE ? await reverseGeocode(lat, lon) : null;
+
+            // 🔎 DEBUG (si querés ver si el geocode devuelve algo)
+            // console.log("[geo]", i, lat.toFixed(4), lon.toFixed(4), "=>", place);
+
             const locationLabel = place ?? args.region.label;
 
             const sev = c.severity as EnvironmentalEvent["severity"];
+
             const frpMax = Number(c.frpMax ?? 0);
             const frpSum = Number(c.frpSum ?? 0);
 
-            const status = statusFromLastSeen(lastSeen, sev);
-            const lastDet = ageLabelFromLastSeen(lastSeen);
-
-            if (DEBUG_FIRE_TIME) {
-              // log breve por cluster (no explota la consola)
-              // eslint-disable-next-line no-console
-              console.log("[BioPulse] fire cluster", {
-                id: c.id,
-                focusCount: c.focusCount,
-                lastSeen,
-                ageHours: c.ageHours,
-                isStale: c.isStale,
-                status,
-              });
-            }
-
-            // ✅ narrativa simple + FRP
             const narrative =
               `Satellite sensors detected ${c.focusCount} fire ` +
               `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
               `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
-
-            // ✅ indicadores de riesgo: SIEMPRE (incluye “last detection”)
-            const riskIndicators: string[] = [];
-            if (sev === "critical") riskIndicators.push("Rapid spread potential");
-            else if (sev === "high") riskIndicators.push("High intensity signal");
-            else if (sev === "moderate") riskIndicators.push("Moderate intensity");
-            else riskIndicators.push("Low intensity / monitoring");
-
-            riskIndicators.push("Satellite detection (VIIRS)");
-            riskIndicators.push(`FRP max ${frpMax.toFixed(1)}`);
-
-            if (lastDet) riskIndicators.push(lastDet);
-
-            // ✅ si está stale, lo dejamos explícito (esto responde tu “y si ya lo apagaron?”)
-            if (c?.isStale) riskIndicators.push("No recent detections (possible containment)");
 
             return {
               id: c.id || `cluster-${i}`,
               category: "fire",
               severity: sev,
 
-              // ✅ título humano
-              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
+              // ✅ título más “humano”
+              title:
+                c.focusCount > 1
+                  ? `Active Fire Cluster (${c.focusCount} detections)`
+                  : "Active Fire",
 
-              // ✅ descripción narrativo + FRP
+              // ✅ descripción narrativo + FRP abajo
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
               latitude: lat,
               longitude: lon,
 
-              // ✅ localidad (si pudo), si no región
+              // ✅ ahora sí: localidad (si pudo), si no región
               location: locationLabel,
 
-              // ✅ timestamp: usamos lastSeen si existe (si no now)
+              // ✅ timestamp: idealmente lastSeen, si no now
               timestamp: lastSeen ?? new Date(),
 
               affectedArea: 1,
               affectedPopulation: undefined,
 
-              riskIndicators,
+              // ✅ riesgo (podemos enriquecer después)
+              riskIndicators: [
+                sev === "critical" ? "Rapid spread potential" : "Monitoring",
+                "Satellite detection (VIIRS)",
+                `FRP max ${frpMax.toFixed(1)}`,
+              ],
 
-              // ✅ “observación directa”: link FIRMS (no cámara real)
+              // ✅ observación directa: link al visor FIRMS
               liveFeedUrl: firmsViewerUrl(lat, lon),
 
-              // ✅ status automático real
-              status,
+              // ✅ status automático
+              status: statusFromLastSeen(lastSeen, sev),
 
-              // opcionales (por ahora)
+              // opcionales
               evacuationLevel: undefined,
               nearbyInfrastructure: undefined,
               ecosystems: undefined,
               speciesAtRisk: undefined,
-
               aiInsight: {
                 probabilityNext12h:
-                  status === "resolved"
-                    ? 8
-                    : sev === "critical"
-                    ? 78
-                    : sev === "high"
-                    ? 62
-                    : sev === "moderate"
-                    ? 48
-                    : 35,
+                  sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
                 narrative:
-                  status === "resolved"
-                    ? "BioPulse indicates no recent satellite detections for this cluster. This may suggest containment, but ground confirmation is recommended."
-                    : sev === "critical" || sev === "high"
+                  sev === "critical" || sev === "high"
                     ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
                     : "BioPulse continues monitoring this signal. Verify with local sources if available.",
                 recommendations:
-                  status === "resolved"
-                    ? ["Confirm containment with local sources", "Continue periodic monitoring", "Review nearby risk areas"]
-                    : sev === "critical" || sev === "high"
+                  sev === "critical" || sev === "high"
                     ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
                     : ["Continue observation", "Check for new detections", "Confirm local conditions"],
               },
