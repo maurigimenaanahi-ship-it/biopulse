@@ -10,6 +10,7 @@ export type EventCategory =
 
 export type EvacuationLevel = "none" | "recommended" | "mandatory";
 export type EventStatus = "active" | "contained" | "escalating" | "stabilizing" | "resolved";
+export type EventTrend = "rising" | "stable" | "falling";
 
 export interface AIInsight {
   probabilityNext12h?: number; // 0..100
@@ -83,6 +84,15 @@ export interface EnvironmentalEvent {
 
   /** Series temporal mínima para comparar cambios */
   history?: EventHistoryPoint[];
+
+  /** ID estable entre scans (para “vida del evento”) */
+  eventId?: string;
+
+  /** Cuántas veces fue visto en distintos scans */
+  scanCount?: number;
+
+  /** Tendencia según cambios (FRP / detecciones) */
+  trend?: EventTrend;
 
   // ====== MÉTRICAS FIRE (para clusters DBSCAN) ======
   focusCount?: number;
