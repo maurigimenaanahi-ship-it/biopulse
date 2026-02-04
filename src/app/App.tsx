@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -6,10 +6,10 @@ import { Timeline } from "./components/Timeline";
 import { StatsPanel } from "./components/StatsPanel";
 import { SplashScreen } from "./components/SplashScreen";
 import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
+import { NotificationsToast, type ToastItem } from "./components/NotificationsToast";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
-import { loadEventsMemory, saveEventsMemory, upsertFireEvent } from "./lib/eventLife";
 import { SlidersHorizontal, CornerUpLeft } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -17,9 +17,7 @@ const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== Reverse geocode via Cloudflare Worker =====
- * Mucho más estable que pegarle a Nominatim directo desde el browser.
- */
+/** ===== Reverse geocode via Cloudflare Worker ===== */
 const GEO_CACHE = new Map<string, string>();
 
 async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
@@ -28,10 +26,7 @@ async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string
 
   try {
     const url = `${GEO_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-    });
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) return null;
 
     const data: any = await res.json();
@@ -67,8 +62,44 @@ function firmsViewerUrl(lat: number, lon: number) {
   return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
 }
 
+/** ===== Followed alerts (shared key with AlertPanel) ===== */
+const FAV_KEY = "biopulse:followed-alerts";
+function readFollowed(): string[] {
+  try {
+    const raw = localStorage.getItem(FAV_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function sevRank(s: EnvironmentalEvent["severity"]): number {
+  switch (s) {
+    case "critical":
+      return 4;
+    case "high":
+      return 3;
+    case "moderate":
+      return 2;
+    case "low":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function toastToneFromSeverity(s: EnvironmentalEvent["severity"]): ToastItem["tone"] {
+  if (s === "critical") return "danger";
+  if (s === "high") return "warn";
+  return "info";
+}
+
+type AppStage2 = "splash" | "setup" | "dashboard";
+
 export default function App() {
-  const [stage, setStage] = useState<AppStage>("splash");
+  const [stage, setStage] = useState<AppStage2>("splash");
   const [activeView, setActiveView] = useState("home");
 
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
@@ -84,12 +115,8 @@ export default function App() {
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
 
-  // ✅ memoria viva (localStorage)
-  const memoryRef = useRef<Record<string, EnvironmentalEvent>>({});
-
-  useEffect(() => {
-    memoryRef.current = loadEventsMemory();
-  }, []);
+  // ✅ in-app notifications
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -100,15 +127,22 @@ export default function App() {
     setStage("setup");
   };
 
-  /** ✅ On-demand reverse geocode:
-   * Si el usuario clickea un evento que todavía tiene "América del Sur" (o similar),
-   * resolvemos la localidad en ese momento y actualizamos:
-   * - selectedEvent (panel)
-   * - events[] (para que no vuelva al fallback)
-   */
+  function pushToasts(items: Omit<ToastItem, "createdAt">[]) {
+    const now = Date.now();
+    const withTime = items.map((x) => ({ ...x, createdAt: now }));
+    setToasts((prev) => {
+      const next = [...withTime, ...prev];
+      return next.slice(0, 6); // max 6 visibles
+    });
+  }
+
+  function dismissToast(id: string) {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  /** ✅ On-demand reverse geocode */
   async function ensureSelectedEventHasLocation(ev: EnvironmentalEvent) {
     const regionLabel = selectedRegion?.label ?? "";
-
     const loc = (ev.location ?? "").trim();
     const looksLikeFallback =
       !loc ||
@@ -123,6 +157,78 @@ export default function App() {
 
     setSelectedEvent((curr) => (curr && curr.id === ev.id ? { ...curr, location: place } : curr));
     setEvents((prev) => prev.map((x) => (x.id === ev.id ? { ...x, location: place } : x)));
+  }
+
+  /** ✅ Followed-alerts engine (compare prev vs next) */
+  function computeFollowedNotifications(prev: EnvironmentalEvent[], next: EnvironmentalEvent[]) {
+    let followed: string[] = [];
+    try {
+      followed = readFollowed();
+    } catch {
+      followed = [];
+    }
+    if (!followed.length) return;
+
+    const prevById = new Map(prev.map((e) => [e.id, e]));
+    const nextById = new Map(next.map((e) => [e.id, e]));
+
+    const out: Omit<ToastItem, "createdAt">[] = [];
+
+    // 1) changes on existing events
+    for (const id of followed) {
+      const p = prevById.get(id);
+      const n = nextById.get(id);
+      if (!n) continue;
+      if (!p) continue; // first time we see it in UI (avoid spam)
+
+      // severity up
+      if (sevRank(n.severity) > sevRank(p.severity)) {
+        out.push({
+          id: `sevup:${id}:${Date.now()}`,
+          title: `Severity increased • ${n.location}`,
+          message: `${p.severity.toUpperCase()} → ${n.severity.toUpperCase()}`,
+          tone: toastToneFromSeverity(n.severity),
+        });
+      }
+
+      // status escalates
+      if (p.status !== "escalating" && n.status === "escalating") {
+        out.push({
+          id: `esc:${id}:${Date.now()}`,
+          title: `Escalating • ${n.location}`,
+          message: `Event status changed to ESCALATING.`,
+          tone: toastToneFromSeverity(n.severity),
+        });
+      }
+
+      // trend rising
+      const pt = (p as any).trend;
+      const nt = (n as any).trend;
+      if (pt !== "rising" && nt === "rising") {
+        out.push({
+          id: `trend:${id}:${Date.now()}`,
+          title: `Rising activity • ${n.location}`,
+          message: `Trend changed to RISING.`,
+          tone: "warn",
+        });
+      }
+    }
+
+    // 2) loss of signal (followed event disappears)
+    for (const id of followed) {
+      const p = prevById.get(id);
+      const n = nextById.get(id);
+      if (p && !n) {
+        out.push({
+          id: `lost:${id}:${Date.now()}`,
+          title: `Signal lost • ${p.location}`,
+          message: `This followed alert was not detected in the latest scan.`,
+          tone: "info",
+        });
+      }
+    }
+
+    if (out.length) pushToasts(out);
   }
 
   const startMonitoring = async (args: {
@@ -155,88 +261,93 @@ export default function App() {
 
         const clusters = clusterFiresDBSCAN(points, 10, 4, true);
 
-        // ✅ reverse geocode: limitamos cantidad para no spamear
         const MAX_GEOCODE = 45;
 
-        // ✅ memoria + upsert para “vida” del evento
-        const now = new Date();
-        let store = memoryRef.current;
+        const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
+          clusters.map(async (c: any, i: number) => {
+            const lat = Number(c.latitude);
+            const lon = Number(c.longitude);
 
-        const clusteredEvents: EnvironmentalEvent[] = [];
+            const lastSeen: Date | null =
+              c.lastSeen instanceof Date
+                ? c.lastSeen
+                : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
+                ? new Date(c.lastSeen)
+                : null;
 
-        for (let i = 0; i < clusters.length; i++) {
-          const c: any = clusters[i];
+            const place = i < MAX_GEOCODE ? await reverseGeocodeViaWorker(lat, lon) : null;
+            const locationLabel = place ?? args.region.label;
 
-          const lat = Number(c.latitude);
-          const lon = Number(c.longitude);
+            const sev = c.severity as EnvironmentalEvent["severity"];
+            const frpMax = Number(c.frpMax ?? 0);
+            const frpSum = Number(c.frpSum ?? 0);
 
-          const lastSeen: Date =
-            c.lastSeen instanceof Date
-              ? c.lastSeen
-              : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
-              ? new Date(c.lastSeen)
-              : now;
+            const narrative =
+              `Satellite sensors detected ${c.focusCount} fire ` +
+              `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
 
-          const place = i < MAX_GEOCODE ? await reverseGeocodeViaWorker(lat, lon) : null;
-          const locationLabel = place ?? args.region.label;
+            return {
+              id: c.id || `cluster-${i}`,
+              category: "fire",
+              severity: sev,
 
-          const sev = c.severity as EnvironmentalEvent["severity"];
-          const frpMax = Number(c.frpMax ?? 0);
-          const frpSum = Number(c.frpSum ?? 0);
-          const focusCount = Number(c.focusCount ?? 1);
+              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
 
-          const narrative =
-            `Satellite sensors detected ${focusCount} fire ` +
-            `${focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
-            `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
+              description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
-          const baseEvent: EnvironmentalEvent = {
-            // id temporal: upsertFireEvent lo reemplaza por id estable si corresponde
-            id: "temp",
-            category: "fire",
-            severity: sev,
+              latitude: lat,
+              longitude: lon,
+              location: locationLabel,
 
-            title: focusCount > 1 ? `Active Fire Cluster (${focusCount} detections)` : "Active Fire",
-            description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
+              timestamp: lastSeen ?? new Date(),
 
-            latitude: lat,
-            longitude: lon,
-            location: locationLabel,
+              affectedArea: 1,
+              affectedPopulation: undefined,
 
-            timestamp: lastSeen,
+              riskIndicators: [
+                sev === "critical" ? "Rapid spread potential" : "Monitoring",
+                "Satellite detection (VIIRS)",
+                `FRP max ${frpMax.toFixed(1)}`,
+              ],
 
-            affectedArea: 1,
-            affectedPopulation: undefined,
+              liveFeedUrl: firmsViewerUrl(lat, lon),
+              status: statusFromLastSeen(lastSeen, sev),
 
-            riskIndicators: [
-              sev === "critical" ? "Rapid spread potential" : "Monitoring",
-              "Satellite detection (VIIRS)",
-              `FRP max ${frpMax.toFixed(1)}`,
-            ],
+              evacuationLevel: undefined,
+              nearbyInfrastructure: undefined,
+              ecosystems: undefined,
+              speciesAtRisk: undefined,
+              aiInsight: {
+                probabilityNext12h: sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
+                narrative:
+                  sev === "critical" || sev === "high"
+                    ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
+                    : "BioPulse continues monitoring this signal. Verify with local sources if available.",
+                recommendations:
+                  sev === "critical" || sev === "high"
+                    ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
+                    : ["Continue observation", "Check for new detections", "Confirm local conditions"],
+              },
 
-            liveFeedUrl: firmsViewerUrl(lat, lon),
-            status: statusFromLastSeen(lastSeen, sev),
+              // ⚠️ Estos campos los completará eventLife si ya lo integraste en tu pipeline.
+              // firstSeen, lastSeen, scanCount, trend, stale, history...
+            } as EnvironmentalEvent;
+          })
+        );
 
-            // métricas fire
-            focusCount,
-            frpSum,
-            frpMax,
-          };
-
-          const { event, store: nextStore } = upsertFireEvent(store, baseEvent, now);
-          store = nextStore;
-
-          clusteredEvents.push(event);
-        }
-
-        // ✅ persistir memoria viva
-        memoryRef.current = store;
-        saveEventsMemory(store);
-
-        setEvents(clusteredEvents);
+        // ✅ compare prev vs next to notify followed alerts
+        setEvents((prev) => {
+          computeFollowedNotifications(prev, clusteredEvents);
+          return clusteredEvents;
+        });
       } catch (err) {
         console.error("Error fetching FIRMS data:", err);
-        setEvents(mockEvents.filter((e) => e.category === "fire"));
+        setEvents((prev) => {
+          const fallback = mockEvents.filter((e) => e.category === "fire");
+          computeFollowedNotifications(prev, fallback);
+          return fallback;
+        });
       }
 
       setSelectedEvent(null);
@@ -246,7 +357,13 @@ export default function App() {
       return;
     }
 
-    setEvents(mockEvents.filter((e) => e.category === args.category));
+    // non-fire mock for now
+    setEvents((prev) => {
+      const next = mockEvents.filter((e) => e.category === args.category);
+      computeFollowedNotifications(prev, next);
+      return next;
+    });
+
     setSelectedEvent(null);
     setStage("dashboard");
     setResetKey((k) => k + 1);
@@ -259,7 +376,6 @@ export default function App() {
     return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
   }, [events]);
 
-  // Botón Volver solo si estás explorando y NO hay alerta abierta
   const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
@@ -267,6 +383,9 @@ export default function App() {
       <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
       <Header activeView={activeView} onViewChange={setActiveView} />
+
+      {/* ✅ Toast notifications */}
+      <NotificationsToast items={toasts} onDismiss={dismissToast} />
 
       {stage === "setup" && (
         <SetupPanel
@@ -305,7 +424,6 @@ export default function App() {
 
           {/* UI */}
           <div className="absolute inset-0 z-[2] pointer-events-none">
-            {/* Cambiar búsqueda */}
             <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24">
               <button
                 onClick={openSetup}
@@ -331,7 +449,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* StatsPanel */}
             <div className="pointer-events-auto">
               <StatsPanel
                 totalEvents={stats.total}
@@ -357,13 +474,14 @@ export default function App() {
               <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
             </div>
 
-            {/* Volver */}
             <div
               className={[
                 "fixed right-4 z-[9999]",
                 "bottom-[180px] md:right-6 md:bottom-28",
                 "transition-all duration-300 ease-out will-change-transform",
-                shouldShowZoomOut ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none",
+                shouldShowZoomOut
+                  ? "opacity-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 translate-y-2 pointer-events-none",
               ].join(" ")}
             >
               <button
