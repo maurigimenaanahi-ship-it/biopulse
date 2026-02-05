@@ -100,8 +100,8 @@ function fallbackSummary(ev: EnvironmentalEvent) {
 type VisualSource = {
   kind: "live" | "periodic" | "snapshot";
   title: string;
-  subtitle?: string; // fuente / distancia / etc
-  freshnessLabel: string; // LIVE / hace X min / etc
+  subtitle?: string;
+  freshnessLabel: string;
   href?: string;
   imageUrl?: string;
 };
@@ -109,7 +109,6 @@ type VisualSource = {
 function buildVisualSources(ev: EnvironmentalEvent): VisualSource[] {
   const sources: VisualSource[] = [];
 
-  // 1) LIVE (hoy: liveFeedUrl)
   if (ev.liveFeedUrl && /^https?:\/\//.test(ev.liveFeedUrl)) {
     sources.push({
       kind: "live",
@@ -120,7 +119,6 @@ function buildVisualSources(ev: EnvironmentalEvent): VisualSource[] {
     });
   }
 
-  // 2) SNAPSHOT (hoy: satelliteImageUrl)
   if (ev.satelliteImageUrl && /^https?:\/\//.test(ev.satelliteImageUrl)) {
     sources.push({
       kind: "snapshot",
@@ -186,6 +184,23 @@ function CardButton(props: {
   );
 }
 
+function SeverityDot({ sev }: { sev: EnvironmentalEvent["severity"] }) {
+  return (
+    <span
+      className={[
+        "inline-block h-2 w-2 rounded-full",
+        sev === "critical"
+          ? "bg-red-500"
+          : sev === "high"
+          ? "bg-orange-500"
+          : sev === "moderate"
+          ? "bg-yellow-500"
+          : "bg-emerald-400",
+      ].join(" ")}
+    />
+  );
+}
+
 export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
 
@@ -193,19 +208,15 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const [followed, setFollowed] = useState<string[]>([]);
   const [view, setView] = useState<PanelView>("main");
 
-  // ESC para cerrar
   useEffect(() => {
     if (!event) return;
-
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [event, onClose]);
 
-  // reset al cambiar evento
   useEffect(() => {
     if (typeof window === "undefined") return;
     setFollowed(readFollowed());
@@ -240,7 +251,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
   const visuals = buildVisualSources(event);
 
-  // badge resumen para la card
   const visualBadge = (() => {
     const live = visuals.find((v) => v.kind === "live");
     if (live) return { text: "LIVE", className: badgeStyle("live") };
@@ -251,12 +261,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     return null;
   })();
 
+  const isCompact = view !== "main";
+
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
-      {/* Backdrop */}
       <button type="button" aria-label="Cerrar panel" className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
 
-      {/* Panel */}
       <div
         className={[
           "absolute left-1/2 -translate-x-1/2",
@@ -270,7 +280,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         role="dialog"
         aria-modal="true"
       >
-        {/* top accent */}
         <div
           className="h-1.5"
           style={{
@@ -278,127 +287,145 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           }}
         />
 
-        {/* Header fijo (sirve para MAIN y subviews) */}
-        <div className="relative p-5 md:p-6 border-b border-white/10 bg-black/10">
-          {/* Close */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className={[
-              "absolute right-4 top-4 md:right-5 md:top-5",
-              "h-10 w-10 rounded-xl",
-              "border border-white/10 bg-white/5",
-              "text-white/80 hover:text-white hover:bg-white/10",
-              "transition-colors",
-              "flex items-center justify-center",
-            ].join(" ")}
-            aria-label="Cerrar"
-            title="Cerrar"
-          >
-            ✕
-          </button>
+        {/* HEADER */}
+        <div
+          className={[
+            "relative border-b border-white/10 bg-black/10",
+            isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6",
+          ].join(" ")}
+        >
+          {/* top row: back (si subview) + close */}
+          <div className="flex items-center justify-between gap-2">
+            {isCompact ? (
+              <button
+                type="button"
+                onClick={() => setView("main")}
+                className={[
+                  "h-9 px-3 rounded-xl",
+                  "border border-white/10 bg-white/5",
+                  "text-white/80 hover:text-white hover:bg-white/10",
+                  "transition-colors",
+                  "flex items-center gap-2",
+                ].join(" ")}
+                aria-label="Volver"
+                title="Volver"
+              >
+                <span className="text-white/80">←</span>
+                <span className="text-sm">Volver</span>
+              </button>
+            ) : (
+              <div />
+            )}
 
-          {/* Back button en subviews */}
-          {view !== "main" ? (
             <button
               type="button"
-              onClick={() => setView("main")}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className={[
-                "absolute left-4 top-4 md:left-5 md:top-5",
-                "h-10 px-3 rounded-xl",
+                "h-9 w-9 rounded-xl",
                 "border border-white/10 bg-white/5",
                 "text-white/80 hover:text-white hover:bg-white/10",
                 "transition-colors",
-                "flex items-center gap-2",
+                "flex items-center justify-center",
               ].join(" ")}
-              aria-label="Volver"
-              title="Volver"
+              aria-label="Cerrar"
+              title="Cerrar"
             >
-              <span className="text-white/80">←</span>
-              <span className="text-sm">Volver</span>
+              ✕
             </button>
-          ) : null}
-
-          {/* identity line */}
-          <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
-            <span>
-              {header.cat} • {utc}
-            </span>
           </div>
 
-          <div className="mt-2 flex items-start gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
-              <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
-              <div className="mt-1 text-white/45 text-xs">
-                {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+          {/* BODY del header */}
+          {isCompact ? (
+            <>
+              <div className="mt-2 text-white/55 text-[11px] uppercase tracking-wider">
+                {header.cat} • {utc}
               </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                const next = toggleFollow(event.id);
-                setFollowed(next);
-              }}
-              className={[
-                "shrink-0",
-                "rounded-xl border border-white/10",
-                "bg-white/5 hover:bg-white/10",
-                "px-3 py-2 text-xs md:text-sm",
-                "text-white/85 transition-colors",
-              ].join(" ")}
-              aria-pressed={isFollowed}
-              title="Seguir esta alerta (futuro: notificaciones)"
-            >
-              {isFollowed ? "Siguiendo ✓" : "Seguir alerta"}
-            </button>
-          </div>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <div className="text-white/90 font-semibold text-base md:text-lg">
+                  {event.title}
+                </div>
 
-          {/* severity + status */}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-              <span
-                className={[
-                  "inline-block h-2 w-2 rounded-full",
-                  event.severity === "critical"
-                    ? "bg-red-500"
-                    : event.severity === "high"
-                    ? "bg-orange-500"
-                    : event.severity === "moderate"
-                    ? "bg-yellow-500"
-                    : "bg-emerald-400",
-                ].join(" ")}
-              />
-              <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
+                  <SeverityDot sev={event.severity} />
+                  <span className="text-white/75 text-xs">{event.severity.toUpperCase()}</span>
+                </div>
 
-              <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
-                <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
-                {statusLabel(event.status)}
-              </span>
-            </div>
+                <div className="inline-flex items-center gap-2 text-white/60 text-xs">
+                  <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
+                  {statusLabel(event.status)}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
+                <span>
+                  {header.cat} • {utc}
+                </span>
+              </div>
 
-            {/* actions */}
-            <button
-              type="button"
-              className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
-              onClick={handleCopyLink}
-              disabled={!shareUrl}
-              title={shareUrl ? "Copiar link" : "Link no disponible"}
-            >
-              {copied ? "Link copiado" : "Copiar link"}
-            </button>
-          </div>
+              <div className="mt-2 flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
+                  <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
+                  <div className="mt-1 text-white/45 text-xs">
+                    {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = toggleFollow(event.id);
+                    setFollowed(next);
+                  }}
+                  className={[
+                    "shrink-0",
+                    "rounded-xl border border-white/10",
+                    "bg-white/5 hover:bg-white/10",
+                    "px-3 py-2 text-xs md:text-sm",
+                    "text-white/85 transition-colors",
+                  ].join(" ")}
+                  aria-pressed={isFollowed}
+                  title="Seguir esta alerta (futuro: notificaciones)"
+                >
+                  {isFollowed ? "Siguiendo ✓" : "Seguir alerta"}
+                </button>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                  <SeverityDot sev={event.severity} />
+                  <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
+
+                  <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
+                    <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
+                    {statusLabel(event.status)}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
+                  onClick={handleCopyLink}
+                  disabled={!shareUrl}
+                  title={shareUrl ? "Copiar link" : "Link no disponible"}
+                >
+                  {copied ? "Link copiado" : "Copiar link"}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Content area */}
         <div className="p-5 md:p-6 overflow-y-auto max-h-[calc(82vh-120px)]">
           {view === "main" ? (
             <>
-              {/* MAIN: cards resumen */}
               <div className="grid grid-cols-1 gap-3">
                 <CardButton
                   title="Observación visual"
@@ -412,16 +439,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   onClick={() => setView("visual")}
                 />
 
-                {/* (placeholder cards para el resto; las implementamos después) */}
                 <CardButton
                   title="Estado operativo"
                   subtitle={`Status: ${statusLabel(event.status)} • Evacuación: ${event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}`}
                   icon="⚠️"
                   rightBadge={null}
-                  onClick={() => {
-                    // por ahora no implementado, después hacemos view="ops"
-                    window.alert("Próximo módulo: Estado operativo (por ahora solo diseño).");
-                  }}
+                  onClick={() => window.alert("Próximo módulo: Estado operativo (por ahora solo diseño).")}
                 />
 
                 <CardButton
@@ -436,7 +459,11 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <CardButton
                   title="Contexto ambiental"
-                  subtitle={event.ecosystems?.length || event.speciesAtRisk?.length ? "Ecosistemas/especies disponibles en este evento." : "Aún sin datos ambientales asociados."}
+                  subtitle={
+                    event.ecosystems?.length || event.speciesAtRisk?.length
+                      ? "Ecosistemas/especies disponibles en este evento."
+                      : "Aún sin datos ambientales asociados."
+                  }
                   icon="🌱"
                   rightBadge={null}
                   onClick={() => window.alert("Próximo módulo: Contexto ambiental.")}
@@ -459,7 +486,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 />
               </div>
 
-              {/* Resumen “qué está pasando” (lo dejamos accesible también en MAIN) */}
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
                 <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
@@ -499,7 +525,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             </>
           ) : view === "visual" ? (
             <>
-              {/* VISUAL: full panel module */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
