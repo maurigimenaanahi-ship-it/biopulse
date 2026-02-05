@@ -646,7 +646,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div>
                     <div className="text-white/90 font-semibold text-lg">⚠️ Estado operativo</div>
                     <div className="text-white/45 text-sm mt-1">
-                      Vista de validación: status + tendencia + señales satelitales. Sin prometer información “en vivo”.
+                      Lectura operativa basada en señales satelitales recientes, tendencia del fuego y estado estimado.
                     </div>
                   </div>
 
