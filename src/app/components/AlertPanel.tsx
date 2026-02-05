@@ -102,14 +102,14 @@ type VisualSource = {
   title: string;
   subtitle?: string; // fuente / distancia / etc
   freshnessLabel: string; // LIVE / hace X min / etc
-  href?: string; // abrir feed
-  imageUrl?: string; // snapshot/preview
+  href?: string;
+  imageUrl?: string;
 };
 
 function buildVisualSources(ev: EnvironmentalEvent): VisualSource[] {
   const sources: VisualSource[] = [];
 
-  // 1) LIVE (lo que hoy tenemos como liveFeedUrl)
+  // 1) LIVE (hoy: liveFeedUrl)
   if (ev.liveFeedUrl && /^https?:\/\//.test(ev.liveFeedUrl)) {
     sources.push({
       kind: "live",
@@ -120,13 +120,13 @@ function buildVisualSources(ev: EnvironmentalEvent): VisualSource[] {
     });
   }
 
-  // 2) SNAPSHOT (lo que hoy tenemos como satelliteImageUrl)
+  // 2) SNAPSHOT (hoy: satelliteImageUrl)
   if (ev.satelliteImageUrl && /^https?:\/\//.test(ev.satelliteImageUrl)) {
     sources.push({
       kind: "snapshot",
       title: "Snapshot satelital",
       subtitle: "Fuente: imagen asociada",
-      freshnessLabel: `${timeAgoFrom(ev.timestamp)}`,
+      freshnessLabel: timeAgoFrom(ev.timestamp),
       imageUrl: ev.satelliteImageUrl,
       href: ev.satelliteImageUrl,
     });
@@ -141,14 +141,57 @@ function badgeStyle(kind: VisualSource["kind"]) {
   return "border-white/10 bg-white/5 text-white/80";
 }
 
+type PanelView = "main" | "visual";
+
+function CardButton(props: {
+  title: string;
+  subtitle: string;
+  icon: string;
+  rightBadge?: { text: string; className: string } | null;
+  onClick: () => void;
+}) {
+  const { title, subtitle, icon, rightBadge, onClick } = props;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "w-full text-left",
+        "rounded-2xl border border-white/10 bg-white/5",
+        "px-4 py-4",
+        "hover:bg-white/7 transition-colors",
+        "flex items-start justify-between gap-4",
+      ].join(" ")}
+    >
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="h-10 w-10 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center shrink-0">
+          <span className="text-white/85">{icon}</span>
+        </div>
+        <div className="min-w-0">
+          <div className="text-white/90 font-semibold">{title}</div>
+          <div className="text-white/50 text-sm mt-0.5 line-clamp-2">{subtitle}</div>
+        </div>
+      </div>
+
+      <div className="shrink-0 flex items-center gap-2">
+        {rightBadge ? (
+          <span className={["rounded-full border px-2 py-0.5 text-[11px]", rightBadge.className].join(" ")}>
+            {rightBadge.text}
+          </span>
+        ) : null}
+        <span className="text-white/40 text-sm">›</span>
+      </div>
+    </button>
+  );
+}
+
 export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
 
   const [copied, setCopied] = useState(false);
   const [followed, setFollowed] = useState<string[]>([]);
-
-  // ✅ Módulo 1: expand/collapse
-  const [openVisual, setOpenVisual] = useState(true);
+  const [view, setView] = useState<PanelView>("main");
 
   // ESC para cerrar
   useEffect(() => {
@@ -162,12 +205,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [event, onClose]);
 
-  // leer favoritos + reset del "copiado" cada vez que cambia el evento
+  // reset al cambiar evento
   useEffect(() => {
     if (typeof window === "undefined") return;
     setFollowed(readFollowed());
     setCopied(false);
-    setOpenVisual(true); // al abrir nuevo evento, dejamos Observación visual abierta
+    setView("main");
   }, [event?.id]);
 
   const isFollowed = event ? followed.includes(event.id) : false;
@@ -195,20 +238,23 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const summary = event.description && event.description.trim().length > 0 ? event.description : fallbackSummary(event);
   const utc = formatTimeUTC(event.timestamp);
 
-  // ✅ LIVE vs SNAPSHOT (lo marca App cuando abre desde link y no existe live)
-  const isSnapshot = event.riskIndicators?.includes("Snapshot link");
-
   const visuals = buildVisualSources(event);
+
+  // badge resumen para la card
+  const visualBadge = (() => {
+    const live = visuals.find((v) => v.kind === "live");
+    if (live) return { text: "LIVE", className: badgeStyle("live") };
+    const periodic = visuals.find((v) => v.kind === "periodic");
+    if (periodic) return { text: periodic.freshnessLabel, className: badgeStyle("periodic") };
+    const snap = visuals.find((v) => v.kind === "snapshot");
+    if (snap) return { text: snap.freshnessLabel, className: badgeStyle("snapshot") };
+    return null;
+  })();
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
       {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Cerrar panel"
-        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
+      <button type="button" aria-label="Cerrar panel" className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
 
       {/* Panel */}
       <div
@@ -232,7 +278,8 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           }}
         />
 
-        <div className="relative p-5 md:p-6 overflow-y-auto max-h-[82vh]">
+        {/* Header fijo (sirve para MAIN y subviews) */}
+        <div className="relative p-5 md:p-6 border-b border-white/10 bg-black/10">
           {/* Close */}
           <button
             type="button"
@@ -254,60 +301,66 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             ✕
           </button>
 
-          {/* ===== Identity ===== */}
-          <div className="pr-12">
-            <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
-              <span>
-                {header.cat} • {utc}
-              </span>
-              {isSnapshot ? (
-                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
-                  SNAPSHOT
-                </span>
-              ) : (
-                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
-                  LIVE
-                </span>
-              )}
-            </div>
+          {/* Back button en subviews */}
+          {view !== "main" ? (
+            <button
+              type="button"
+              onClick={() => setView("main")}
+              className={[
+                "absolute left-4 top-4 md:left-5 md:top-5",
+                "h-10 px-3 rounded-xl",
+                "border border-white/10 bg-white/5",
+                "text-white/80 hover:text-white hover:bg-white/10",
+                "transition-colors",
+                "flex items-center gap-2",
+              ].join(" ")}
+              aria-label="Volver"
+              title="Volver"
+            >
+              <span className="text-white/80">←</span>
+              <span className="text-sm">Volver</span>
+            </button>
+          ) : null}
 
-            {/* Título + Seguir */}
-            <div className="mt-2 flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
+          {/* identity line */}
+          <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
+            <span>
+              {header.cat} • {utc}
+            </span>
+          </div>
 
-                {/* Lugar visible */}
-                <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
-
-                {/* Coordenadas visibles para técnicos */}
-                <div className="mt-1 text-white/45 text-xs">
-                  {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
-                </div>
+          <div className="mt-2 flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
+              <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
+              <div className="mt-1 text-white/45 text-xs">
+                {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
               </div>
-
-              {/* Seguir alerta */}
-              <button
-                type="button"
-                onClick={() => {
-                  const next = toggleFollow(event.id);
-                  setFollowed(next);
-                }}
-                className={[
-                  "shrink-0",
-                  "rounded-xl border border-white/10",
-                  "bg-white/5 hover:bg-white/10",
-                  "px-3 py-2 text-xs md:text-sm",
-                  "text-white/85 transition-colors",
-                ].join(" ")}
-                aria-pressed={isFollowed}
-                title="Seguir esta alerta (futuro: notificaciones)"
-              >
-                {isFollowed ? "Siguiendo ✓" : "Seguir alerta"}
-              </button>
             </div>
 
-            {/* Severidad + Estado */}
-            <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <button
+              type="button"
+              onClick={() => {
+                const next = toggleFollow(event.id);
+                setFollowed(next);
+              }}
+              className={[
+                "shrink-0",
+                "rounded-xl border border-white/10",
+                "bg-white/5 hover:bg-white/10",
+                "px-3 py-2 text-xs md:text-sm",
+                "text-white/85 transition-colors",
+              ].join(" ")}
+              aria-pressed={isFollowed}
+              title="Seguir esta alerta (futuro: notificaciones)"
+            >
+              {isFollowed ? "Siguiendo ✓" : "Seguir alerta"}
+            </button>
+          </div>
+
+          {/* severity + status */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
               <span
                 className={[
                   "inline-block h-2 w-2 rounded-full",
@@ -328,271 +381,197 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
               </span>
             </div>
 
-            {/* acciones livianas */}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
-                onClick={handleCopyLink}
-                disabled={!shareUrl}
-                title={shareUrl ? "Copiar link" : "Link no disponible"}
-              >
-                {copied ? "Link copiado" : "Copiar link"}
-              </button>
-            </div>
-          </div>
-
-          {/* =========================
-              1) OBSERVACIÓN VISUAL
-             ========================= */}
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            {/* actions */}
             <button
               type="button"
-              onClick={() => setOpenVisual((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition-colors"
-              aria-expanded={openVisual}
-              title="Abrir/cerrar Observación visual"
+              className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
+              onClick={handleCopyLink}
+              disabled={!shareUrl}
+              title={shareUrl ? "Copiar link" : "Link no disponible"}
             >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
-                  <span className="text-white/85">🎥</span>
-                </div>
-                <div className="text-left">
-                  <div className="text-white/85 font-semibold">Observación visual</div>
-                  <div className="text-white/45 text-xs mt-0.5">
-                    Live • actualizaciones periódicas • snapshots (siempre con tiempo)
+              {copied ? "Link copiado" : "Copiar link"}
+            </button>
+          </div>
+        </div>
+
+        {/* Content area */}
+        <div className="p-5 md:p-6 overflow-y-auto max-h-[calc(82vh-120px)]">
+          {view === "main" ? (
+            <>
+              {/* MAIN: cards resumen */}
+              <div className="grid grid-cols-1 gap-3">
+                <CardButton
+                  title="Observación visual"
+                  subtitle={
+                    visuals.length
+                      ? `Fuentes disponibles: ${visuals.length}. Se prioriza LIVE; luego actualizaciones y snapshots con timestamp.`
+                      : "No hay fuentes visuales asociadas a este evento por ahora."
+                  }
+                  icon="🎥"
+                  rightBadge={visualBadge}
+                  onClick={() => setView("visual")}
+                />
+
+                {/* (placeholder cards para el resto; las implementamos después) */}
+                <CardButton
+                  title="Estado operativo"
+                  subtitle={`Status: ${statusLabel(event.status)} • Evacuación: ${event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}`}
+                  icon="⚠️"
+                  rightBadge={null}
+                  onClick={() => {
+                    // por ahora no implementado, después hacemos view="ops"
+                    window.alert("Próximo módulo: Estado operativo (por ahora solo diseño).");
+                  }}
+                />
+
+                <CardButton
+                  title="Impacto humano"
+                  subtitle={`Población: ${
+                    typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"
+                  } • Área: ${km2(event.affectedArea)}`}
+                  icon="👥"
+                  rightBadge={null}
+                  onClick={() => window.alert("Próximo módulo: Impacto humano.")}
+                />
+
+                <CardButton
+                  title="Contexto ambiental"
+                  subtitle={event.ecosystems?.length || event.speciesAtRisk?.length ? "Ecosistemas/especies disponibles en este evento." : "Aún sin datos ambientales asociados."}
+                  icon="🌱"
+                  rightBadge={null}
+                  onClick={() => window.alert("Próximo módulo: Contexto ambiental.")}
+                />
+
+                <CardButton
+                  title="Observación satelital"
+                  subtitle={event.satelliteImageUrl ? "Hay imagen asociada. (Más adelante: capas/timeline)." : "Aún sin capas satelitales."}
+                  icon="🛰️"
+                  rightBadge={event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null}
+                  onClick={() => window.alert("Próximo módulo: Observación satelital (capas).")}
+                />
+
+                <CardButton
+                  title="Indicadores + Insight"
+                  subtitle={event.aiInsight?.narrative ? "BioPulse Insight disponible + indicadores de riesgo." : "Sin Insight por ahora."}
+                  icon="🧠"
+                  rightBadge={null}
+                  onClick={() => window.alert("Próximo módulo: Insight + Risk.")}
+                />
+              </div>
+
+              {/* Resumen “qué está pasando” (lo dejamos accesible también en MAIN) */}
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
+                <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/45 text-xs uppercase tracking-wider">Condiciones</div>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
+                    <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.windSpeed, " km/h")}</div>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
+                    <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.humidity, "%")}</div>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Temperatura</div>
+                    <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.temperature, "°C")}</div>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">AQI / Río</div>
+                    <div className="mt-1 text-white/85 text-sm font-medium">
+                      {typeof event.airQualityIndex === "number"
+                        ? `AQI ${event.airQualityIndex}`
+                        : typeof event.waterLevel === "number"
+                        ? `${event.waterLevel} m`
+                        : "—"}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="text-white/55 text-sm">{openVisual ? "—" : "+"}</div>
-            </button>
-
-            {/* Resumen + Expandido */}
-            <div className={openVisual ? "px-4 pb-4" : "hidden"}>
-              {visuals.length === 0 ? (
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/80 text-sm font-medium">No hay observación visual disponible</div>
-                  <div className="text-white/45 text-xs mt-1">
-                    BioPulse mostrará cámaras en vivo cercanas o fuentes con timestamp cuando estén disponibles.
+              <div className="mt-5 text-white/35 text-xs">
+                Tip: presioná <span className="text-white/55">Esc</span> o tocá afuera para cerrar.
+              </div>
+            </>
+          ) : view === "visual" ? (
+            <>
+              {/* VISUAL: full panel module */}
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white/90 font-semibold text-lg">🎥 Observación visual</div>
+                    <div className="text-white/45 text-sm mt-1">
+                      BioPulse prioriza LIVE. Si no hay, muestra fuentes con timestamp (cada X min / snapshot).
+                    </div>
                   </div>
+
+                  {visualBadge ? (
+                    <span className={["rounded-full border px-2 py-0.5 text-[11px]", visualBadge.className].join(" ")}>
+                      {visualBadge.text}
+                    </span>
+                  ) : null}
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {visuals.map((v) => (
-                    <div key={v.title} className="rounded-xl border border-white/10 bg-black/20 p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-white/85 text-sm font-semibold">{v.title}</div>
-                          {v.subtitle ? <div className="text-white/45 text-xs mt-0.5">{v.subtitle}</div> : null}
-                        </div>
 
-                        <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badgeStyle(v.kind)].join(" ")}>
-                          {v.kind === "live" ? "LIVE" : v.kind === "periodic" ? v.freshnessLabel : v.freshnessLabel}
-                        </span>
-                      </div>
-
-                      {v.imageUrl ? (
-                        <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
-                          <img src={v.imageUrl} alt="" className="h-36 w-full object-cover opacity-90" loading="lazy" />
-                        </div>
-                      ) : null}
-
-                      <div className="mt-3">
-                        {v.href ? (
-                          <a
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-                            href={v.href}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Abrir fuente
-                            <span className="text-white/40 text-xs">(externo)</span>
-                          </a>
-                        ) : (
-                          <div className="text-white/50 text-sm">—</div>
-                        )}
+                <div className="mt-4">
+                  {visuals.length === 0 ? (
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-white/80 text-sm font-medium">No hay observación visual disponible</div>
+                      <div className="text-white/45 text-xs mt-1">
+                        Cuando conectemos cámaras públicas/feeds, aparecerán acá con su timestamp.
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {visuals.map((v) => (
+                        <div key={`${v.kind}:${v.title}`} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-white/85 text-sm font-semibold">{v.title}</div>
+                              {v.subtitle ? <div className="text-white/45 text-xs mt-0.5">{v.subtitle}</div> : null}
+                            </div>
 
-              <div className="mt-3 text-white/35 text-xs">
-                Regla BioPulse: se prioriza LIVE; si no hay, se muestran fuentes con timestamp (cada X min o snapshot).
-              </div>
-            </div>
-          </div>
+                            <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badgeStyle(v.kind)].join(" ")}>
+                              {v.kind === "live" ? "LIVE" : v.freshnessLabel}
+                            </span>
+                          </div>
 
-          {/* ===== Layout (lo demás queda igual) ===== */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Resumen claro */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
-              <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
-            </section>
+                          {v.imageUrl ? (
+                            <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
+                              <img src={v.imageUrl} alt="" className="h-40 w-full object-cover opacity-90" loading="lazy" />
+                            </div>
+                          ) : null}
 
-            {/* Estado / Evacuación */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Estado operativo</div>
-
-              <div className="mt-3 space-y-3">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Event Status</div>
-                  <div className="mt-1 text-white/85 text-sm">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
-                      {statusLabel(event.status)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                  <div className="mt-1 text-white/85 text-sm">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
-                </div>
-              </div>
-            </section>
-
-            {/* Impacto humano */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Impacto humano</div>
-
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Población en riesgo</div>
-                  <div className="mt-1 text-white/85 text-sm font-medium">
-                    {typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")} personas` : "—"}
-                  </div>
+                          <div className="mt-3">
+                            {v.href ? (
+                              <a
+                                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
+                                href={v.href}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Abrir fuente
+                                <span className="text-white/40 text-xs">(externo)</span>
+                              </a>
+                            ) : (
+                              <div className="text-white/50 text-sm">—</div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Área afectada</div>
-                  <div className="mt-1 text-white/85 text-sm font-medium">{km2(event.affectedArea)}</div>
+                <div className="mt-4 text-white/35 text-xs">
+                  Nota: más adelante este módulo incluirá búsqueda de cámaras cercanas y feeds periódicos reales.
                 </div>
               </div>
-
-              {event.nearbyInfrastructure?.length ? (
-                <div className="mt-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Infraestructura cercana</div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {event.nearbyInfrastructure.slice(0, 10).map((x) => (
-                      <span key={x} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/75">
-                        {x}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {/* Impacto ambiental */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Impacto ambiental</div>
-
-              <div className="mt-3 space-y-3">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Ecosistemas</div>
-                  <div className="mt-1 text-white/85 text-sm">{event.ecosystems?.length ? event.ecosystems.join(" • ") : "—"}</div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Especies en riesgo</div>
-                  <div className="mt-1 text-white/85 text-sm">{event.speciesAtRisk?.length ? event.speciesAtRisk.join(" • ") : "—"}</div>
-                </div>
-              </div>
-            </section>
-
-            {/* Condiciones */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Condiciones</div>
-
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
-                  <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.windSpeed, " km/h")}</div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
-                  <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.humidity, "%")}</div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Temperatura</div>
-                  <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.temperature, "°C")}</div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">AQI / Río</div>
-                  <div className="mt-1 text-white/85 text-sm font-medium">
-                    {typeof event.airQualityIndex === "number" ? `AQI ${event.airQualityIndex}` : typeof event.waterLevel === "number" ? `${event.waterLevel} m` : "—"}
-                  </div>
-                </div>
-              </div>
-
-              {(typeof event.windSpeed === "number" || typeof event.humidity === "number" || typeof event.temperature === "number") && (
-                <div className="mt-3 text-white/60 text-xs">
-                  → Condiciones{" "}
-                  {event.severity === "critical" || event.severity === "high" ? "potencialmente favorables para escalamiento." : "en observación."}
-                </div>
-              )}
-            </section>
-
-            {/* (Fuentes visuales antiguas se mantienen como parte del módulo 1; no repetimos acá) */}
-          </div>
-
-          {/* Indicadores de riesgo */}
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="text-white/45 text-xs uppercase tracking-wider">Indicadores de riesgo</div>
-            {event.riskIndicators?.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {event.riskIndicators.slice(0, 14).map((r) => (
-                  <span key={r} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/75">
-                    {r}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-3 text-white/50 text-sm">—</div>
-            )}
-          </div>
-
-          {/* AI Insight */}
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="text-white/45 text-xs uppercase tracking-wider">BioPulse Insight</div>
-
-            <div className="mt-2 text-white/85 text-sm leading-relaxed">
-              {event.aiInsight?.narrative ? event.aiInsight.narrative : "BioPulse is analyzing this event. Continuous monitoring is recommended."}
-            </div>
-
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                <div className="text-white/40 text-xs uppercase tracking-wider">Prob. expansión (12h)</div>
-                <div className="mt-1 text-white/85 text-sm font-medium">
-                  {typeof event.aiInsight?.probabilityNext12h === "number" ? `${event.aiInsight.probabilityNext12h}%` : "—"}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                <div className="text-white/40 text-xs uppercase tracking-wider">Recomendaciones</div>
-                {event.aiInsight?.recommendations?.length ? (
-                  <ul className="mt-1 text-white/80 text-sm list-disc pl-4 space-y-1">
-                    {event.aiInsight.recommendations.slice(0, 4).map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="mt-1 text-white/50 text-sm">—</div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer hint */}
-          <div className="mt-5 text-white/35 text-xs">
-            Tip: presioná <span className="text-white/55">Esc</span> o tocá afuera para cerrar.
-          </div>
+            </>
+          ) : null}
         </div>
 
         <style>{`
@@ -603,6 +582,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             0%{ transform: scale(1); opacity: 0.35; }
             50%{ transform: scale(1.35); opacity: 0.95; }
             100%{ transform: scale(1); opacity: 0.35; }
+          }
+          .line-clamp-2{
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
           }
         `}</style>
       </div>
