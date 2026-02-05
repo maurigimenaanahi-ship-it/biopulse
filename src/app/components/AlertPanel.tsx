@@ -291,17 +291,20 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     return null;
   })();
 
-  // ===== NEW (A): nearest cameras from registry =====
+  // ===== NEW (A): nearest cameras from registry (guarded) =====
   const cameraCandidates = useMemo(() => {
+    if (!event) return [];
+    if (typeof event.latitude !== "number" || typeof event.longitude !== "number") return [];
+    if (!Number.isFinite(event.latitude) || !Number.isFinite(event.longitude)) return [];
+
     const point = { lat: event.latitude, lon: event.longitude };
 
     // En sample muchas están pending, así que en esta etapa no requerimos verified.
-    // Cuando sumemos cámaras reales curadas, lo cambiamos a true por defecto.
     return findNearestCameras(cameraRegistry, point, {
       maxResults: 3,
       requireVerified: false,
     });
-  }, [event.latitude, event.longitude]);
+  }, [event?.id, event?.latitude, event?.longitude]);
 
   const isCompact = view !== "main";
 
@@ -634,7 +637,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                                     "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
                                     cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
                                   ].join(" ")}
-                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)": "Actualización periódica / snapshot"}
+                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)" : "Actualización periódica / snapshot"}
                                 >
                                   {cam.mediaType === "stream" ? "STREAM" : cadence}
                                 </span>
