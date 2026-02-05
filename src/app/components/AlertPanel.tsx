@@ -101,6 +101,14 @@ function fallbackSummary(ev: EnvironmentalEvent) {
   return parts.join(" ");
 }
 
+function isFiniteNumber(x: unknown): x is number {
+  return typeof x === "number" && Number.isFinite(x);
+}
+
+function fmtCoord(x: unknown, digits = 4) {
+  return isFiniteNumber(x) ? x.toFixed(digits) : "—";
+}
+
 // ===== Visual Observation (Módulo 1) =====
 type VisualSource = {
   kind: "live" | "periodic" | "snapshot";
@@ -164,7 +172,6 @@ function cameraHref(cam: CameraRecordV1): { href?: string; label?: string; hint?
   if (f.kind === "image_url") return { href: f.url, label: "Abrir imagen", hint: "externo" };
   if (f.kind === "stream_url") return { href: f.url, label: "Abrir stream", hint: "externo" };
   if (f.kind === "html_embed") return { href: f.url, label: "Abrir fuente", hint: "externo" };
-  // provider_api: sin link directo (por ahora)
   if (f.kind === "provider_api") return { href: undefined, label: undefined, hint: "Proveedor API (sin enlace directo)" };
   return { href: undefined, label: undefined };
 }
@@ -291,26 +298,28 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     return null;
   })();
 
-  // ===== NEW (A): nearest cameras from registry (guarded) =====
+  // ===== cameras: nearest from registry (guarded hard) =====
   const cameraCandidates = useMemo(() => {
     if (!event) return [];
-    if (typeof event.latitude !== "number" || typeof event.longitude !== "number") return [];
-    if (!Number.isFinite(event.latitude) || !Number.isFinite(event.longitude)) return [];
+    if (!isFiniteNumber((event as any).latitude) || !isFiniteNumber((event as any).longitude)) return [];
 
-    const point = { lat: event.latitude, lon: event.longitude };
-
-    // En sample muchas están pending, así que en esta etapa no requerimos verified.
+    const point = { lat: (event as any).latitude as number, lon: (event as any).longitude as number };
     return findNearestCameras(cameraRegistry, point, {
       maxResults: 3,
       requireVerified: false,
     });
-  }, [event?.id, event?.latitude, event?.longitude]);
+  }, [event?.id, (event as any)?.latitude, (event as any)?.longitude]);
 
   const isCompact = view !== "main";
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
-      <button type="button" aria-label="Cerrar panel" className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Cerrar panel"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
 
       <div
         className={[
@@ -339,7 +348,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6",
           ].join(" ")}
         >
-          {/* top row: back (si subview) + close */}
           <div className="flex items-center justify-between gap-2">
             {isCompact ? (
               <button
@@ -382,7 +390,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             </button>
           </div>
 
-          {/* BODY del header */}
           {isCompact ? (
             <>
               <div className="mt-2 text-white/55 text-[11px] uppercase tracking-wider">
@@ -416,7 +423,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
                   <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
                   <div className="mt-1 text-white/45 text-xs">
-                    {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+                    {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
                   </div>
                 </div>
 
@@ -586,7 +593,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   ) : null}
                 </div>
 
-                {/* NEW: Cameras near this alert */}
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -668,7 +674,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   </div>
                 </div>
 
-                {/* Existing event-linked sources */}
                 <div className="mt-4">
                   {visuals.length === 0 ? (
                     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
