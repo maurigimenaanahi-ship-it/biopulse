@@ -17,10 +17,18 @@ const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
 
+/** ===== guards ===== */
+function isFiniteNumber(x: unknown): x is number {
+  return typeof x === "number" && Number.isFinite(x);
+}
+
 /** ===== Reverse geocode via Cloudflare Worker ===== */
 const GEO_CACHE = new Map<string, string>();
 
 async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
+  // ✅ Guard hard: si no hay coords válidas, no geocodeamos
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
@@ -104,7 +112,10 @@ export default function App() {
 
     if (!looksLikeFallback) return;
 
-    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
+    // ✅ Guard hard: si faltan coords, no intentamos geocodear
+    if (!isFiniteNumber((ev as any).latitude) || !isFiniteNumber((ev as any).longitude)) return;
+
+    const place = await reverseGeocodeViaWorker((ev as any).latitude, (ev as any).longitude);
     if (!place) return;
 
     setSelectedEvent((curr) => (curr && curr.id === ev.id ? { ...curr, location: place } : curr));
