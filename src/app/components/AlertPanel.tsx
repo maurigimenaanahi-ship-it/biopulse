@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { EnvironmentalEvent } from "@/data/events";
 import { categoryLabels, categoryColors } from "@/data/events";
 
+// ===== cameras registry + matching (Fase B - módulo visual) =====
+import { cameraRegistry } from "@/data/cameras";
+import { findNearestCameras } from "@/app/lib/findNearestCameras";
+import type { CameraRecordV1 } from "@/data/cameras/types";
+
 // ===== favorites (seguir alerta) =====
 const FAV_KEY = "biopulse:followed-alerts";
 function readFollowed(): string[] {
@@ -139,6 +144,31 @@ function badgeStyle(kind: VisualSource["kind"]) {
   return "border-white/10 bg-white/5 text-white/80";
 }
 
+function formatDistanceKm(n: number) {
+  if (!Number.isFinite(n)) return "—";
+  if (n < 10) return `${n.toFixed(1)} km`;
+  return `${Math.round(n)} km`;
+}
+
+function cadenceLabel(cam: CameraRecordV1) {
+  const sec = cam.update?.expectedIntervalSec;
+  if (typeof sec === "number" && Number.isFinite(sec) && sec > 0) {
+    const min = Math.max(1, Math.round(sec / 60));
+    return `≈ cada ${min} min`;
+  }
+  return cam.mediaType === "stream" ? "STREAM" : "snapshot";
+}
+
+function cameraHref(cam: CameraRecordV1): { href?: string; label?: string; hint?: string } {
+  const f = cam.fetch;
+  if (f.kind === "image_url") return { href: f.url, label: "Abrir imagen", hint: "externo" };
+  if (f.kind === "stream_url") return { href: f.url, label: "Abrir stream", hint: "externo" };
+  if (f.kind === "html_embed") return { href: f.url, label: "Abrir fuente", hint: "externo" };
+  // provider_api: sin link directo (por ahora)
+  if (f.kind === "provider_api") return { href: undefined, label: undefined, hint: "Proveedor API (sin enlace directo)" };
+  return { href: undefined, label: undefined };
+}
+
 type PanelView = "main" | "visual";
 
 function CardButton(props: {
@@ -261,6 +291,18 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     return null;
   })();
 
+  // ===== NEW (A): nearest cameras from registry =====
+  const cameraCandidates = useMemo(() => {
+    const point = { lat: event.latitude, lon: event.longitude };
+
+    // En sample muchas están pending, así que en esta etapa no requerimos verified.
+    // Cuando sumemos cámaras reales curadas, lo cambiamos a true por defecto.
+    return findNearestCameras(cameraRegistry, point, {
+      maxResults: 3,
+      requireVerified: false,
+    });
+  }, [event.latitude, event.longitude]);
+
   const isCompact = view !== "main";
 
   return (
@@ -345,9 +387,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
               </div>
 
               <div className="mt-1 flex flex-wrap items-center gap-3">
-                <div className="text-white/90 font-semibold text-base md:text-lg">
-                  {event.title}
-                </div>
+                <div className="text-white/90 font-semibold text-base md:text-lg">{event.title}</div>
 
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
                   <SeverityDot sev={event.severity} />
@@ -432,6 +472,8 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   subtitle={
                     visuals.length
                       ? `Fuentes disponibles: ${visuals.length}. Se prioriza LIVE; luego actualizaciones y snapshots con timestamp.`
+                      : cameraCandidates.length
+                      ? `Hay cámaras cercanas registradas: ${cameraCandidates.length}. (Sin prometer LIVE: snapshots/streams según fuente).`
                       : "No hay fuentes visuales asociadas a este evento por ahora."
                   }
                   icon="🎥"
@@ -530,7 +572,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div>
                     <div className="text-white/90 font-semibold text-lg">🎥 Observación visual</div>
                     <div className="text-white/45 text-sm mt-1">
-                      BioPulse prioriza LIVE. Si no hay, muestra fuentes con timestamp (cada X min / snapshot).
+                      BioPulse prioriza LIVE real. Si no hay, muestra fuentes con timestamp (cada X min / snapshot).
                     </div>
                   </div>
 
@@ -541,12 +583,95 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   ) : null}
                 </div>
 
+                {/* NEW: Cameras near this alert */}
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-white/85 text-sm font-semibold">Cámaras cercanas (registry)</div>
+                      <div className="text-white/45 text-xs mt-0.5">
+                        Fuente curada por BioPulse. No se promete “LIVE” salvo stream real del proveedor.
+                      </div>
+                    </div>
+                    <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badgeStyle("periodic")].join(" ")}>
+                      {cameraCandidates.length ? `${cameraCandidates.length} cerca` : "0"}
+                    </span>
+                  </div>
+
+                  <div className="mt-3">
+                    {cameraCandidates.length === 0 ? (
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-white/80 text-sm font-medium">No hay cámaras públicas registradas cerca</div>
+                        <div className="text-white/45 text-xs mt-1">
+                          Próximo: botón para “Proponer una cámara” (guardianes) y validación.
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {cameraCandidates.map((c) => {
+                          const cam = c.camera as CameraRecordV1;
+                          const dist = formatDistanceKm(c.distanceKm);
+                          const attrib = cam.usage?.attributionText ?? `Provider: ${cam.providerId}`;
+                          const cadence = cadenceLabel(cam);
+                          const link = cameraHref(cam);
+
+                          return (
+                            <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-white/85 text-sm font-semibold truncate">{cam.title}</div>
+                                  <div className="text-white/45 text-xs mt-0.5 line-clamp-2">
+                                    {attrib} • {cam.coverage.countryISO2}
+                                    {cam.coverage.admin1 ? ` • ${cam.coverage.admin1}` : ""}
+                                    {cam.coverage.locality ? ` • ${cam.coverage.locality}` : ""}
+                                  </div>
+                                  <div className="text-white/40 text-xs mt-1">
+                                    A {dist} • {cam.mediaType === "stream" ? "Stream" : "Snapshot"} • {cadence}
+                                  </div>
+                                </div>
+
+                                <span
+                                  className={[
+                                    "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
+                                    cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
+                                  ].join(" ")}
+                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)": "Actualización periódica / snapshot"}
+                                >
+                                  {cam.mediaType === "stream" ? "STREAM" : cadence}
+                                </span>
+                              </div>
+
+                              <div className="mt-3">
+                                {link.href ? (
+                                  <a
+                                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/80 hover:bg-black/30"
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {link.label ?? "Abrir fuente"}
+                                    <span className="text-white/40 text-xs">({link.hint ?? "externo"})</span>
+                                  </a>
+                                ) : (
+                                  <div className="text-white/45 text-xs">
+                                    {link.hint ?? "Sin enlace directo (se resolverá vía Worker/proxy)."}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Existing event-linked sources */}
                 <div className="mt-4">
                   {visuals.length === 0 ? (
                     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-white/80 text-sm font-medium">No hay observación visual disponible</div>
+                      <div className="text-white/80 text-sm font-medium">No hay observación visual del evento</div>
                       <div className="text-white/45 text-xs mt-1">
-                        Cuando conectemos cámaras públicas/feeds, aparecerán acá con su timestamp.
+                        Se usarán cámaras cercanas y snapshots con timestamp cuando haya fuentes conectadas.
                       </div>
                     </div>
                   ) : (
@@ -592,7 +717,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 </div>
 
                 <div className="mt-4 text-white/35 text-xs">
-                  Nota: más adelante este módulo incluirá búsqueda de cámaras cercanas y feeds periódicos reales.
+                  Nota: lo próximo es proxyear snapshots/streams vía Worker (CORS + cache) para no depender de enlaces externos.
                 </div>
               </div>
             </>
