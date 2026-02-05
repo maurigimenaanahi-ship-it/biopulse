@@ -261,8 +261,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     setView("main");
   }, [event?.id]);
 
-  const isFollowed = event ? followed.includes(event.id) : false;
-
+  // ✅ Hooks SIEMPRE arriba, sin returns antes
   const header = useMemo(() => {
     if (!event) return null;
     const cat = categoryLabels[event.category] ?? event.category;
@@ -270,7 +269,21 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     return { cat, color };
   }, [event?.id]);
 
+  const cameraCandidates = useMemo(() => {
+    if (!event) return [];
+    if (!isFiniteNumber((event as any).latitude) || !isFiniteNumber((event as any).longitude)) return [];
+
+    const point = { lat: (event as any).latitude as number, lon: (event as any).longitude as number };
+    return findNearestCameras(cameraRegistry, point, {
+      maxResults: 3,
+      requireVerified: false,
+    });
+  }, [event?.id]);
+
+  // ✅ Recién acá hacemos el return temprano
   if (!event || !header) return null;
+
+  const isFollowed = followed.includes(event.id);
 
   async function handleCopyLink() {
     if (!shareUrl) return;
@@ -297,18 +310,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     if (snap) return { text: snap.freshnessLabel, className: badgeStyle("snapshot") };
     return null;
   })();
-
-  // ===== cameras: nearest from registry (guarded hard) =====
-  const cameraCandidates = useMemo(() => {
-    if (!event) return [];
-    if (!isFiniteNumber((event as any).latitude) || !isFiniteNumber((event as any).longitude)) return [];
-
-    const point = { lat: (event as any).latitude as number, lon: (event as any).longitude as number };
-    return findNearestCameras(cameraRegistry, point, {
-      maxResults: 3,
-      requireVerified: false,
-    });
-  }, [event?.id, (event as any)?.latitude, (event as any)?.longitude]);
 
   const isCompact = view !== "main";
 
@@ -493,7 +494,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <CardButton
                   title="Estado operativo"
-                  subtitle={`Status: ${statusLabel(event.status)} • Evacuación: ${event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}`}
+                  subtitle={`Status: ${statusLabel(event.status)} • Evacuación: ${
+                    event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"
+                  }`}
                   icon="⚠️"
                   rightBadge={null}
                   onClick={() => window.alert("Próximo módulo: Estado operativo (por ahora solo diseño).")}
@@ -643,7 +646,11 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                                     "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
                                     cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
                                   ].join(" ")}
-                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)" : "Actualización periódica / snapshot"}
+                                  title={
+                                    cam.mediaType === "stream"
+                                      ? "Stream (no necesariamente “en vivo”)"
+                                      : "Actualización periódica / snapshot"
+                                  }
                                 >
                                   {cam.mediaType === "stream" ? "STREAM" : cadence}
                                 </span>
