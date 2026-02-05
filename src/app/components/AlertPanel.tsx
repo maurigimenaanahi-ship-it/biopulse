@@ -109,6 +109,42 @@ function fmtCoord(x: unknown, digits = 4) {
   return isFiniteNumber(x) ? x.toFixed(digits) : "—";
 }
 
+// ===== Extract helpers (Trend / FRP / detections) =====
+type ExtractedOps = {
+  trendLabel?: string;
+  frpMax?: number;
+  frpSum?: number;
+  detections?: number;
+};
+
+function extractOpsFromDescription(desc?: string): ExtractedOps {
+  const out: ExtractedOps = {};
+  if (!desc || typeof desc !== "string") return out;
+
+  // Trend: Intensifying / Stable / Weakening
+  const mTrend = desc.match(/Trend:\s*([A-Za-z]+)/i);
+  if (mTrend?.[1]) out.trendLabel = mTrend[1].trim();
+
+  // FRP max 45.37 • FRP sum 105.00
+  const mFrp = desc.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
+  if (mFrp?.[1]) out.frpMax = Number(mFrp[1]);
+  if (mFrp?.[2]) out.frpSum = Number(mFrp[2]);
+
+  // detected 5 fire signals
+  const mDet = desc.match(/detected\s+([0-9]+)\s+fire\s+signals?/i);
+  if (mDet?.[1]) out.detections = Number(mDet[1]);
+
+  return out;
+}
+
+function trendBadgeStyle(label?: string) {
+  const t = (label ?? "").toLowerCase();
+  if (t === "intensifying") return "border-red-400/30 bg-red-400/15 text-red-100";
+  if (t === "weakening") return "border-emerald-400/30 bg-emerald-400/15 text-emerald-100";
+  if (t === "stable") return "border-amber-400/30 bg-amber-400/15 text-amber-100";
+  return "border-white/10 bg-white/5 text-white/75";
+}
+
 // ===== Visual Observation (Módulo 1) =====
 type VisualSource = {
   kind: "live" | "periodic" | "snapshot";
@@ -176,7 +212,7 @@ function cameraHref(cam: CameraRecordV1): { href?: string; label?: string; hint?
   return { href: undefined, label: undefined };
 }
 
-type PanelView = "main" | "visual";
+type PanelView = "main" | "ops" | "visual";
 
 function CardButton(props: {
   title: string;
@@ -280,6 +316,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     });
   }, [event?.id]);
 
+  // ✅ Extract ops info (trend/frp/detections) from description safely
+  const ops = useMemo(() => extractOpsFromDescription(event?.description), [event?.id]);
+
   // ✅ Recién acá hacemos el return temprano
   if (!event || !header) return null;
 
@@ -310,6 +349,11 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     if (snap) return { text: snap.freshnessLabel, className: badgeStyle("snapshot") };
     return null;
   })();
+
+  const opsBadge =
+    ops.trendLabel
+      ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) }
+      : null;
 
   const isCompact = view !== "main";
 
@@ -397,18 +441,24 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 {header.cat} • {utc}
               </div>
 
-              <div className="mt-1 flex flex-wrap items-center gap-3">
+              <div className="mt-1 flex flex-wrap items-center gap-2">
                 <div className="text-white/90 font-semibold text-base md:text-lg">{event.title}</div>
 
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
                   <SeverityDot sev={event.severity} />
                   <span className="text-white/75 text-xs">{event.severity.toUpperCase()}</span>
-                </div>
+                </span>
 
-                <div className="inline-flex items-center gap-2 text-white/60 text-xs">
+                <span className="inline-flex items-center gap-2 text-white/60 text-xs">
                   <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
                   {statusLabel(event.status)}
-                </div>
+                </span>
+
+                {opsBadge ? (
+                  <span className={["rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>
+                    {opsBadge.text}
+                  </span>
+                ) : null}
               </div>
             </>
           ) : (
@@ -457,6 +507,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
                     {statusLabel(event.status)}
                   </span>
+
+                  {opsBadge ? (
+                    <span className={["ml-2 rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>
+                      {opsBadge.text}
+                    </span>
+                  ) : null}
                 </div>
 
                 <button
@@ -478,6 +534,21 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           {view === "main" ? (
             <>
               <div className="grid grid-cols-1 gap-3">
+                {/* ✅ Estado operativo primero */}
+                <CardButton
+                  title="Estado operativo"
+                  subtitle={[
+                    `Status: ${statusLabel(event.status)}`,
+                    ops.trendLabel ? `Trend: ${ops.trendLabel}` : null,
+                    `Evacuación: ${event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                  icon="⚠️"
+                  rightBadge={opsBadge}
+                  onClick={() => setView("ops")}
+                />
+
                 <CardButton
                   title="Observación visual"
                   subtitle={
@@ -490,16 +561,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   icon="🎥"
                   rightBadge={visualBadge}
                   onClick={() => setView("visual")}
-                />
-
-                <CardButton
-                  title="Estado operativo"
-                  subtitle={`Status: ${statusLabel(event.status)} • Evacuación: ${
-                    event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"
-                  }`}
-                  icon="⚠️"
-                  rightBadge={null}
-                  onClick={() => window.alert("Próximo módulo: Estado operativo (por ahora solo diseño).")}
                 />
 
                 <CardButton
@@ -576,6 +637,91 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
               <div className="mt-5 text-white/35 text-xs">
                 Tip: presioná <span className="text-white/55">Esc</span> o tocá afuera para cerrar.
+              </div>
+            </>
+          ) : view === "ops" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white/90 font-semibold text-lg">⚠️ Estado operativo</div>
+                    <div className="text-white/45 text-sm mt-1">
+                      Vista de validación: status + tendencia + señales satelitales. Sin prometer información “en vivo”.
+                    </div>
+                  </div>
+
+                  {opsBadge ? (
+                    <span className={["rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>
+                      {opsBadge.text}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">{statusLabel(event.status)}</div>
+                    <div className="mt-1 text-white/45 text-xs">Actualizado: {utc}</div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">
+                      {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                    </div>
+                    <div className="mt-1 text-white/45 text-xs">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3 md:col-span-2">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Tendencia</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      {ops.trendLabel ? (
+                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", trendBadgeStyle(ops.trendLabel)].join(" ")}>
+                          {ops.trendLabel}
+                        </span>
+                      ) : (
+                        <span className="text-white/70 text-sm">—</span>
+                      )}
+                      <span className="text-white/45 text-xs">
+                        Interpretación conservadora en base a detecciones/FRP. Próximo: mostrar “por qué” con métricas.
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-white/40 text-xs uppercase tracking-wider">Detections</div>
+                        <div className="mt-1 text-white/85 text-sm font-medium">
+                          {typeof ops.detections === "number" && Number.isFinite(ops.detections) ? ops.detections : "—"}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
+                        <div className="mt-1 text-white/85 text-sm font-medium">
+                          {typeof ops.frpMax === "number" && Number.isFinite(ops.frpMax) ? ops.frpMax.toFixed(2) : "—"}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-white/40 text-xs uppercase tracking-wider">FRP sum</div>
+                        <div className="mt-1 text-white/85 text-sm font-medium">
+                          {typeof ops.frpSum === "number" && Number.isFinite(ops.frpSum) ? ops.frpSum.toFixed(2) : "—"}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-white/40 text-xs uppercase tracking-wider">Ubicación</div>
+                        <div className="mt-1 text-white/85 text-sm font-medium">
+                          {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-white/35 text-xs">
+                      Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital.
+                    </div>
+                  </div>
+                </div>
               </div>
             </>
           ) : view === "visual" ? (
@@ -706,7 +852,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                           {v.imageUrl ? (
                             <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
-                              <img src={v.imageUrl} alt="" className="h-40 w-full object-cover opacity-90" loading="lazy" />
+                              <img
+                                src={v.imageUrl}
+                                alt=""
+                                className="h-40 w-full object-cover opacity-90"
+                                loading="lazy"
+                              />
                             </div>
                           ) : null}
 
