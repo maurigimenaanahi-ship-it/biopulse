@@ -7,6 +7,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // App styles
 import "./styles/index.css";
 
+// ===== BioPulse Camera Registry (smoke test) =====
+import { cameraRegistry } from "@/data/cameras";
+
+console.log("[BioPulse] Camera Registry loaded:", cameraRegistry);
+
 // ===== BioPulse PWA bootstrap =====
 async function initPWA() {
   if (!("serviceWorker" in navigator)) return;
