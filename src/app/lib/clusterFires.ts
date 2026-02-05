@@ -6,8 +6,8 @@ export type FirePoint = {
   longitude: number;
   frp?: number;
   confidence?: string; // "h" | "n" | "l" (depende del feed)
-  acq_date?: string;   // "YYYY-MM-DD"
-  acq_time?: string;   // "HHMM" (a veces viene "HMM")
+  acq_date?: string; // "YYYY-MM-DD"
+  acq_time?: string; // "HHMM" (a veces viene "HMM")
 };
 
 function toRad(v: number) {
@@ -29,29 +29,36 @@ function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/** Convierte (acq_date + acq_time) de FIRMS a Date (UTC aproximado).
- *  - acq_date suele ser "YYYY-MM-DD"
- *  - acq_time suele venir como "HHMM" (ej "0345") o "HMM" (ej "945")
+/**
+ * Convierte (acq_date + acq_time) de FIRMS a Date (UTC).
+ * - acq_date suele ser "YYYY-MM-DD"
+ * - acq_time suele venir como "HHMM" (ej "0345") o "HMM" (ej "945")
  */
 function parseFirmsDateUTC(acq_date?: string, acq_time?: string): Date | null {
   if (!acq_date || typeof acq_date !== "string") return null;
 
-  const time = (acq_time ?? "").toString().trim();
-  if (!time) {
-    // Si no hay hora, usamos medianoche UTC
+  const timeRaw = (acq_time ?? "").toString().trim();
+
+  // Si no hay hora, usamos medianoche UTC (conservador)
+  if (!timeRaw) {
     const d = new Date(`${acq_date}T00:00:00Z`);
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
-  // Normalizamos a 4 dígitos
-  const padded = time.padStart(4, "0"); // "945" -> "0945"
+  // Normalizamos a 4 dígitos: "945" -> "0945"
+  const padded = timeRaw.padStart(4, "0");
+
   const hh = Number(padded.slice(0, 2));
   const mm = Number(padded.slice(2, 4));
 
   if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
   if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
 
-  const iso = `${acq_date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00Z`;
+  const iso = `${acq_date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(
+    2,
+    "0"
+  )}:00Z`;
+
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -74,6 +81,9 @@ export type ClusteredFireEvent = {
   // ✅ tiempo (para saber si “ya se apagó” / está viejo)
   firstSeen: Date | null;
   lastSeen: Date | null;
+
+  /** minutos desde la última detección (null si no se puede calcular) */
+  ageMinutes: number | null;
 
   /** horas desde la última detección (null si no se puede calcular) */
   ageHours: number | null;
@@ -113,6 +123,22 @@ function computeSeenWindow(members: FirePoint[]) {
 
   times.sort((a, b) => a.getTime() - b.getTime());
   return { firstSeen: times[0], lastSeen: times[times.length - 1] };
+}
+
+function safeAgeHours(lastSeen: Date | null): number | null {
+  if (!lastSeen) return null;
+  const ms = Date.now() - lastSeen.getTime();
+  if (!Number.isFinite(ms)) return null;
+  // Si por alguna razón queda negativo (reloj local raro), lo clamp-eamos a 0
+  return Math.max(0, ms / (1000 * 60 * 60));
+}
+
+function safeAgeMinutes(lastSeen: Date | null): number | null {
+  const h = safeAgeHours(lastSeen);
+  if (typeof h !== "number") return null;
+  const min = h * 60;
+  if (!Number.isFinite(min)) return null;
+  return Math.round(min);
 }
 
 export function clusterFiresDBSCAN(
@@ -188,8 +214,8 @@ export function clusterFiresDBSCAN(
 
     const { firstSeen, lastSeen } = computeSeenWindow(members);
 
-    const ageHours =
-      lastSeen ? (Date.now() - lastSeen.getTime()) / (1000 * 60 * 60) : null;
+    const ageHours = safeAgeHours(lastSeen);
+    const ageMinutes = safeAgeMinutes(lastSeen);
 
     const isStale =
       typeof ageHours === "number" && Number.isFinite(ageHours)
@@ -207,7 +233,8 @@ export function clusterFiresDBSCAN(
       members,
       firstSeen,
       lastSeen,
-      ageHours: typeof ageHours === "number" && Number.isFinite(ageHours) ? ageHours : null,
+      ageMinutes,
+      ageHours,
       isStale,
     };
   }
