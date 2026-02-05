@@ -24,33 +24,23 @@ function toggleFollow(id: string): string[] {
 }
 
 // ===== helpers =====
-function toDateSafe(d: any): Date | null {
-  if (!d) return null;
-  if (d instanceof Date) return d;
-  const parsed = new Date(d);
-  return Number.isFinite(parsed.getTime()) ? parsed : null;
-}
-
 function formatTimeUTC(d: Date) {
   const date = d instanceof Date ? d : new Date(d as any);
   return date.toUTCString();
 }
 
-function formatShortUTC(d: Date) {
-  const dt = d instanceof Date ? d : new Date(d as any);
-  return dt.toUTCString().replace(" GMT", "").replace(", ", " • ");
-}
+function timeAgoFrom(d: Date) {
+  const t = d instanceof Date ? d.getTime() : new Date(d as any).getTime();
+  const diff = Date.now() - t;
+  const sec = Math.max(0, Math.floor(diff / 1000));
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
 
-function relAge(d: Date | null) {
-  if (!d) return "—";
-  const ms = Date.now() - d.getTime();
-  const m = Math.floor(ms / (1000 * 60));
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 48) return `${h}h ago`;
-  const days = Math.floor(h / 24);
-  return `${days}d ago`;
+  if (day > 0) return `hace ${day} d`;
+  if (hr > 0) return `hace ${hr} h`;
+  if (min > 0) return `hace ${min} min`;
+  return `recién`;
 }
 
 function km2(n: number) {
@@ -81,19 +71,6 @@ function statusLabel(s?: EnvironmentalEvent["status"]) {
   }
 }
 
-function trendLabel(t?: EnvironmentalEvent["trend"]) {
-  switch (t) {
-    case "rising":
-      return { text: "Rising", icon: "↗" };
-    case "falling":
-      return { text: "Falling", icon: "↘" };
-    case "stable":
-      return { text: "Stable", icon: "→" };
-    default:
-      return { text: "—", icon: "•" };
-  }
-}
-
 function fallbackSummary(ev: EnvironmentalEvent) {
   const cat = categoryLabels[ev.category] ?? ev.category;
   const sev = ev.severity;
@@ -119,15 +96,59 @@ function fallbackSummary(ev: EnvironmentalEvent) {
   return parts.join(" ");
 }
 
-export function AlertPanel(props: {
-  event: EnvironmentalEvent | null;
-  onClose: () => void;
-  shareUrl?: string;
-}) {
+// ===== Visual Observation (Módulo 1) =====
+type VisualSource = {
+  kind: "live" | "periodic" | "snapshot";
+  title: string;
+  subtitle?: string; // fuente / distancia / etc
+  freshnessLabel: string; // LIVE / hace X min / etc
+  href?: string; // abrir feed
+  imageUrl?: string; // snapshot/preview
+};
+
+function buildVisualSources(ev: EnvironmentalEvent): VisualSource[] {
+  const sources: VisualSource[] = [];
+
+  // 1) LIVE (lo que hoy tenemos como liveFeedUrl)
+  if (ev.liveFeedUrl && /^https?:\/\//.test(ev.liveFeedUrl)) {
+    sources.push({
+      kind: "live",
+      title: "Live feed (externo)",
+      subtitle: "Fuente: enlace del evento",
+      freshnessLabel: "LIVE",
+      href: ev.liveFeedUrl,
+    });
+  }
+
+  // 2) SNAPSHOT (lo que hoy tenemos como satelliteImageUrl)
+  if (ev.satelliteImageUrl && /^https?:\/\//.test(ev.satelliteImageUrl)) {
+    sources.push({
+      kind: "snapshot",
+      title: "Snapshot satelital",
+      subtitle: "Fuente: imagen asociada",
+      freshnessLabel: `${timeAgoFrom(ev.timestamp)}`,
+      imageUrl: ev.satelliteImageUrl,
+      href: ev.satelliteImageUrl,
+    });
+  }
+
+  return sources;
+}
+
+function badgeStyle(kind: VisualSource["kind"]) {
+  if (kind === "live") return "border-emerald-400/30 bg-emerald-400/15 text-emerald-100";
+  if (kind === "periodic") return "border-cyan-400/30 bg-cyan-400/15 text-cyan-100";
+  return "border-white/10 bg-white/5 text-white/80";
+}
+
+export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
 
   const [copied, setCopied] = useState(false);
   const [followed, setFollowed] = useState<string[]>([]);
+
+  // ✅ Módulo 1: expand/collapse
+  const [openVisual, setOpenVisual] = useState(true);
 
   // ESC para cerrar
   useEffect(() => {
@@ -146,6 +167,7 @@ export function AlertPanel(props: {
     if (typeof window === "undefined") return;
     setFollowed(readFollowed());
     setCopied(false);
+    setOpenVisual(true); // al abrir nuevo evento, dejamos Observación visual abierta
   }, [event?.id]);
 
   const isFollowed = event ? followed.includes(event.id) : false;
@@ -170,26 +192,13 @@ export function AlertPanel(props: {
     }
   }
 
-  const summary =
-    event.description && event.description.trim().length > 0 ? event.description : fallbackSummary(event);
-
+  const summary = event.description && event.description.trim().length > 0 ? event.description : fallbackSummary(event);
   const utc = formatTimeUTC(event.timestamp);
 
   // ✅ LIVE vs SNAPSHOT (lo marca App cuando abre desde link y no existe live)
   const isSnapshot = event.riskIndicators?.includes("Snapshot link");
 
-  // ✅ vida (eventLife)
-  const firstSeen = toDateSafe((event as any).firstSeen);
-  const lastSeen = toDateSafe((event as any).lastSeen) ?? toDateSafe(event.timestamp);
-  const scans = typeof (event as any).scanCount === "number" ? (event as any).scanCount : undefined;
-  const trend = trendLabel((event as any).trend);
-  const isStale = Boolean((event as any).stale);
-
-  const history = Array.isArray((event as any).history) ? (event as any).history : [];
-  const historyTail = history.slice(-6).reverse(); // últimos 6, más reciente primero
-
-  const summaryHasAmerica = /am[eé]rica/i.test(summary);
-  const showResolvedLocationHint = summaryHasAmerica && event.location && event.location.length > 3;
+  const visuals = buildVisualSources(event);
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
@@ -210,7 +219,6 @@ export function AlertPanel(props: {
           "max-h-[82vh] overflow-hidden",
           "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
           "backdrop-blur-md",
-          "flex flex-col", // ✅ para poder scrollear contenido interno
         ].join(" ")}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -218,14 +226,13 @@ export function AlertPanel(props: {
       >
         {/* top accent */}
         <div
-          className="h-1.5 shrink-0"
+          className="h-1.5"
           style={{
             background: `linear-gradient(90deg, ${header.color}CC, ${header.color}14, transparent)`,
           }}
         />
 
-        {/* ✅ SCROLL AREA */}
-        <div className="relative p-5 md:p-6 overflow-y-auto pr-2 md:pr-3">
+        <div className="relative p-5 md:p-6 overflow-y-auto max-h-[82vh]">
           {/* Close */}
           <button
             type="button"
@@ -249,11 +256,10 @@ export function AlertPanel(props: {
 
           {/* ===== Identity ===== */}
           <div className="pr-12">
-            <div className="text-white/55 text-xs uppercase tracking-wider flex flex-wrap items-center gap-2">
+            <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
               <span>
                 {header.cat} • {utc}
               </span>
-
               {isSnapshot ? (
                 <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
                   SNAPSHOT
@@ -263,32 +269,23 @@ export function AlertPanel(props: {
                   LIVE
                 </span>
               )}
-
-              {isStale ? (
-                <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-100/80">
-                  STALE • not detected this scan
-                </span>
-              ) : (
-                <span className="rounded-full border border-emerald-300/15 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-100/75">
-                  DETECTED • this scan
-                </span>
-              )}
             </div>
 
             {/* Título + Seguir */}
             <div className="mt-2 flex items-start gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">
-                  {event.title}
-                </div>
+                <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
 
+                {/* Lugar visible */}
                 <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
 
+                {/* Coordenadas visibles para técnicos */}
                 <div className="mt-1 text-white/45 text-xs">
                   {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
                 </div>
               </div>
 
+              {/* Seguir alerta */}
               <button
                 type="button"
                 onClick={() => {
@@ -309,36 +306,29 @@ export function AlertPanel(props: {
               </button>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <span
-                  className={[
-                    "inline-block h-2 w-2 rounded-full",
-                    event.severity === "critical"
-                      ? "bg-red-500"
-                      : event.severity === "high"
-                      ? "bg-orange-500"
-                      : event.severity === "moderate"
-                      ? "bg-yellow-500"
-                      : "bg-emerald-400",
-                  ].join(" ")}
-                />
-                <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
+            {/* Severidad + Estado */}
+            <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <span
+                className={[
+                  "inline-block h-2 w-2 rounded-full",
+                  event.severity === "critical"
+                    ? "bg-red-500"
+                    : event.severity === "high"
+                    ? "bg-orange-500"
+                    : event.severity === "moderate"
+                    ? "bg-yellow-500"
+                    : "bg-emerald-400",
+                ].join(" ")}
+              />
+              <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
 
-                <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
-                  <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
-                  {statusLabel(event.status)}
-                </span>
-              </div>
-
-              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <span className="text-white/55 text-xs uppercase tracking-wider">Trend</span>
-                <span className="ml-1 text-sm font-medium text-white/80">
-                  {trend.icon} {trend.text}
-                </span>
-              </div>
+              <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
+                <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
+                {statusLabel(event.status)}
+              </span>
             </div>
 
+            {/* acciones livianas */}
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -352,19 +342,97 @@ export function AlertPanel(props: {
             </div>
           </div>
 
-          {/* ===== Layout ===== */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* =========================
+              1) OBSERVACIÓN VISUAL
+             ========================= */}
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setOpenVisual((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition-colors"
+              aria-expanded={openVisual}
+              title="Abrir/cerrar Observación visual"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
+                  <span className="text-white/85">🎥</span>
+                </div>
+                <div className="text-left">
+                  <div className="text-white/85 font-semibold">Observación visual</div>
+                  <div className="text-white/45 text-xs mt-0.5">
+                    Live • actualizaciones periódicas • snapshots (siempre con tiempo)
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-white/55 text-sm">{openVisual ? "—" : "+"}</div>
+            </button>
+
+            {/* Resumen + Expandido */}
+            <div className={openVisual ? "px-4 pb-4" : "hidden"}>
+              {visuals.length === 0 ? (
+                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/80 text-sm font-medium">No hay observación visual disponible</div>
+                  <div className="text-white/45 text-xs mt-1">
+                    BioPulse mostrará cámaras en vivo cercanas o fuentes con timestamp cuando estén disponibles.
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {visuals.map((v) => (
+                    <div key={v.title} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-white/85 text-sm font-semibold">{v.title}</div>
+                          {v.subtitle ? <div className="text-white/45 text-xs mt-0.5">{v.subtitle}</div> : null}
+                        </div>
+
+                        <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badgeStyle(v.kind)].join(" ")}>
+                          {v.kind === "live" ? "LIVE" : v.kind === "periodic" ? v.freshnessLabel : v.freshnessLabel}
+                        </span>
+                      </div>
+
+                      {v.imageUrl ? (
+                        <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
+                          <img src={v.imageUrl} alt="" className="h-36 w-full object-cover opacity-90" loading="lazy" />
+                        </div>
+                      ) : null}
+
+                      <div className="mt-3">
+                        {v.href ? (
+                          <a
+                            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
+                            href={v.href}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Abrir fuente
+                            <span className="text-white/40 text-xs">(externo)</span>
+                          </a>
+                        ) : (
+                          <div className="text-white/50 text-sm">—</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-3 text-white/35 text-xs">
+                Regla BioPulse: se prioriza LIVE; si no hay, se muestran fuentes con timestamp (cada X min o snapshot).
+              </div>
+            </div>
+          </div>
+
+          {/* ===== Layout (lo demás queda igual) ===== */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Resumen claro */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
               <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
-
-              {showResolvedLocationHint ? (
-                <div className="mt-3 text-white/55 text-xs">
-                  Location resolved to: <span className="text-white/75 font-medium">{event.location}</span>
-                </div>
-              ) : null}
             </section>
 
+            {/* Estado / Evacuación */}
             <section className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="text-white/45 text-xs uppercase tracking-wider">Estado operativo</div>
 
@@ -381,45 +449,7 @@ export function AlertPanel(props: {
 
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                  <div className="mt-1 text-white/85 text-sm">
-                    {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-white/40 text-xs uppercase tracking-wider">Event Life</div>
-
-                  <div className="mt-2 grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-white/35 text-[11px] uppercase tracking-wider">First seen</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {firstSeen ? formatShortUTC(firstSeen) : "—"}
-                      </div>
-                      <div className="text-white/40 text-[11px] mt-0.5">{relAge(firstSeen)}</div>
-                    </div>
-
-                    <div>
-                      <div className="text-white/35 text-[11px] uppercase tracking-wider">Last seen</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {lastSeen ? formatShortUTC(lastSeen) : "—"}
-                      </div>
-                      <div className="text-white/40 text-[11px] mt-0.5">{relAge(lastSeen)}</div>
-                    </div>
-
-                    <div>
-                      <div className="text-white/35 text-[11px] uppercase tracking-wider">Scans</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {typeof scans === "number" ? scans : "—"}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-white/35 text-[11px] uppercase tracking-wider">Trend</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {trend.icon} {trend.text}
-                      </div>
-                    </div>
-                  </div>
+                  <div className="mt-1 text-white/85 text-sm">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
                 </div>
               </div>
             </section>
@@ -432,15 +462,43 @@ export function AlertPanel(props: {
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <div className="text-white/40 text-xs uppercase tracking-wider">Población en riesgo</div>
                   <div className="mt-1 text-white/85 text-sm font-medium">
-                    {typeof event.affectedPopulation === "number"
-                      ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")} personas`
-                      : "—"}
+                    {typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")} personas` : "—"}
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <div className="text-white/40 text-xs uppercase tracking-wider">Área afectada</div>
                   <div className="mt-1 text-white/85 text-sm font-medium">{km2(event.affectedArea)}</div>
+                </div>
+              </div>
+
+              {event.nearbyInfrastructure?.length ? (
+                <div className="mt-3">
+                  <div className="text-white/40 text-xs uppercase tracking-wider">Infraestructura cercana</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {event.nearbyInfrastructure.slice(0, 10).map((x) => (
+                      <span key={x} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/75">
+                        {x}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </section>
+
+            {/* Impacto ambiental */}
+            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="text-white/45 text-xs uppercase tracking-wider">Impacto ambiental</div>
+
+              <div className="mt-3 space-y-3">
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <div className="text-white/40 text-xs uppercase tracking-wider">Ecosistemas</div>
+                  <div className="mt-1 text-white/85 text-sm">{event.ecosystems?.length ? event.ecosystems.join(" • ") : "—"}</div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <div className="text-white/40 text-xs uppercase tracking-wider">Especies en riesgo</div>
+                  <div className="mt-1 text-white/85 text-sm">{event.speciesAtRisk?.length ? event.speciesAtRisk.join(" • ") : "—"}</div>
                 </div>
               </div>
             </section>
@@ -468,55 +526,20 @@ export function AlertPanel(props: {
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <div className="text-white/40 text-xs uppercase tracking-wider">AQI / Río</div>
                   <div className="mt-1 text-white/85 text-sm font-medium">
-                    {typeof event.airQualityIndex === "number"
-                      ? `AQI ${event.airQualityIndex}`
-                      : typeof event.waterLevel === "number"
-                      ? `${event.waterLevel} m`
-                      : "—"}
+                    {typeof event.airQualityIndex === "number" ? `AQI ${event.airQualityIndex}` : typeof event.waterLevel === "number" ? `${event.waterLevel} m` : "—"}
                   </div>
                 </div>
               </div>
-            </section>
 
-            {/* Actividad reciente */}
-            <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-white/45 text-xs uppercase tracking-wider">Actividad reciente</div>
-
-              {historyTail.length ? (
-                <div className="mt-3 space-y-2">
-                  {historyTail.map((h: any, idx: number) => {
-                    const t = toDateSafe(h.t);
-                    const fc = typeof h.focusCount === "number" ? h.focusCount : undefined;
-                    const sum = typeof h.frpSum === "number" ? h.frpSum : undefined;
-                    const mx = typeof h.frpMax === "number" ? h.frpMax : undefined;
-
-                    return (
-                      <div
-                        key={`${t?.toISOString?.() ?? idx}-${idx}`}
-                        className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 flex items-center justify-between gap-3"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-white/80 text-sm font-medium">
-                            {t ? t.toUTCString().slice(17, 25) : "—"} UTC
-                          </div>
-                          <div className="text-white/45 text-[11px] mt-0.5">
-                            {fc != null ? `${fc} detections` : "—"} •{" "}
-                            {sum != null ? `FRP Σ ${sum.toFixed(1)}` : "FRP Σ —"} •{" "}
-                            {mx != null ? `max ${mx.toFixed(1)}` : "max —"}
-                          </div>
-                        </div>
-
-                        <div className="text-white/45 text-[11px] shrink-0">
-                          {h.severity ? String(h.severity).toUpperCase() : ""}
-                        </div>
-                      </div>
-                    );
-                  })}
+              {(typeof event.windSpeed === "number" || typeof event.humidity === "number" || typeof event.temperature === "number") && (
+                <div className="mt-3 text-white/60 text-xs">
+                  → Condiciones{" "}
+                  {event.severity === "critical" || event.severity === "high" ? "potencialmente favorables para escalamiento." : "en observación."}
                 </div>
-              ) : (
-                <div className="mt-3 text-white/50 text-sm">—</div>
               )}
             </section>
+
+            {/* (Fuentes visuales antiguas se mantienen como parte del módulo 1; no repetimos acá) */}
           </div>
 
           {/* Indicadores de riesgo */}
@@ -525,10 +548,7 @@ export function AlertPanel(props: {
             {event.riskIndicators?.length ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {event.riskIndicators.slice(0, 14).map((r) => (
-                  <span
-                    key={r}
-                    className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/75"
-                  >
+                  <span key={r} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/75">
                     {r}
                   </span>
                 ))}
@@ -543,18 +563,14 @@ export function AlertPanel(props: {
             <div className="text-white/45 text-xs uppercase tracking-wider">BioPulse Insight</div>
 
             <div className="mt-2 text-white/85 text-sm leading-relaxed">
-              {event.aiInsight?.narrative
-                ? event.aiInsight.narrative
-                : "BioPulse is analyzing this event. Continuous monitoring is recommended."}
+              {event.aiInsight?.narrative ? event.aiInsight.narrative : "BioPulse is analyzing this event. Continuous monitoring is recommended."}
             </div>
 
             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                 <div className="text-white/40 text-xs uppercase tracking-wider">Prob. expansión (12h)</div>
                 <div className="mt-1 text-white/85 text-sm font-medium">
-                  {typeof event.aiInsight?.probabilityNext12h === "number"
-                    ? `${event.aiInsight.probabilityNext12h}%`
-                    : "—"}
+                  {typeof event.aiInsight?.probabilityNext12h === "number" ? `${event.aiInsight.probabilityNext12h}%` : "—"}
                 </div>
               </div>
 
