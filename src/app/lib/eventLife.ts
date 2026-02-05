@@ -1,4 +1,5 @@
 import type { EnvironmentalEvent, EventHistoryPoint } from "@/data/events";
+import { notify } from "./pwa";
 
 const STORAGE_KEY = "biopulse:eventsMemory:v1";
 
@@ -102,6 +103,38 @@ function findMatch(store: MemoryStore, lat: number, lon: number, maxKm = 25) {
 }
 
 // ===============
+// Alert rules
+// ===============
+function shouldNotify(prev: EnvironmentalEvent | undefined, next: EnvironmentalEvent) {
+  if (!prev) return false;
+
+  // Severity increase
+  const sevRank = (s?: string) =>
+    s === "critical" ? 3 : s === "high" ? 2 : s === "moderate" ? 1 : 0;
+
+  if (sevRank(next.severity) > sevRank(prev.severity)) return "severity";
+
+  // Status escalates
+  if (prev.status !== next.status && next.status === "escalating") return "status";
+
+  // Trend goes rising
+  if (prev.trend !== next.trend && next.trend === "rising") return "trend";
+
+  return false;
+}
+
+function notifyChange(reason: "severity" | "status" | "trend", ev: EnvironmentalEvent) {
+  const title = "🔥 BioPulse Alert";
+  let body = "";
+
+  if (reason === "severity") body = `${ev.location}: severity increased to ${ev.severity.toUpperCase()}`;
+  if (reason === "status") body = `${ev.location}: event is now ESCALATING`;
+  if (reason === "trend") body = `${ev.location}: fire activity is rising`;
+
+  notify(title, body, { tag: ev.id, url: "/" });
+}
+
+// ===============
 // Upsert
 // ===============
 export function upsertFireEvent(
@@ -121,12 +154,12 @@ export function upsertFireEvent(
     severity: base.severity,
   };
 
+  // ---- New event
   if (!matchId) {
     const id = createEventId("fire");
     const event: EnvironmentalEvent = {
       ...base,
       id,
-      eventId: id,
       firstSeen: now,
       lastSeen: now,
       scanCount: 1,
@@ -136,6 +169,7 @@ export function upsertFireEvent(
     return { event, store: { ...store, [id]: event } };
   }
 
+  // ---- Update existing
   const prev = store[matchId];
   const history = [...(prev.history ?? []), historyPoint].slice(-40);
   const trend = computeTrend(history);
@@ -144,12 +178,15 @@ export function upsertFireEvent(
     ...prev,
     ...base,
     id: matchId,
-    eventId: matchId,
     lastSeen: now,
     scanCount: (prev.scanCount ?? 0) + 1,
     history,
     trend,
   };
+
+  // 🔔 Auto alert
+  const reason = shouldNotify(prev, event);
+  if (reason) notifyChange(reason, event);
 
   return { event, store: { ...store, [matchId]: event } };
 }
