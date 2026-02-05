@@ -17,18 +17,10 @@ const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
 type AppStage = "splash" | "setup" | "dashboard";
 
-/** ===== guards ===== */
-function isFiniteNumber(x: unknown): x is number {
-  return typeof x === "number" && Number.isFinite(x);
-}
-
 /** ===== Reverse geocode via Cloudflare Worker ===== */
 const GEO_CACHE = new Map<string, string>();
 
 async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
-  // ✅ Guard hard: si no hay coords válidas, no geocodeamos
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-
   const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
 
@@ -65,9 +57,74 @@ function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent[
   return "active";
 }
 
+/** ===== Helpers ===== */
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function dateYYYYMMDD(d: Date) {
+  // UTC para que el link sea consistente
+  const yyyy = d.getUTCFullYear();
+  const mm = pad2(d.getUTCMonth() + 1);
+  const dd = pad2(d.getUTCDate());
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/** ===== Paso A: tendencia del incendio (interpretación) ===== */
+type FireTrend = "intensifying" | "stable" | "weakening";
+
+function fireTrendFromMetrics(args: {
+  focusCount: number;
+  frpSum: number;
+  frpMax: number;
+  lastSeen: Date | null;
+}): { trend: FireTrend; label: string; hint: string } {
+  const focus = Number.isFinite(args.focusCount) ? args.focusCount : 0;
+  const sum = Number.isFinite(args.frpSum) ? args.frpSum : 0;
+  const max = Number.isFinite(args.frpMax) ? args.frpMax : 0;
+
+  const ageH =
+    args.lastSeen instanceof Date ? (Date.now() - args.lastSeen.getTime()) / (1000 * 60 * 60) : null;
+
+  // Heurística conservadora (ajustable después):
+  // - intensifying: muchos focos + energía total alta, y recencia corta
+  // - weakening: pocos focos + energía baja, o última señal vieja
+  // - stable: lo demás
+  const veryRecent = typeof ageH === "number" ? ageH <= 3 : true;
+  const oldSignal = typeof ageH === "number" ? ageH >= 12 : false;
+
+  const intensifying =
+    veryRecent && ((focus >= 10 && sum >= 40) || (focus >= 6 && sum >= 80) || (max >= 25 && sum >= 40));
+
+  const weakening = oldSignal || ((focus <= 3 && sum <= 20) && max <= 10);
+
+  if (intensifying) {
+    return {
+      trend: "intensifying",
+      label: "Intensifying",
+      hint: "Más señales térmicas recientes y energía total elevada.",
+    };
+  }
+
+  if (weakening) {
+    return {
+      trend: "weakening",
+      label: "Weakening",
+      hint: "Señal menos reciente o energía baja en comparación.",
+    };
+  }
+
+  return {
+    trend: "stable",
+    label: "Stable",
+    hint: "Sin cambios fuertes detectables en las últimas horas.",
+  };
+}
+
 /** ===== Link FIRMS centrado en el punto ===== */
 function firmsViewerUrl(lat: number, lon: number) {
-  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:2026-01-30;@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
+  const today = dateYYYYMMDD(new Date());
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:${today};@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
 }
 
 export default function App() {
@@ -112,10 +169,7 @@ export default function App() {
 
     if (!looksLikeFallback) return;
 
-    // ✅ Guard hard: si faltan coords, no intentamos geocodear
-    if (!isFiniteNumber((ev as any).latitude) || !isFiniteNumber((ev as any).longitude)) return;
-
-    const place = await reverseGeocodeViaWorker((ev as any).latitude, (ev as any).longitude);
+    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
     if (!place) return;
 
     setSelectedEvent((curr) => (curr && curr.id === ev.id ? { ...curr, location: place } : curr));
@@ -172,10 +226,20 @@ export default function App() {
             const sev = c.severity as EnvironmentalEvent["severity"];
             const frpMax = Number(c.frpMax ?? 0);
             const frpSum = Number(c.frpSum ?? 0);
+            const focusCount = Number(c.focusCount ?? 0);
+
+            // ✅ Paso A: tendencia (interpretación conservadora)
+            const trend = fireTrendFromMetrics({
+              focusCount,
+              frpSum,
+              frpMax,
+              lastSeen,
+            });
 
             const narrative =
-              `Satellite sensors detected ${c.focusCount} fire ` +
-              `${c.focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Satellite sensors detected ${focusCount} fire ` +
+              `${focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Trend: ${trend.label}. ` +
               `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
 
             return {
@@ -183,7 +247,10 @@ export default function App() {
               category: "fire",
               severity: sev,
 
-              title: c.focusCount > 1 ? `Active Fire Cluster (${c.focusCount} detections)` : "Active Fire",
+              title:
+                focusCount > 1
+                  ? `Active Fire Cluster (${focusCount} detections)`
+                  : "Active Fire",
 
               description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
 
@@ -197,6 +264,7 @@ export default function App() {
               affectedPopulation: undefined,
 
               riskIndicators: [
+                `Trend: ${trend.label} (${trend.hint})`,
                 sev === "critical" ? "Rapid spread potential" : "Monitoring",
                 "Satellite detection (VIIRS)",
                 `FRP max ${frpMax.toFixed(1)}`,
