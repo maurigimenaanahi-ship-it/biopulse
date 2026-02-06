@@ -145,6 +145,101 @@ function trendBadgeStyle(label?: string) {
   return "border-white/10 bg-white/5 text-white/75";
 }
 
+// ===== Lectura del evento (poética + descriptiva) =====
+type Trend = "intensifying" | "stable" | "weakening" | string;
+type Status =
+  | "active"
+  | "escalating"
+  | "stabilizing"
+  | "contained"
+  | "recent"
+  | "resolved"
+  | string;
+
+function normalizeTrend(label?: string): Trend | undefined {
+  const t = (label ?? "").trim().toLowerCase();
+  if (!t) return undefined;
+  if (t === "intensifying" || t === "stable" || t === "weakening") return t;
+  return t; // fallback: igual lo dejamos pasar como string
+}
+
+function intensityPoetic(frpMax?: number) {
+  if (!frpMax) {
+    return "La señal térmica es tenue: por ahora no alcanza para leer la intensidad con claridad.";
+  }
+  if (frpMax < 30) {
+    return "El calor aparece como un murmullo: focos pequeños, intermitentes.";
+  }
+  if (frpMax < 80) {
+    return "La zona emite un pulso cálido sostenido: intensidad baja a moderada.";
+  }
+  if (frpMax < 160) {
+    return "El calor se vuelve evidente: hay energía activa y persistente en el terreno.";
+  }
+  if (frpMax < 300) {
+    return "La firma térmica es fuerte y sostenida: el frente está encendido con potencia alta.";
+  }
+  return "La intensidad es extrema: un núcleo térmico dominante marca un punto de máxima atención.";
+}
+
+function activityPoetic(detections?: number, trend?: Trend, status?: Status) {
+  const d = detections ?? 0;
+
+  if (d === 0) {
+    return "No se observan focos activos ahora mismo; la zona respira, al menos por este instante.";
+  }
+
+  if (status === "contained") {
+    return "Los focos persisten, pero el patrón sugiere contención: el avance parece frenado.";
+  }
+
+  if (status === "resolved") {
+    return "No hay señales de avance sostenido: el evento se percibe en retirada o sin continuidad.";
+  }
+
+  if (trend === "weakening") {
+    return "La actividad pierde fuerza: las señales se espacian y el pulso se apaga de a poco.";
+  }
+
+  if (trend === "stable") {
+    return "El incendio mantiene su ritmo: activo, pero sin cambios bruscos en el comportamiento.";
+  }
+
+  if (trend === "intensifying") {
+    if (d >= 60) {
+      return "El incendio se abre camino: muchas detecciones juntas indican expansión sostenida.";
+    }
+    if (d >= 25) {
+      return "Las señales crecen: el fuego parece ganar terreno y continuidad.";
+    }
+    return "La actividad se enciende: hay indicios de crecimiento en la zona.";
+  }
+
+  // fallback si trend viene vacío o diferente
+  if (d >= 60) return "La densidad de señales es alta: el evento se siente extendido y activo.";
+  if (d >= 25) return "Las detecciones son numerosas: actividad sostenida en el área.";
+  return "Se detecta actividad puntual: focos aislados con continuidad variable.";
+}
+
+function statePoetic(status?: Status) {
+  switch (status) {
+    case "escalating":
+      return "La situación entra en escalada: el sistema detecta un patrón de aumento reciente.";
+    case "active":
+      return "El evento está activo: hay presencia sostenida de señales en la zona.";
+    case "stabilizing":
+      return "El evento empieza a estabilizarse: la dinámica deja de crecer con fuerza.";
+    case "contained":
+      return "El incendio estaría bajo control: señales presentes, pero con patrón de contención.";
+    case "resolved":
+      return "El evento se considera resuelto: no se sostiene actividad reciente.";
+    case "recent":
+      return "Es un evento reciente: las primeras señales aparecen en esta ventana de tiempo.";
+    default:
+      return "La situación queda en observación: faltan más señales para confirmar el rumbo.";
+  }
+}
+
 // ===== Visual Observation (Módulo 1) =====
 type VisualSource = {
   kind: "live" | "periodic" | "snapshot";
@@ -659,6 +754,39 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     </span>
                   ) : null}
                 </div>
+
+                {/* 🔥 LECTURA DEL EVENTO (nuevo bloque superior) */}
+                {(() => {
+                  const t = normalizeTrend(ops.trendLabel);
+                  const intensityText = intensityPoetic(ops.frpMax);
+                  const activityText = activityPoetic(ops.detections, t, event.status as any);
+                  const stateText = statePoetic(event.status as any);
+
+                  return (
+                    <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-white/60 text-xs uppercase tracking-wider">🔥 Lectura del evento</div>
+
+                      <div className="mt-3 space-y-2 text-sm leading-relaxed">
+                        <p>
+                          <span className="text-white/85 font-semibold">Intensidad:</span>{" "}
+                          <span className="text-white/75">{intensityText}</span>
+                        </p>
+                        <p>
+                          <span className="text-white/85 font-semibold">Actividad:</span>{" "}
+                          <span className="text-white/75">{activityText}</span>
+                        </p>
+                        <p>
+                          <span className="text-white/85 font-semibold">Estado:</span>{" "}
+                          <span className="text-white/75">{stateText}</span>
+                        </p>
+
+                        <div className="pt-2 text-white/35 text-xs">
+                          Lectura interpretativa basada en detecciones satelitales (VIIRS) y métricas FRP. Puede haber retrasos o falsos positivos.
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
