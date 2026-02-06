@@ -126,7 +126,9 @@ function extractOpsFromDescription(desc?: string): ExtractedOps {
   if (mTrend?.[1]) out.trendLabel = mTrend[1].trim();
 
   // FRP max 45.37 • FRP sum 105.00
-  const mFrp = desc.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
+  const mFrp = desc.match(
+    /FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i
+  );
   if (mFrp?.[1]) out.frpMax = Number(mFrp[1]);
   if (mFrp?.[2]) out.frpSum = Number(mFrp[2]);
 
@@ -182,6 +184,47 @@ function stateHuman(status?: any) {
   if (s === "resolved") return "Resuelto";
   if (s === "active") return "Activo";
   return "Activo";
+}
+
+// ===== Trend narrative (no repetir métricas) =====
+function trendHumanSummary(input: {
+  trendLabel?: string;
+  frpMax?: number;
+  detections?: number;
+  windMaxKmh?: number;
+  humidityMinPct?: number;
+}) {
+  const t = (input.trendLabel ?? "").toLowerCase();
+
+  const hasWind = typeof input.windMaxKmh === "number" && Number.isFinite(input.windMaxKmh);
+  const hasHum = typeof input.humidityMinPct === "number" && Number.isFinite(input.humidityMinPct);
+
+  const windHint =
+    hasWind && (input.windMaxKmh as number) >= 30
+      ? "El viento puede acelerar la propagación."
+      : hasWind && (input.windMaxKmh as number) >= 18
+      ? "El viento puede empujar el frente si el combustible está seco."
+      : "";
+
+  const dryHint =
+    hasHum && (input.humidityMinPct as number) <= 30
+      ? "El aire seco favorece reactivaciones."
+      : hasHum && (input.humidityMinPct as number) <= 45
+      ? "La humedad baja puede sostener actividad."
+      : "";
+
+  if (!t) {
+    return "Sin suficiente señal para estimar tendencia en este momento.";
+  }
+
+  if (t === "intensifying") {
+    return `Se observan señales de intensificación (más actividad térmica y/o más focos recientes). ${windHint} ${dryHint}`.trim();
+  }
+  if (t === "weakening") {
+    return `La actividad parece disminuir en las últimas lecturas satelitales. ${windHint} ${dryHint}`.trim();
+  }
+  // stable
+  return `La actividad se mantiene estable: no se observa un aumento sostenido en las señales recientes. ${windHint} ${dryHint}`.trim();
 }
 
 // ===== Mini-bars (Visualización rápida) =====
@@ -597,9 +640,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   })();
 
   const opsBadge =
-    ops.trendLabel
-      ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) }
-      : null;
+    ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
 
   const isCompact = view !== "main";
 
@@ -607,6 +648,15 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const frpScale = 120; // FRP max típico: 0..120+
   const detScale = 25; // detections por cluster en ventana actual
   const sumScale = 250; // FRP sum (muy variable)
+
+  // Tendencia (oración humana) — sin repetir métricas
+  const trendSentence = trendHumanSummary({
+    trendLabel: ops.trendLabel,
+    frpMax: ops.frpMax,
+    detections: ops.detections,
+    windMaxKmh: weatherOps?.windMaxKmh,
+    humidityMinPct: weatherOps?.humidityMinPct,
+  });
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
@@ -791,7 +841,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   subtitle={[
                     `Status: ${statusLabel(event.status)}`,
                     ops.trendLabel ? `Trend: ${ops.trendLabel}` : null,
-                    `Evacuación: ${event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}`,
                   ]
                     .filter(Boolean)
                     .join(" • ")}
@@ -958,10 +1007,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                         <span className="text-white/45">{typeof ops.frpMax === "number" ? ops.frpMax.toFixed(2) : "—"}</span>
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div
-                          className="h-full bg-white/35"
-                          style={{ width: `${barPct(ops.frpMax, frpScale)}%` }}
-                        />
+                        <div className="h-full bg-white/35" style={{ width: `${barPct(ops.frpMax, frpScale)}%` }} />
                       </div>
                     </div>
 
@@ -971,10 +1017,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                         <span className="text-white/45">{typeof ops.detections === "number" ? ops.detections : "—"}</span>
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div
-                          className="h-full bg-white/35"
-                          style={{ width: `${barPct(ops.detections, detScale)}%` }}
-                        />
+                        <div className="h-full bg-white/35" style={{ width: `${barPct(ops.detections, detScale)}%` }} />
                       </div>
                     </div>
 
@@ -984,10 +1027,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                         <span className="text-white/45">{typeof ops.frpSum === "number" ? ops.frpSum.toFixed(2) : "—"}</span>
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div
-                          className="h-full bg-white/35"
-                          style={{ width: `${barPct(ops.frpSum, sumScale)}%` }}
-                        />
+                        <div className="h-full bg-white/35" style={{ width: `${barPct(ops.frpSum, sumScale)}%` }} />
                       </div>
                     </div>
                   </div>
@@ -1006,9 +1046,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                       <div className="mt-1 text-white/85 text-sm font-medium">
                         {weatherLoading ? "…" : formatPct(weatherOps?.rainProbMaxPct)}
                       </div>
-                      <div className="mt-1 text-white/35 text-[11px]">
-                        {weatherOps ? weatherOps.windowLabel : "—"}
-                      </div>
+                      <div className="mt-1 text-white/35 text-[11px]">{weatherOps ? weatherOps.windowLabel : "—"}</div>
                     </div>
 
                     <div className="rounded-xl border border-white/10 bg-white/5 p-3">
@@ -1039,13 +1077,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/60 text-xs uppercase tracking-wider">🌦 Ventana operativa</div>
                     <div className="mt-2 text-white/80 text-sm leading-relaxed">
-                      {weatherLoading
-                        ? "Cargando condiciones locales…"
-                        : weatherOps?.narrative ?? "Sin datos meteorológicos disponibles por ahora."}
+                      {weatherLoading ? "Cargando condiciones locales…" : weatherOps?.narrative ?? "Sin datos meteorológicos disponibles por ahora."}
                     </div>
                   </div>
                 </div>
 
+                {/* 📌 Status + Tendencia interpretativa */}
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
@@ -1058,14 +1095,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">
-                      {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
-                    </div>
-                    <div className="mt-1 text-white/45 text-xs">Fuente: (a definir cuando conectemos datos oficiales)</div>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3 md:col-span-2">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Tendencia</div>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       {ops.trendLabel ? (
@@ -1075,45 +1104,17 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                       ) : (
                         <span className="text-white/70 text-sm">—</span>
                       )}
-                      <span className="text-white/45 text-xs">
-                        Interpretación conservadora en base a detecciones/FRP. Próximo: mostrar “por qué” con métricas.
-                      </span>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">Detections</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.detections === "number" && Number.isFinite(ops.detections) ? ops.detections : "—"}
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.frpMax === "number" && Number.isFinite(ops.frpMax) ? ops.frpMax.toFixed(2) : "—"}
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">FRP sum</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.frpSum === "number" && Number.isFinite(ops.frpSum) ? ops.frpSum.toFixed(2) : "—"}
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">Ubicación</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 text-white/35 text-xs">
-                      Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital.
+                    <div className="mt-2 text-white/80 text-sm leading-relaxed">{trendSentence}</div>
+                    <div className="mt-2 text-white/35 text-[11px]">
+                      Próximo: historial por alerta (mini timeline) para ver la evolución con evidencia temporal.
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-3 text-white/35 text-xs">
+                  Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital.
                 </div>
               </div>
             </>
