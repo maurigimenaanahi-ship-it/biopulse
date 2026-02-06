@@ -109,6 +109,11 @@ function fmtCoord(x: unknown, digits = 4) {
   return isFiniteNumber(x) ? x.toFixed(digits) : "—";
 }
 
+function fmtMW(x?: number) {
+  if (typeof x !== "number" || !Number.isFinite(x)) return "—";
+  return `${x.toFixed(2)} MW`;
+}
+
 // ===== Extract helpers (Trend / FRP / detections) =====
 type ExtractedOps = {
   trendLabel?: string;
@@ -197,7 +202,7 @@ function stateHuman(status?: string) {
   }
 }
 
-// ===== Quick bars + FIRMS extra fields (si existen) =====
+// ===== Señales satelitales (barras relativas) =====
 function clamp01(x: number) {
   if (!Number.isFinite(x)) return 0;
   return Math.max(0, Math.min(1, x));
@@ -385,7 +390,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     setView("main");
   }, [event?.id]);
 
-  // ✅ Hooks SIEMPRE arriba, sin returns antes
   const header = useMemo(() => {
     if (!event) return null;
     const cat = categoryLabels[event.category] ?? event.category;
@@ -404,10 +408,8 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     });
   }, [event?.id]);
 
-  // ✅ Extract ops info (trend/frp/detections) from description safely
   const ops = useMemo(() => extractOpsFromDescription(event?.description), [event?.id]);
 
-  // ✅ Recién acá hacemos el return temprano
   if (!event || !header) return null;
 
   const isFollowed = followed.includes(event.id);
@@ -623,7 +625,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           {view === "main" ? (
             <>
               <div className="grid grid-cols-1 gap-3">
-                {/* ✅ Estado operativo primero */}
                 <CardButton
                   title="Estado operativo"
                   subtitle={[
@@ -778,7 +779,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   );
                 })()}
 
-                {/* 📊 VISUALIZACIÓN RÁPIDA + FIRMS extras (si existen) */}
+                {/* 📊 SEÑALES SATELITALES + (FIRMS/NASA) extras si existen */}
                 {(() => {
                   const frpMax = ops.frpMax;
                   const frpSum = ops.frpSum;
@@ -800,16 +801,14 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   return (
                     <div className="mt-3 space-y-3">
                       <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-white/90 font-semibold text-sm">Visualización rápida</div>
-                        <div className="text-white/45 text-xs mt-0.5">
-                          Ayuda para leer intensidad/actividad sin interpretar números.
-                        </div>
+                        <div className="text-white/90 font-semibold text-sm">📊 Señales satelitales (escala relativa)</div>
+                        <div className="text-white/45 text-xs mt-0.5">0–100 para comparar fuerza; no es temperatura real.</div>
 
                         <div className="mt-3 space-y-3">
                           <div>
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-white/70">🔥 Intensidad (FRP max)</span>
-                              <span className="text-white/60">{typeof frpMax === "number" ? frpMax.toFixed(2) : "—"}</span>
+                              <span className="text-white/70">🔥 Calor detectado (FRP max)</span>
+                              <span className="text-white/60">{fmtMW(frpMax)}</span>
                             </div>
                             <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
                               <div className="h-full bg-white/40" style={{ width: frpP }} />
@@ -818,7 +817,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                           <div>
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-white/70">🌋 Actividad (detections)</span>
+                              <span className="text-white/70">🌋 Focos detectados</span>
                               <span className="text-white/60">{typeof det === "number" ? det : "—"}</span>
                             </div>
                             <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
@@ -828,13 +827,17 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                           <div>
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-white/70">🧮 Energía total (FRP sum)</span>
-                              <span className="text-white/60">{typeof frpSum === "number" ? frpSum.toFixed(2) : "—"}</span>
+                              <span className="text-white/70">🧮 Calor acumulado (suma FRP)</span>
+                              <span className="text-white/60">{typeof frpSum === "number" && Number.isFinite(frpSum) ? `${frpSum.toFixed(2)} MW` : "—"}</span>
                             </div>
                             <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
                               <div className="h-full bg-white/40" style={{ width: sumP }} />
                             </div>
                           </div>
+                        </div>
+
+                        <div className="mt-3 text-white/35 text-xs">
+                          Fuente: VIIRS (FIRMS/NASA). Puede haber retrasos o falsos positivos.
                         </div>
                       </div>
 
@@ -906,7 +909,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                     <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">Detections</div>
+                        <div className="text-white/40 text-xs uppercase tracking-wider">Focos</div>
                         <div className="mt-1 text-white/85 text-sm font-medium">
                           {typeof ops.detections === "number" && Number.isFinite(ops.detections) ? ops.detections : "—"}
                         </div>
@@ -914,15 +917,13 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                         <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.frpMax === "number" && Number.isFinite(ops.frpMax) ? ops.frpMax.toFixed(2) : "—"}
-                        </div>
+                        <div className="mt-1 text-white/85 text-sm font-medium">{fmtMW(ops.frpMax)}</div>
                       </div>
 
                       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                         <div className="text-white/40 text-xs uppercase tracking-wider">FRP sum</div>
                         <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.frpSum === "number" && Number.isFinite(ops.frpSum) ? ops.frpSum.toFixed(2) : "—"}
+                          {typeof ops.frpSum === "number" && Number.isFinite(ops.frpSum) ? `${ops.frpSum.toFixed(2)} MW` : "—"}
                         </div>
                       </div>
 
@@ -1009,11 +1010,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                                     "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
                                     cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
                                   ].join(" ")}
-                                  title={
-                                    cam.mediaType === "stream"
-                                      ? "Stream (no necesariamente “en vivo”)"
-                                      : "Actualización periódica / snapshot"
-                                  }
+                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)" : "Actualización periódica / snapshot"}
                                 >
                                   {cam.mediaType === "stream" ? "STREAM" : cadence}
                                 </span>
