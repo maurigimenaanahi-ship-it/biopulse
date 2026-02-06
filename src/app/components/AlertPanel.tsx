@@ -145,98 +145,56 @@ function trendBadgeStyle(label?: string) {
   return "border-white/10 bg-white/5 text-white/75";
 }
 
-// ===== Lectura del evento (poética + descriptiva) =====
-type Trend = "intensifying" | "stable" | "weakening" | string;
-type Status =
-  | "active"
-  | "escalating"
-  | "stabilizing"
-  | "contained"
-  | "recent"
-  | "resolved"
-  | string;
+// ===== Lectura del evento (versión clara y humana) =====
 
-function normalizeTrend(label?: string): Trend | undefined {
-  const t = (label ?? "").trim().toLowerCase();
-  if (!t) return undefined;
-  if (t === "intensifying" || t === "stable" || t === "weakening") return t;
-  return t; // fallback: igual lo dejamos pasar como string
+function intensityHuman(frpMax?: number) {
+  if (!frpMax) return "No hay suficiente señal térmica para estimar la intensidad.";
+
+  if (frpMax < 30) return "La intensidad detectada es baja.";
+  if (frpMax < 80) return "La intensidad detectada es moderada.";
+  if (frpMax < 160) return "La intensidad detectada es alta.";
+  if (frpMax < 300) return "La intensidad detectada es muy alta.";
+  return "La intensidad detectada es extrema.";
 }
 
-function intensityPoetic(frpMax?: number) {
-  if (!frpMax) {
-    return "La señal térmica es tenue: por ahora no alcanza para leer la intensidad con claridad.";
-  }
-  if (frpMax < 30) {
-    return "El calor aparece como un murmullo: focos pequeños, intermitentes.";
-  }
-  if (frpMax < 80) {
-    return "La zona emite un pulso cálido sostenido: intensidad baja a moderada.";
-  }
-  if (frpMax < 160) {
-    return "El calor se vuelve evidente: hay energía activa y persistente en el terreno.";
-  }
-  if (frpMax < 300) {
-    return "La firma térmica es fuerte y sostenida: el frente está encendido con potencia alta.";
-  }
-  return "La intensidad es extrema: un núcleo térmico dominante marca un punto de máxima atención.";
-}
-
-function activityPoetic(detections?: number, trend?: Trend, status?: Status) {
+function activityHuman(detections?: number, trend?: string, status?: string) {
   const d = detections ?? 0;
 
-  if (d === 0) {
-    return "No se observan focos activos ahora mismo; la zona respira, al menos por este instante.";
-  }
+  if (d === 0) return "No se observan focos activos en este momento.";
 
-  if (status === "contained") {
-    return "Los focos persisten, pero el patrón sugiere contención: el avance parece frenado.";
-  }
+  if (status === "contained") return "El evento parece contenido.";
+  if (status === "resolved") return "La actividad reciente es mínima o nula.";
 
-  if (status === "resolved") {
-    return "No hay señales de avance sostenido: el evento se percibe en retirada o sin continuidad.";
-  }
-
-  if (trend === "weakening") {
-    return "La actividad pierde fuerza: las señales se espacian y el pulso se apaga de a poco.";
-  }
-
-  if (trend === "stable") {
-    return "El incendio mantiene su ritmo: activo, pero sin cambios bruscos en el comportamiento.";
-  }
+  if (trend === "weakening") return "La actividad está disminuyendo.";
+  if (trend === "stable") return "La actividad se mantiene estable.";
 
   if (trend === "intensifying") {
-    if (d >= 60) {
-      return "El incendio se abre camino: muchas detecciones juntas indican expansión sostenida.";
-    }
-    if (d >= 25) {
-      return "Las señales crecen: el fuego parece ganar terreno y continuidad.";
-    }
-    return "La actividad se enciende: hay indicios de crecimiento en la zona.";
+    if (d >= 60) return "La actividad está creciendo y expandiéndose.";
+    if (d >= 25) return "La actividad está en aumento.";
+    return "Se observan señales de crecimiento.";
   }
 
-  // fallback si trend viene vacío o diferente
-  if (d >= 60) return "La densidad de señales es alta: el evento se siente extendido y activo.";
-  if (d >= 25) return "Las detecciones son numerosas: actividad sostenida en el área.";
-  return "Se detecta actividad puntual: focos aislados con continuidad variable.";
+  if (d >= 60) return "Se detecta actividad intensa en la zona.";
+  if (d >= 25) return "Se detecta actividad sostenida.";
+  return "Se detectan focos aislados.";
 }
 
-function statePoetic(status?: Status) {
+function stateHuman(status?: string) {
   switch (status) {
     case "escalating":
-      return "La situación entra en escalada: el sistema detecta un patrón de aumento reciente.";
+      return "El evento está en escalada.";
     case "active":
-      return "El evento está activo: hay presencia sostenida de señales en la zona.";
+      return "El evento está activo.";
     case "stabilizing":
-      return "El evento empieza a estabilizarse: la dinámica deja de crecer con fuerza.";
+      return "El evento se está estabilizando.";
     case "contained":
-      return "El incendio estaría bajo control: señales presentes, pero con patrón de contención.";
+      return "El evento estaría bajo control.";
     case "resolved":
-      return "El evento se considera resuelto: no se sostiene actividad reciente.";
+      return "El evento parece resuelto.";
     case "recent":
-      return "Es un evento reciente: las primeras señales aparecen en esta ventana de tiempo.";
+      return "Evento detectado recientemente.";
     default:
-      return "La situación queda en observación: faltan más señales para confirmar el rumbo.";
+      return "Evento en observación.";
   }
 }
 
@@ -757,11 +715,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 {/* 🔥 LECTURA DEL EVENTO (nuevo bloque superior) */}
                 {(() => {
-                  const t = normalizeTrend(ops.trendLabel);
-                  const intensityText = intensityPoetic(ops.frpMax);
-                  const activityText = activityPoetic(ops.detections, t, event.status as any);
-                  const stateText = statePoetic(event.status as any);
+                 const t = ops.trendLabel?.toLowerCase() || "";
 
+const intensityText = intensityHuman(ops.frpMax);
+const activityText = activityHuman(ops.detections, t, event.status as any);
+const stateText = stateHuman(event.status as any);
+              
                   return (
                     <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                       <div className="text-white/60 text-xs uppercase tracking-wider">🔥 Lectura del evento</div>
