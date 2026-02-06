@@ -337,6 +337,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
   const summary = event.description && event.description.trim().length > 0 ? event.description : fallbackSummary(event);
   const utc = formatTimeUTC(event.timestamp);
+  const lastSignalAgo = timeAgoFrom(event.timestamp);
 
   const visuals = buildVisualSources(event);
 
@@ -566,7 +567,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 <CardButton
                   title="Impacto humano"
                   subtitle={`Población: ${
-                    typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"
+                    typeof event.affectedPopulation === "number"
+                      ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}`
+                      : "—"
                   } • Área: ${km2(event.affectedArea)}`}
                   icon="👥"
                   rightBadge={null}
@@ -661,7 +664,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
                     <div className="mt-1 text-white/90 text-base font-semibold">{statusLabel(event.status)}</div>
-                    <div className="mt-1 text-white/45 text-xs">Actualizado: {utc}</div>
+
+                    {/* ✅ humano + técnico juntos */}
+                    <div className="mt-2 text-white/45 text-xs">
+                      Última señal: <span className="text-white/70">{lastSignalAgo}</span>
+                    </div>
+                    <div className="mt-0.5 text-white/35 text-[11px]">Last detection: {utc}</div>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -852,12 +860,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                           {v.imageUrl ? (
                             <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
-                              <img
-                                src={v.imageUrl}
-                                alt=""
-                                className="h-40 w-full object-cover opacity-90"
-                                loading="lazy"
-                              />
+                              <img src={v.imageUrl} alt="" className="h-40 w-full object-cover opacity-90" loading="lazy" />
                             </div>
                           ) : null}
 
