@@ -153,7 +153,6 @@ function trendBadgeStyle(label?: string) {
 // ===== Lectura del evento (humana, clara) =====
 function intensityHuman(frpMax?: number) {
   if (!frpMax) return "No hay suficiente señal térmica para estimar la intensidad.";
-
   if (frpMax < 30) return "La intensidad detectada es baja.";
   if (frpMax < 80) return "La intensidad detectada es moderada.";
   if (frpMax < 160) return "La intensidad detectada es alta.";
@@ -224,6 +223,7 @@ function detectionsScore(d?: number) {
 function frpSumScore(frpSum?: number) {
   return softScale(frpSum ?? 0, 1200);
 }
+
 function readAny(event: any, keys: string[]) {
   for (const k of keys) {
     const v = event?.[k];
@@ -625,6 +625,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           {view === "main" ? (
             <>
               <div className="grid grid-cols-1 gap-3">
+                {/* ✅ Estado operativo primero */}
                 <CardButton
                   title="Estado operativo"
                   subtitle={[
@@ -749,10 +750,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   ) : null}
                 </div>
 
-                {/* 🔥 LECTURA DEL EVENTO */}
+                {/* 1) 🔥 LECTURA DEL EVENTO */}
                 {(() => {
                   const t = ops.trendLabel?.toLowerCase() || "";
-
                   const intensityText = intensityHuman(ops.frpMax);
                   const activityText = activityHuman(ops.detections, t, event.status as any);
                   const stateText = stateHuman(event.status as any);
@@ -775,11 +775,15 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                           <span className="text-white/75">{stateText}</span>
                         </p>
                       </div>
+
+                      <div className="mt-3 text-white/35 text-xs">
+                        Lectura interpretativa basada en detecciones satelitales (VIIRS) y métricas FRP. Puede haber retrasos o falsos positivos.
+                      </div>
                     </div>
                   );
                 })()}
 
-                {/* 📊 SEÑALES SATELITALES + (FIRMS/NASA) extras si existen */}
+                {/* 2) 📊 SEÑALES SATELITALES + extras FIRMS */}
                 {(() => {
                   const frpMax = ops.frpMax;
                   const frpSum = ops.frpSum;
@@ -828,7 +832,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                           <div>
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-white/70">🧮 Calor acumulado (suma FRP)</span>
-                              <span className="text-white/60">{typeof frpSum === "number" && Number.isFinite(frpSum) ? `${frpSum.toFixed(2)} MW` : "—"}</span>
+                              <span className="text-white/60">
+                                {typeof frpSum === "number" && Number.isFinite(frpSum) ? `${frpSum.toFixed(2)} MW` : "—"}
+                              </span>
                             </div>
                             <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
                               <div className="h-full bg-white/40" style={{ width: sumP }} />
@@ -873,70 +879,92 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   );
                 })()}
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{statusLabel(event.status)}</div>
-
-                    <div className="mt-2 text-white/45 text-xs">
-                      Última señal: <span className="text-white/70">{lastSignalAgo}</span>
-                    </div>
-                    <div className="mt-0.5 text-white/35 text-[11px]">Last detection: {utc}</div>
+                {/* 3) 🌦 Ventana operativa (placeholder, no app del clima) */}
+                <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/90 font-semibold text-sm">🌦 Ventana operativa (24–48 h)</div>
+                  <div className="text-white/45 text-xs mt-0.5">
+                    Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">
-                      {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Lluvia</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">—</div>
                     </div>
-                    <div className="mt-1 text-white/45 text-xs">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">—</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">—</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Temp.</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">—</div>
+                    </div>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3 md:col-span-2">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Tendencia</div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      {ops.trendLabel ? (
-                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", trendBadgeStyle(ops.trendLabel)].join(" ")}>
-                          {ops.trendLabel}
-                        </span>
-                      ) : (
-                        <span className="text-white/70 text-sm">—</span>
-                      )}
-                      <span className="text-white/45 text-xs">
-                        Interpretación conservadora en base a detecciones/FRP. Próximo: mostrar “por qué” con métricas.
-                      </span>
+                  <div className="mt-3 text-white/35 text-xs">
+                    Próximo: conectar meteorología por zona y generar un insight corto (ej. “se esperan lluvias que podrían ayudar”).
+                  </div>
+                </div>
+
+                {/* 4) 📌 Detalles operativos (técnico, compacto) */}
+                <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/90 font-semibold text-sm">📌 Detalles operativos (técnico)</div>
+
+                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{statusLabel(event.status)}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">Última señal: {lastSignalAgo}</div>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">Focos</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.detections === "number" && Number.isFinite(ops.detections) ? ops.detections : "—"}
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">{fmtMW(ops.frpMax)}</div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">FRP sum</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {typeof ops.frpSum === "number" && Number.isFinite(ops.frpSum) ? `${ops.frpSum.toFixed(2)} MW` : "—"}
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/40 text-xs uppercase tracking-wider">Ubicación</div>
-                        <div className="mt-1 text-white/85 text-sm font-medium">
-                          {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
-                        </div>
-                      </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Trend</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{ops.trendLabel ?? "—"}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">Interpretación conservadora</div>
                     </div>
 
-                    <div className="mt-3 text-white/35 text-xs">
-                      Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital.
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{fmtMW(ops.frpMax)}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">Calor máximo detectado</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">UTC</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{utc}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">Timestamp del evento</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-white/35 text-xs">
+                    Nota: estos detalles ayudan a auditar la lectura, pero no sustituyen fuentes locales.
+                  </div>
+                </div>
+
+                {/* 5) 🚨 Alertas oficiales (placeholder) */}
+                <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/90 font-semibold text-sm">🚨 Alertas oficiales (próximo)</div>
+                  <div className="text-white/45 text-xs mt-0.5">
+                    Aquí van evacuaciones, cortes de ruta y comunicados. Se activará cuando conectemos fuentes verificables.
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">
+                        {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                      </div>
+                      <div className="mt-1 text-white/35 text-[11px]">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Comunicados</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">—</div>
+                      <div className="mt-1 text-white/35 text-[11px]">Próximo: enlaces oficiales + verificación</div>
                     </div>
                   </div>
                 </div>
