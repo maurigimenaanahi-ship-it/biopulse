@@ -145,8 +145,7 @@ function trendBadgeStyle(label?: string) {
   return "border-white/10 bg-white/5 text-white/75";
 }
 
-// ===== Lectura del evento (versión clara y humana) =====
-
+// ===== Lectura del evento (humana, clara) =====
 function intensityHuman(frpMax?: number) {
   if (!frpMax) return "No hay suficiente señal térmica para estimar la intensidad.";
 
@@ -196,6 +195,42 @@ function stateHuman(status?: string) {
     default:
       return "Evento en observación.";
   }
+}
+
+// ===== Quick bars + FIRMS extra fields (si existen) =====
+function clamp01(x: number) {
+  if (!Number.isFinite(x)) return 0;
+  return Math.max(0, Math.min(1, x));
+}
+function pct(x: number) {
+  return `${Math.round(clamp01(x) * 100)}%`;
+}
+function softScale(value: number, max: number) {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  if (!Number.isFinite(max) || max <= 0) return 0;
+  return clamp01(value / max);
+}
+function frpMaxScore(frpMax?: number) {
+  return softScale(frpMax ?? 0, 300);
+}
+function detectionsScore(d?: number) {
+  return softScale(d ?? 0, 80);
+}
+function frpSumScore(frpSum?: number) {
+  return softScale(frpSum ?? 0, 1200);
+}
+function readAny(event: any, keys: string[]) {
+  for (const k of keys) {
+    const v = event?.[k];
+    if (v !== undefined && v !== null && v !== "") return v;
+  }
+  return undefined;
+}
+function dayNightLabel(v: any) {
+  const s = String(v ?? "").toUpperCase();
+  if (s === "D") return "Día";
+  if (s === "N") return "Noche";
+  return undefined;
 }
 
 // ===== Visual Observation (Módulo 1) =====
@@ -713,14 +748,14 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   ) : null}
                 </div>
 
-                {/* 🔥 LECTURA DEL EVENTO (nuevo bloque superior) */}
+                {/* 🔥 LECTURA DEL EVENTO */}
                 {(() => {
-                 const t = ops.trendLabel?.toLowerCase() || "";
+                  const t = ops.trendLabel?.toLowerCase() || "";
 
-const intensityText = intensityHuman(ops.frpMax);
-const activityText = activityHuman(ops.detections, t, event.status as any);
-const stateText = stateHuman(event.status as any);
-              
+                  const intensityText = intensityHuman(ops.frpMax);
+                  const activityText = activityHuman(ops.detections, t, event.status as any);
+                  const stateText = stateHuman(event.status as any);
+
                   return (
                     <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                       <div className="text-white/60 text-xs uppercase tracking-wider">🔥 Lectura del evento</div>
@@ -738,11 +773,99 @@ const stateText = stateHuman(event.status as any);
                           <span className="text-white/85 font-semibold">Estado:</span>{" "}
                           <span className="text-white/75">{stateText}</span>
                         </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-                        <div className="pt-2 text-white/35 text-xs">
-                          Lectura interpretativa basada en detecciones satelitales (VIIRS) y métricas FRP. Puede haber retrasos o falsos positivos.
+                {/* 📊 VISUALIZACIÓN RÁPIDA + FIRMS extras (si existen) */}
+                {(() => {
+                  const frpMax = ops.frpMax;
+                  const frpSum = ops.frpSum;
+                  const det = ops.detections;
+
+                  const frpP = pct(frpMaxScore(frpMax));
+                  const detP = pct(detectionsScore(det));
+                  const sumP = pct(frpSumScore(frpSum));
+
+                  const any = event as any;
+                  const confidence = readAny(any, ["confidence", "confidenceValue", "confidenceLabel"]);
+                  const daynight = dayNightLabel(readAny(any, ["daynight", "dayNight"]));
+                  const satellite = readAny(any, ["satellite", "platform"]);
+                  const instrument = readAny(any, ["instrument", "sensor"]);
+                  const source = readAny(any, ["source", "provider"]);
+
+                  const hasSatInfo = Boolean(confidence || daynight || satellite || instrument || source);
+
+                  return (
+                    <div className="mt-3 space-y-3">
+                      <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-white/90 font-semibold text-sm">Visualización rápida</div>
+                        <div className="text-white/45 text-xs mt-0.5">
+                          Ayuda para leer intensidad/actividad sin interpretar números.
+                        </div>
+
+                        <div className="mt-3 space-y-3">
+                          <div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-white/70">🔥 Intensidad (FRP max)</span>
+                              <span className="text-white/60">{typeof frpMax === "number" ? frpMax.toFixed(2) : "—"}</span>
+                            </div>
+                            <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                              <div className="h-full bg-white/40" style={{ width: frpP }} />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-white/70">🌋 Actividad (detections)</span>
+                              <span className="text-white/60">{typeof det === "number" ? det : "—"}</span>
+                            </div>
+                            <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                              <div className="h-full bg-white/40" style={{ width: detP }} />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-white/70">🧮 Energía total (FRP sum)</span>
+                              <span className="text-white/60">{typeof frpSum === "number" ? frpSum.toFixed(2) : "—"}</span>
+                            </div>
+                            <div className="mt-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                              <div className="h-full bg-white/40" style={{ width: sumP }} />
+                            </div>
+                          </div>
                         </div>
                       </div>
+
+                      {hasSatInfo ? (
+                        <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                          <div className="text-white/90 font-semibold text-sm">Datos satelitales (FIRMS/NASA)</div>
+
+                          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="text-white/40 text-xs uppercase tracking-wider">Confianza</div>
+                              <div className="mt-1 text-white/85 font-medium">{confidence ?? "—"}</div>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="text-white/40 text-xs uppercase tracking-wider">Día/Noche</div>
+                              <div className="mt-1 text-white/85 font-medium">{daynight ?? "—"}</div>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="text-white/40 text-xs uppercase tracking-wider">Satélite</div>
+                              <div className="mt-1 text-white/85 font-medium">{satellite ?? "—"}</div>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="text-white/40 text-xs uppercase tracking-wider">Instrumento</div>
+                              <div className="mt-1 text-white/85 font-medium">{instrument ?? "—"}</div>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-white/5 p-3 md:col-span-2">
+                              <div className="text-white/40 text-xs uppercase tracking-wider">Fuente</div>
+                              <div className="mt-1 text-white/85 font-medium">{source ?? "—"}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })()}
@@ -752,7 +875,6 @@ const stateText = stateHuman(event.status as any);
                     <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
                     <div className="mt-1 text-white/90 text-base font-semibold">{statusLabel(event.status)}</div>
 
-                    {/* ✅ humano + técnico juntos */}
                     <div className="mt-2 text-white/45 text-xs">
                       Última señal: <span className="text-white/70">{lastSignalAgo}</span>
                     </div>
