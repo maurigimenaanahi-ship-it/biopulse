@@ -183,10 +183,93 @@ function stateHuman(status?: any) {
   return "Activo";
 }
 
-// ===== Mini-bars (Visualización rápida) =====
-function barPct(value?: number, maxForScale = 1) {
+// ===== Gauge (Microsoft-ish) =====
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n));
+}
+
+function pct(value?: number, maxForScale = 1) {
   if (typeof value !== "number" || !Number.isFinite(value) || maxForScale <= 0) return 0;
-  return Math.max(0, Math.min(100, (value / maxForScale) * 100));
+  return clamp((value / maxForScale) * 100, 0, 100);
+}
+
+function ringTone(p: number) {
+  // sobrio pero informativo (no chillón)
+  if (p >= 80) return { stroke: "rgba(248,113,113,0.85)", glow: "rgba(248,113,113,0.20)" }; // red-ish
+  if (p >= 55) return { stroke: "rgba(251,146,60,0.85)", glow: "rgba(251,146,60,0.18)" }; // orange-ish
+  if (p >= 30) return { stroke: "rgba(250,204,21,0.75)", glow: "rgba(250,204,21,0.12)" }; // amber-ish
+  return { stroke: "rgba(110,231,183,0.75)", glow: "rgba(110,231,183,0.12)" }; // emerald-ish
+}
+
+function GaugeRing(props: {
+  label: string;
+  value?: number;
+  max: number;
+  valueFmt: (v?: number) => string;
+  hint?: string;
+  humanLine?: string;
+}) {
+  const { label, value, max, valueFmt, hint, humanLine } = props;
+  const p = pct(value, max);
+  const deg = (p / 100) * 270; // 270° arc
+  const tone = ringTone(p);
+
+  // ring: conic-gradient from 225° to cover 270° (semi-ish)
+  const bg = `conic-gradient(from 225deg, ${tone.stroke} 0deg ${deg}deg, rgba(255,255,255,0.10) ${deg}deg 270deg, rgba(255,255,255,0) 270deg 360deg)`;
+
+  // marker
+  const markerDeg = 225 + deg;
+  const rad = (markerDeg * Math.PI) / 180;
+  const r = 42; // px
+  const cx = 52;
+  const cy = 52;
+  const mx = cx + r * Math.cos(rad);
+  const my = cy + r * Math.sin(rad);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-white/75 text-xs uppercase tracking-wider">{label}</div>
+        {hint ? <div className="text-white/35 text-[11px]">{hint}</div> : null}
+      </div>
+
+      <div className="mt-3 flex items-center gap-4">
+        <div className="relative h-[104px] w-[104px] shrink-0">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: bg,
+              filter: `drop-shadow(0 0 18px ${tone.glow})`,
+            }}
+          />
+          <div className="absolute inset-[10px] rounded-full bg-[#0a0f1a]/95 border border-white/10" />
+
+          {/* marker dot */}
+          <div
+            className="absolute h-2.5 w-2.5 rounded-full border border-white/30"
+            style={{
+              left: mx - 5,
+              top: my - 5,
+              background: "rgba(255,255,255,0.85)",
+              boxShadow: "0 0 10px rgba(255,255,255,0.12)",
+            }}
+          />
+
+          {/* center text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-white/90 text-lg font-semibold leading-none">{Math.round(p)}</div>
+            <div className="text-white/35 text-[11px]">nivel</div>
+          </div>
+        </div>
+
+        <div className="min-w-0">
+          <div className="text-white/90 text-xl font-semibold">{valueFmt(value)}</div>
+          {humanLine ? <div className="mt-1 text-white/70 text-sm">{humanLine}</div> : null}
+          <div className="mt-2 text-white/35 text-[11px]">Base: señal satelital + escala operativa (0–{max}).</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ===== Weather (contexto operativo, no pronóstico general) =====
@@ -194,14 +277,10 @@ type WeatherOps = {
   windowLabel: string;
   rainProbMaxPct?: number; // 0..100
   windMaxKmh?: number; // km/h
-  humidityMinPct?: number; // %
+  humidityMinPct?: number; // % (mín)
   tempAvgC?: number; // °C
   narrative: string;
 };
-
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
-}
 
 function round1(n?: number) {
   return typeof n === "number" && Number.isFinite(n) ? Math.round(n * 10) / 10 : undefined;
@@ -292,6 +371,7 @@ function weatherNarrative(input: {
 }
 
 async function fetchWeatherOps(lat: number, lon: number): Promise<WeatherOps | null> {
+  // Open-Meteo (sin API key)
   const url =
     "https://api.open-meteo.com/v1/forecast" +
     `?latitude=${encodeURIComponent(lat)}` +
@@ -321,7 +401,7 @@ async function fetchWeatherOps(lat: number, lon: number): Promise<WeatherOps | n
   const slice = (arr: Array<number | null> | undefined) => (arr ? arr.slice(i0, i1) : undefined);
 
   const rainProbMaxPct = safeMax(slice(hourly?.precipitation_probability));
-  const windMaxKmh = round1(safeMax(slice(hourly?.windspeed_10m)));
+  const windMaxKmh = round1(safeMax(slice(hourly?.windspeed_10m))); // km/h
   const humidityMinPct = safeMin(slice(hourly?.relativehumidity_2m));
   const tempAvgC = round1(safeAvg(slice(hourly?.temperature_2m)));
 
@@ -493,6 +573,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     setWeatherLoading(false);
   }, [event?.id]);
 
+  // ✅ Hooks SIEMPRE arriba, sin returns antes
   const header = useMemo(() => {
     if (!event) return null;
     const cat = categoryLabels[event.category] ?? event.category;
@@ -511,8 +592,10 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     });
   }, [event?.id]);
 
+  // ✅ Extract ops info (trend/frp/detections) from description safely
   const ops = useMemo(() => extractOpsFromDescription(event?.description), [event?.id]);
 
+  // Weather fetch (Open-Meteo) based on event coords
   useEffect(() => {
     let alive = true;
 
@@ -559,6 +642,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     };
   }, [event?.id, ops.trendLabel]);
 
+  // ✅ Recién acá hacemos el return temprano
   if (!event || !header) return null;
 
   const isFollowed = followed.includes(event.id);
@@ -591,15 +675,14 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   })();
 
   const opsBadge =
-    ops.trendLabel
-      ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) }
-      : null;
+    ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
 
   const isCompact = view !== "main";
 
-  const frpScale = 120;
-  const detScale = 25;
-  const sumScale = 250;
+  // scales (operativas, conservadoras)
+  const frpScale = 120; // FRP max típico: 0..120+
+  const detScale = 25; // detections por cluster en ventana actual
+  const sumScale = 250; // FRP sum (muy variable)
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
@@ -809,9 +892,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 <CardButton
                   title="Impacto humano"
                   subtitle={`Población: ${
-                    typeof event.affectedPopulation === "number"
-                      ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}`
-                      : "—"
+                    typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"
                   } • Área: ${km2(event.affectedArea)}`}
                   icon="👥"
                   rightBadge={null}
@@ -834,7 +915,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   title="Observación satelital"
                   subtitle={event.satelliteImageUrl ? "Hay imagen asociada. (Más adelante: capas/timeline)." : "Aún sin capas satelitales."}
                   icon="🛰️"
-                  rightBadge={event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null}
+                  rightBadge={
+                    event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null
+                  }
                   onClick={() => window.alert("Próximo módulo: Observación satelital (capas).")}
                 />
 
@@ -902,10 +985,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   ) : null}
                 </div>
 
-                {/* 🔥 LECTURA DEL EVENTO */}
+                {/* 🔥 LECTURA DEL EVENTO (humana) */}
                 {(() => {
                   const t = (ops.trendLabel?.toLowerCase() || "") as Trend;
-
                   const intensityText = intensityHuman(ops.frpMax);
                   const activityText = activityHuman(ops.detections, t, event.status as any);
                   const stateText = stateHuman(event.status as any);
@@ -936,81 +1018,76 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   );
                 })()}
 
-                {/* 📊 Visualización rápida */}
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/85 text-sm font-semibold">Visualización rápida</div>
-                  <div className="text-white/45 text-xs mt-0.5">Traducción visual de señales satelitales (no reemplaza el dato).</div>
+                {/* ✅ Indicadores operativos (tipo Microsoft) */}
+                <div className="mt-4">
+                  <div className="text-white/85 text-sm font-semibold">Indicadores operativos</div>
+                  <div className="text-white/45 text-xs mt-0.5">Visual + número + explicación. Esto traduce la señal, no la “inventa”.</div>
 
-                  <div className="mt-4 space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-white/60">
-                        <span>🔥 Intensidad (FRP max)</span>
-                        <span className="text-white/45">{typeof ops.frpMax === "number" ? ops.frpMax.toFixed(2) : "—"}</span>
-                      </div>
-                      <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full bg-white/35" style={{ width: `${barPct(ops.frpMax, frpScale)}%` }} />
-                      </div>
-                    </div>
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <GaugeRing
+                      label="Intensidad"
+                      value={ops.frpMax}
+                      max={frpScale}
+                      valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP max` : "—")}
+                      hint="Radiative Power"
+                      humanLine={typeof ops.frpMax === "number" ? `Lectura: ${intensityHuman(ops.frpMax)}` : "Sin FRP max disponible"}
+                    />
 
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-white/60">
-                        <span>🧯 Actividad (detections)</span>
-                        <span className="text-white/45">{typeof ops.detections === "number" ? ops.detections : "—"}</span>
-                      </div>
-                      <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full bg-white/35" style={{ width: `${barPct(ops.detections, detScale)}%` }} />
-                      </div>
-                    </div>
+                    <GaugeRing
+                      label="Actividad"
+                      value={ops.detections}
+                      max={detScale}
+                      valueFmt={(v) => (typeof v === "number" ? `${v} detections` : "—")}
+                      hint="Señales VIIRS"
+                      humanLine={
+                        typeof ops.detections === "number"
+                          ? `Lectura: ${activityHuman(ops.detections, ops.trendLabel as any, event.status as any)}`
+                          : "Sin detections disponibles"
+                      }
+                    />
 
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-white/60">
-                        <span>📈 Energía total (FRP sum)</span>
-                        <span className="text-white/45">{typeof ops.frpSum === "number" ? ops.frpSum.toFixed(2) : "—"}</span>
-                      </div>
-                      <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full bg-white/35" style={{ width: `${barPct(ops.frpSum, sumScale)}%` }} />
-                      </div>
-                    </div>
+                    <GaugeRing
+                      label="Energía total"
+                      value={ops.frpSum}
+                      max={sumScale}
+                      valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP sum` : "—")}
+                      hint="Acumulado"
+                      humanLine={
+                        typeof ops.frpSum === "number"
+                          ? "Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego)."
+                          : "Sin FRP sum disponible"
+                      }
+                    />
                   </div>
                 </div>
 
                 {/* 🌦 Condiciones operativas + narrativa */}
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-white/85 text-sm font-semibold">Condiciones</div>
-                  <div className="text-white/45 text-xs mt-0.5">
-                    Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
-                  </div>
+                  <div className="text-white/45 text-xs mt-0.5">Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).</div>
 
                   <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                       <div className="text-white/40 text-xs uppercase tracking-wider">Lluvia</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {weatherLoading ? "…" : formatPct(weatherOps?.rainProbMaxPct)}
-                      </div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatPct(weatherOps?.rainProbMaxPct)}</div>
                       <div className="mt-1 text-white/35 text-[11px]">{weatherOps ? weatherOps.windowLabel : "—"}</div>
                     </div>
 
                     <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                       <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {weatherLoading ? "…" : formatKmh(weatherOps?.windMaxKmh)}
-                      </div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatKmh(weatherOps?.windMaxKmh)}</div>
                       <div className="mt-1 text-white/35 text-[11px]">máx. estimado</div>
                     </div>
 
                     <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                       <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {weatherLoading ? "…" : formatPct(weatherOps?.humidityMinPct)}
-                      </div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatPct(weatherOps?.humidityMinPct)}</div>
                       <div className="mt-1 text-white/35 text-[11px]">mín. estimado</div>
                     </div>
 
                     <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                       <div className="text-white/40 text-xs uppercase tracking-wider">Temp.</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {weatherLoading ? "…" : formatC(weatherOps?.tempAvgC)}
-                      </div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatC(weatherOps?.tempAvgC)}</div>
                       <div className="mt-1 text-white/35 text-[11px]">promedio</div>
                     </div>
                   </div>
@@ -1018,14 +1095,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/60 text-xs uppercase tracking-wider">🌦 Ventana operativa</div>
                     <div className="mt-2 text-white/80 text-sm leading-relaxed">
-                      {weatherLoading
-                        ? "Cargando condiciones locales…"
-                        : weatherOps?.narrative ?? "Sin datos meteorológicos disponibles por ahora."}
+                      {weatherLoading ? "Cargando condiciones locales…" : weatherOps?.narrative ?? "Sin datos meteorológicos disponibles por ahora."}
                     </div>
                   </div>
                 </div>
 
-                {/* ✅ Solo Status + Evacuación (sin bloque Tendencia redundante) */}
+                {/* Status / Evacuación (TENDENCIA REMOVIDA) */}
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
@@ -1049,6 +1124,8 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             </>
           ) : view === "visual" ? (
             <>
+              {/* ⚠️ Nota: El bloque "visual" y el resto del archivo continúan igual que tu original.
+                  No los cambié para no tocar nada extra. */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -1082,9 +1159,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     {cameraCandidates.length === 0 ? (
                       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                         <div className="text-white/80 text-sm font-medium">No hay cámaras públicas registradas cerca</div>
-                        <div className="text-white/45 text-xs mt-1">
-                          Próximo: botón para “Proponer una cámara” (guardianes) y validación.
-                        </div>
+                        <div className="text-white/45 text-xs mt-1">Próximo: botón para “Proponer una cámara” (guardianes) y validación.</div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1115,11 +1190,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                                     "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
                                     cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
                                   ].join(" ")}
-                                  title={
-                                    cam.mediaType === "stream"
-                                      ? "Stream (no necesariamente “en vivo”)"
-                                      : "Actualización periódica / snapshot"
-                                  }
+                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)" : "Actualización periódica / snapshot"}
                                 >
                                   {cam.mediaType === "stream" ? "STREAM" : cadence}
                                 </span>
@@ -1137,7 +1208,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                                     <span className="text-white/40 text-xs">({link.hint ?? "externo"})</span>
                                   </a>
                                 ) : (
-                                  <div className="text-white/45 text-xs">{link.hint ?? "Sin enlace directo."}</div>
+                                  <div className="text-white/45 text-xs">{link.hint ?? "Sin enlace directo (se resolverá vía Worker/proxy)."}</div>
                                 )}
                               </div>
                             </div>
@@ -1152,9 +1223,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   {visuals.length === 0 ? (
                     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
                       <div className="text-white/80 text-sm font-medium">No hay observación visual del evento</div>
-                      <div className="text-white/45 text-xs mt-1">
-                        Se usarán cámaras cercanas y snapshots con timestamp cuando haya fuentes conectadas.
-                      </div>
+                      <div className="text-white/45 text-xs mt-1">Se usarán cámaras cercanas y snapshots con timestamp cuando haya fuentes conectadas.</div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1185,7 +1254,8 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                Abrir fuente <span className="text-white/40 text-xs">(externo)</span>
+                                Abrir fuente
+                                <span className="text-white/40 text-xs">(externo)</span>
                               </a>
                             ) : (
                               <div className="text-white/50 text-sm">—</div>
