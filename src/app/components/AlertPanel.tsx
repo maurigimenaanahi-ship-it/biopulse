@@ -1,28 +1,8 @@
+// AlertPanel.tsx
 import { useEffect, useMemo, useState } from "react";
 import type { EnvironmentalEvent } from "@/data/events";
 import { categoryLabels, categoryColors } from "@/data/events";
-import { X, Link2, Star, ArrowLeft } from "lucide-react";
-
-// ===== favorites (seguir alerta) =====
-const FAV_KEY = "biopulse:followed-alerts";
-function readFollowed(): string[] {
-  try {
-    const raw = localStorage.getItem(FAV_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
-function toggleFollow(id: string): string[] {
-  const curr = new Set(readFollowed());
-  if (curr.has(id)) curr.delete(id);
-  else curr.add(id);
-  const next = Array.from(curr);
-  localStorage.setItem(FAV_KEY, JSON.stringify(next));
-  return next;
-}
+import { X, ChevronDown, ChevronUp, Link2, Star } from "lucide-react";
 
 // ===== helpers =====
 function formatTimeUTC(d: Date) {
@@ -427,13 +407,13 @@ function BreakingNewsBar({ alert }: { alert: CriticalAlert }) {
     evacuation: "🚨",
     official: "⚠️",
     imminent_risk: "🔴",
-  };
+  } as const;
 
   const bgColorMap = {
     evacuation: "bg-red-500/90",
     official: "bg-orange-500/90",
     imminent_risk: "bg-red-600/90",
-  };
+  } as const;
 
   return (
     <div
@@ -443,9 +423,7 @@ function BreakingNewsBar({ alert }: { alert: CriticalAlert }) {
         "border-b-4 border-white/30",
         "backdrop-blur-sm",
       ].join(" ")}
-      style={{
-        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-      }}
+      style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -467,19 +445,70 @@ function BreakingNewsBar({ alert }: { alert: CriticalAlert }) {
   );
 }
 
-export function AlertPanel(props: {
-  event: EnvironmentalEvent | null;
-  onClose: () => void;
-  shareUrl?: string;
-  onBack?: () => void; // si querés recuperar el “volver”
+// ===== Collapsible section =====
+function Section(props: {
+  id: string;
+  title: string;
+  subtitle?: string;
+  icon?: string;
+  accent?: "neutral" | "cyan" | "green" | "orange";
+  defaultOpen?: boolean;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
 }) {
-  const { event, onClose, shareUrl, onBack } = props;
+  const { title, subtitle, icon, open, onToggle, children } = props;
 
-  const [copied, setCopied] = useState(false);
-  const [followed, setFollowed] = useState<string[]>([]);
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left px-5 md:px-6 py-4 bg-black/10 hover:bg-black/15 transition-colors"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-white/90 font-semibold text-base md:text-lg uppercase tracking-wide flex items-center gap-2">
+              {icon ? <span>{icon}</span> : null}
+              <span className="truncate">{title}</span>
+            </div>
+            {subtitle ? <div className="text-white/45 text-sm mt-1">{subtitle}</div> : null}
+          </div>
+
+          <div className="shrink-0 mt-0.5">
+            <span className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white/75">
+              {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            </span>
+          </div>
+        </div>
+      </button>
+
+      {open ? <div className="px-5 md:px-6 py-5">{children}</div> : null}
+    </div>
+  );
+}
+
+export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void }) {
+  const { event, onClose } = props;
 
   const [weatherOps, setWeatherOps] = useState<WeatherOps | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
+
+  // Accordion state
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({
+    ops: true,
+    sat: true,
+    cams: false,
+    env: false,
+    human: false,
+    insight: true,
+    tools: true,
+    news: true,
+  });
+
+  const toggle = (id: string) => {
+    setOpenIds((s) => ({ ...s, [id]: !s[id] }));
+  };
 
   useEffect(() => {
     if (!event) return;
@@ -490,12 +519,23 @@ export function AlertPanel(props: {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [event, onClose]);
 
+  // Reset per-event
   useEffect(() => {
     if (typeof window === "undefined") return;
     setWeatherOps(null);
     setWeatherLoading(false);
-    setCopied(false);
-    setFollowed(readFollowed());
+
+    // default accordion on new event
+    setOpenIds({
+      ops: true,
+      sat: true,
+      cams: false,
+      env: false,
+      human: false,
+      insight: true,
+      tools: true,
+      news: true,
+    });
   }, [event?.id]);
 
   const header = useMemo(() => {
@@ -512,6 +552,7 @@ export function AlertPanel(props: {
     return detectCriticalAlert(event);
   }, [event]);
 
+  // Weather fetch
   useEffect(() => {
     let alive = true;
 
@@ -519,6 +560,7 @@ export function AlertPanel(props: {
       if (!event) return;
       const lat = (event as any).latitude;
       const lon = (event as any).longitude;
+
       if (!isFiniteNumber(lat) || !isFiniteNumber(lon)) {
         setWeatherOps(null);
         return;
@@ -563,23 +605,30 @@ export function AlertPanel(props: {
   const utc = formatTimeUTC(event.timestamp);
   const lastSignalAgo = timeAgoFrom(event.timestamp);
 
-  const opsBadge =
-    ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
+  const opsBadge = ops.trendLabel
+    ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) }
+    : null;
 
   const frpScale = 120;
   const detScale = 25;
   const sumScale = 250;
 
-  const isFollowed = followed.includes(event.id);
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${window.location.pathname}?event=${encodeURIComponent(event.id)}`
+      : "";
 
-  async function handleCopyLink() {
-    if (!shareUrl) return;
+  const safeLocation =
+    (event as any)?.location && String((event as any).location).trim().length
+      ? (event as any).location
+      : "Ubicación por definir (sin geocoding todavía)";
+
+  async function copyLink() {
     try {
+      if (!shareUrl) return;
       await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1200);
     } catch {
-      window.prompt("Copiá el link:", shareUrl);
+      // no-op
     }
   }
 
@@ -600,13 +649,17 @@ export function AlertPanel(props: {
           "max-h-[88vh] overflow-hidden",
           "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
           "backdrop-blur-md",
+          // IMPORTANT: scroll fix
+          "flex flex-col",
         ].join(" ")}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
+        {/* Breaking News Bar (conditional) */}
         {criticalAlert ? <BreakingNewsBar alert={criticalAlert} /> : null}
 
+        {/* Accent bar */}
         <div
           className="h-1.5"
           style={{
@@ -617,31 +670,44 @@ export function AlertPanel(props: {
         {/* HEADER */}
         <div className="relative border-b border-white/10 bg-black/10 p-5 md:p-6">
           <div className="flex items-center justify-between gap-2">
-            {/* VOLVER (opcional) */}
-            {onBack ? (
+            {/* left actions */}
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onBack();
-                }}
                 className={[
-                  "h-9 px-3 rounded-xl",
+                  "h-9 rounded-xl px-3",
                   "border border-white/10 bg-white/5",
                   "text-white/80 hover:text-white hover:bg-white/10",
                   "transition-colors",
-                  "flex items-center gap-2",
+                  "inline-flex items-center gap-2",
                 ].join(" ")}
-                aria-label="Volver"
-                title="Volver"
+                onClick={() => {
+                  // placeholder: in futuro lo conectamos a tu sistema de "watchlist"
+                }}
+                title="Seguir alerta"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="text-sm">Volver</span>
+                <Star className="h-4 w-4" />
+                <span className="text-sm">Seguir alerta</span>
               </button>
-            ) : (
-              <div />
-            )}
 
+              <button
+                type="button"
+                className={[
+                  "h-9 rounded-xl px-3",
+                  "border border-white/10 bg-white/5",
+                  "text-white/80 hover:text-white hover:bg-white/10",
+                  "transition-colors",
+                  "inline-flex items-center gap-2",
+                ].join(" ")}
+                onClick={copyLink}
+                title="Copiar link"
+              >
+                <Link2 className="h-4 w-4" />
+                <span className="text-sm">Copiar link</span>
+              </button>
+            </div>
+
+            {/* close */}
             <button
               type="button"
               onClick={(e) => {
@@ -662,7 +728,7 @@ export function AlertPanel(props: {
             </button>
           </div>
 
-          <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2 mt-2">
+          <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2 mt-3">
             <span>
               {header.cat} • {utc}
             </span>
@@ -671,50 +737,10 @@ export function AlertPanel(props: {
           <div className="mt-2 flex items-start gap-3">
             <div className="min-w-0 flex-1">
               <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
-              <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
+              <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{safeLocation}</div>
               <div className="mt-1 text-white/45 text-xs">
                 {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
               </div>
-            </div>
-
-            {/* Seguir alerta + Copiar link */}
-            <div className="shrink-0 flex flex-col gap-2 items-end">
-              <button
-                type="button"
-                onClick={() => {
-                  const next = toggleFollow(event.id);
-                  setFollowed(next);
-                }}
-                className={[
-                  "rounded-xl border border-white/10",
-                  "bg-white/5 hover:bg-white/10",
-                  "px-3 py-2 text-xs md:text-sm",
-                  "text-white/85 transition-colors",
-                  "flex items-center gap-2",
-                ].join(" ")}
-                aria-pressed={isFollowed}
-                title="Seguir esta alerta (futuro: notificaciones)"
-              >
-                <Star className="w-4 h-4" />
-                {isFollowed ? "Siguiendo ✓" : "Seguir alerta"}
-              </button>
-
-              <button
-                type="button"
-                className={[
-                  "rounded-xl border border-white/10 bg-white/5",
-                  "text-white/80 hover:bg-white/10",
-                  "px-3 py-2 text-xs md:text-sm transition-colors",
-                  "flex items-center gap-2",
-                  !shareUrl ? "opacity-50 cursor-not-allowed" : "",
-                ].join(" ")}
-                onClick={handleCopyLink}
-                disabled={!shareUrl}
-                title={shareUrl ? "Copiar link" : "Link no disponible"}
-              >
-                <Link2 className="w-4 h-4" />
-                {copied ? "Link copiado" : "Copiar link"}
-              </button>
             </div>
           </div>
 
@@ -737,25 +763,18 @@ export function AlertPanel(props: {
           </div>
         </div>
 
-        {/* Content area */}
-        <div className="p-5 md:p-6 overflow-y-auto max-h-[calc(88vh-180px)]">
-          {/* 1. ESTADO OPERATIVO (principal) */}
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6 mb-5">
-            <div className="flex items-start justify-between gap-3 mb-5">
-              <div>
-                <div className="text-white/90 font-semibold text-lg uppercase tracking-wide">🚨 ESTADO OPERATIVO</div>
-                <div className="text-white/45 text-sm mt-1">
-                  Sistema de análisis en tiempo real • Última actualización: {lastSignalAgo}
-                </div>
-              </div>
-
-              {opsBadge ? (
-                <span className={["rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>
-                  {opsBadge.text}
-                </span>
-              ) : null}
-            </div>
-
+        {/* Content area (SCROLL FIX) */}
+        <div className="p-5 md:p-6 overflow-y-auto flex-1 min-h-0 space-y-5">
+          {/* 1. ESTADO OPERATIVO */}
+          <Section
+            id="ops"
+            title="ESTADO OPERATIVO"
+            subtitle={`Sistema de análisis en tiempo real • Última actualización: ${lastSignalAgo}`}
+            icon="🚨"
+            open={!!openIds.ops}
+            onToggle={() => toggle("ops")}
+          >
+            {/* Lectura del evento */}
             <div className="rounded-xl border border-white/10 bg-white/[0.08] p-4 mb-4">
               <div className="text-white/60 text-xs uppercase tracking-wider mb-3">🔥 LECTURA DEL EVENTO</div>
 
@@ -783,11 +802,10 @@ export function AlertPanel(props: {
               </div>
             </div>
 
+            {/* Indicadores operativos (gauges) */}
             <div className="mb-4">
               <div className="text-white/85 text-sm font-semibold mb-1">📊 INDICADORES OPERATIVOS</div>
-              <div className="text-white/45 text-xs mb-3">
-                Visual + número + explicación. Esto traduce la señal, no la "inventa".
-              </div>
+              <div className="text-white/45 text-xs mb-3">Visual + número + explicación. Esto traduce la señal, no la "inventa".</div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <GaugeRing
@@ -796,7 +814,9 @@ export function AlertPanel(props: {
                   max={frpScale}
                   valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP` : "—")}
                   hint="Radiative Power"
-                  humanLine={typeof ops.frpMax === "number" ? `Lectura: ${intensityHuman(ops.frpMax)}` : "Sin FRP max disponible"}
+                  humanLine={
+                    typeof ops.frpMax === "number" ? `Lectura: ${intensityHuman(ops.frpMax)}` : "Sin FRP max disponible"
+                  }
                 />
 
                 <GaugeRing
@@ -823,6 +843,7 @@ export function AlertPanel(props: {
               </div>
             </div>
 
+            {/* Ventana operativa */}
             <div className="rounded-xl border border-white/10 bg-black/20 p-4">
               <div className="text-white/85 text-sm font-semibold mb-1">🌦 VENTANA OPERATIVA</div>
               <div className="text-white/45 text-xs mb-3">Condiciones que pueden cambiar la dinámica del evento (próximas 12h UTC).</div>
@@ -857,6 +878,7 @@ export function AlertPanel(props: {
               </div>
             </div>
 
+            {/* Status + Evacuación */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                 <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
@@ -868,33 +890,26 @@ export function AlertPanel(props: {
 
               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                 <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                <div className="mt-1 text-white/90 text-base font-semibold">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
+                <div className="mt-1 text-white/90 text-base font-semibold">
+                  {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                </div>
                 <div className="mt-1 text-white/45 text-xs">Fuente: Defensa Civil</div>
               </div>
             </div>
-          </div>
-
-          {/* 2..8: el resto queda igual que tu código de Figma */}
-          {/* 👇👇👇 Pegá acá TODO lo que te generó Figma desde OBSERVACIÓN SATELITAL hasta NOTICIAS Y REDES */}
-          {/* Yo lo dejo igual para no tocarte nada (tal cual el layout). */}
+          </Section>
 
           {/* 2. OBSERVACIÓN SATELITAL */}
-          <div className="rounded-2xl border border-white/10 bg-[rgba(0,150,200,0.03)] p-5 md:p-6 mb-5">
-            <div className="mb-4">
-              <div className="text-white/90 font-semibold text-lg uppercase tracking-wide">🛰️ OBSERVACIÓN SATELITAL</div>
-              <div className="text-white/45 text-sm mt-1">
-                Fuente: NASA FIRMS VIIRS_SNPP_NRT • Última captura: {lastSignalAgo}
-              </div>
-            </div>
-
+          <Section
+            id="sat"
+            title="OBSERVACIÓN SATELITAL"
+            subtitle={`Fuente: NASA FIRMS VIIRS_SNPP_NRT • Última captura: ${lastSignalAgo}`}
+            icon="🛰️"
+            open={!!openIds.sat}
+            onToggle={() => toggle("sat")}
+          >
             {event.satelliteImageUrl ? (
               <div className="rounded-xl overflow-hidden border border-white/10 mb-4">
-                <img
-                  src={event.satelliteImageUrl}
-                  alt="Satellite imagery"
-                  className="w-full h-auto object-cover opacity-90"
-                  loading="lazy"
-                />
+                <img src={event.satelliteImageUrl} alt="Satellite imagery" className="w-full h-auto object-cover opacity-90" loading="lazy" />
               </div>
             ) : (
               <div className="rounded-xl border border-white/10 bg-black/20 p-8 text-center mb-4">
@@ -905,16 +920,317 @@ export function AlertPanel(props: {
             <div className="rounded-xl border border-white/10 bg-black/20 p-3">
               <div className="text-white/60 text-xs uppercase tracking-wider mb-2">📡 Métricas de detección</div>
               <div className="text-white/80 text-sm">
-                {ops.frpMax ? `FRP max: ${ops.frpMax.toFixed(2)} MW` : ""}{" "}
-                {ops.frpSum ? `• FRP sum: ${ops.frpSum.toFixed(2)} MW` : ""}{" "}
-                {ops.detections ? `• Detected: ${ops.detections} fire signals` : ""}
+                {ops.frpMax ? `FRP max: ${ops.frpMax.toFixed(2)} MW` : ""}
+                {ops.frpSum ? ` • FRP sum: ${ops.frpSum.toFixed(2)} MW` : ""}
+                {ops.detections ? ` • Detected: ${ops.detections} fire signals` : ""}
               </div>
             </div>
-          </div>
+          </Section>
 
-          {/* (…seguí igual con los bloques 3..8 tal cual los tenés en Figma) */}
-          {/* Para que no sea eterno este mensaje, dejé solo el 2 como ejemplo. */}
-          {/* IMPORTANTE: pegá los bloques 3..8 tal cual ya los tenés, no hay que cambiarlos. */}
+          {/* 3. CÁMARAS PÚBLICAS CERCANAS */}
+          <Section
+            id="cams"
+            title="CÁMARAS PÚBLICAS CERCANAS"
+            subtitle="Red de observación visual comunitaria"
+            icon="📹"
+            open={!!openIds.cams}
+            onToggle={() => toggle("cams")}
+          >
+            <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <div className="text-white/80 text-sm font-medium mb-2">No hay cámaras públicas registradas cerca</div>
+              <div className="text-white/45 text-xs">Próximo: botón para “Proponer una cámara” (guardianes) y validación.</div>
+            </div>
+          </Section>
+
+          {/* 4. CONTEXTO AMBIENTAL */}
+          <Section
+            id="env"
+            title="CONTEXTO AMBIENTAL"
+            subtitle="Ecosistemas y biodiversidad en riesgo"
+            icon="🌱"
+            open={!!openIds.env}
+            onToggle={() => toggle("env")}
+          >
+            {event.ecosystems && event.ecosystems.length > 0 ? (
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4 mb-3">
+                <div className="text-white/60 text-xs uppercase tracking-wider mb-2">🌲 Ecosistemas afectados</div>
+                <ul className="text-white/80 text-sm space-y-1">
+                  {event.ecosystems.map((eco, i) => (
+                    <li key={i}>• {eco}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {event.speciesAtRisk && event.speciesAtRisk.length > 0 ? (
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="text-white/60 text-xs uppercase tracking-wider mb-2">🦜 Especies en riesgo (UICN)</div>
+                <ul className="text-white/80 text-sm space-y-1">
+                  {event.speciesAtRisk.map((sp, i) => (
+                    <li key={i}>• {sp}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {(!event.ecosystems || event.ecosystems.length === 0) && (!event.speciesAtRisk || event.speciesAtRisk.length === 0) ? (
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="text-white/50 text-sm">Aún sin datos ambientales asociados a este evento.</div>
+              </div>
+            ) : null}
+          </Section>
+
+          {/* 5. IMPACTO HUMANO */}
+          <Section
+            id="human"
+            title="IMPACTO HUMANO"
+            subtitle="Análisis de población e infraestructura afectada"
+            icon="👥"
+            open={!!openIds.human}
+            onToggle={() => toggle("human")}
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-white/40 text-xs uppercase tracking-wider">POBLACIÓN</div>
+                <div className="mt-1 text-white/90 text-base font-semibold">
+                  {event.affectedPopulation ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-white/40 text-xs uppercase tracking-wider">ÁREA</div>
+                <div className="mt-1 text-white/90 text-base font-semibold">{event.affectedArea ? `≈ ${Math.round(event.affectedArea)} km²` : "—"}</div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-white/40 text-xs uppercase tracking-wider">EVACUADOS</div>
+                <div className="mt-1 text-white/90 text-base font-semibold">—</div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-white/40 text-xs uppercase tracking-wider">NIVEL EVAC.</div>
+                <div className="mt-1 text-white/90 text-base font-semibold">
+                  {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <div className="text-white/60 text-xs uppercase tracking-wider mb-2">🏘️ Información adicional</div>
+              <div className="text-white/50 text-sm">Datos de comunidades e infraestructura crítica se agregarán cuando estén disponibles.</div>
+            </div>
+          </Section>
+
+          {/* 6. INDICADORES + INSIGHT */}
+          <Section
+            id="insight"
+            title="INDICADORES + BIOPULSE INSIGHT"
+            subtitle="Análisis predictivo basado en IA"
+            icon="🧠"
+            open={!!openIds.insight}
+            onToggle={() => toggle("insight")}
+          >
+            {(event as any).aiInsight?.narrative ? (
+              <div className="rounded-xl border border-white/10 bg-[rgba(100,200,255,0.05)] p-4">
+                <div className="text-white/60 text-xs uppercase tracking-wider mb-2">🤖 BioPulse Insight</div>
+                <div className="text-white/85 text-sm leading-relaxed">{(event as any).aiInsight.narrative}</div>
+                {(event as any).aiInsight.confidence ? (
+                  <div className="mt-3 text-white/40 text-xs">Confianza del modelo: {Math.round((event as any).aiInsight.confidence * 100)}%</div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="text-white/50 text-sm">BioPulse Insight aún no disponible para este evento.</div>
+              </div>
+            )}
+          </Section>
+
+          {/* 7. HERRAMIENTAS DEL GUARDIÁN */}
+          <Section
+            id="tools"
+            title="HERRAMIENTAS DEL GUARDIÁN"
+            subtitle="Tu observación fortalece el sistema • 1,240 guardianes activos"
+            icon="🛡️"
+            open={!!openIds.tools}
+            onToggle={() => toggle("tools")}
+          >
+            <div className="mb-4 text-white/70 text-sm">
+              Sos parte de la red de respuesta. Tu reporte puede salvar vidas y mejorar la precisión de BioPulse para todos.
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <button type="button" className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors">
+                <div className="text-cyan-100 font-semibold mb-1">📍 REPORTAR OBSERVACIÓN</div>
+                <div className="text-cyan-200/60 text-sm">¿Estás cerca del evento? Compartí foto, ubicación o condiciones actuales.</div>
+              </button>
+
+              <button type="button" className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors">
+                <div className="text-cyan-100 font-semibold mb-1">✅ CONFIRMAR DATOS</div>
+                <div className="text-cyan-200/60 text-sm">¿Esta info es correcta? Ayudanos a validar ubicación y condiciones.</div>
+              </button>
+            </div>
+
+            <button type="button" className="w-full rounded-xl border border-red-400/30 bg-red-400/10 hover:bg-red-400/15 p-4 text-left transition-colors">
+              <div className="text-red-100 font-semibold mb-1">🚨 SOLICITAR AYUDA / ESCALAR</div>
+              <div className="text-red-200/60 text-sm">Si la situación empeoró o necesitás asistencia urgente, contactá a Defensa Civil.</div>
+            </button>
+
+            <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="text-white/60 text-xs uppercase tracking-wider mb-2">💡 Reportes recientes de otros guardianes</div>
+              <div className="text-white/50 text-sm">Próximamente: feed de reportes en tiempo real de la red de guardianes.</div>
+            </div>
+          </Section>
+
+          {/* 8. NOTICIAS + REDES SOCIALES */}
+          <Section
+            id="news"
+            title="NOTICIAS Y REDES SOCIALES"
+            subtitle="Fuentes verificadas • Actualización automática cada 15min"
+            icon="📰"
+            open={!!openIds.news}
+            onToggle={() => toggle("news")}
+          >
+            {/* Alertas urgentes */}
+            <div className="mb-4">
+              <div className="text-white/75 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span>🚨 ALERTAS URGENTES</span>
+                <span className="rounded-full bg-red-500/20 border border-red-400/30 px-2 py-0.5 text-[11px] text-red-100">
+                  2 ACTIVAS
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-xl border-l-4 border-red-400/60 bg-red-400/[0.08] p-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="text-red-100 font-semibold text-base">⚠️ EVACUACIÓN OBLIGATORIA AMPLIADA - Zona Roja Extendida</div>
+                    <span className="shrink-0 rounded-full bg-red-500/30 border border-red-400/40 px-2 py-0.5 text-[11px] text-red-100">
+                      URGENTE
+                    </span>
+                  </div>
+
+                  <div className="text-red-200/70 text-xs mb-2">Defensa Civil Provincial • hace 45 min</div>
+
+                  <div className="text-red-100/90 text-sm leading-relaxed mb-3">
+                    Se amplía zona de evacuación obligatoria a Villa Futaleufú (sector este) y comunidades de Los Cipreses,
+                    Aldea Escolar y Puerto Ramírez. Dirigirse a puntos de encuentro: Escuela Nº 156 (Ruta 259 km 8) y
+                    Gimnasio Municipal. Transporte disponible desde Plaza Central cada 30 minutos.
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button className="rounded-lg border border-red-300/30 bg-red-300/10 hover:bg-red-300/20 px-3 py-1.5 text-sm text-red-100 transition-colors">
+                      📄 Leer comunicado completo →
+                    </button>
+                    <button className="rounded-lg border border-red-300/30 bg-red-300/10 hover:bg-red-300/20 px-3 py-1.5 text-sm text-red-100 transition-colors">
+                      🔗 Compartir
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border-l-4 border-orange-400/60 bg-orange-400/[0.08] p-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="text-orange-100 font-semibold text-base">🔴 Corte de Ruta Provincial 259 por humo denso</div>
+                    <span className="shrink-0 rounded-full bg-orange-500/30 border border-orange-400/40 px-2 py-0.5 text-[11px] text-orange-100">
+                      URGENTE
+                    </span>
+                  </div>
+
+                  <div className="text-orange-200/70 text-xs mb-2">Vialidad Provincial Chubut • hace 1h 20min</div>
+
+                  <div className="text-orange-100/90 text-sm leading-relaxed mb-3">
+                    Tránsito suspendido entre km 5 y km 18 (Villa Futaleufú - cruce internacional). Visibilidad reducida a menos de 50
+                    metros. Desvío habilitado por Ruta 71 (Los Cipreses). Se recomienda evitar circular por la zona.
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button className="rounded-lg border border-orange-300/30 bg-orange-300/10 hover:bg-orange-300/20 px-3 py-1.5 text-sm text-orange-100 transition-colors">
+                      📄 Ver detalles →
+                    </button>
+                    <button className="rounded-lg border border-orange-300/30 bg-orange-300/10 hover:bg-orange-300/20 px-3 py-1.5 text-sm text-orange-100 transition-colors">
+                      🔗 Compartir
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Noticias generales */}
+            <div className="mb-4">
+              <div className="text-white/75 text-xs uppercase tracking-wider mb-3">📄 NOTICIAS GENERALES</div>
+
+              <div className="space-y-2">
+                {[
+                  { t: "🧯 Brigadas de bomberos de 4 provincias en camino a Futaleufú", s: "Ministerio de Seguridad Nacional • hace 2h" },
+                  { t: "🏥 Hospital Regional Esquel en alerta por posibles inhalaciones de humo", s: "Ministerio de Salud Chubut • hace 3h" },
+                  { t: "🌐 Chile ofrece apoyo con aviones hidrantes desde Coyhaique", s: "Cancillería Argentina • hace 4h" },
+                  { t: "🌲 Parques Nacionales evalúa daños en Bosque Andino Patagónico", s: "Administración de Parques Nacionales • hace 5h" },
+                ].map((x, i) => (
+                  <div key={i} className="rounded-xl border border-white/10 bg-black/20 hover:bg-black/30 p-3 transition-colors cursor-pointer">
+                    <div className="text-white/85 font-medium text-sm mb-1">{x.t}</div>
+                    <div className="text-white/45 text-xs mb-2">{x.s}</div>
+                    <button className="text-cyan-300/80 hover:text-cyan-300 text-xs transition-colors">Leer más →</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actividad en redes sociales */}
+            <div>
+              <div className="text-white/75 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span>🐦 ACTIVIDAD EN REDES SOCIALES</span>
+                <span className="text-white/40 text-[11px]">(últimas 6h)</span>
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  {
+                    u: "@AlertasChubutOK",
+                    v: true,
+                    t: `"Columna de humo visible desde 40km. Viento del oeste empujando hacia Villa Futaleufú. Autoridades recomiendan cerrar ventanas y permanecer en interior."`,
+                    ago: "hace 1h 15min",
+                  },
+                  {
+                    u: "@BomberosVolFutaleufu",
+                    v: true,
+                    t: `"Evacuación en progreso coordinada con Defensa Civil. 3 camiones trabajando en perímetro norte. Pedimos colaboración de vecinos para mantener rutas despejadas."`,
+                    ago: "hace 2h 40min",
+                  },
+                  {
+                    u: "@MeteoPatagonia",
+                    v: false,
+                    t: `"Cambio de viento esperado para esta noche (rotación a sur). Podría ayudar a frenar avance hacia zona poblada. Humedad relativa sigue baja (22%)."`,
+                    ago: "hace 3h 50min",
+                  },
+                ].map((x, i) => (
+                  <div key={i} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-full bg-cyan-400/20 flex items-center justify-center shrink-0">
+                        <span className="text-cyan-300 text-xs">🐦</span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white/85 text-sm font-medium">{x.u}</span>
+                          {x.v ? (
+                            <span className="rounded-full bg-cyan-400/20 border border-cyan-400/30 px-1.5 py-0.5 text-[10px] text-cyan-200">
+                              ✓ Verificado
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="text-white/70 text-sm leading-relaxed mb-2">{x.t}</div>
+                        <div className="flex items-center gap-3 text-white/40 text-xs">
+                          <span>{x.ago}</span>
+                          <button className="text-cyan-300/60 hover:text-cyan-300 transition-colors">Ver en Twitter →</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button className="mt-3 w-full rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 py-2 text-sm text-white/70 hover:text-white transition-colors">
+                Ver todas las menciones →
+              </button>
+            </div>
+          </Section>
         </div>
 
         <style>{`
