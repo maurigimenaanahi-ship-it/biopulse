@@ -400,6 +400,122 @@ async function fetchWeatherOps(lat: number, lon: number): Promise<WeatherOps | n
   };
 }
 
+// ===== Breaking Bar (auto) =====
+type BreakingKind =
+  | "mandatory_evacuation"
+  | "imminent_risk"
+  | "rapid_spread"
+  | "official_warning"
+  | "monitoring";
+
+type BreakingInfo = {
+  kind: BreakingKind;
+  title: string;
+  message: string;
+  severity: "critical" | "high" | "moderate";
+};
+
+function normalizeText(s?: string) {
+  return (s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // remove accents
+}
+
+function textHasAny(haystack: string, needles: string[]) {
+  const h = normalizeText(haystack);
+  return needles.some((n) => h.includes(normalizeText(n)));
+}
+
+function computeBreaking(ev: EnvironmentalEvent, ops: ExtractedOps, summaryText: string, weather?: WeatherOps | null): BreakingInfo | null {
+  const sev = (ev.severity ?? "moderate").toLowerCase();
+  const status = (ev.status ?? "active").toLowerCase();
+  const trend = (ops.trendLabel ?? "").toLowerCase();
+  const evac = normalizeText((ev as any).evacuationLevel);
+
+  const pool = [
+    ev.title ?? "",
+    ev.location ?? "",
+    ev.description ?? "",
+    summaryText ?? "",
+    (ev as any).aiInsight?.narrative ?? "",
+    (ev as any).aiInsight?.headline ?? "",
+  ].join(" • ");
+
+  const wind = weather?.windMaxKmh;
+  const windHigh = typeof wind === "number" && Number.isFinite(wind) && wind >= 35;
+
+  const mandatoryEvac =
+    evac.includes("mandatory") ||
+    evac.includes("obligatoria") ||
+    evac.includes("orden") ||
+    evac.includes("order") ||
+    textHasAny(pool, ["evacuación obligatoria", "mandatory evacuation", "evacuar ahora", "orden de evacuacion"]);
+
+  if (mandatoryEvac) {
+    return {
+      kind: "mandatory_evacuation",
+      title: "EVACUACIÓN OBLIGATORIA",
+      message: "Seguí indicaciones oficiales. Si estás en la zona, priorizá salida segura y puntos de encuentro.",
+      severity: "critical",
+    };
+  }
+
+  const officialWarning = textHasAny(pool, ["alerta roja", "red alert", "estado de emergencia", "emergencia", "warning", "extreme danger"]);
+  if (officialWarning && (sev === "critical" || sev === "high")) {
+    return {
+      kind: "official_warning",
+      title: "ALERTA OFICIAL / EMERGENCIA",
+      message: "Hay señales de advertencia pública. Revisá fuentes oficiales y partes operativos.",
+      severity: "high",
+    };
+  }
+
+  const imminent =
+    sev === "critical" ||
+    (sev === "high" && status === "escalating") ||
+    trend === "intensifying" ||
+    (typeof ops.frpMax === "number" && Number.isFinite(ops.frpMax) && ops.frpMax >= 80);
+
+  if (imminent) {
+    return {
+      kind: "imminent_risk",
+      title: "RIESGO INMINENTE",
+      message: "Actividad elevada o en expansión. Recomendado: monitoreo frecuente + verificación con fuentes locales.",
+      severity: sev === "critical" ? "critical" : "high",
+    };
+  }
+
+  const rapidSpread =
+    status === "escalating" ||
+    trend === "intensifying" ||
+    (typeof ops.detections === "number" && Number.isFinite(ops.detections) && ops.detections >= 20);
+
+  if (rapidSpread && windHigh) {
+    return {
+      kind: "rapid_spread",
+      title: "POSIBLE PROPAGACIÓN RÁPIDA",
+      message: "Viento fuerte + señales activas. Atento a cambios de dirección y focos secundarios.",
+      severity: "high",
+    };
+  }
+
+  // Keep it quiet unless it really matters (no “breaking” for everything)
+  return null;
+}
+
+function breakingBarClass(info: BreakingInfo) {
+  if (info.severity === "critical") return "border-red-400/35 bg-red-500/15";
+  if (info.severity === "high") return "border-orange-400/30 bg-orange-400/12";
+  return "border-amber-400/25 bg-amber-400/10";
+}
+
+function breakingKickerClass(info: BreakingInfo) {
+  if (info.severity === "critical") return "text-red-100";
+  if (info.severity === "high") return "text-orange-100";
+  return "text-amber-100";
+}
+
 // ===== Visual (cámaras) =====
 function formatDistanceKm(n: number) {
   if (!Number.isFinite(n)) return "—";
@@ -436,13 +552,7 @@ function SeverityDot({ sev }: { sev: EnvironmentalEvent["severity"] }) {
     <span
       className={[
         "inline-block h-2 w-2 rounded-full",
-        sev === "critical"
-          ? "bg-red-500"
-          : sev === "high"
-          ? "bg-orange-500"
-          : sev === "moderate"
-          ? "bg-yellow-500"
-          : "bg-emerald-400",
+        sev === "critical" ? "bg-red-500" : sev === "high" ? "bg-orange-500" : sev === "moderate" ? "bg-yellow-500" : "bg-emerald-400",
       ].join(" ")}
     />
   );
@@ -490,16 +600,7 @@ function CardButton(props: {
   );
 }
 
-type PanelView =
-  | "main"
-  | "ops"
-  | "satellite"
-  | "cameras"
-  | "environment"
-  | "impact"
-  | "insight"
-  | "guardian"
-  | "news";
+type PanelView = "main" | "ops" | "satellite" | "cameras" | "environment" | "impact" | "insight" | "guardian" | "news";
 
 export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
@@ -612,8 +713,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const utc = formatTimeUTC(event.timestamp);
   const lastSignalAgo = timeAgoFrom(event.timestamp);
 
-  const opsBadge =
-    ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
+  const opsBadge = ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
 
   const isCompact = view !== "main";
 
@@ -621,6 +721,8 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const frpScale = 120;
   const detScale = 25;
   const sumScale = 250;
+
+  const breaking = useMemo(() => computeBreaking(event, ops, summary, weatherOps), [event?.id, ops.trendLabel, ops.frpMax, ops.frpSum, ops.detections, summary, weatherOps]);
 
   return (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
@@ -781,6 +883,47 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
         {/* Content */}
         <div className="p-5 md:p-6 overflow-y-auto max-h-[calc(88vh-140px)]">
+          {/* BREAKING BAR (global, auto) */}
+          {breaking ? (
+            <div className={["mb-4 rounded-2xl border p-4", breakingBarClass(breaking)].join(" ")} role="status" aria-live="polite">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className={["text-xs uppercase tracking-wider", breakingKickerClass(breaking)].join(" ")}>BREAKING</div>
+                  <div className="mt-1 text-white/95 font-semibold text-base">{breaking.title}</div>
+                  <div className="mt-2 text-white/80 text-sm leading-relaxed">{breaking.message}</div>
+                </div>
+
+                <div className="shrink-0 flex flex-col items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setView("news")}
+                    className="rounded-xl border border-white/10 bg-black/20 hover:bg-black/30 px-3 py-2 text-sm text-white/85 transition-colors"
+                    title="Ir a Noticias + redes"
+                  >
+                    Ver fuentes
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    disabled={!shareUrl}
+                    className={[
+                      "rounded-xl border border-white/10 px-3 py-2 text-sm transition-colors",
+                      shareUrl ? "bg-white/5 hover:bg-white/10 text-white/80" : "bg-white/5 text-white/35 cursor-not-allowed",
+                    ].join(" ")}
+                    title={shareUrl ? "Copiar link" : "Link no disponible"}
+                  >
+                    {copied ? "Link copiado" : "Copiar link"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 text-white/35 text-[11px]">
+                Señal automática (prototipo). Cuando conectemos fuentes oficiales, esta barra priorizará comunicados verificados.
+              </div>
+            </div>
+          ) : null}
+
           {view === "main" ? (
             <>
               <div className="grid grid-cols-1 gap-3">
@@ -884,11 +1027,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">AQI / Río</div>
                     <div className="mt-1 text-white/85 text-sm font-medium">
-                      {typeof event.airQualityIndex === "number"
-                        ? `AQI ${event.airQualityIndex}`
-                        : typeof event.waterLevel === "number"
-                        ? `${event.waterLevel} m`
-                        : "—"}
+                      {typeof event.airQualityIndex === "number" ? `AQI ${event.airQualityIndex}` : typeof event.waterLevel === "number" ? `${event.waterLevel} m` : "—"}
                     </div>
                   </div>
                 </div>
@@ -936,9 +1075,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                         </p>
                       </div>
 
-                      <div className="mt-3 text-white/35 text-[11px]">
-                        Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
-                      </div>
+                      <div className="mt-3 text-white/35 text-[11px]">Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.</div>
                     </div>
                   );
                 })()}
@@ -963,9 +1100,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                       valueFmt={(v) => (typeof v === "number" ? `${v} detections` : "—")}
                       hint="Señales VIIRS"
                       humanLine={
-                        typeof ops.detections === "number"
-                          ? `Lectura: ${activityHuman(ops.detections, ops.trendLabel as any, event.status as any)}`
-                          : "Sin detections disponibles"
+                        typeof ops.detections === "number" ? `Lectura: ${activityHuman(ops.detections, ops.trendLabel as any, event.status as any)}` : "Sin detections disponibles"
                       }
                     />
                     <GaugeRing
@@ -974,11 +1109,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                       max={sumScale}
                       valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP sum` : "—")}
                       hint="Acumulado"
-                      humanLine={
-                        typeof ops.frpSum === "number"
-                          ? "Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego)."
-                          : "Sin FRP sum disponible"
-                      }
+                      humanLine={typeof ops.frpSum === "number" ? "Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego)." : "Sin FRP sum disponible"}
                     />
                   </div>
                 </div>
@@ -1084,9 +1215,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     </div>
                   </div>
 
-                  <div className="mt-3 text-white/35 text-xs">
-                    Próximo: timeline + capas (hotspots, viento, humedad, combustible).
-                  </div>
+                  <div className="mt-3 text-white/35 text-xs">Próximo: timeline + capas (hotspots, viento, humedad, combustible).</div>
                 </div>
               </div>
             </>
@@ -1170,9 +1299,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     )}
                   </div>
 
-                  <div className="mt-4 text-white/35 text-xs">
-                    Próximo: proxy vía Worker (CORS + cache) para no depender de enlaces externos.
-                  </div>
+                  <div className="mt-4 text-white/35 text-xs">Próximo: proxy vía Worker (CORS + cache) para no depender de enlaces externos.</div>
                 </div>
               </div>
             </>
@@ -1264,20 +1391,14 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-white/60 text-xs uppercase tracking-wider">Insight</div>
-                  <div className="mt-2 text-white/85 text-sm leading-relaxed">
-                    {event.aiInsight?.narrative ? event.aiInsight.narrative : "BioPulse Insight aún no está disponible para este evento."}
-                  </div>
+                  <div className="mt-2 text-white/85 text-sm leading-relaxed">{event.aiInsight?.narrative ? event.aiInsight.narrative : "BioPulse Insight aún no está disponible para este evento."}</div>
 
-                  {typeof event.aiInsight?.confidence === "number" ? (
-                    <div className="mt-3 text-white/40 text-xs">Confianza del modelo: {Math.round(event.aiInsight.confidence * 100)}%</div>
-                  ) : null}
+                  {typeof event.aiInsight?.confidence === "number" ? <div className="mt-3 text-white/40 text-xs">Confianza del modelo: {Math.round(event.aiInsight.confidence * 100)}%</div> : null}
                 </div>
 
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
-                  <div className="mt-2 text-white/80 text-sm">
-                    Mapa de riesgo + explicaciones por factor (viento, humedad, combustible, topografía, cercanía a población).
-                  </div>
+                  <div className="mt-2 text-white/80 text-sm">Mapa de riesgo + explicaciones por factor (viento, humedad, combustible, topografía, cercanía a población).</div>
                 </div>
               </div>
             </>
@@ -1288,9 +1409,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 <div className="text-white/45 text-sm mt-1">Tu observación fortalece el sistema. (Prototipo UI, backend después).</div>
 
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/80 text-sm">
-                    Sos parte de la red. Podés reportar evidencia, confirmar datos y ayudar a priorizar.
-                  </div>
+                  <div className="text-white/80 text-sm">Sos parte de la red. Podés reportar evidencia, confirmar datos y ayudar a priorizar.</div>
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button type="button" className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors">
@@ -1325,8 +1444,15 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 <div className="mt-4 rounded-xl border border-red-400/25 bg-red-400/10 p-4">
                   <div className="text-red-100 text-xs uppercase tracking-wider">BREAKING / Urgente</div>
                   <div className="mt-2 text-red-100/90 text-sm">
-                    (Placeholder) Acá va la barra roja “breaking news” si existe alerta urgente (evacuación, corte de ruta, riesgo inminente).
+                    {breaking ? (
+                      <>
+                        <span className="font-semibold">{breaking.title}:</span> {breaking.message}
+                      </>
+                    ) : (
+                      "(Sin alerta urgente detectada por ahora.)"
+                    )}
                   </div>
+                  <div className="mt-2 text-red-100/70 text-[11px]">Reglas automáticas (prototipo): evacuación/alerta oficial/severidad+expansión.</div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1346,9 +1472,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-white/60 text-xs uppercase tracking-wider">Sensación en redes</div>
-                  <div className="mt-2 text-white/70 text-sm">
-                    Feed de citas + (más adelante) contador + mapa de calor social. Por ahora placeholder UI.
-                  </div>
+                  <div className="mt-2 text-white/70 text-sm">Feed de citas + (más adelante) contador + mapa de calor social. Por ahora placeholder UI.</div>
                 </div>
               </div>
             </>
