@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
 import { categoryLabels, categoryColors } from "@/data/events";
 
@@ -124,7 +125,9 @@ function extractOpsFromDescription(desc?: string): ExtractedOps {
   const mTrend = desc.match(/Trend:\s*([A-Za-z]+)/i);
   if (mTrend?.[1]) out.trendLabel = mTrend[1].trim();
 
-  const mFrp = desc.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
+  const mFrp = desc.match(
+    /FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i
+  );
   if (mFrp?.[1]) out.frpMax = Number(mFrp[1]);
   if (mFrp?.[2]) out.frpSum = Number(mFrp[2]);
 
@@ -229,7 +232,10 @@ function GaugeRing(props: {
 
       <div className="mt-3 flex items-center gap-4">
         <div className="relative h-[104px] w-[104px] shrink-0">
-          <div className="absolute inset-0 rounded-full" style={{ background: bg, filter: `drop-shadow(0 0 18px ${tone.glow})` }} />
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{ background: bg, filter: `drop-shadow(0 0 18px ${tone.glow})` }}
+          />
           <div className="absolute inset-[10px] rounded-full bg-[#0a0f1a]/95 border border-white/10" />
 
           <div
@@ -501,8 +507,8 @@ type NewsItem = {
   body: string;
   publishedAt: Date;
   imageUrl?: string;
-  videoUrl?: string;
-  url?: string;
+  videoUrl?: string; // (futuro) embed / reels
+  url?: string; // (futuro) fuente externa, opcional
   tags?: string[];
 };
 
@@ -568,8 +574,10 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
   const cameraCandidates = useMemo(() => {
     if (!event) return [];
-    if (!isFiniteNumber((event as any).latitude) || !isFiniteNumber((event as any).longitude)) return [];
-    const point = { lat: (event as any).latitude as number, lon: (event as any).longitude as number };
+    const lat = (event as any).latitude;
+    const lon = (event as any).longitude;
+    if (!isFiniteNumber(lat) || !isFiniteNumber(lon)) return [];
+    const point = { lat, lon };
     return findNearestCameras(cameraRegistry, point, { maxResults: 3, requireVerified: false });
   }, [event?.id, (event as any)?.latitude, (event as any)?.longitude]);
 
@@ -622,13 +630,13 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
   // ===== BREAKING rules (v1) =====
   const isBreaking =
-    (event?.severity === "critical") ||
-    (event?.evacuationLevel === "mandatory") ||
-    (event?.status === "escalating") ||
-    ((ops.trendLabel ?? "").toLowerCase() === "intensifying");
+    event?.severity === "critical" ||
+    event?.evacuationLevel === "mandatory" ||
+    event?.status === "escalating" ||
+    (ops.trendLabel ?? "").toLowerCase() === "intensifying";
 
   // ===== News mock (v1 UI) =====
-  // ✅ HOOK SIEMPRE EJECUTA, aunque event sea null (evita #310)
+  // ✅ HOOK siempre ejecuta (evita React #310)
   const newsItems = useMemo<NewsItem[]>(() => {
     if (!event) return [];
     const now = Date.now();
@@ -645,7 +653,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         id: `${event.id}:gov:1`,
         kind: "government",
         sourceName: "Protección Civil (simulado)",
-        title: isBreaking ? "Alerta preventiva: mantenerse informado y evitar zonas afectadas" : "Monitoreo en curso: recomendaciones generales",
+        title: isBreaking
+          ? "Alerta preventiva: mantenerse informado y evitar zonas afectadas"
+          : "Monitoreo en curso: recomendaciones generales",
         summary:
           "Se solicita a la población evitar acercarse al perímetro del evento y seguir indicaciones oficiales. Actualizaciones cada 60 min.",
         body:
@@ -659,8 +669,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         kind: "firefighters",
         sourceName: "Bomberos / Operativo (simulado)",
         title: isBreaking ? "Trabajo en zona: perímetro activo y recursos desplegados" : "Revisión de focos: seguimiento operativo",
-        summary:
-          "Parte operativo de situación: estado del frente, acceso de brigadas y advertencias por viento. (Datos simulados).",
+        summary: "Parte operativo de situación: estado del frente, acceso de brigadas y advertencias por viento. (Datos simulados).",
         body:
           "Placeholder de parte operativo. En producción incluirá: perímetro oficial, recursos desplegados, recomendaciones específicas por viento/relieve y horarios de trabajo.\n\nNota: BioPulse no “inventa” operativos; esto vendrá de fuentes oficiales y sistemas abiertos cuando existan.",
         publishedAt: new Date(now - 1000 * 60 * 50),
@@ -672,8 +681,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         kind: "media",
         sourceName: "Medio local (simulado)",
         title: "Vecinos reportan humo visible y olor intenso en sectores cercanos",
-        summary:
-          "Resumen periodístico con testimonios. En BioPulse, esto se ordena y se contrasta con fuentes oficiales y señales.",
+        summary: "Resumen periodístico con testimonios. En BioPulse, esto se ordena y se contrasta con fuentes oficiales y señales.",
         body:
           "Placeholder de cobertura mediática. En producción, BioPulse mostrará una ficha con: titular, bajada, contenido, multimedia, y un panel de confiabilidad (fuente, fecha, confirmaciones).\n\nSiempre priorizamos Gobierno y Bomberos por arriba; los medios aparecen como contexto.",
         publishedAt: new Date(now - 1000 * 60 * 80),
@@ -753,7 +761,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     );
   }
 
-  // ✅ recién acá hacemos el “return null” (después de TODOS los hooks)
+  // ✅ después de hooks
   if (!event || !header) return null;
 
   const isFollowed = followed.includes(event.id);
@@ -773,9 +781,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const utc = formatTimeUTC(event.timestamp);
   const lastSignalAgo = timeAgoFrom(event.timestamp);
 
-  const opsBadge =
-    ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
-
+  const opsBadge = ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
   const isCompact = view !== "main";
 
   // scales
@@ -783,24 +789,28 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const detScale = 25;
   const sumScale = 250;
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-[99999] pointer-events-auto">
+      {/* ✅ Backdrop atrás */}
       <button
         type="button"
         aria-label="Cerrar panel"
-        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[2px] z-0"
         onClick={onClose}
       />
 
+      {/* ✅ Panel adelante + interactivo */}
       <div
         className={[
-          "absolute left-1/2 -translate-x-1/2",
+          "absolute left-1/2 -translate-x-1/2 z-10",
           "bottom-4 md:bottom-6",
           "w-[calc(100%-24px)] md:w-[900px]",
-          "max-h-[88vh] overflow-hidden",
+          "max-h-[88vh]",
           "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
           "backdrop-blur-md",
+          "overflow-hidden",
           "flex flex-col",
+          "pointer-events-auto",
         ].join(" ")}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -812,12 +822,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         />
 
         {/* HEADER */}
-        <div
-          className={[
-            "relative border-b border-white/10 bg-black/10",
-            isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6",
-          ].join(" ")}
-        >
+        <div className={["relative border-b border-white/10 bg-black/10", isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6"].join(" ")}>
           <div className="flex items-center justify-between gap-2">
             {isCompact ? (
               <button
@@ -870,6 +875,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
               </div>
 
               <div className="mt-1 flex flex-wrap items-center gap-2">
+                {/* ✅ título principal = localidad */}
                 <div className="text-white/90 font-semibold text-base md:text-lg">{event.location}</div>
 
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
@@ -889,6 +895,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 ) : null}
               </div>
 
+              {/* ✅ subtítulo técnico */}
               <div className="mt-1 text-white/55 text-xs">{event.title}</div>
               <div className="mt-1 text-white/45 text-[11px]">
                 {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
@@ -983,9 +990,17 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <CardButton
                   title="Observación satelital"
-                  subtitle={event.satelliteImageUrl ? "Imagen asociada + métricas VIIRS/FRP. (Timeline después)." : "Aún sin imagen asociada."}
+                  subtitle={
+                    event.satelliteImageUrl
+                      ? "Imagen asociada + métricas VIIRS/FRP. (Timeline después)."
+                      : "Aún sin imagen asociada."
+                  }
                   icon="🛰️"
-                  rightBadge={event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null}
+                  rightBadge={
+                    event.satelliteImageUrl
+                      ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") }
+                      : null
+                  }
                   onClick={() => setView("satellite")}
                 />
 
@@ -997,13 +1012,21 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                       : "No hay cámaras públicas registradas cerca por ahora."
                   }
                   icon="🎥"
-                  rightBadge={cameraCandidates.length ? { text: `${cameraCandidates.length} cerca`, className: badgeStyle("periodic") } : null}
+                  rightBadge={
+                    cameraCandidates.length
+                      ? { text: `${cameraCandidates.length} cerca`, className: badgeStyle("periodic") }
+                      : null
+                  }
                   onClick={() => setView("cameras")}
                 />
 
                 <CardButton
                   title="Contexto ambiental"
-                  subtitle={event.ecosystems?.length || event.speciesAtRisk?.length ? "Ecosistemas/especies disponibles para este evento." : "Aún sin datos ambientales asociados."}
+                  subtitle={
+                    event.ecosystems?.length || event.speciesAtRisk?.length
+                      ? "Ecosistemas/especies disponibles para este evento."
+                      : "Aún sin datos ambientales asociados."
+                  }
                   icon="🌱"
                   rightBadge={null}
                   onClick={() => setView("environment")}
@@ -1012,7 +1035,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                 <CardButton
                   title="Impacto humano"
                   subtitle={`Población: ${
-                    typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"
+                    typeof event.affectedPopulation === "number"
+                      ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}`
+                      : "—"
                   } • Área: ${km2(event.affectedArea)}`}
                   icon="👥"
                   rightBadge={null}
@@ -1082,22 +1107,597 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
               </div>
             </>
           ) : view === "ops" ? (
-            // ... (todo lo demás queda EXACTAMENTE igual que tu versión)
-            // Para no duplicar 800 líneas extra en este mensaje, dejé intacta la estructura
-            // y solo corregí: hooks + scroll + guards.
-            // Pegá tu bloque existente de ops/satellite/cameras/... a partir de acá sin cambios.
-            // ---------------------------------------------------------------------------
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white/90 font-semibold text-lg">⚠️ Estado operativo</div>
+                    <div className="text-white/45 text-sm mt-1">
+                      Lectura operativa basada en señales satelitales recientes, tendencia y estado estimado.
+                    </div>
+                  </div>
 
-            // ⚠️ IMPORTANTÍSIMO:
-            // Copiá desde tu código original TODO lo que sigue de aquí (view === "ops" ? ... etc)
-            // porque no cambia nada de UI. Solo arreglamos el crash y el scroll.
-            <div className="text-white/70 text-sm">
-              Pegá acá el resto de tus vistas (ops/satellite/cameras/environment/impact/insight/guardian/news/news_item) tal cual estaban.
-              <br />
-              <span className="text-white/40 text-xs">
-                (No las reescribí completas para no hacerte un wall gigante duplicado; el fix real era HOOKS + min-h-0)
-              </span>
-            </div>
+                  {opsBadge ? (
+                    <span className={["rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>
+                      {opsBadge.text}
+                    </span>
+                  ) : null}
+                </div>
+
+                {(() => {
+                  const t = (ops.trendLabel?.toLowerCase() || "") as Trend;
+                  const intensityText = intensityHuman(ops.frpMax);
+                  const activityText = activityHuman(ops.detections, t, event.status as any);
+                  const stateText = stateHuman(event.status as any);
+
+                  return (
+                    <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-white/60 text-xs uppercase tracking-wider">🔥 Lectura del evento</div>
+
+                      <div className="mt-3 space-y-2 text-sm leading-relaxed">
+                        <p>
+                          <span className="text-white/85 font-semibold">Intensidad:</span>{" "}
+                          <span className="text-white/75">{intensityText}</span>
+                        </p>
+                        <p>
+                          <span className="text-white/85 font-semibold">Actividad:</span>{" "}
+                          <span className="text-white/75">{activityText}</span>
+                        </p>
+                        <p>
+                          <span className="text-white/85 font-semibold">Estado:</span>{" "}
+                          <span className="text-white/75">{stateText}</span>
+                        </p>
+                      </div>
+
+                      <div className="mt-3 text-white/35 text-[11px]">
+                        Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="mt-4">
+                  <div className="text-white/85 text-sm font-semibold">Indicadores operativos</div>
+                  <div className="text-white/45 text-xs mt-0.5">
+                    Visual + número + explicación. Esto traduce la señal, no la “inventa”.
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <GaugeRing
+                      label="Intensidad"
+                      value={ops.frpMax}
+                      max={frpScale}
+                      valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP max` : "—")}
+                      hint="Radiative Power"
+                      humanLine={typeof ops.frpMax === "number" ? `Lectura: ${intensityHuman(ops.frpMax)}` : "Sin FRP max disponible"}
+                    />
+                    <GaugeRing
+                      label="Actividad"
+                      value={ops.detections}
+                      max={detScale}
+                      valueFmt={(v) => (typeof v === "number" ? `${v} detections` : "—")}
+                      hint="Señales VIIRS"
+                      humanLine={
+                        typeof ops.detections === "number"
+                          ? `Lectura: ${activityHuman(ops.detections, ops.trendLabel as any, event.status as any)}`
+                          : "Sin detections disponibles"
+                      }
+                    />
+                    <GaugeRing
+                      label="Energía total"
+                      value={ops.frpSum}
+                      max={sumScale}
+                      valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP sum` : "—")}
+                      hint="Acumulado"
+                      humanLine={
+                        typeof ops.frpSum === "number"
+                          ? "Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego)."
+                          : "Sin FRP sum disponible"
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/85 text-sm font-semibold">Condiciones</div>
+                  <div className="text-white/45 text-xs mt-0.5">
+                    Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Lluvia</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatPct(weatherOps?.rainProbMaxPct)}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">{weatherOps ? weatherOps.windowLabel : "—"}</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatKmh(weatherOps?.windMaxKmh)}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">máx. estimado</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatPct(weatherOps?.humidityMinPct)}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">mín. estimado</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Temp.</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatC(weatherOps?.tempAvgC)}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">promedio</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/60 text-xs uppercase tracking-wider">🌦 Ventana operativa</div>
+                    <div className="mt-2 text-white/80 text-sm leading-relaxed">
+                      {weatherLoading ? "Cargando condiciones locales…" : weatherOps?.narrative ?? "Sin datos meteorológicos disponibles por ahora."}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">{statusLabel(event.status)}</div>
+                    <div className="mt-2 text-white/45 text-xs">
+                      Última señal: <span className="text-white/70">{lastSignalAgo}</span>
+                    </div>
+                    <div className="mt-0.5 text-white/35 text-[11px]">Last detection: {utc}</div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">
+                      {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                    </div>
+                    <div className="mt-1 text-white/45 text-xs">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 text-white/35 text-xs">Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital.</div>
+              </div>
+            </>
+          ) : view === "satellite" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">🛰️ Observación satelital</div>
+                <div className="text-white/45 text-sm mt-1">Fuente: VIIRS / FIRMS (por ahora). Después sumamos capas + timeline.</div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  {event.satelliteImageUrl ? (
+                    <div className="overflow-hidden rounded-xl border border-white/10">
+                      <img src={event.satelliteImageUrl} alt="" className="h-56 w-full object-cover opacity-90" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div className="text-white/50 text-sm">No hay imagen satelital asociada para este evento.</div>
+                  )}
+
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Detections</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{typeof ops.detections === "number" ? ops.detections : "—"}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">señales</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{typeof ops.frpMax === "number" ? ops.frpMax.toFixed(2) : "—"}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">pico</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">FRP sum</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">{typeof ops.frpSum === "number" ? ops.frpSum.toFixed(2) : "—"}</div>
+                      <div className="mt-1 text-white/35 text-[11px]">acumulado</div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-white/40 text-xs uppercase tracking-wider">Centro</div>
+                      <div className="mt-1 text-white/85 text-sm font-medium">
+                        {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
+                      </div>
+                      <div className="mt-1 text-white/35 text-[11px]">estimado</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-white/35 text-xs">Próximo: timeline + capas (hotspots, viento, humedad, combustible).</div>
+                </div>
+              </div>
+            </>
+          ) : view === "cameras" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">📹 Cámaras públicas cercanas</div>
+                <div className="text-white/45 text-sm mt-1">No prometemos LIVE salvo stream real del proveedor. Mostramos streams/snapshots según fuente.</div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-white/85 text-sm font-semibold">Registry (curado)</div>
+                      <div className="text-white/45 text-xs mt-0.5">Fuente curada por BioPulse. Próximo: “Proponer cámara” + validación guardianes.</div>
+                    </div>
+                    <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badgeStyle("periodic")].join(" ")}>
+                      {cameraCandidates.length ? `${cameraCandidates.length} cerca` : "0"}
+                    </span>
+                  </div>
+
+                  <div className="mt-3">
+                    {cameraCandidates.length === 0 ? (
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-white/80 text-sm font-medium">No hay cámaras públicas registradas cerca</div>
+                        <div className="text-white/45 text-xs mt-1">Próximo: botón para “Proponer una cámara” (guardianes) y validación.</div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {cameraCandidates.map((c) => {
+                          const cam = c.camera as CameraRecordV1;
+                          const dist = formatDistanceKm(c.distanceKm);
+                          const attrib = cam.usage?.attributionText ?? `Provider: ${cam.providerId}`;
+                          const cadence = cadenceLabel(cam);
+                          const link = cameraHref(cam);
+
+                          return (
+                            <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-white/85 text-sm font-semibold truncate">{cam.title}</div>
+                                  <div className="text-white/45 text-xs mt-0.5 line-clamp-2">
+                                    {attrib} • {cam.coverage.countryISO2}
+                                    {cam.coverage.admin1 ? ` • ${cam.coverage.admin1}` : ""}
+                                    {cam.coverage.locality ? ` • ${cam.coverage.locality}` : ""}
+                                  </div>
+                                  <div className="text-white/40 text-xs mt-1">
+                                    A {dist} • {cam.mediaType === "stream" ? "Stream" : "Snapshot"} • {cadence}
+                                  </div>
+                                </div>
+
+                                <span
+                                  className={[
+                                    "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
+                                    cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
+                                  ].join(" ")}
+                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)" : "Actualización periódica / snapshot"}
+                                >
+                                  {cam.mediaType === "stream" ? "STREAM" : cadence}
+                                </span>
+                              </div>
+
+                              <div className="mt-3">
+                                {link.href ? (
+                                  <a
+                                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/80 hover:bg-black/30"
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {link.label ?? "Abrir fuente"}
+                                    <span className="text-white/40 text-xs">({link.hint ?? "externo"})</span>
+                                  </a>
+                                ) : (
+                                  <div className="text-white/45 text-xs">{link.hint ?? "Sin enlace directo (se resolverá vía Worker/proxy)."}</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 text-white/35 text-xs">Próximo: proxy vía Worker (CORS + cache) para no depender de enlaces externos.</div>
+                </div>
+              </div>
+            </>
+          ) : view === "environment" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">🌱 Contexto ambiental</div>
+                <div className="text-white/45 text-sm mt-1">Ecosistemas afectados + especies en riesgo (cuando estén conectadas fuentes).</div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-white/60 text-xs uppercase tracking-wider">Ecosistemas</div>
+                    <div className="mt-2 text-white/80 text-sm">
+                      {event.ecosystems?.length ? (
+                        <ul className="space-y-1">
+                          {event.ecosystems.map((e, i) => (
+                            <li key={i}>• {e}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        "—"
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-white/60 text-xs uppercase tracking-wider">Especies en riesgo</div>
+                    <div className="mt-2 text-white/80 text-sm">
+                      {event.speciesAtRisk?.length ? (
+                        <ul className="space-y-1">
+                          {event.speciesAtRisk.map((s, i) => (
+                            <li key={i}>• {s}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        "—"
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
+                  <div className="mt-2 text-white/80 text-sm">Conectar áreas protegidas, biomas, corredores y UICN por región.</div>
+                </div>
+              </div>
+            </>
+          ) : view === "impact" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">👥 Impacto humano</div>
+                <div className="text-white/45 text-sm mt-1">Población estimada + infraestructura crítica (cuando conectemos fuentes).</div>
+
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Población</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">
+                      {typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Área</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">{km2(event.affectedArea)}</div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-white/40 text-xs uppercase tracking-wider">Última señal</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">{lastSignalAgo}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
+                  <div className="mt-2 text-white/80 text-sm">Hospitales, rutas, escuelas, refugios, puntos de encuentro, cortes y perímetros oficiales.</div>
+                </div>
+              </div>
+            </>
+          ) : view === "insight" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">🧠 Indicadores + BioPulse Insight</div>
+                <div className="text-white/45 text-sm mt-1">Explicación y trazabilidad del “por qué” (sin humo).</div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/60 text-xs uppercase tracking-wider">Insight</div>
+                  <div className="mt-2 text-white/85 text-sm leading-relaxed">
+                    {event.aiInsight?.narrative ? event.aiInsight.narrative : "BioPulse Insight aún no está disponible para este evento."}
+                  </div>
+
+                  {typeof event.aiInsight?.confidence === "number" ? (
+                    <div className="mt-3 text-white/40 text-xs">Confianza del modelo: {Math.round(event.aiInsight.confidence * 100)}%</div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
+                  <div className="mt-2 text-white/80 text-sm">
+                    Mapa de riesgo + explicaciones por factor (viento, humedad, combustible, topografía, cercanía a población).
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : view === "guardian" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">🛡️ Herramientas del guardián</div>
+                <div className="text-white/45 text-sm mt-1">Tu observación fortalece el sistema. (Prototipo UI, backend después).</div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/80 text-sm">Sos parte de la red. Podés reportar evidencia, confirmar datos y ayudar a priorizar.</div>
+
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors"
+                    >
+                      <div className="text-cyan-100 font-semibold mb-1">📍 Reportar observación</div>
+                      <div className="text-cyan-200/60 text-sm">Foto, ubicación, humo, viento, avance. (Luego: validación y reputación).</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors"
+                    >
+                      <div className="text-cyan-100 font-semibold mb-1">✅ Confirmar datos</div>
+                      <div className="text-cyan-200/60 text-sm">¿La ubicación/estado coincide con lo que ves? Ayudanos a verificar.</div>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="mt-3 w-full rounded-xl border border-red-400/30 bg-red-400/10 hover:bg-red-400/15 p-4 text-left transition-colors"
+                  >
+                    <div className="text-red-100 font-semibold mb-1">🚨 Solicitar ayuda / escalar</div>
+                    <div className="text-red-200/60 text-sm">CTA a fuentes oficiales (por ahora placeholder, luego datos por región).</div>
+                  </button>
+
+                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="text-white/60 text-xs uppercase tracking-wider mb-2">Reportes recientes</div>
+                    <div className="text-white/50 text-sm">Próximamente: feed en tiempo real de reportes guardianes + mapa.</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : view === "news" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-white/90 font-semibold text-lg">📰 Noticias + redes</div>
+                <div className="text-white/45 text-sm mt-1">
+                  Orden: {isBreaking ? "breaking/urgente" : "actualizaciones"} → gobierno → bomberos → medios → sensación en redes.
+                </div>
+
+                {isBreaking ? (
+                  <div className="mt-4 rounded-xl border border-red-400/25 bg-red-400/10 p-4">
+                    <div className="text-red-100 text-xs uppercase tracking-wider">BREAKING / Urgente</div>
+                    <div className="mt-2 text-red-100/90 text-sm">
+                      Señal indica urgencia estimada. En producción, esto se valida con evacuaciones/cortes y partes oficiales.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-white/60 text-xs uppercase tracking-wider">Actualizaciones</div>
+                    <div className="mt-2 text-white/75 text-sm">
+                      No se detectó urgencia inmediata por señal. Se muestran fuentes y contexto; el orden prioriza oficiales.
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4 grid grid-cols-1 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-white/80 text-sm font-semibold">Gobierno (primero)</div>
+                      <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge("government").cls].join(" ")}>
+                        {sourceBadge("government").label}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-3">
+                      {newsItems.filter((n) => n.kind === "government").map((n) => (
+                        <NewsCard key={n.id} item={n} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-white/80 text-sm font-semibold">Bomberos (segundo)</div>
+                      <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge("firefighters").cls].join(" ")}>
+                        {sourceBadge("firefighters").label}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-3">
+                      {newsItems.filter((n) => n.kind === "firefighters").map((n) => (
+                        <NewsCard key={n.id} item={n} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-white/80 text-sm font-semibold">Medios (tercero)</div>
+                      <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge("media").cls].join(" ")}>
+                        {sourceBadge("media").label}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-3">
+                      {newsItems.filter((n) => n.kind === "media").map((n) => (
+                        <NewsCard key={n.id} item={n} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-white/60 text-xs uppercase tracking-wider">Sensación en redes</div>
+                  <div className="mt-2 text-white/70 text-sm">
+                    Placeholder UI: citas/observaciones. Luego: contador + mapa de calor social + reels/videos.
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <SocialQuote who="Vecino/a (simulado)" text="Se ve una columna de humo hacia el oeste. El viento cambió hace unos minutos." />
+                    <SocialQuote who="Cuenta local (simulado)" text="Piden no circular por el acceso rural. Se escuchan sirenas en la zona." />
+                  </div>
+                </div>
+
+                <div className="mt-3 text-white/35 text-xs">
+                  Próximo: Worker que normaliza RSS/APIs + deduplicación + adjunta multimedia.
+                </div>
+              </div>
+            </>
+          ) : view === "news_item" ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-white/90 font-semibold text-lg">🧾 Detalle de noticia</div>
+                    <div className="text-white/45 text-sm mt-1">Se abre dentro del panel (no salimos de BioPulse).</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="shrink-0 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
+                    onClick={backFromNewsItem}
+                  >
+                    Volver a noticias
+                  </button>
+                </div>
+
+                {selectedNews ? (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
+                    {selectedNews.imageUrl ? (
+                      <img src={selectedNews.imageUrl} alt="" className="h-56 w-full object-cover opacity-90" loading="lazy" />
+                    ) : (
+                      <div className="h-48 w-full bg-gradient-to-br from-white/10 to-white/0" />
+                    )}
+
+                    <div className="p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge(selectedNews.kind).cls].join(" ")}>
+                          {sourceBadge(selectedNews.kind).label}
+                        </span>
+                        <span className="text-white/40 text-[11px]">{timeAgoFrom(selectedNews.publishedAt)}</span>
+                        <span className="text-white/35 text-[11px]">•</span>
+                        <span className="text-white/55 text-[11px]">{selectedNews.sourceName}</span>
+                      </div>
+
+                      <div className="mt-2 text-white/95 text-lg font-semibold">{selectedNews.title}</div>
+                      <div className="mt-2 text-white/70 text-sm">{selectedNews.summary}</div>
+
+                      <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-white/60 text-xs uppercase tracking-wider">Contenido</div>
+                        <div className="mt-2 text-white/80 text-sm leading-relaxed whitespace-pre-line">
+                          {selectedNews.body}
+                        </div>
+                      </div>
+
+                      {selectedNews.videoUrl ? (
+                        <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
+                          <div className="text-white/60 text-xs uppercase tracking-wider">Video</div>
+                          <div className="mt-2 text-white/70 text-sm">
+                            (Placeholder) Acá embebemos reels/videos cuando exista URL segura o proxy.
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {selectedNews.url ? (
+                        <a
+                          className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
+                          href={selectedNews.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Abrir fuente externa
+                          <span className="text-white/40 text-xs">(opcional)</span>
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">
+                    No se encontró la noticia seleccionada.
+                  </div>
+                )}
+              </div>
+            </>
           ) : null}
         </div>
 
@@ -1120,4 +1720,6 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(modal, document.body) : null;
 }
