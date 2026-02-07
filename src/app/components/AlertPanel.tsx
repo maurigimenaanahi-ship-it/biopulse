@@ -76,6 +76,14 @@ function statusLabel(s?: EnvironmentalEvent["status"]) {
   }
 }
 
+function isFiniteNumber(x: unknown): x is number {
+  return typeof x === "number" && Number.isFinite(x);
+}
+
+function fmtCoord(x: unknown, digits = 4) {
+  return isFiniteNumber(x) ? x.toFixed(digits) : "—";
+}
+
 function fallbackSummary(ev: EnvironmentalEvent) {
   const cat = categoryLabels[ev.category] ?? ev.category;
   const sev = ev.severity;
@@ -99,14 +107,6 @@ function fallbackSummary(ev: EnvironmentalEvent) {
   }
 
   return parts.join(" ");
-}
-
-function isFiniteNumber(x: unknown): x is number {
-  return typeof x === "number" && Number.isFinite(x);
-}
-
-function fmtCoord(x: unknown, digits = 4) {
-  return isFiniteNumber(x) ? x.toFixed(digits) : "—";
 }
 
 // ===== Extract helpers (Trend / FRP / detections) =====
@@ -142,44 +142,6 @@ function trendBadgeStyle(label?: string) {
   return "border-white/10 bg-white/5 text-white/75";
 }
 
-// ===== Lectura del evento (humana) =====
-type Trend = "intensifying" | "stable" | "weakening" | string;
-
-function intensityHuman(frpMax?: number) {
-  if (typeof frpMax !== "number" || !Number.isFinite(frpMax)) return "—";
-  if (frpMax >= 80) return "Muy alta";
-  if (frpMax >= 40) return "Alta";
-  if (frpMax >= 15) return "Moderada";
-  return "Baja";
-}
-
-function activityHuman(detections?: number, trend?: Trend, status?: any) {
-  const t = (trend ?? "").toLowerCase();
-  const s = (status ?? "").toLowerCase();
-
-  if (s === "escalating" || t === "intensifying") return "En expansión";
-  if (s === "stabilizing" || t === "stable") return "Sostenida";
-  if (t === "weakening") return "En retroceso";
-
-  if (typeof detections === "number" && Number.isFinite(detections)) {
-    if (detections >= 20) return "Muy activa";
-    if (detections >= 8) return "Activa";
-    if (detections >= 3) return "Leve";
-    return "Débil";
-  }
-  return "—";
-}
-
-function stateHuman(status?: any) {
-  const s = (status ?? "").toLowerCase();
-  if (s === "escalating") return "Escalando";
-  if (s === "stabilizing") return "Estabilizándose";
-  if (s === "contained") return "Contenido";
-  if (s === "resolved") return "Resuelto";
-  if (s === "active") return "Activo";
-  return "Activo";
-}
-
 // ===== Breaking (auto) =====
 type BreakingLevel = "urgent" | "warning";
 type BreakingInfo = {
@@ -202,7 +164,8 @@ function computeBreaking(ev: EnvironmentalEvent, ops: ExtractedOps): BreakingInf
   const isCritical = sev === "critical";
   const isHigh = sev === "high";
   const escalando = status === "escalating" || trend === "intensifying";
-  const pocoContenible = (typeof ops.frpMax === "number" && ops.frpMax >= 40) || (typeof ops.detections === "number" && ops.detections >= 12);
+  const pocoContenible =
+    (typeof ops.frpMax === "number" && ops.frpMax >= 40) || (typeof ops.detections === "number" && ops.detections >= 12);
 
   if (evacSeria) reasons.push("Evacuación");
   if (isCritical) reasons.push("Severidad crítica");
@@ -259,12 +222,8 @@ function BreakingBar(props: { info: BreakingInfo; onGoNews?: () => void }) {
     <div className={["rounded-2xl border", border, bg, "p-4"].join(" ")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className={["text-xs uppercase tracking-wider", text1].join(" ")}>
-            {info.headline ?? "BREAKING"}
-          </div>
-          <div className={["mt-2 text-sm leading-relaxed", text2].join(" ")}>
-            {info.detail ?? "Situación relevante detectada."}
-          </div>
+          <div className={["text-xs uppercase tracking-wider", text1].join(" ")}>{info.headline ?? "BREAKING"}</div>
+          <div className={["mt-2 text-sm leading-relaxed", text2].join(" ")}>{info.detail ?? "Situación relevante detectada."}</div>
 
           {info.reasons?.length ? (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -300,6 +259,376 @@ function BreakingBar(props: { info: BreakingInfo; onGoNews?: () => void }) {
       </div>
     </div>
   );
+}
+
+// ===== News model (cable-ready) =====
+type NewsSourceGroup = "government" | "fire" | "media" | "social";
+type NewsPriority = "breaking" | "normal";
+type NewsMedia =
+  | { kind: "none" }
+  | { kind: "image"; thumbUrl: string; mediaUrl?: string }
+  | { kind: "video"; thumbUrl: string; mediaUrl?: string };
+
+type NewsItem = {
+  id: string;
+  sourceGroup: NewsSourceGroup;
+  priority: NewsPriority;
+  publisherName: string;
+  title: string;
+  summary: string;
+  content?: string;
+  publishedAt: Date;
+  url?: string;
+  media: NewsMedia;
+};
+
+function groupLabel(g: NewsSourceGroup) {
+  if (g === "government") return "Gobierno";
+  if (g === "fire") return "Bomberos";
+  if (g === "media") return "Medios";
+  return "Redes";
+}
+
+function groupStyle(g: NewsSourceGroup) {
+  if (g === "government") return { border: "border-emerald-400/25", bg: "bg-emerald-400/10", text: "text-emerald-100" };
+  if (g === "fire") return { border: "border-red-400/25", bg: "bg-red-400/10", text: "text-red-100" };
+  if (g === "media") return { border: "border-cyan-400/25", bg: "bg-cyan-400/10", text: "text-cyan-100" };
+  return { border: "border-white/10", bg: "bg-white/5", text: "text-white/85" };
+}
+
+// Thumbnails: usamos placeholders estables (no dependen de internet). Luego se reemplazan por URLs reales.
+const PLACEHOLDER_GOV =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' x2='1'><stop offset='0' stop-color='%2310643a'/><stop offset='1' stop-color='%230a0f1a'/></linearGradient></defs><rect width='100%25' height='100%25' fill='url(%23g)'/><text x='50%25' y='50%25' fill='rgba(255,255,255,0.75)' font-size='28' font-family='Arial' text-anchor='middle'>COMUNICADO OFICIAL</text></svg>";
+const PLACEHOLDER_FIRE =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' x2='1'><stop offset='0' stop-color='%23b91c1c'/><stop offset='1' stop-color='%230a0f1a'/></linearGradient></defs><rect width='100%25' height='100%25' fill='url(%23g)'/><text x='50%25' y='50%25' fill='rgba(255,255,255,0.75)' font-size='28' font-family='Arial' text-anchor='middle'>PARTE OPERATIVO</text></svg>";
+const PLACEHOLDER_MEDIA =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><defs><linearGradient id='g' x1='0' x2='1'><stop offset='0' stop-color='%230ea5e9'/><stop offset='1' stop-color='%230a0f1a'/></linearGradient></defs><rect width='100%25' height='100%25' fill='url(%23g)'/><text x='50%25' y='50%25' fill='rgba(255,255,255,0.75)' font-size='28' font-family='Arial' text-anchor='middle'>COBERTURA</text></svg>";
+
+function buildMockNews(ev: EnvironmentalEvent, ops: ExtractedOps): NewsItem[] {
+  const now = Date.now();
+  const loc = ev.location || "zona afectada";
+  const st = statusLabel(ev.status);
+  const sev = (ev.severity ?? "").toUpperCase();
+  const trend = ops.trendLabel ? ops.trendLabel.toUpperCase() : "—";
+  const evac = ev.evacuationLevel ? ev.evacuationLevel.toUpperCase() : "—";
+
+  const mkId = (g: NewsSourceGroup, i: number) => `${ev.id}:${g}:${i}`;
+
+  const gov: NewsItem[] = [
+    {
+      id: mkId("government", 1),
+      sourceGroup: "government",
+      priority: ev.evacuationLevel ? "breaking" : "normal",
+      publisherName: "Autoridad local / Protección Civil",
+      title: ev.evacuationLevel ? `Evacuación ${evac} en ${loc}` : `Actualización oficial: situación ${st} en ${loc}`,
+      summary: ev.evacuationLevel
+        ? `Se informa evacuación ${evac} en áreas cercanas. Seguir canales oficiales y evitar circular.`
+        : `Se emite actualización oficial: estado ${st}, severidad ${sev}, tendencia ${trend}.`,
+      content:
+        `Resumen:\n` +
+        `• Ubicación: ${loc}\n` +
+        `• Estado: ${st}\n` +
+        `• Severidad: ${sev}\n` +
+        `• Tendencia: ${trend}\n` +
+        `• Evacuación: ${evac}\n\n` +
+        `Recomendaciones:\n` +
+        `• Evitar acercarse al área.\n` +
+        `• Preparar documentación/medicación si corresponde.\n` +
+        `• Priorizar información verificada.\n`,
+      publishedAt: new Date(now - 22 * 60 * 1000),
+      url: undefined,
+      media: { kind: "image", thumbUrl: PLACEHOLDER_GOV },
+    },
+    {
+      id: mkId("government", 2),
+      sourceGroup: "government",
+      priority: "normal",
+      publisherName: "Municipio / Gobierno",
+      title: `Puntos de información y líneas de asistencia para ${loc}`,
+      summary: `Se difunden canales de consulta, horarios de atención y recomendaciones preventivas.`,
+      content:
+        `Información útil:\n` +
+        `• Líneas de consulta (placeholder)\n` +
+        `• Centros de evacuación (placeholder)\n` +
+        `• Estado de rutas (placeholder)\n\n` +
+        `Nota: esta sección se conectará a fuentes reales por región.\n`,
+      publishedAt: new Date(now - 58 * 60 * 1000),
+      url: undefined,
+      media: { kind: "image", thumbUrl: PLACEHOLDER_GOV },
+    },
+  ];
+
+  const fire: NewsItem[] = [
+    {
+      id: mkId("fire", 1),
+      sourceGroup: "fire",
+      priority: (ev.severity === "critical" || ev.status === "escalating") ? "breaking" : "normal",
+      publisherName: "Bomberos / Brigada",
+      title: `Parte operativo: ${st} (${sev}) • ${loc}`,
+      summary: `Reporte operativo: recursos desplegados, perímetro preliminar y condiciones relevantes (viento/humedad).`,
+      content:
+        `Parte operativo (placeholder):\n` +
+        `• Recursos: dotaciones + logística (placeholder)\n` +
+        `• Perímetro: preliminar (placeholder)\n` +
+        `• Condiciones: viento ${metric(ev.windSpeed, " km/h")} • humedad ${metric(ev.humidity, "%")}\n` +
+        `• Observación: tendencia ${trend}\n\n` +
+        `Este feed se conectará a partes oficiales cuando estén disponibles.\n`,
+      publishedAt: new Date(now - 15 * 60 * 1000),
+      url: undefined,
+      media: { kind: "image", thumbUrl: PLACEHOLDER_FIRE },
+    },
+    {
+      id: mkId("fire", 2),
+      sourceGroup: "fire",
+      priority: "normal",
+      publisherName: "Coordinación operativa",
+      title: `Recomendaciones de seguridad para la población en ${loc}`,
+      summary: `Cómo actuar ante humo, cenizas, cortes y desplazamientos. Recomendaciones prácticas.`,
+      content:
+        `Recomendaciones (placeholder):\n` +
+        `• Evitar exposición al humo.\n` +
+        `• Mantener ventanas cerradas si hay ceniza.\n` +
+        `• Preparar kit básico.\n` +
+        `• Verificar rutas habilitadas.\n`,
+      publishedAt: new Date(now - 1 * 60 * 60 * 1000 - 12 * 60 * 1000),
+      url: undefined,
+      media: { kind: "image", thumbUrl: PLACEHOLDER_FIRE },
+    },
+  ];
+
+  const media: NewsItem[] = [
+    {
+      id: mkId("media", 1),
+      sourceGroup: "media",
+      priority: "normal",
+      publisherName: "Medio regional",
+      title: `Incidente en ${loc}: qué se sabe hasta ahora`,
+      summary: `Síntesis de situación, zonas afectadas y evolución reciente. (Bajada corta para consumo rápido).`,
+      content:
+        `Resumen ampliado (placeholder):\n` +
+        `• Detección satelital reciente: ${typeof ops.detections === "number" ? ops.detections : "—"} señales\n` +
+        `• FRP max: ${typeof ops.frpMax === "number" ? ops.frpMax.toFixed(2) : "—"}\n` +
+        `• FRP sum: ${typeof ops.frpSum === "number" ? ops.frpSum.toFixed(2) : "—"}\n\n` +
+        `BioPulse muestra un extracto para evitar que la persona “abandone” la app.\n`,
+      publishedAt: new Date(now - 36 * 60 * 1000),
+      url: undefined,
+      media: { kind: "image", thumbUrl: PLACEHOLDER_MEDIA },
+    },
+    {
+      id: mkId("media", 2),
+      sourceGroup: "media",
+      priority: "normal",
+      publisherName: "Cobertura audiovisual",
+      title: `Video: imágenes desde zonas cercanas (placeholder)`,
+      summary: `Contenido audiovisual referencial. En el futuro se integrarán videos embebibles o proxyeados.`,
+      content:
+        `Video (placeholder):\n` +
+        `• En esta etapa no embebemos iframes externos por CORS/seguridad.\n` +
+        `• Cuando conectemos fuentes, intentaremos embed seguro o proxy con Worker.\n`,
+      publishedAt: new Date(now - 2 * 60 * 60),
+      url: undefined,
+      media: { kind: "video", thumbUrl: PLACEHOLDER_MEDIA, mediaUrl: undefined },
+    },
+  ];
+
+  // Social (no es “noticia” formal): lo usamos en bloque aparte, pero lo dejamos como NewsItem cable-ready.
+  const social: NewsItem[] = [
+    {
+      id: mkId("social", 1),
+      sourceGroup: "social",
+      priority: "normal",
+      publisherName: "@vecina_alerta",
+      title: `“Se ve humo hacia el oeste, cambió el viento”`,
+      summary: `Testimonio breve (no verificado). Sirve como señal social, no como verdad.`,
+      publishedAt: new Date(now - 8 * 60 * 1000),
+      url: undefined,
+      media: { kind: "none" },
+    },
+    {
+      id: mkId("social", 2),
+      sourceGroup: "social",
+      priority: "normal",
+      publisherName: "@ruta_info",
+      title: `“Tránsito lento en acceso principal”`,
+      summary: `Reporte ciudadano (no verificado). Se validará con guardianes + fuentes oficiales.`,
+      publishedAt: new Date(now - 18 * 60 * 1000),
+      url: undefined,
+      media: { kind: "none" },
+    },
+  ];
+
+  return [...gov, ...fire, ...media, ...social];
+}
+
+function byGroup(items: NewsItem[], g: NewsSourceGroup) {
+  return items.filter((x) => x.sourceGroup === g).sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+}
+
+function pickBreakingFromNews(items: NewsItem[]) {
+  return items.filter((x) => x.priority === "breaking").sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+}
+
+function NewsThumb(props: { item: NewsItem }) {
+  const { item } = props;
+  const hasThumb = item.media.kind !== "none" && !!item.media.thumbUrl;
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/20">
+      {hasThumb ? (
+        <img src={item.media.thumbUrl} alt="" className="h-28 w-full object-cover opacity-90" loading="lazy" />
+      ) : (
+        <div className="h-28 w-full bg-white/5" />
+      )}
+
+      {item.media.kind === "video" ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-white/90 text-xs">▶ VIDEO</div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function NewsCard(props: { item: NewsItem; onOpen: (id: string) => void }) {
+  const { item, onOpen } = props;
+  const badge = groupStyle(item.sourceGroup);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+      <NewsThumb item={item} />
+
+      <div className="mt-3 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-white/90 font-semibold text-sm leading-snug">{item.title}</div>
+          <div className="mt-1 text-white/60 text-xs line-clamp-2">{item.summary}</div>
+        </div>
+
+        <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badge.border, badge.bg, badge.text].join(" ")}>
+          {groupLabel(item.sourceGroup)}
+        </span>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="text-white/35 text-[11px]">
+          {item.publisherName} • {timeAgoFrom(item.publishedAt)}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onOpen(item.id)}
+          className="rounded-xl border border-white/10 bg-black/20 hover:bg-black/30 px-3 py-2 text-xs text-white/85 transition-colors"
+        >
+          Ver más
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NewsDetail(props: { item: NewsItem; onBack: () => void }) {
+  const { item, onBack } = props;
+  const badge = groupStyle(item.sourceGroup);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-xl border border-white/10 bg-black/20 hover:bg-black/30 px-3 py-2 text-xs text-white/85 transition-colors"
+        >
+          ← Volver a noticias
+        </button>
+
+        <span className={["rounded-full border px-2 py-0.5 text-[11px]", badge.border, badge.bg, badge.text].join(" ")}>
+          {groupLabel(item.sourceGroup)}
+        </span>
+      </div>
+
+      <div className="mt-3 text-white/90 font-semibold text-lg leading-snug">{item.title}</div>
+      <div className="mt-1 text-white/45 text-xs">
+        {item.publisherName} • {formatTimeUTC(item.publishedAt)}
+      </div>
+
+      {item.media.kind !== "none" ? (
+        <div className="mt-4">
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+            <img src={item.media.thumbUrl} alt="" className="h-60 w-full object-cover opacity-95" loading="lazy" />
+          </div>
+
+          {item.media.kind === "video" ? (
+            <div className="mt-2 text-white/40 text-xs">
+              Video: (por ahora no embebemos fuentes externas por CORS/seguridad). Cuando conectemos fuentes reales, intentaremos embed seguro o proxy con Worker.
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
+        <div className="text-white/60 text-xs uppercase tracking-wider">Resumen</div>
+        <div className="mt-2 text-white/85 text-sm leading-relaxed">{item.summary}</div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+        <div className="text-white/60 text-xs uppercase tracking-wider">Detalle</div>
+        <div className="mt-2 text-white/80 text-sm leading-relaxed whitespace-pre-line">
+          {item.content ?? "Contenido completo no disponible en esta etapa."}
+        </div>
+      </div>
+
+      {item.url ? (
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs text-white/85 transition-colors"
+        >
+          Abrir fuente externa
+          <span className="text-white/35">(opcional)</span>
+        </a>
+      ) : (
+        <div className="mt-3 text-white/35 text-xs">Fuente externa: (se conectará cuando estén las APIs / RSS por región).</div>
+      )}
+    </div>
+  );
+}
+
+// ===== Lectura del evento (humana) =====
+type Trend = "intensifying" | "stable" | "weakening" | string;
+
+function intensityHuman(frpMax?: number) {
+  if (typeof frpMax !== "number" || !Number.isFinite(frpMax)) return "—";
+  if (frpMax >= 80) return "Muy alta";
+  if (frpMax >= 40) return "Alta";
+  if (frpMax >= 15) return "Moderada";
+  return "Baja";
+}
+
+function activityHuman(detections?: number, trend?: Trend, status?: any) {
+  const t = (trend ?? "").toLowerCase();
+  const s = (status ?? "").toLowerCase();
+
+  if (s === "escalating" || t === "intensifying") return "En expansión";
+  if (s === "stabilizing" || t === "stable") return "Sostenida";
+  if (t === "weakening") return "En retroceso";
+
+  if (typeof detections === "number" && Number.isFinite(detections)) {
+    if (detections >= 20) return "Muy activa";
+    if (detections >= 8) return "Activa";
+    if (detections >= 3) return "Leve";
+    return "Débil";
+  }
+  return "—";
+}
+
+function stateHuman(status?: any) {
+  const s = (status ?? "").toLowerCase();
+  if (s === "escalating") return "Escalando";
+  if (s === "stabilizing") return "Estabilizándose";
+  if (s === "contained") return "Contenido";
+  if (s === "resolved") return "Resuelto";
+  if (s === "active") return "Activo";
+  return "Activo";
 }
 
 // ===== Gauge (Microsoft-ish) =====
@@ -612,16 +941,7 @@ function CardButton(props: {
   );
 }
 
-type PanelView =
-  | "main"
-  | "ops"
-  | "satellite"
-  | "cameras"
-  | "environment"
-  | "impact"
-  | "insight"
-  | "guardian"
-  | "news";
+type PanelView = "main" | "ops" | "satellite" | "cameras" | "environment" | "impact" | "insight" | "guardian" | "news";
 
 export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
@@ -633,6 +953,9 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   // Weather state
   const [weatherOps, setWeatherOps] = useState<WeatherOps | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
+
+  // News state (sub-vista interna)
+  const [newsSelectedId, setNewsSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!event) return;
@@ -650,6 +973,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
     setView("main");
     setWeatherOps(null);
     setWeatherLoading(false);
+    setNewsSelectedId(null);
   }, [event?.id]);
 
   const header = useMemo(() => {
@@ -667,7 +991,23 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   }, [event?.id]);
 
   const ops = useMemo(() => extractOpsFromDescription(event?.description), [event?.id]);
-  const breaking = useMemo(() => (event ? computeBreaking(event, ops) : { active: false }), [event?.id, ops.trendLabel, ops.frpMax, ops.frpSum, ops.detections]);
+  const breaking = useMemo(
+    () => (event ? computeBreaking(event, ops) : { active: false }),
+    [event?.id, ops.trendLabel, ops.frpMax, ops.frpSum, ops.detections]
+  );
+
+  // News (mock hoy, real mañana)
+  const newsItems = useMemo(() => (event ? buildMockNews(event, ops) : []), [event?.id, ops.trendLabel, ops.frpMax, ops.frpSum, ops.detections]);
+  const newsGov = useMemo(() => byGroup(newsItems, "government"), [newsItems]);
+  const newsFire = useMemo(() => byGroup(newsItems, "fire"), [newsItems]);
+  const newsMedia = useMemo(() => byGroup(newsItems, "media"), [newsItems]);
+  const socialItems = useMemo(() => byGroup(newsItems, "social"), [newsItems]);
+  const newsBreaking = useMemo(() => pickBreakingFromNews(newsItems), [newsItems]);
+
+  const newsSelected = useMemo(() => {
+    if (!newsSelectedId) return null;
+    return newsItems.find((x) => x.id === newsSelectedId) ?? null;
+  }, [newsSelectedId, newsItems]);
 
   // Weather fetch
   useEffect(() => {
@@ -735,8 +1075,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
   const utc = formatTimeUTC(event.timestamp);
   const lastSignalAgo = timeAgoFrom(event.timestamp);
 
-  const opsBadge =
-    ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
+  const opsBadge = ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
 
   const isCompact = view !== "main";
 
@@ -764,7 +1103,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           "max-h-[88vh]",
           "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
           "backdrop-blur-md",
-          "flex flex-col overflow-hidden", // ✅ scroll fix (estructura)
+          "flex flex-col overflow-hidden",
         ].join(" ")}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -776,17 +1115,15 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         />
 
         {/* HEADER */}
-        <div
-          className={[
-            "relative border-b border-white/10 bg-black/10 shrink-0",
-            isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6",
-          ].join(" ")}
-        >
+        <div className={["relative border-b border-white/10 bg-black/10 shrink-0", isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6"].join(" ")}>
           <div className="flex items-center justify-between gap-2">
             {isCompact ? (
               <button
                 type="button"
-                onClick={() => setView("main")}
+                onClick={() => {
+                  setView("main");
+                  setNewsSelectedId(null);
+                }}
                 className={[
                   "h-9 px-3 rounded-xl",
                   "border border-white/10 bg-white/5",
@@ -918,7 +1255,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
           )}
         </div>
 
-        {/* Content (✅ scroll fix real: flex-1 + min-h-0) */}
+        {/* Content */}
         <div className="flex-1 min-h-0 overflow-y-auto p-5 md:p-6">
           {/* Breaking visible en HOME y en NOTICIAS */}
           {(view === "main" || view === "news") && breaking.active ? (
@@ -1000,7 +1337,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <CardButton
                   title="Noticias + redes"
-                  subtitle="Breaking automático arriba • Luego oficiales, bomberos, medios • Sensación social."
+                  subtitle="Cards con imagen + bajada • “Ver más” abre noticia completa adentro."
                   icon="📰"
                   rightBadge={{ text: "BETA", className: "border-white/10 bg-white/5 text-white/80" }}
                   onClick={() => setView("news")}
@@ -1082,9 +1419,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                         </p>
                       </div>
 
-                      <div className="mt-3 text-white/35 text-[11px]">
-                        Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
-                      </div>
+                      <div className="mt-3 text-white/35 text-[11px]">Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.</div>
                     </div>
                   );
                 })()}
@@ -1097,7 +1432,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     <GaugeRing
                       label="Intensidad"
                       value={ops.frpMax}
-                      max={frpScale}
+                      max={120}
                       valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP max` : "—")}
                       hint="Radiative Power"
                       humanLine={typeof ops.frpMax === "number" ? `Lectura: ${intensityHuman(ops.frpMax)}` : "Sin FRP max disponible"}
@@ -1105,7 +1440,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     <GaugeRing
                       label="Actividad"
                       value={ops.detections}
-                      max={detScale}
+                      max={25}
                       valueFmt={(v) => (typeof v === "number" ? `${v} detections` : "—")}
                       hint="Señales VIIRS"
                       humanLine={
@@ -1117,7 +1452,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     <GaugeRing
                       label="Energía total"
                       value={ops.frpSum}
-                      max={sumScale}
+                      max={250}
                       valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP sum` : "—")}
                       hint="Acumulado"
                       humanLine={
@@ -1417,9 +1752,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
 
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
-                  <div className="mt-2 text-white/80 text-sm">
-                    Mapa de riesgo + explicaciones por factor (viento, humedad, combustible, topografía, cercanía a población).
-                  </div>
+                  <div className="mt-2 text-white/80 text-sm">Mapa de riesgo + explicaciones por factor (viento, humedad, combustible, topografía, cercanía a población).</div>
                 </div>
               </div>
             </>
@@ -1460,28 +1793,103 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             <>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="text-white/90 font-semibold text-lg">📰 Noticias + redes</div>
-                <div className="text-white/45 text-sm mt-1">Orden: breaking/urgente → gobierno → bomberos → medios → sensación en redes.</div>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">Gobierno</div>
-                    <div className="mt-2 text-white/70 text-sm">RSS/Comunicados oficiales (primero). (Placeholder)</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">Bomberos</div>
-                    <div className="mt-2 text-white/70 text-sm">Partes operativos, perímetros, recursos (segundo). (Placeholder)</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">Medios</div>
-                    <div className="mt-2 text-white/70 text-sm">Noticias, reportes, testimonios (tercero). (Placeholder)</div>
-                  </div>
+                <div className="text-white/45 text-sm mt-1">
+                  Cards con imagen + bajada. <span className="text-white/60">“Ver más”</span> abre noticia completa adentro (sin abandonar BioPulse).
                 </div>
 
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/60 text-xs uppercase tracking-wider">Sensación en redes</div>
-                  <div className="mt-2 text-white/70 text-sm">
-                    Feed de citas + (más adelante) contador + mapa de calor social. Por ahora placeholder UI.
+                {/* Breaking interno del feed (si hay items breaking) */}
+                {newsBreaking.length ? (
+                  <div className="mt-4 rounded-2xl border border-red-400/25 bg-red-400/10 p-4">
+                    <div className="text-red-100 text-xs uppercase tracking-wider">BREAKING / Urgente (desde fuentes)</div>
+                    <div className="mt-2 text-red-100/90 text-sm">
+                      {newsBreaking[0].title}
+                    </div>
+                    <div className="mt-1 text-red-100/70 text-xs">
+                      {newsBreaking[0].publisherName} • {timeAgoFrom(newsBreaking[0].publishedAt)}
+                    </div>
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setNewsSelectedId(newsBreaking[0].id)}
+                        className="rounded-xl border border-white/10 bg-black/20 hover:bg-black/30 px-3 py-2 text-xs text-white/85 transition-colors"
+                      >
+                        Ver más
+                      </button>
+                    </div>
                   </div>
+                ) : null}
+
+                <div className="mt-4">
+                  {newsSelected ? (
+                    <NewsDetail item={newsSelected} onBack={() => setNewsSelectedId(null)} />
+                  ) : (
+                    <>
+                      {/* 3 columnas en desktop */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-white/85 font-semibold text-sm">Gobierno</div>
+                            <span className="text-white/35 text-xs">{newsGov.length}</span>
+                          </div>
+                          <div className="mt-3 space-y-3">
+                            {newsGov.map((it) => (
+                              <NewsCard key={it.id} item={it} onOpen={setNewsSelectedId} />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-white/85 font-semibold text-sm">Bomberos</div>
+                            <span className="text-white/35 text-xs">{newsFire.length}</span>
+                          </div>
+                          <div className="mt-3 space-y-3">
+                            {newsFire.map((it) => (
+                              <NewsCard key={it.id} item={it} onOpen={setNewsSelectedId} />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-white/85 font-semibold text-sm">Medios</div>
+                            <span className="text-white/35 text-xs">{newsMedia.length}</span>
+                          </div>
+                          <div className="mt-3 space-y-3">
+                            {newsMedia.map((it) => (
+                              <NewsCard key={it.id} item={it} onOpen={setNewsSelectedId} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Social */}
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="text-white/85 font-semibold text-sm">Sensación en redes</div>
+                          <span className="text-white/35 text-xs">menciones (placeholder): {Math.max(12, socialItems.length * 9)}</span>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {socialItems.map((s) => (
+                            <div key={s.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="text-white/80 text-sm leading-relaxed">“{s.title}”</div>
+                              <div className="mt-2 text-white/35 text-xs">
+                                {s.publisherName} • {timeAgoFrom(s.publishedAt)} • <span className="text-white/40">no verificado</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                          <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
+                          <div className="mt-1 text-white/70 text-sm">
+                            Contador real + mapa de calor social (por región) + validación por guardianes.
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </>
