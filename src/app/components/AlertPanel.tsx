@@ -1,596 +1,49 @@
-import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { EnvironmentalEvent } from "@/data/events";
-import { categoryLabels, categoryColors } from "@/data/events";
+import {
+  X,
+  CornerUpLeft,
+  AlertTriangle,
+  Flame,
+  Activity,
+  Gauge,
+  CloudRain,
+  Wind,
+  Droplets,
+  Thermometer,
+  Newspaper,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 
-// ===== cameras registry + matching =====
-import { cameraRegistry } from "@/data/cameras";
-import { findNearestCameras } from "@/app/lib/findNearestCameras";
-import type { CameraRecordV1 } from "@/data/cameras/types";
-
-// ===== favorites (seguir alerta) =====
-const FAV_KEY = "biopulse:followed-alerts";
-function readFollowed(): string[] {
-  try {
-    const raw = localStorage.getItem(FAV_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
-function toggleFollow(id: string): string[] {
-  const curr = new Set(readFollowed());
-  if (curr.has(id)) curr.delete(id);
-  else curr.add(id);
-  const next = Array.from(curr);
-  localStorage.setItem(FAV_KEY, JSON.stringify(next));
-  return next;
-}
-
-// ===== helpers =====
-function formatTimeUTC(d: Date) {
-  const date = d instanceof Date ? d : new Date(d as any);
-  return date.toUTCString();
-}
-
-function timeAgoFrom(d: Date) {
-  const t = d instanceof Date ? d.getTime() : new Date(d as any).getTime();
-  const diff = Date.now() - t;
-  const sec = Math.max(0, Math.floor(diff / 1000));
-  const min = Math.floor(sec / 60);
-  const hr = Math.floor(min / 60);
-  const day = Math.floor(hr / 24);
-
-  if (day > 0) return `hace ${day} d`;
-  if (hr > 0) return `hace ${hr} h`;
-  if (min > 0) return `hace ${min} min`;
-  return `recién`;
-}
-
-function km2(n: number) {
-  if (!Number.isFinite(n)) return "—";
-  if (n >= 1000) return `≈ ${(n / 1000).toFixed(1)}k km²`;
-  return `≈ ${Math.round(n)} km²`;
-}
-
-function metric(value?: number, suffix = "") {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
-  return `${Math.round(value)}${suffix}`;
-}
-
-function statusLabel(s?: EnvironmentalEvent["status"]) {
-  switch (s) {
-    case "active":
-      return "Active";
-    case "contained":
-      return "Contained";
-    case "escalating":
-      return "Escalating";
-    case "stabilizing":
-      return "Stabilizing";
-    case "resolved":
-      return "Resolved";
-    default:
-      return "Active";
-  }
-}
-
-function fallbackSummary(ev: EnvironmentalEvent) {
-  const cat = categoryLabels[ev.category] ?? ev.category;
-  const sev = ev.severity;
-
-  const parts: string[] = [];
-  parts.push(`A ${sev} intensity ${cat.toLowerCase()} event was detected in ${ev.location}.`);
-
-  const cond: string[] = [];
-  if (typeof ev.windSpeed === "number") cond.push(`wind ${Math.round(ev.windSpeed)} km/h`);
-  if (typeof ev.humidity === "number") cond.push(`humidity ${Math.round(ev.humidity)}%`);
-  if (typeof ev.temperature === "number") cond.push(`temperature ${Math.round(ev.temperature)}°C`);
-  if (typeof ev.waterLevel === "number") cond.push(`river level ${ev.waterLevel} m`);
-  if (typeof ev.airQualityIndex === "number") cond.push(`AQI ${ev.airQualityIndex}`);
-
-  if (cond.length) parts.push(`Current conditions: ${cond.join(" • ")}.`);
-
-  if (ev.severity === "critical" || ev.severity === "high") {
-    parts.push(`Risk of escalation is elevated. Continuous monitoring is recommended.`);
-  } else {
-    parts.push(`Monitoring continues as conditions evolve.`);
-  }
-
-  return parts.join(" ");
-}
-
-function isFiniteNumber(x: unknown): x is number {
-  return typeof x === "number" && Number.isFinite(x);
-}
-
-function fmtCoord(x: unknown, digits = 4) {
-  return isFiniteNumber(x) ? x.toFixed(digits) : "—";
-}
-
-// ===== Extract helpers (Trend / FRP / detections) =====
-type ExtractedOps = {
-  trendLabel?: string;
-  frpMax?: number;
-  frpSum?: number;
-  detections?: number;
+type AlertPanelProps = {
+  event: EnvironmentalEvent | null;
+  onClose: () => void;
 };
 
-function extractOpsFromDescription(desc?: string): ExtractedOps {
-  const out: ExtractedOps = {};
-  if (!desc || typeof desc !== "string") return out;
-
-  const mTrend = desc.match(/Trend:\s*([A-Za-z]+)/i);
-  if (mTrend?.[1]) out.trendLabel = mTrend[1].trim();
-
-  const mFrp = desc.match(
-    /FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i
-  );
-  if (mFrp?.[1]) out.frpMax = Number(mFrp[1]);
-  if (mFrp?.[2]) out.frpSum = Number(mFrp[2]);
-
-  const mDet = desc.match(/detected\s+([0-9]+)\s+fire\s+signals?/i);
-  if (mDet?.[1]) out.detections = Number(mDet[1]);
-
-  return out;
-}
-
-function trendBadgeStyle(label?: string) {
-  const t = (label ?? "").toLowerCase();
-  if (t === "intensifying") return "border-red-400/30 bg-red-400/15 text-red-100";
-  if (t === "weakening") return "border-emerald-400/30 bg-emerald-400/15 text-emerald-100";
-  if (t === "stable") return "border-amber-400/30 bg-amber-400/15 text-amber-100";
-  return "border-white/10 bg-white/5 text-white/75";
-}
-
-// ===== Lectura del evento (humana) =====
-type Trend = "intensifying" | "stable" | "weakening" | string;
-
-function intensityHuman(frpMax?: number) {
-  if (typeof frpMax !== "number" || !Number.isFinite(frpMax)) return "—";
-  if (frpMax >= 80) return "Muy alta";
-  if (frpMax >= 40) return "Alta";
-  if (frpMax >= 15) return "Moderada";
-  return "Baja";
-}
-
-function activityHuman(detections?: number, trend?: Trend, status?: any) {
-  const t = (trend ?? "").toLowerCase();
-  const s = (status ?? "").toLowerCase();
-
-  if (s === "escalating" || t === "intensifying") return "En expansión";
-  if (s === "stabilizing" || t === "stable") return "Sostenida";
-  if (t === "weakening") return "En retroceso";
-
-  if (typeof detections === "number" && Number.isFinite(detections)) {
-    if (detections >= 20) return "Muy activa";
-    if (detections >= 8) return "Activa";
-    if (detections >= 3) return "Leve";
-    return "Débil";
-  }
-  return "—";
-}
-
-function stateHuman(status?: any) {
-  const s = (status ?? "").toLowerCase();
-  if (s === "escalating") return "Escalando";
-  if (s === "stabilizing") return "Estabilizándose";
-  if (s === "contained") return "Contenido";
-  if (s === "resolved") return "Resuelto";
-  if (s === "active") return "Activo";
-  return "Activo";
-}
-
-// ===== Gauge (Microsoft-ish) =====
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
-}
-
-function pct(value?: number, maxForScale = 1) {
-  if (typeof value !== "number" || !Number.isFinite(value) || maxForScale <= 0) return 0;
-  return clamp((value / maxForScale) * 100, 0, 100);
-}
-
-function ringTone(p: number) {
-  if (p >= 80) return { stroke: "rgba(248,113,113,0.85)", glow: "rgba(248,113,113,0.20)" };
-  if (p >= 55) return { stroke: "rgba(251,146,60,0.85)", glow: "rgba(251,146,60,0.18)" };
-  if (p >= 30) return { stroke: "rgba(250,204,21,0.75)", glow: "rgba(250,204,21,0.12)" };
-  return { stroke: "rgba(110,231,183,0.75)", glow: "rgba(110,231,183,0.12)" };
-}
-
-function GaugeRing(props: {
-  label: string;
-  value?: number;
-  max: number;
-  valueFmt: (v?: number) => string;
-  hint?: string;
-  humanLine?: string;
-}) {
-  const { label, value, max, valueFmt, hint, humanLine } = props;
-  const p = pct(value, max);
-  const deg = (p / 100) * 270;
-  const tone = ringTone(p);
-
-  const bg = `conic-gradient(from 225deg, ${tone.stroke} 0deg ${deg}deg, rgba(255,255,255,0.10) ${deg}deg 270deg, rgba(255,255,255,0) 270deg 360deg)`;
-
-  const markerDeg = 225 + deg;
-  const rad = (markerDeg * Math.PI) / 180;
-  const r = 42;
-  const cx = 52;
-  const cy = 52;
-  const mx = cx + r * Math.cos(rad);
-  const my = cy + r * Math.sin(rad);
-
-  return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-white/75 text-xs uppercase tracking-wider">{label}</div>
-        {hint ? <div className="text-white/35 text-[11px]">{hint}</div> : null}
-      </div>
-
-      <div className="mt-3 flex items-center gap-4">
-        <div className="relative h-[104px] w-[104px] shrink-0">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ background: bg, filter: `drop-shadow(0 0 18px ${tone.glow})` }}
-          />
-          <div className="absolute inset-[10px] rounded-full bg-[#0a0f1a]/95 border border-white/10" />
-
-          <div
-            className="absolute h-2.5 w-2.5 rounded-full border border-white/30"
-            style={{
-              left: mx - 5,
-              top: my - 5,
-              background: "rgba(255,255,255,0.85)",
-              boxShadow: "0 0 10px rgba(255,255,255,0.12)",
-            }}
-          />
-
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-white/90 text-lg font-semibold leading-none">{Math.round(p)}</div>
-            <div className="text-white/35 text-[11px]">nivel</div>
-          </div>
-        </div>
-
-        <div className="min-w-0">
-          <div className="text-white/90 text-xl font-semibold">{valueFmt(value)}</div>
-          {humanLine ? <div className="mt-1 text-white/70 text-sm">{humanLine}</div> : null}
-          <div className="mt-2 text-white/35 text-[11px]">Base: señal satelital + escala operativa (0–{max}).</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ===== Weather (contexto operativo) =====
-type WeatherOps = {
-  windowLabel: string;
-  rainProbMaxPct?: number;
-  windMaxKmh?: number;
-  humidityMinPct?: number;
-  tempAvgC?: number;
-  narrative: string;
-};
-
-function round1(n?: number) {
-  return typeof n === "number" && Number.isFinite(n) ? Math.round(n * 10) / 10 : undefined;
-}
-
-function safeMax(arr?: Array<number | null>) {
-  const xs = (arr ?? []).filter((x): x is number => typeof x === "number" && Number.isFinite(x));
-  if (!xs.length) return undefined;
-  return Math.max(...xs);
-}
-
-function safeMin(arr?: Array<number | null>) {
-  const xs = (arr ?? []).filter((x): x is number => typeof x === "number" && Number.isFinite(x));
-  if (!xs.length) return undefined;
-  return Math.min(...xs);
-}
-
-function safeAvg(arr?: Array<number | null>) {
-  const xs = (arr ?? []).filter((x): x is number => typeof x === "number" && Number.isFinite(x));
-  if (!xs.length) return undefined;
-  const s = xs.reduce((a, b) => a + b, 0);
-  return s / xs.length;
-}
-
-function formatPct(n?: number) {
-  return typeof n === "number" && Number.isFinite(n) ? `${Math.round(n)}%` : "—";
-}
-function formatKmh(n?: number) {
-  return typeof n === "number" && Number.isFinite(n) ? `${Math.round(n)} km/h` : "—";
-}
-function formatC(n?: number) {
-  return typeof n === "number" && Number.isFinite(n) ? `${Math.round(n)}°C` : "—";
-}
-
-function weatherNarrative(input: {
-  rainProbMaxPct?: number;
-  windMaxKmh?: number;
-  humidityMinPct?: number;
-  tempAvgC?: number;
-  trendLabel?: string;
-}) {
-  const r = input.rainProbMaxPct;
-  const w = input.windMaxKmh;
-  const h = input.humidityMinPct;
-
-  const hasRain = typeof r === "number";
-  const hasWind = typeof w === "number";
-  const hasHum = typeof h === "number";
-
-  const rainHelp =
-    hasRain && r >= 60
-      ? "Se esperan lluvias con probabilidad alta: podrían ayudar a frenar el avance del fuego."
-      : hasRain && r >= 30
-      ? "Hay chances moderadas de lluvia: podrían aliviar parcialmente, pero no garantizan contención."
-      : hasRain
-      ? "Baja probabilidad de lluvia: el incendio podría sostenerse si las condiciones siguen secas."
-      : "Sin datos de lluvia por ahora.";
-
-  const windRisk =
-    hasWind && w >= 35
-      ? "Vientos fuertes: aumentan el riesgo de propagación y cambios bruscos de dirección."
-      : hasWind && w >= 20
-      ? "Viento moderado: puede favorecer el avance del frente si el combustible está seco."
-      : hasWind
-      ? "Viento débil: menor empuje para la propagación, aunque el fuego puede persistir."
-      : "Sin datos de viento por ahora.";
-
-  const dryness =
-    hasHum && h <= 25
-      ? "Aire muy seco: el entorno favorece ignición y reactivaciones."
-      : hasHum && h <= 40
-      ? "Humedad baja: condiciones favorables para mantener actividad del fuego."
-      : hasHum
-      ? "Humedad relativamente alta: podría ayudar a moderar la actividad."
-      : "Sin datos de humedad por ahora.";
-
-  const t = (input.trendLabel ?? "").toLowerCase();
-  const trendHint =
-    t === "intensifying"
-      ? "Además, la tendencia indica intensificación: conviene monitorear con más frecuencia."
-      : t === "weakening"
-      ? "La tendencia indica debilitamiento: aun así, pueden ocurrir rebrotes."
-      : t === "stable"
-      ? "La tendencia se mantiene estable: atención a cambios por viento/combustible."
-      : "";
-
-  return `${rainHelp} ${windRisk} ${dryness}${trendHint ? " " + trendHint : ""}`.trim();
-}
-
-async function fetchWeatherOps(lat: number, lon: number): Promise<WeatherOps | null> {
-  const url =
-    "https://api.open-meteo.com/v1/forecast" +
-    `?latitude=${encodeURIComponent(lat)}` +
-    `&longitude=${encodeURIComponent(lon)}` +
-    `&hourly=precipitation_probability,windspeed_10m,relativehumidity_2m,temperature_2m` +
-    `&forecast_days=2` +
-    `&timezone=UTC`;
-
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const data = await res.json();
-
-  const hourly = data?.hourly;
-  const times: string[] = hourly?.time ?? [];
-  const now = Date.now();
-
-  let i0 = 0;
-  for (let i = 0; i < times.length; i++) {
-    const t = new Date(times[i]).getTime();
-    if (Number.isFinite(t) && t >= now) {
-      i0 = i;
-      break;
-    }
-  }
-  const i1 = clamp(i0 + 12, i0, times.length);
-
-  const slice = (arr: Array<number | null> | undefined) => (arr ? arr.slice(i0, i1) : undefined);
-
-  const rainProbMaxPct = safeMax(slice(hourly?.precipitation_probability));
-  const windMaxKmh = round1(safeMax(slice(hourly?.windspeed_10m)));
-  const humidityMinPct = safeMin(slice(hourly?.relativehumidity_2m));
-  const tempAvgC = round1(safeAvg(slice(hourly?.temperature_2m)));
-
-  return {
-    windowLabel: "Próximas 12 h (UTC)",
-    rainProbMaxPct,
-    windMaxKmh,
-    humidityMinPct,
-    tempAvgC,
-    narrative: "",
-  };
-}
-
-// ===== Visual (cámaras) =====
-function formatDistanceKm(n: number) {
-  if (!Number.isFinite(n)) return "—";
-  if (n < 10) return `${n.toFixed(1)} km`;
-  return `${Math.round(n)} km`;
-}
-
-function cadenceLabel(cam: CameraRecordV1) {
-  const sec = cam.update?.expectedIntervalSec;
-  if (typeof sec === "number" && Number.isFinite(sec) && sec > 0) {
-    const min = Math.max(1, Math.round(sec / 60));
-    return `≈ cada ${min} min`;
-  }
-  return cam.mediaType === "stream" ? "STREAM" : "snapshot";
-}
-
-function cameraHref(cam: CameraRecordV1): { href?: string; label?: string; hint?: string } {
-  const f = cam.fetch;
-  if (f.kind === "image_url") return { href: f.url, label: "Abrir imagen", hint: "externo" };
-  if (f.kind === "stream_url") return { href: f.url, label: "Abrir stream", hint: "externo" };
-  if (f.kind === "html_embed") return { href: f.url, label: "Abrir fuente", hint: "externo" };
-  if (f.kind === "provider_api") return { href: undefined, label: undefined, hint: "Proveedor API (sin enlace directo)" };
-  return { href: undefined, label: undefined };
-}
-
-function badgeStyle(kind: "live" | "periodic" | "snapshot") {
-  if (kind === "live") return "border-emerald-400/30 bg-emerald-400/15 text-emerald-100";
-  if (kind === "periodic") return "border-cyan-400/30 bg-cyan-400/15 text-cyan-100";
-  return "border-white/10 bg-white/5 text-white/80";
-}
-
-function SeverityDot({ sev }: { sev: EnvironmentalEvent["severity"] }) {
-  return (
-    <span
-      className={[
-        "inline-block h-2 w-2 rounded-full",
-        sev === "critical"
-          ? "bg-red-500"
-          : sev === "high"
-          ? "bg-orange-500"
-          : sev === "moderate"
-          ? "bg-yellow-500"
-          : "bg-emerald-400",
-      ].join(" ")}
-    />
-  );
-}
-
-function CardButton(props: {
-  title: string;
-  subtitle: string;
-  icon: string;
-  rightBadge?: { text: string; className: string } | null;
-  onClick: () => void;
-}) {
-  const { title, subtitle, icon, rightBadge, onClick } = props;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "w-full text-left",
-        "rounded-2xl border border-white/10 bg-white/5",
-        "px-4 py-4",
-        "hover:bg-white/7 transition-colors",
-        "flex items-start justify-between gap-4",
-      ].join(" ")}
-    >
-      <div className="flex items-start gap-3 min-w-0">
-        <div className="h-10 w-10 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center shrink-0">
-          <span className="text-white/85">{icon}</span>
-        </div>
-        <div className="min-w-0">
-          <div className="text-white/90 font-semibold">{title}</div>
-          <div className="text-white/50 text-sm mt-0.5 line-clamp-2">{subtitle}</div>
-        </div>
-      </div>
-
-      <div className="shrink-0 flex items-center gap-2">
-        {rightBadge ? (
-          <span className={["rounded-full border px-2 py-0.5 text-[11px]", rightBadge.className].join(" ")}>
-            {rightBadge.text}
-          </span>
-        ) : null}
-        <span className="text-white/40 text-sm">›</span>
-      </div>
-    </button>
-  );
-}
-
-// ===== News types (Worker) =====
-type NewsSourceKind = "government" | "firefighters" | "media";
-type NewsItem = {
-  id: string;
-  kind: NewsSourceKind;
-  sourceName: string;
-  title: string;
-  summary: string;
-  body: string;
-  publishedAt: Date;
-  imageUrl?: string;
-  videoUrl?: string;
-  url?: string;
-  tags?: string[];
-  language?: string | null;
-  domain?: string | null;
-};
-
-function sourceBadge(kind: NewsSourceKind) {
-  if (kind === "government") return { label: "GOBIERNO", cls: "border-emerald-400/30 bg-emerald-400/15 text-emerald-100" };
-  if (kind === "firefighters") return { label: "BOMBEROS", cls: "border-orange-400/30 bg-orange-400/15 text-orange-100" };
-  return { label: "MEDIOS", cls: "border-white/10 bg-white/5 text-white/80" };
-}
-
-type PanelView =
-  | "main"
-  | "ops"
-  | "satellite"
-  | "cameras"
-  | "environment"
-  | "impact"
-  | "insight"
-  | "guardian"
-  | "news"
-  | "news_item";
-
-// ===== Worker config (NEWS) =====
-// ⚠️ Si cambia tu Worker URL, cambiá solo esta constante.
 const NEWS_WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
-function normalizeDomain(d?: string | null) {
-  return String(d ?? "").trim().toLowerCase();
-}
+type NewsItem = {
+  id: string;
+  title: string | null;
+  url: string | null;
+  domain: string | null;
+  language: string | null;
+  publishedAt: string | null;
+  sourceCountry: string | null;
+  image: string | null;
+  summary: string | null;
+};
 
-function classifyNewsKind(domain?: string | null, title?: string | null) {
-  const d = normalizeDomain(domain);
-  const t = String(title ?? "").toLowerCase();
-
-  // Gobierno: dominios oficiales AR (gob.ar, argentina.gob.ar)
-  if (d.endsWith(".gob.ar") || d === "argentina.gob.ar" || d.endsWith("argentina.gob.ar")) return "government";
-
-  // Bomberos / Protección civil (heurística simple por ahora)
-  if (
-    d.includes("bombero") ||
-    d.includes("defensacivil") ||
-    d.includes("defensa-civil") ||
-    d.includes("proteccioncivil") ||
-    d.includes("proteccion-civil") ||
-    d.includes("sinagir") ||
-    t.includes("bomberos") ||
-    t.includes("defensa civil") ||
-    t.includes("protección civil")
-  ) {
-    return "firefighters";
-  }
-
-  return "media";
-}
-
-function categoryQueryHint(ev: EnvironmentalEvent) {
-  const cat = (ev.category ?? "").toLowerCase();
-  if (cat.includes("fire")) return "wildfire incendio";
-  if (cat.includes("flood")) return "inundación crecida";
-  if (cat.includes("storm")) return "tormenta temporal";
-  if (cat.includes("heat")) return "ola de calor";
-  if (cat.includes("drought")) return "sequía";
-  return "emergencia";
-}
-
-function safeDateFromPublishedAt(s?: string | null) {
-  const raw = String(s ?? "").trim();
-  if (!raw) return null;
-
-  // GDELT suele traer formato tipo 20260206T113000Z
-  const m = raw.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
-  if (m) {
-    const [_, yy, mo, dd, hh, mm, ss] = m;
-    const iso = `${yy}-${mo}-${dd}T${hh}:${mm}:${ss}Z`;
-    const d = new Date(iso);
-    return Number.isFinite(d.getTime()) ? d : null;
-  }
-
-  const d = new Date(raw);
-  return Number.isFinite(d.getTime()) ? d : null;
-}
+type NewsResponse = {
+  query: string;
+  count: number;
+  items: NewsItem[];
+  range?: { days: number; start: string; end: string };
+  gdelt?: any;
+  fetched_at?: string;
+};
 
 async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
   const url =
@@ -604,1212 +57,674 @@ async function fetchNewsFromWorker(params: { query: string; days: number; max: n
     const txt = await res.text().catch(() => "");
     throw new Error(`News Worker error ${res.status}: ${txt.slice(0, 200)}`);
   }
-  return res.json();
+  return (await res.json()) as NewsResponse;
 }
 
-export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
-  const { event, onClose, shareUrl } = props;
+function cn(...xs: Array<string | false | null | undefined>) {
+  return xs.filter(Boolean).join(" ");
+}
 
-  const [copied, setCopied] = useState(false);
-  const [followed, setFollowed] = useState<string[]>([]);
-  const [view, setView] = useState<PanelView>("main");
+function fmtDateTime(d: Date) {
+  // Simple y estable (sin Intl pesado). Ajustá si querés locale.
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getUTCDate())} ${d.toLocaleString("en-US", { month: "short" }).toUpperCase()} ${d.getUTCFullYear()} ${pad(
+    d.getUTCHours()
+  )}:${pad(d.getUTCMinutes())} UTC`;
+}
 
-  // Weather state
-  const [weatherOps, setWeatherOps] = useState<WeatherOps | null>(null);
-  const [weatherLoading, setWeatherLoading] = useState(false);
+function sevChip(sev: EnvironmentalEvent["severity"]) {
+  if (sev === "critical") return { label: "CRITICAL", dot: "bg-red-500", ring: "border-red-400/30", bg: "bg-red-500/10" };
+  if (sev === "high") return { label: "HIGH", dot: "bg-orange-500", ring: "border-orange-400/30", bg: "bg-orange-500/10" };
+  if (sev === "moderate") return { label: "MODERATE", dot: "bg-yellow-400", ring: "border-yellow-300/30", bg: "bg-yellow-400/10" };
+  return { label: "LOW", dot: "bg-emerald-400", ring: "border-emerald-300/30", bg: "bg-emerald-400/10" };
+}
 
-  // News state (real)
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [newsLoading, setNewsLoading] = useState(false);
-  const [newsError, setNewsError] = useState<string | null>(null);
+function statusLabel(s?: string | null) {
+  if (!s) return "—";
+  const k = String(s).toLowerCase();
+  if (k === "escalating") return "Escalating";
+  if (k === "active") return "Active";
+  if (k === "stabilizing") return "Stabilizing";
+  if (k === "contained") return "Contained";
+  if (k === "resolved") return "Resolved";
+  return s;
+}
 
-  // News detail state
-  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
+function titleCaseCompact(s: string) {
+  const t = (s ?? "").trim();
+  if (!t) return t;
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
 
-  useEffect(() => {
-    if (!event) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [event, onClose]);
+function getPrimaryLocation(ev: EnvironmentalEvent) {
+  // Tomamos la primera parte antes de coma como “lugar corto”
+  const loc = (ev.location ?? "").trim();
+  if (!loc) return "Unknown location";
+  return loc.split(",")[0].trim() || loc;
+}
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setFollowed(readFollowed());
-    setCopied(false);
-    setView("main");
-    setWeatherOps(null);
-    setWeatherLoading(false);
-    setSelectedNewsId(null);
+function buildNewsQuery(ev: EnvironmentalEvent) {
+  // Query híbrida (ES+EN) para GDELT, conservadora.
+  const loc = (ev.location ?? "").trim();
+  const shortLoc = getPrimaryLocation(ev);
+  const countryHint = loc.includes("Argentina") ? "Argentina" : "";
+  const coords = `${ev.latitude.toFixed(2)},${ev.longitude.toFixed(2)}`;
 
-    // reset news
-    setNewsItems([]);
-    setNewsLoading(false);
-    setNewsError(null);
-  }, [event?.id]);
-
-  const header = useMemo(() => {
-    if (!event) return null;
-    const cat = categoryLabels[event.category] ?? event.category;
-    const color = categoryColors[event.category] ?? "#7dd3fc";
-    return { cat, color };
-  }, [event?.id, event?.category]);
-
-  const ops = useMemo(() => extractOpsFromDescription(event?.description), [event?.id, event?.description]);
-
-  const cameraCandidates = useMemo(() => {
-    if (!event) return [];
-    const lat = (event as any).latitude;
-    const lon = (event as any).longitude;
-    if (!isFiniteNumber(lat) || !isFiniteNumber(lon)) return [];
-    const point = { lat, lon };
-    return findNearestCameras(cameraRegistry, point, { maxResults: 3, requireVerified: false });
-  }, [event?.id, (event as any)?.latitude, (event as any)?.longitude]);
-
-  // Weather fetch
-  useEffect(() => {
-    let alive = true;
-
-    async function run() {
-      if (!event) return;
-      const lat = (event as any).latitude;
-      const lon = (event as any).longitude;
-      if (!isFiniteNumber(lat) || !isFiniteNumber(lon)) {
-        setWeatherOps(null);
-        return;
-      }
-
-      setWeatherLoading(true);
-      try {
-        const base = await fetchWeatherOps(lat, lon);
-        if (!alive) return;
-
-        if (!base) {
-          setWeatherOps(null);
-          return;
-        }
-
-        const narrative = weatherNarrative({
-          rainProbMaxPct: base.rainProbMaxPct,
-          windMaxKmh: base.windMaxKmh,
-          humidityMinPct: base.humidityMinPct,
-          tempAvgC: base.tempAvgC,
-          trendLabel: ops.trendLabel,
-        });
-
-        setWeatherOps({ ...base, narrative });
-      } catch {
-        if (!alive) return;
-        setWeatherOps(null);
-      } finally {
-        if (!alive) return;
-        setWeatherLoading(false);
-      }
-    }
-
-    run();
-    return () => {
-      alive = false;
-    };
-  }, [event?.id, ops.trendLabel]);
-
-  // ===== BREAKING rules (v1) =====
-  const isBreaking =
-    event?.severity === "critical" ||
-    event?.evacuationLevel === "mandatory" ||
-    event?.status === "escalating" ||
-    (ops.trendLabel ?? "").toLowerCase() === "intensifying";
-
-  // ===== News fetch (Worker) =====
-  useEffect(() => {
-    let alive = true;
-
-    async function run() {
-      if (!event) return;
-
-      const loc = String(event.location ?? "").trim();
-      const hint = categoryQueryHint(event);
-
-      // Query híbrida: lo que mejor rinde en GDELT suele ser corto + relevante.
-      // Ej: "wildfire argentina", "patagonia incendio", etc.
-      // Acá la hacemos contextual por evento.
-      const q = loc ? `${hint} ${loc}` : `${hint}`;
-
-      setNewsLoading(true);
-      setNewsError(null);
-
-      try {
-        const data = await fetchNewsFromWorker({ query: q, days: 30, max: 18 });
-        if (!alive) return;
-
-        const itemsRaw: any[] = Array.isArray(data?.items) ? data.items : [];
-
-        const mapped: NewsItem[] = itemsRaw
-          .map((it: any, idx: number) => {
-            const domain = it?.domain ?? null;
-            const title = String(it?.title ?? "").trim();
-            const url = String(it?.url ?? "").trim();
-
-            const publishedAt =
-              safeDateFromPublishedAt(it?.publishedAt) ?? new Date(Date.now() - 1000 * 60 * (idx + 1));
-
-            const kind = classifyNewsKind(domain, title);
-
-            const summary = String(it?.summary ?? "").trim();
-            const body =
-              summary ||
-              "Contenido aún no expandido. (Próximo: traer extracto/HTML limpio y mostrarlo dentro del panel, sin salir.)";
-
-            return {
-              id: String(it?.id ?? url ?? `${event.id}:news:${idx}`),
-              kind,
-              sourceName: domain ? String(domain) : "Fuente",
-              title: title || "Sin título",
-              summary: summary || "—",
-              body,
-              publishedAt,
-              imageUrl: it?.image ? String(it.image) : undefined,
-              url: url || undefined,
-              tags: Array.isArray(it?.tags) ? it.tags : [],
-              language: it?.language ?? null,
-              domain: domain ? String(domain) : null,
-            };
-          })
-          .filter((n) => Boolean(n.title));
-
-        // Orden interno: gobierno → bomberos → medios, y dentro por fecha desc
-        const weight = (k: NewsSourceKind) => (k === "government" ? 0 : k === "firefighters" ? 1 : 2);
-        mapped.sort((a, b) => {
-          const wa = weight(a.kind);
-          const wb = weight(b.kind);
-          if (wa !== wb) return wa - wb;
-          return b.publishedAt.getTime() - a.publishedAt.getTime();
-        });
-
-        setNewsItems(mapped);
-      } catch (err: any) {
-        if (!alive) return;
-        setNewsItems([]);
-        setNewsError(String(err?.message ?? err ?? "Error cargando noticias"));
-      } finally {
-        if (!alive) return;
-        setNewsLoading(false);
-      }
-    }
-
-    run();
-    return () => {
-      alive = false;
-    };
-  }, [event?.id]);
-
-  const selectedNews = useMemo(() => {
-    if (!selectedNewsId) return null;
-    return newsItems.find((n) => n.id === selectedNewsId) ?? null;
-  }, [selectedNewsId, newsItems]);
-
-  function openNewsItem(id: string) {
-    setSelectedNewsId(id);
-    setView("news_item");
+  if (ev.category === "fire") {
+    // Mix: incendio + wildfire + nombre de lugar
+    return `(${shortLoc} OR "${loc}") (incendio OR incendios OR wildfire OR wildfires OR fire) ${countryHint}`.trim();
   }
 
-  function backFromNewsItem() {
-    setSelectedNewsId(null);
-    setView("news");
-  }
+  // fallback genérico por categoría
+  const cat =
+    ev.category === "flood"
+      ? "(inundación OR flood)"
+      : ev.category === "storm"
+      ? "(tormenta OR storm)"
+      : ev.category === "earthquake"
+      ? "(terremoto OR earthquake)"
+      : ev.category === "drought"
+      ? "(sequía OR drought)"
+      : "(emergency OR disaster)";
 
-  function NewsCard({ item }: { item: NewsItem }) {
-    const badge = sourceBadge(item.kind);
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-        <div className="flex gap-3 p-3">
-          <div className="h-16 w-20 rounded-xl border border-white/10 bg-black/30 overflow-hidden shrink-0 flex items-center justify-center">
-            {item.imageUrl ? (
-              <img src={item.imageUrl} alt="" className="h-full w-full object-cover opacity-90" loading="lazy" />
-            ) : (
-              <div className="h-full w-full bg-gradient-to-br from-white/10 to-white/0" />
-            )}
-          </div>
+  return `(${shortLoc} OR "${loc}" OR ${coords}) ${cat} ${countryHint}`.trim();
+}
 
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={["rounded-full border px-2 py-0.5 text-[11px]", badge.cls].join(" ")}>{badge.label}</span>
-              <span className="text-white/40 text-[11px]">{timeAgoFrom(item.publishedAt)}</span>
-              <span className="text-white/35 text-[11px]">•</span>
-              <span className="text-white/45 text-[11px]">{item.sourceName}</span>
-              {item.language ? (
-                <>
-                  <span className="text-white/35 text-[11px]">•</span>
-                  <span className="text-white/35 text-[11px]">{item.language}</span>
-                </>
-              ) : null}
-            </div>
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n));
+}
 
-            <div className="mt-1 text-white/90 font-semibold text-sm line-clamp-2">{item.title}</div>
-            <div className="mt-1 text-white/60 text-xs line-clamp-2">{item.summary}</div>
+function parseFRPFromDescription(desc?: string) {
+  // Busca "FRP max X" y "FRP sum Y" dentro del texto
+  const s = String(desc ?? "");
+  const maxMatch = s.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)/i);
+  const sumMatch = s.match(/FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
+  const frpMax = maxMatch ? Number(maxMatch[1]) : null;
+  const frpSum = sumMatch ? Number(sumMatch[1]) : null;
+  return {
+    frpMax: Number.isFinite(frpMax as any) ? (frpMax as number) : null,
+    frpSum: Number.isFinite(frpSum as any) ? (frpSum as number) : null,
+  };
+}
 
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                className="px-3 py-1.5 rounded-xl border border-white/10 bg-black/20 text-white/80 hover:bg-black/30 text-xs transition-colors"
-                onClick={() => openNewsItem(item.id)}
-              >
-                Ver más
-              </button>
+function parseDetectionsFromTitle(title?: string) {
+  const s = String(title ?? "");
+  const m = s.match(/\((\d+)\s*detections?\)/i);
+  const n = m ? Number(m[1]) : null;
+  return Number.isFinite(n as any) ? (n as number) : null;
+}
 
-              {item.url ? <span className="text-white/55 text-[11px] inline-flex items-center gap-1">↗ fuente</span> : null}
-              {item.videoUrl ? <span className="text-white/55 text-[11px] inline-flex items-center gap-1">▶ video</span> : null}
-            </div>
-          </div>
+function guessTrendLabel(ev: EnvironmentalEvent) {
+  // Intentamos inferir de riskIndicators si existe "Trend:"
+  const arr = Array.isArray(ev.riskIndicators) ? ev.riskIndicators : [];
+  const trendLine = arr.find((x) => String(x).toLowerCase().startsWith("trend:"));
+  if (!trendLine) return null;
+
+  const lower = String(trendLine).toLowerCase();
+  if (lower.includes("intens")) return "TREND: Intensifying";
+  if (lower.includes("weak")) return "TREND: Weakening";
+  if (lower.includes("stable")) return "TREND: Stable";
+  // fallback: mostrar lo que venga después de "Trend:"
+  const after = trendLine.split(":").slice(1).join(":").trim();
+  return after ? `TREND: ${titleCaseCompact(after)}` : null;
+}
+
+function levelFromFRPMax(frpMax: number | null) {
+  if (frpMax == null) return null;
+  // Escala operativa (0–120) como la que venías usando visualmente
+  return clamp(Math.round((frpMax / 120) * 100), 0, 100);
+}
+
+function levelFromDetections(d: number | null) {
+  if (d == null) return null;
+  // Escala (0–25) -> 0–100
+  return clamp(Math.round((d / 25) * 100), 0, 100);
+}
+
+function levelFromFRPSum(frpSum: number | null) {
+  if (frpSum == null) return null;
+  // Escala (0–250) -> 0–100
+  return clamp(Math.round((frpSum / 250) * 100), 0, 100);
+}
+
+function Dial({
+  value,
+  label,
+}: {
+  value: number | null;
+  label: string;
+}) {
+  const v = value == null ? 0 : clamp(value, 0, 100);
+  // arco ~ 240°
+  const deg = 240 * (v / 100);
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative h-16 w-16">
+        <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10" />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: `conic-gradient(from 210deg, rgba(255,0,68,0.85) ${deg}deg, rgba(255,255,255,0.06) 0deg)`,
+            maskImage: "radial-gradient(circle at center, transparent 58%, black 60%)",
+            WebkitMaskImage: "radial-gradient(circle at center, transparent 58%, black 60%)",
+          }}
+        />
+        <div className="absolute inset-0 flex items-end justify-center pb-2">
+          <div className="text-[11px] text-white/85 font-semibold">{value ?? "—"}</div>
         </div>
       </div>
-    );
-  }
-
-  function SocialQuote({ who, text }: { who: string; text: string }) {
-    return (
-      <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-        <div className="text-white/60 text-xs font-semibold">{who}</div>
-        <div className="mt-1 text-white/75 text-sm leading-relaxed">{text}</div>
+      <div className="leading-tight">
+        <div className="text-[11px] uppercase tracking-wide text-white/45">{label}</div>
+        <div className="text-sm text-white/85 font-medium">{value == null ? "—" : `${v} nivel`}</div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  // ✅ después de hooks
-  if (!event || !header) return null;
+function SectionShell({
+  icon,
+  title,
+  right,
+  subtitle,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  right?: React.ReactNode;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+      <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 h-9 w-9 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
+            {icon}
+          </div>
+          <div>
+            <div className="text-white/90 font-semibold">{title}</div>
+            {subtitle ? <div className="text-xs text-white/45 mt-0.5">{subtitle}</div> : null}
+          </div>
+        </div>
+        {right ? <div className="shrink-0">{right}</div> : null}
+      </div>
+      <div className="px-5 pb-5">{children}</div>
+    </div>
+  );
+}
 
-  const isFollowed = followed.includes(event.id);
+export function AlertPanel({ event, onClose }: AlertPanelProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  async function handleCopyLink() {
-    if (!shareUrl) return;
+  // Cuando cambia el evento, volvemos arriba del panel
+  useEffect(() => {
+    if (!event) return;
+    // scroll-to-top (lo que tenés pendiente en memoria lo hacemos acá a nivel panel)
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }, [event?.id]);
+
+  // ===== NEWS state =====
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [newsErr, setNewsErr] = useState<string | null>(null);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string } | null>(null);
+
+  const newsQuery = useMemo(() => (event ? buildNewsQuery(event) : ""), [event?.id]);
+
+  const loadNews = async () => {
+    if (!event) return;
+    setNewsLoading(true);
+    setNewsErr(null);
+
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      window.prompt("Copiá el link:", shareUrl);
+      const data = await fetchNewsFromWorker({
+        query: newsQuery,
+        days: event.category === "fire" ? 10 : 14,
+        max: 10,
+      });
+
+      const items = Array.isArray(data?.items) ? data.items : [];
+      // Limpieza mínima
+      const cleaned = items
+        .filter((x) => x && (x.title || x.url))
+        .map((x) => ({
+          ...x,
+          title: x.title?.trim() ?? null,
+          summary: x.summary?.trim() ?? null,
+        }));
+
+      setNewsItems(cleaned);
+      setNewsMeta({ query: data.query ?? newsQuery, fetchedAt: data.fetched_at });
+    } catch (e: any) {
+      setNewsItems([]);
+      setNewsMeta({ query: newsQuery });
+      setNewsErr(e?.message ? String(e.message) : "No se pudo cargar noticias.");
+    } finally {
+      setNewsLoading(false);
     }
-  }
+  };
 
-  const summary = event.description && event.description.trim().length > 0 ? event.description : fallbackSummary(event);
-  const utc = formatTimeUTC(event.timestamp);
-  const lastSignalAgo = timeAgoFrom(event.timestamp);
+  // Autoload al abrir/cambiar evento
+  useEffect(() => {
+    if (!event) return;
+    loadNews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.id]);
 
-  const opsBadge = ops.trendLabel ? { text: `TREND: ${ops.trendLabel}`, className: trendBadgeStyle(ops.trendLabel) } : null;
-  const isCompact = view !== "main";
+  if (!event) return null;
 
-  // scales
-  const frpScale = 120;
-  const detScale = 25;
-  const sumScale = 250;
+  const chip = sevChip(event.severity);
+  const trend = guessTrendLabel(event) ?? "TREND: —";
 
-  const modal = (
-    <div className="fixed inset-0 z-[99999] pointer-events-auto">
-      {/* ✅ Backdrop atrás */}
-      <button
-        type="button"
-        aria-label="Cerrar panel"
-        className="absolute inset-0 bg-black/45 backdrop-blur-[2px] z-0"
-        onClick={onClose}
-      />
+  const { frpMax, frpSum } = parseFRPFromDescription(event.description);
+  const detections = parseDetectionsFromTitle(event.title);
 
-      {/* ✅ Panel adelante + interactivo */}
+  const intensityLevel = levelFromFRPMax(frpMax);
+  const activityLevel = levelFromDetections(detections);
+  const energyLevel = levelFromFRPSum(frpSum);
+
+  return (
+    <div className="pointer-events-auto fixed inset-0 z-[9998]">
+      {/* backdrop */}
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+
+      {/* modal */}
       <div
-        className={[
-          "absolute left-1/2 -translate-x-1/2 z-10",
-          "bottom-4 md:bottom-6",
-          "w-[calc(100%-24px)] md:w-[900px]",
-          "max-h-[88vh]",
-          "rounded-2xl border border-white/10 bg-[#0a0f1a]/95 shadow-2xl",
-          "backdrop-blur-md",
-          "overflow-hidden",
-          "flex flex-col",
-          "pointer-events-auto",
-        ].join(" ")}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
+        className={cn(
+          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+          "w-[min(980px,92vw)] h-[min(86vh,720px)]",
+          "rounded-3xl border border-white/10",
+          "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden"
+        )}
       >
-        <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${header.color}CC, ${header.color}14, transparent)` }} />
-
-        {/* HEADER */}
-        <div className={["relative border-b border-white/10 bg-black/10", isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6"].join(" ")}>
-          <div className="flex items-center justify-between gap-2">
-            {isCompact ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (view === "news_item") backFromNewsItem();
-                  else setView("main");
-                }}
-                className={[
-                  "h-9 px-3 rounded-xl",
-                  "border border-white/10 bg-white/5",
-                  "text-white/80 hover:text-white hover:bg-white/10",
-                  "transition-colors",
-                  "flex items-center gap-2",
-                ].join(" ")}
-                aria-label="Volver"
-                title="Volver"
-              >
-                <span className="text-white/80">←</span>
-                <span className="text-sm">Volver</span>
-              </button>
-            ) : (
-              <div />
-            )}
+        {/* header top bar */}
+        <div className="px-5 pt-4 pb-3 border-b border-white/10">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              onClick={onClose}
+              className={cn(
+                "inline-flex items-center gap-2",
+                "px-3 py-2 rounded-2xl border border-white/10 bg-white/5",
+                "text-white/85 hover:text-white hover:bg-white/8 transition-colors"
+              )}
+              aria-label="Volver"
+              title="Volver"
+            >
+              <CornerUpLeft className="h-4 w-4" />
+              <span className="text-sm font-medium">Volver</span>
+            </button>
 
             <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className={[
-                "h-9 w-9 rounded-xl",
-                "border border-white/10 bg-white/5",
-                "text-white/80 hover:text-white hover:bg-white/10",
-                "transition-colors",
-                "flex items-center justify-center",
-              ].join(" ")}
+              onClick={onClose}
+              className={cn(
+                "h-10 w-10 rounded-2xl border border-white/10 bg-white/5",
+                "text-white/70 hover:text-white hover:bg-white/10 transition-colors",
+                "flex items-center justify-center"
+              )}
               aria-label="Cerrar"
               title="Cerrar"
             >
-              ✕
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          {isCompact ? (
-            <>
-              <div className="mt-2 text-white/55 text-[11px] uppercase tracking-wider">
-                {header.cat} • {utc}
-              </div>
+          <div className="mt-3 text-[11px] uppercase tracking-wide text-white/40">
+            {String(event.category ?? "").toUpperCase()} • {fmtDateTime(new Date(event.timestamp))}
+          </div>
 
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                {/* ✅ título principal = localidad */}
-                <div className="text-white/90 font-semibold text-base md:text-lg">{event.location}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <div className="text-xl md:text-2xl font-semibold text-white/95">{event.location}</div>
 
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
-                  <SeverityDot sev={event.severity} />
-                  <span className="text-white/75 text-xs">{event.severity.toUpperCase()}</span>
-                </span>
+            <div className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-full border", chip.ring, chip.bg)}>
+              <span className={cn("h-2 w-2 rounded-full", chip.dot)} />
+              <span className="text-xs font-semibold text-white/90">{chip.label}</span>
+            </div>
 
-                <span className="inline-flex items-center gap-2 text-white/60 text-xs">
-                  <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
-                  {statusLabel(event.status)}
-                </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+              <span className="h-2 w-2 rounded-full bg-cyan-400/80" />
+              <span className="text-xs font-medium text-white/80">{statusLabel(event.status)}</span>
+            </div>
 
-                {opsBadge ? (
-                  <span className={["rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>{opsBadge.text}</span>
-                ) : null}
-              </div>
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
+              <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
+            </div>
 
-              {/* ✅ subtítulo técnico */}
-              <div className="mt-1 text-white/55 text-xs">{event.title}</div>
-              <div className="mt-1 text-white/45 text-[11px]">
-                {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="text-white/55 text-xs uppercase tracking-wider flex items-center gap-2">
-                <span>
-                  {header.cat} • {utc}
-                </span>
-              </div>
-
-              <div className="mt-2 flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
-                  <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
-                  <div className="mt-1 text-white/45 text-xs">
-                    {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = toggleFollow(event.id);
-                    setFollowed(next);
-                  }}
-                  className={[
-                    "shrink-0",
-                    "rounded-xl border border-white/10",
-                    "bg-white/5 hover:bg-white/10",
-                    "px-3 py-2 text-xs md:text-sm",
-                    "text-white/85 transition-colors",
-                  ].join(" ")}
-                  aria-pressed={isFollowed}
-                  title="Seguir esta alerta (futuro: notificaciones)"
-                >
-                  {isFollowed ? "Siguiendo ✓" : "Seguir alerta"}
-                </button>
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                  <SeverityDot sev={event.severity} />
-                  <span className="text-white/80 text-sm">{event.severity.toUpperCase()} Severity</span>
-
-                  <span className="ml-3 inline-flex items-center gap-2 text-white/65 text-sm">
-                    <span className="pulse-dot h-2 w-2 rounded-full bg-cyan-300/80" />
-                    {statusLabel(event.status)}
-                  </span>
-
-                  {opsBadge ? (
-                    <span className={["ml-2 rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>{opsBadge.text}</span>
-                  ) : null}
-                </div>
-
-                <button
-                  type="button"
-                  className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
-                  onClick={handleCopyLink}
-                  disabled={!shareUrl}
-                  title={shareUrl ? "Copiar link" : "Link no disponible"}
-                >
-                  {copied ? "Link copiado" : "Copiar link"}
-                </button>
-              </div>
-            </>
-          )}
+            <div className="w-full text-xs text-white/45">
+              {event.title}
+              <span className="mx-2 text-white/25">•</span>
+              {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+            </div>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-5 md:p-6 overflow-y-auto flex-1 min-h-0">
-          {view === "main" ? (
-            <>
-              <div className="grid grid-cols-1 gap-3">
-                <CardButton
-                  title="Estado operativo"
-                  subtitle={[
-                    `Status: ${statusLabel(event.status)}`,
-                    ops.trendLabel ? `Trend: ${ops.trendLabel}` : null,
-                    `Evacuación: ${event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}`,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ")}
-                  icon="⚠️"
-                  rightBadge={opsBadge}
-                  onClick={() => setView("ops")}
-                />
-
-                <CardButton
-                  title="Observación satelital"
-                  subtitle={event.satelliteImageUrl ? "Imagen asociada + métricas VIIRS/FRP. (Timeline después)." : "Aún sin imagen asociada."}
-                  icon="🛰️"
-                  rightBadge={event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null}
-                  onClick={() => setView("satellite")}
-                />
-
-                <CardButton
-                  title="Cámaras públicas cercanas"
-                  subtitle={
-                    cameraCandidates.length
-                      ? `Cámaras registradas cerca: ${cameraCandidates.length}. (Streams/snapshots según fuente).`
-                      : "No hay cámaras públicas registradas cerca por ahora."
-                  }
-                  icon="🎥"
-                  rightBadge={cameraCandidates.length ? { text: `${cameraCandidates.length} cerca`, className: badgeStyle("periodic") } : null}
-                  onClick={() => setView("cameras")}
-                />
-
-                <CardButton
-                  title="Contexto ambiental"
-                  subtitle={event.ecosystems?.length || event.speciesAtRisk?.length ? "Ecosistemas/especies disponibles para este evento." : "Aún sin datos ambientales asociados."}
-                  icon="🌱"
-                  rightBadge={null}
-                  onClick={() => setView("environment")}
-                />
-
-                <CardButton
-                  title="Impacto humano"
-                  subtitle={`Población: ${
-                    typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"
-                  } • Área: ${km2(event.affectedArea)}`}
-                  icon="👥"
-                  rightBadge={null}
-                  onClick={() => setView("impact")}
-                />
-
-                <CardButton
-                  title="Indicadores + BioPulse Insight"
-                  subtitle={event.aiInsight?.narrative ? "Insight disponible + indicadores de riesgo." : "Sin Insight por ahora."}
-                  icon="🧠"
-                  rightBadge={null}
-                  onClick={() => setView("insight")}
-                />
-
-                <CardButton
-                  title="Herramientas del guardián"
-                  subtitle="Reportar observación • Confirmar datos • Escalar situación (próximo: feed de reportes)."
-                  icon="🛡️"
-                  rightBadge={{ text: "BETA", className: "border-cyan-400/30 bg-cyan-400/15 text-cyan-100" }}
-                  onClick={() => setView("guardian")}
-                />
-
-                <CardButton
-                  title="Noticias + redes"
-                  subtitle={newsLoading ? "Cargando noticias…" : newsError ? "Error cargando noticias (ver dentro)." : "Tarjetas con imagen + resumen • Abrir detalle interno."}
-                  icon="📰"
-                  rightBadge={{ text: "BETA", className: "border-white/10 bg-white/5 text-white/80" }}
-                  onClick={() => setView("news")}
-                />
-              </div>
-
-              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/45 text-xs uppercase tracking-wider">Qué está pasando</div>
-                <div className="mt-2 text-white/85 text-sm leading-relaxed">{summary}</div>
-              </div>
-
-              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/45 text-xs uppercase tracking-wider">Condiciones</div>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
-                    <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.windSpeed, " km/h")}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
-                    <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.humidity, "%")}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Temperatura</div>
-                    <div className="mt-1 text-white/85 text-sm font-medium">{metric(event.temperature, "°C")}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">AQI / Río</div>
-                    <div className="mt-1 text-white/85 text-sm font-medium">
-                      {typeof event.airQualityIndex === "number" ? `AQI ${event.airQualityIndex}` : typeof event.waterLevel === "number" ? `${event.waterLevel} m` : "—"}
-                    </div>
-                  </div>
+        {/* body scroll */}
+        <div ref={scrollRef} className="h-full overflow-y-auto px-5 py-5">
+          <div className="space-y-4">
+            {/* ===== Estado operativo ===== */}
+            <SectionShell
+              icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
+              title="Estado operativo"
+              subtitle="Lectura operativa basada en señales satelitales recientes, tendencia y estado estimado."
+              right={
+                <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
+                  <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
                 </div>
-              </div>
-
-              <div className="mt-5 text-white/35 text-xs">
-                Tip: presioná <span className="text-white/55">Esc</span> o tocá afuera para cerrar.
-              </div>
-            </>
-          ) : view === "ops" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-white/90 font-semibold text-lg">⚠️ Estado operativo</div>
-                    <div className="text-white/45 text-sm mt-1">Lectura operativa basada en señales satelitales recientes, tendencia y estado estimado.</div>
-                  </div>
-
-                  {opsBadge ? (
-                    <span className={["rounded-full border px-2 py-0.5 text-[11px]", opsBadge.className].join(" ")}>{opsBadge.text}</span>
-                  ) : null}
+              }
+            >
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2 flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-orange-200/80" />
+                  Lectura del evento
                 </div>
 
-                {(() => {
-                  const t = (ops.trendLabel?.toLowerCase() || "") as Trend;
-                  const intensityText = intensityHuman(ops.frpMax);
-                  const activityText = activityHuman(ops.detections, t, event.status as any);
-                  const stateText = stateHuman(event.status as any);
-
-                  return (
-                    <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-white/60 text-xs uppercase tracking-wider">🔥 Lectura del evento</div>
-
-                      <div className="mt-3 space-y-2 text-sm leading-relaxed">
-                        <p>
-                          <span className="text-white/85 font-semibold">Intensidad:</span> <span className="text-white/75">{intensityText}</span>
-                        </p>
-                        <p>
-                          <span className="text-white/85 font-semibold">Actividad:</span> <span className="text-white/75">{activityText}</span>
-                        </p>
-                        <p>
-                          <span className="text-white/85 font-semibold">Estado:</span> <span className="text-white/75">{stateText}</span>
-                        </p>
-                      </div>
-
-                      <div className="mt-3 text-white/35 text-[11px]">Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.</div>
-                    </div>
-                  );
-                })()}
-
-                <div className="mt-4">
-                  <div className="text-white/85 text-sm font-semibold">Indicadores operativos</div>
-                  <div className="text-white/45 text-xs mt-0.5">Visual + número + explicación. Esto traduce la señal, no la “inventa”.</div>
-
-                  <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <GaugeRing
-                      label="Intensidad"
-                      value={ops.frpMax}
-                      max={frpScale}
-                      valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP max` : "—")}
-                      hint="Radiative Power"
-                      humanLine={typeof ops.frpMax === "number" ? `Lectura: ${intensityHuman(ops.frpMax)}` : "Sin FRP max disponible"}
-                    />
-                    <GaugeRing
-                      label="Actividad"
-                      value={ops.detections}
-                      max={detScale}
-                      valueFmt={(v) => (typeof v === "number" ? `${v} detections` : "—")}
-                      hint="Señales VIIRS"
-                      humanLine={
-                        typeof ops.detections === "number"
-                          ? `Lectura: ${activityHuman(ops.detections, ops.trendLabel as any, event.status as any)}`
-                          : "Sin detections disponibles"
-                      }
-                    />
-                    <GaugeRing
-                      label="Energía total"
-                      value={ops.frpSum}
-                      max={sumScale}
-                      valueFmt={(v) => (typeof v === "number" ? `${v.toFixed(2)} FRP sum` : "—")}
-                      hint="Acumulado"
-                      humanLine={
-                        typeof ops.frpSum === "number"
-                          ? "Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego)."
-                          : "Sin FRP sum disponible"
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/85 text-sm font-semibold">Condiciones</div>
-                  <div className="text-white/45 text-xs mt-0.5">Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).</div>
-
-                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">Lluvia</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatPct(weatherOps?.rainProbMaxPct)}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">{weatherOps ? weatherOps.windowLabel : "—"}</div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">Viento</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatKmh(weatherOps?.windMaxKmh)}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">máx. estimado</div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">Humedad</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatPct(weatherOps?.humidityMinPct)}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">mín. estimado</div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">Temp.</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{weatherLoading ? "…" : formatC(weatherOps?.tempAvgC)}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">promedio</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">🌦 Ventana operativa</div>
-                    <div className="mt-2 text-white/80 text-sm leading-relaxed">
-                      {weatherLoading ? "Cargando condiciones locales…" : weatherOps?.narrative ?? "Sin datos meteorológicos disponibles por ahora."}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Status</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{statusLabel(event.status)}</div>
-                    <div className="mt-2 text-white/45 text-xs">
-                      Última señal: <span className="text-white/70">{lastSignalAgo}</span>
-                    </div>
-                    <div className="mt-0.5 text-white/35 text-[11px]">Last detection: {utc}</div>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
-                    <div className="mt-1 text-white/45 text-xs">Fuente: (a definir cuando conectemos datos oficiales)</div>
-                  </div>
-                </div>
-
-                <div className="mt-3 text-white/35 text-xs">Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital.</div>
-              </div>
-            </>
-          ) : view === "satellite" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">🛰️ Observación satelital</div>
-                <div className="text-white/45 text-sm mt-1">Fuente: VIIRS / FIRMS (por ahora). Después sumamos capas + timeline.</div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  {event.satelliteImageUrl ? (
-                    <div className="overflow-hidden rounded-xl border border-white/10">
-                      <img src={event.satelliteImageUrl} alt="" className="h-56 w-full object-cover opacity-90" loading="lazy" />
-                    </div>
-                  ) : (
-                    <div className="text-white/50 text-sm">No hay imagen satelital asociada para este evento.</div>
-                  )}
-
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">Detections</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{typeof ops.detections === "number" ? ops.detections : "—"}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">señales</div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">FRP max</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{typeof ops.frpMax === "number" ? ops.frpMax.toFixed(2) : "—"}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">pico</div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">FRP sum</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">{typeof ops.frpSum === "number" ? ops.frpSum.toFixed(2) : "—"}</div>
-                      <div className="mt-1 text-white/35 text-[11px]">acumulado</div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-white/40 text-xs uppercase tracking-wider">Centro</div>
-                      <div className="mt-1 text-white/85 text-sm font-medium">
-                        {fmtCoord((event as any).latitude)}, {fmtCoord((event as any).longitude)}
-                      </div>
-                      <div className="mt-1 text-white/35 text-[11px]">estimado</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 text-white/35 text-xs">Próximo: timeline + capas (hotspots, viento, humedad, combustible).</div>
-                </div>
-              </div>
-            </>
-          ) : view === "cameras" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">📹 Cámaras públicas cercanas</div>
-                <div className="text-white/45 text-sm mt-1">No prometemos LIVE salvo stream real del proveedor. Mostramos streams/snapshots según fuente.</div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-white/85 text-sm font-semibold">Registry (curado)</div>
-                      <div className="text-white/45 text-xs mt-0.5">Fuente curada por BioPulse. Próximo: “Proponer cámara” + validación guardianes.</div>
-                    </div>
-                    <span className={["shrink-0 rounded-full border px-2 py-0.5 text-[11px]", badgeStyle("periodic")].join(" ")}>
-                      {cameraCandidates.length ? `${cameraCandidates.length} cerca` : "0"}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div className="text-white/80">
+                    <span className="text-white/55 font-medium">Intensidad:</span>{" "}
+                    <span className="font-semibold text-white/90">
+                      {event.severity === "critical"
+                        ? "Muy alta"
+                        : event.severity === "high"
+                        ? "Alta"
+                        : event.severity === "moderate"
+                        ? "Media"
+                        : "Baja"}
                     </span>
                   </div>
-
-                  <div className="mt-3">
-                    {cameraCandidates.length === 0 ? (
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-white/80 text-sm font-medium">No hay cámaras públicas registradas cerca</div>
-                        <div className="text-white/45 text-xs mt-1">Próximo: botón para “Proponer una cámara” (guardianes) y validación.</div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {cameraCandidates.map((c) => {
-                          const cam = c.camera as CameraRecordV1;
-                          const dist = formatDistanceKm(c.distanceKm);
-                          const attrib = cam.usage?.attributionText ?? `Provider: ${cam.providerId}`;
-                          const cadence = cadenceLabel(cam);
-                          const link = cameraHref(cam);
-
-                          return (
-                            <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <div className="text-white/85 text-sm font-semibold truncate">{cam.title}</div>
-                                  <div className="text-white/45 text-xs mt-0.5 line-clamp-2">
-                                    {attrib} • {cam.coverage.countryISO2}
-                                    {cam.coverage.admin1 ? ` • ${cam.coverage.admin1}` : ""}
-                                    {cam.coverage.locality ? ` • ${cam.coverage.locality}` : ""}
-                                  </div>
-                                  <div className="text-white/40 text-xs mt-1">
-                                    A {dist} • {cam.mediaType === "stream" ? "Stream" : "Snapshot"} • {cadence}
-                                  </div>
-                                </div>
-
-                                <span
-                                  className={[
-                                    "shrink-0 rounded-full border px-2 py-0.5 text-[11px]",
-                                    cam.mediaType === "stream" ? badgeStyle("live") : badgeStyle("periodic"),
-                                  ].join(" ")}
-                                  title={cam.mediaType === "stream" ? "Stream (no necesariamente “en vivo”)" : "Actualización periódica / snapshot"}
-                                >
-                                  {cam.mediaType === "stream" ? "STREAM" : cadence}
-                                </span>
-                              </div>
-
-                              <div className="mt-3">
-                                {link.href ? (
-                                  <a
-                                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/80 hover:bg-black/30"
-                                    href={link.href}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    {link.label ?? "Abrir fuente"}
-                                    <span className="text-white/40 text-xs">({link.hint ?? "externo"})</span>
-                                  </a>
-                                ) : (
-                                  <div className="text-white/45 text-xs">{link.hint ?? "Sin enlace directo (se resolverá vía Worker/proxy)."}</div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                  <div className="text-white/80">
+                    <span className="text-white/55 font-medium">Actividad:</span>{" "}
+                    <span className="font-semibold text-white/90">
+                      {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
+                    </span>
                   </div>
+                  <div className="text-white/80">
+                    <span className="text-white/55 font-medium">Estado:</span>{" "}
+                    <span className="font-semibold text-white/90">{statusLabel(event.status)}</span>
+                  </div>
+                </div>
 
-                  <div className="mt-4 text-white/35 text-xs">Próximo: proxy vía Worker (CORS + cache) para no depender de enlaces externos.</div>
+                <div className="mt-3 text-[11px] text-white/35">
+                  Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
                 </div>
               </div>
-            </>
-          ) : view === "environment" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">🌱 Contexto ambiental</div>
-                <div className="text-white/45 text-sm mt-1">Ecosistemas afectados + especies en riesgo (cuando estén conectadas fuentes).</div>
+            </SectionShell>
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">Ecosistemas</div>
-                    <div className="mt-2 text-white/80 text-sm">
-                      {event.ecosystems?.length ? (
-                        <ul className="space-y-1">
-                          {event.ecosystems.map((e, i) => (
-                            <li key={i}>• {e}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        "—"
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">Especies en riesgo</div>
-                    <div className="mt-2 text-white/80 text-sm">
-                      {event.speciesAtRisk?.length ? (
-                        <ul className="space-y-1">
-                          {event.speciesAtRisk.map((s, i) => (
-                            <li key={i}>• {s}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        "—"
-                      )}
-                    </div>
-                  </div>
+            {/* ===== ✅ Noticias (DEBAJO de Estado operativo) ===== */}
+            <SectionShell
+              icon={<Newspaper className="h-5 w-5 text-white/80" />}
+              title="Noticias relacionadas"
+              subtitle="Cobertura reciente basada en la zona y el tipo de evento (proxy GDELT)."
+              right={
+                <button
+                  onClick={loadNews}
+                  className={cn(
+                    "inline-flex items-center gap-2",
+                    "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                  )}
+                  aria-label="Actualizar noticias"
+                  title="Actualizar"
+                >
+                  {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  <span className="text-xs font-medium">Actualizar</span>
+                </button>
+              }
+            >
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="text-[11px] uppercase tracking-wide text-white/45">
+                  Query: <span className="text-white/55 normal-case">{newsMeta?.query ?? newsQuery}</span>
                 </div>
 
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
-                  <div className="mt-2 text-white/80 text-sm">Conectar áreas protegidas, biomas, corredores y UICN por región.</div>
-                </div>
-              </div>
-            </>
-          ) : view === "impact" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">👥 Impacto humano</div>
-                <div className="text-white/45 text-sm mt-1">Población estimada + infraestructura crítica (cuando conectemos fuentes).</div>
-
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Población</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">
-                      {typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Área</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{km2(event.affectedArea)}</div>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-white/40 text-xs uppercase tracking-wider">Última señal</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{lastSignalAgo}</div>
-                  </div>
-                </div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
-                  <div className="mt-2 text-white/80 text-sm">Hospitales, rutas, escuelas, refugios, puntos de encuentro, cortes y perímetros oficiales.</div>
-                </div>
-              </div>
-            </>
-          ) : view === "insight" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">🧠 Indicadores + BioPulse Insight</div>
-                <div className="text-white/45 text-sm mt-1">Explicación y trazabilidad del “por qué” (sin humo).</div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/60 text-xs uppercase tracking-wider">Insight</div>
-                  <div className="mt-2 text-white/85 text-sm leading-relaxed">
-                    {event.aiInsight?.narrative ? event.aiInsight.narrative : "BioPulse Insight aún no está disponible para este evento."}
-                  </div>
-
-                  {typeof event.aiInsight?.confidence === "number" ? (
-                    <div className="mt-3 text-white/40 text-xs">Confianza del modelo: {Math.round(event.aiInsight.confidence * 100)}%</div>
-                  ) : null}
-                </div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/60 text-xs uppercase tracking-wider">Próximo</div>
-                  <div className="mt-2 text-white/80 text-sm">
-                    Mapa de riesgo + explicaciones por factor (viento, humedad, combustible, topografía, cercanía a población).
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : view === "guardian" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">🛡️ Herramientas del guardián</div>
-                <div className="text-white/45 text-sm mt-1">Tu observación fortalece el sistema. (Prototipo UI, backend después).</div>
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/80 text-sm">Sos parte de la red. Podés reportar evidencia, confirmar datos y ayudar a priorizar.</div>
-
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors"
-                    >
-                      <div className="text-cyan-100 font-semibold mb-1">📍 Reportar observación</div>
-                      <div className="text-cyan-200/60 text-sm">Foto, ubicación, humo, viento, avance. (Luego: validación y reputación).</div>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15 p-4 text-left transition-colors"
-                    >
-                      <div className="text-cyan-100 font-semibold mb-1">✅ Confirmar datos</div>
-                      <div className="text-cyan-200/60 text-sm">¿La ubicación/estado coincide con lo que ves? Ayudanos a verificar.</div>
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="mt-3 w-full rounded-xl border border-red-400/30 bg-red-400/10 hover:bg-red-400/15 p-4 text-left transition-colors"
-                  >
-                    <div className="text-red-100 font-semibold mb-1">🚨 Solicitar ayuda / escalar</div>
-                    <div className="text-red-200/60 text-sm">CTA a fuentes oficiales (por ahora placeholder, luego datos por región).</div>
-                  </button>
-
-                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="text-white/60 text-xs uppercase tracking-wider mb-2">Reportes recientes</div>
-                    <div className="text-white/50 text-sm">Próximamente: feed en tiempo real de reportes guardianes + mapa.</div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : view === "news" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-white/90 font-semibold text-lg">📰 Noticias + redes</div>
-                <div className="text-white/45 text-sm mt-1">
-                  Orden: {isBreaking ? "breaking/urgente" : "actualizaciones"} → gobierno → bomberos → medios → sensación en redes.
-                </div>
-
-                {isBreaking ? (
-                  <div className="mt-4 rounded-xl border border-red-400/25 bg-red-400/10 p-4">
-                    <div className="text-red-100 text-xs uppercase tracking-wider">BREAKING / Urgente</div>
-                    <div className="mt-2 text-red-100/90 text-sm">
-                      Señal indica urgencia estimada. En producción, esto se valida con evacuaciones/cortes y partes oficiales.
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-white/60 text-xs uppercase tracking-wider">Actualizaciones</div>
-                    <div className="mt-2 text-white/75 text-sm">
-                      No se detectó urgencia inmediata por señal. Se muestran fuentes y contexto; el orden prioriza oficiales.
-                    </div>
-                  </div>
-                )}
-
-                {newsError ? (
-                  <div className="mt-4 rounded-xl border border-red-400/25 bg-red-400/10 p-4">
-                    <div className="text-red-100 text-xs uppercase tracking-wider">Error</div>
-                    <div className="mt-2 text-red-100/90 text-sm">{newsError}</div>
-                    <div className="mt-2 text-red-100/70 text-xs">
-                      Nota: esto suele pasar si el Worker cambia URL, si hay CORS/timeout, o si GDELT responde vacío.
-                    </div>
+                {newsErr ? (
+                  <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                    No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
                   </div>
                 ) : null}
 
                 {newsLoading ? (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">Cargando noticias desde el Worker…</div>
+                  <div className="mt-4 space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
+                        <div className="h-4 w-2/3 bg-white/10 rounded" />
+                        <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
+                        <div className="h-3 w-full bg-white/10 rounded mt-3" />
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="mt-4 grid grid-cols-1 gap-3">
-                    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-white/80 text-sm font-semibold">Gobierno (primero)</div>
-                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge("government").cls].join(" ")}>
-                          {sourceBadge("government").label}
-                        </span>
-                      </div>
-                      <div className="mt-3 grid grid-cols-1 gap-3">
-                        {newsItems.filter((n) => n.kind === "government").length ? (
-                          newsItems.filter((n) => n.kind === "government").map((n) => <NewsCard key={n.id} item={n} />)
-                        ) : (
-                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-white/60 text-sm">Sin resultados de Gobierno para esta búsqueda.</div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-white/80 text-sm font-semibold">Bomberos (segundo)</div>
-                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge("firefighters").cls].join(" ")}>
-                          {sourceBadge("firefighters").label}
-                        </span>
-                      </div>
-                      <div className="mt-3 grid grid-cols-1 gap-3">
-                        {newsItems.filter((n) => n.kind === "firefighters").length ? (
-                          newsItems.filter((n) => n.kind === "firefighters").map((n) => <NewsCard key={n.id} item={n} />)
-                        ) : (
-                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-white/60 text-sm">Sin resultados de Bomberos/Protección Civil para esta búsqueda.</div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-white/80 text-sm font-semibold">Medios (tercero)</div>
-                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge("media").cls].join(" ")}>
-                          {sourceBadge("media").label}
-                        </span>
-                      </div>
-                      <div className="mt-3 grid grid-cols-1 gap-3">
-                        {newsItems.filter((n) => n.kind === "media").length ? (
-                          newsItems.filter((n) => n.kind === "media").map((n) => <NewsCard key={n.id} item={n} />)
-                        ) : (
-                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-white/60 text-sm">Sin resultados de Medios para esta búsqueda.</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/60 text-xs uppercase tracking-wider">Sensación en redes</div>
-                  <div className="mt-2 text-white/70 text-sm">
-                    Placeholder UI: citas/observaciones. Luego: contador + mapa de calor social + reels/videos.
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <SocialQuote who="Vecino/a (simulado)" text="Se ve una columna de humo hacia el oeste. El viento cambió hace unos minutos." />
-                    <SocialQuote who="Cuenta local (simulado)" text="Piden no circular por el acceso rural. Se escuchan sirenas en la zona." />
-                  </div>
-                </div>
-
-                <div className="mt-3 text-white/35 text-xs">Próximo: enriquecer contenido (extractos) + deduplicación + multimedia.</div>
-              </div>
-            </>
-          ) : view === "news_item" ? (
-            <>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-white/90 font-semibold text-lg">🧾 Detalle de noticia</div>
-                    <div className="text-white/45 text-sm mt-1">Se abre dentro del panel (no salimos de BioPulse).</div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="shrink-0 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 text-sm transition-colors"
-                    onClick={backFromNewsItem}
-                  >
-                    Volver a noticias
-                  </button>
-                </div>
-
-                {selectedNews ? (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
-                    {selectedNews.imageUrl ? (
-                      <img src={selectedNews.imageUrl} alt="" className="h-56 w-full object-cover opacity-90" loading="lazy" />
-                    ) : (
-                      <div className="h-48 w-full bg-gradient-to-br from-white/10 to-white/0" />
-                    )}
-
-                    <div className="p-4">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={["rounded-full border px-2 py-0.5 text-[11px]", sourceBadge(selectedNews.kind).cls].join(" ")}>
-                          {sourceBadge(selectedNews.kind).label}
-                        </span>
-                        <span className="text-white/40 text-[11px]">{timeAgoFrom(selectedNews.publishedAt)}</span>
-                        <span className="text-white/35 text-[11px]">•</span>
-                        <span className="text-white/55 text-[11px]">{selectedNews.sourceName}</span>
-                        {selectedNews.language ? (
-                          <>
-                            <span className="text-white/35 text-[11px]">•</span>
-                            <span className="text-white/35 text-[11px]">{selectedNews.language}</span>
-                          </>
-                        ) : null}
-                      </div>
-
-                      <div className="mt-2 text-white/95 text-lg font-semibold">{selectedNews.title}</div>
-                      <div className="mt-2 text-white/70 text-sm">{selectedNews.summary}</div>
-
-                      <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-white/60 text-xs uppercase tracking-wider">Contenido</div>
-                        <div className="mt-2 text-white/80 text-sm leading-relaxed whitespace-pre-line">{selectedNews.body}</div>
-                      </div>
-
-                      {selectedNews.videoUrl ? (
-                        <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
-                          <div className="text-white/60 text-xs uppercase tracking-wider">Video</div>
-                          <div className="mt-2 text-white/70 text-sm">(Placeholder) Acá embebemos reels/videos cuando exista URL segura o proxy.</div>
+                  <div className="mt-4 space-y-3">
+                    {newsItems.length === 0 ? (
+                      <div className="text-sm text-white/45">
+                        No se encontraron artículos recientes para esta búsqueda.
+                        <div className="text-xs text-white/35 mt-1">
+                          Tip: si la zona es muy chica, probá con provincia/departamento o con “Argentina wildfire”.
                         </div>
-                      ) : null}
+                      </div>
+                    ) : (
+                      newsItems.map((it) => {
+                        const host = it.domain || (it.url ? new URL(it.url).hostname : "");
+                        const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                        return (
+                          <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                  {it.title ?? "Artículo"}
+                                </div>
+                                <div className="mt-1 text-[11px] text-white/45">
+                                  {host ? <span className="text-white/55">{host}</span> : null}
+                                  {when ? (
+                                    <>
+                                      <span className="mx-2 text-white/20">•</span>
+                                      <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
 
-                      {selectedNews.url ? (
-                        <a
-                          className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-                          href={selectedNews.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Abrir fuente externa
-                          <span className="text-white/40 text-xs">(opcional)</span>
-                        </a>
-                      ) : null}
+                              {it.url ? (
+                                <a
+                                  href={it.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={cn(
+                                    "shrink-0 inline-flex items-center gap-2",
+                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                  )}
+                                  title="Abrir"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span className="text-xs font-medium">Abrir</span>
+                                </a>
+                              ) : null}
+                            </div>
+
+                            {it.summary ? (
+                              <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+                                {it.summary}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                {newsMeta?.fetchedAt ? (
+                  <div className="mt-3 text-[11px] text-white/35">Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}</div>
+                ) : null}
+              </div>
+            </SectionShell>
+
+            {/* ===== Indicadores operativos ===== */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+              <div className="px-5 pt-4 pb-3">
+                <div className="text-white/90 font-semibold">Indicadores operativos</div>
+                <div className="text-xs text-white/45 mt-0.5">Visual + número + explicación. Esto traduce la señal, no la “inventa”.</div>
+              </div>
+
+              <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wide text-white/45">Intensidad</div>
+                      <div className="text-[11px] text-white/35 mt-0.5">Radiative Power</div>
+                    </div>
+                    <Gauge className="h-4 w-4 text-white/40" />
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <Dial value={intensityLevel} label="nivel" />
+                    <div className="text-right">
+                      <div className="text-white/90 font-semibold">
+                        {frpMax != null ? `${frpMax.toFixed(2)} FRP` : "—"} <span className="text-white/50">max</span>
+                      </div>
+                      <div className="text-xs text-white/45 mt-1">
+                        Lectura:{" "}
+                        <span className="text-white/70 font-medium">
+                          {event.severity === "critical"
+                            ? "Muy alta"
+                            : event.severity === "high"
+                            ? "Alta"
+                            : event.severity === "moderate"
+                            ? "Media"
+                            : "Baja"}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–120).</div>
                     </div>
                   </div>
-                ) : (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">No se encontró la noticia seleccionada.</div>
-                )}
-              </div>
-            </>
-          ) : null}
-        </div>
+                </div>
 
-        <style>{`
-          .pulse-dot{
-            animation: pulse 1.25s ease-in-out infinite;
-          }
-          @keyframes pulse{
-            0%{ transform: scale(1); opacity: 0.35; }
-            50%{ transform: scale(1.35); opacity: 0.95; }
-            100%{ transform: scale(1); opacity: 0.35; }
-          }
-          .line-clamp-2{
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-          }
-        `}</style>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wide text-white/45">Actividad</div>
+                      <div className="text-[11px] text-white/35 mt-0.5">Señales VIIRS</div>
+                    </div>
+                    <Activity className="h-4 w-4 text-white/40" />
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <Dial value={activityLevel} label="nivel" />
+                    <div className="text-right">
+                      <div className="text-white/90 font-semibold">
+                        {detections != null ? `${detections}` : "—"} <span className="text-white/50">detections</span>
+                      </div>
+                      <div className="text-xs text-white/45 mt-1">
+                        Lectura:{" "}
+                        <span className="text-white/70 font-medium">
+                          {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–25).</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wide text-white/45">Energía total</div>
+                      <div className="text-[11px] text-white/35 mt-0.5">Acumulado</div>
+                    </div>
+                    <Flame className="h-4 w-4 text-white/40" />
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <Dial value={energyLevel} label="nivel" />
+                    <div className="text-right">
+                      <div className="text-white/90 font-semibold">
+                        {frpSum != null ? `${frpSum.toFixed(2)} FRP` : "—"} <span className="text-white/50">sum</span>
+                      </div>
+                      <div className="text-xs text-white/45 mt-1">Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).</div>
+                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–250).</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ===== Condiciones (placeholder UI, hasta que conectemos tu fuente real) ===== */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+              <div className="px-5 pt-4 pb-3">
+                <div className="text-white/90 font-semibold">Condiciones</div>
+                <div className="text-xs text-white/45 mt-0.5">Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).</div>
+              </div>
+
+              <div className="px-5 pb-5 space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                      <CloudRain className="h-4 w-4" /> Lluvia
+                    </div>
+                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="text-[11px] text-white/35 mt-1">Próximas 12 h (UTC)</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                      <Wind className="h-4 w-4" /> Viento
+                    </div>
+                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="text-[11px] text-white/35 mt-1">máx. estimado</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                      <Droplets className="h-4 w-4" /> Humedad
+                    </div>
+                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="text-[11px] text-white/35 mt-1">mín. estimado</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                      <Thermometer className="h-4 w-4" /> Temp.
+                    </div>
+                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="text-[11px] text-white/35 mt-1">promedio</div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2">Ventana operativa</div>
+                  <div className="text-sm text-white/70 leading-relaxed">
+                    A completar cuando conectemos el módulo de condiciones (fuente meteorológica/índices).
+                    Por ahora, BioPulse muestra lectura satelital + noticias para contexto.
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/45">Status</div>
+                    <div className="mt-2 text-white/90 font-semibold">{statusLabel(event.status)}</div>
+                    <div className="text-[11px] text-white/35 mt-2">
+                      Last detection: {fmtDateTime(new Date(event.timestamp))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/45">Evacuación</div>
+                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="text-[11px] text-white/35 mt-2">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-white/30">
+                  Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital + contexto informativo.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* bottom padding */}
+          <div className="h-6" />
+        </div>
       </div>
     </div>
   );
-
-  return typeof document !== "undefined" ? createPortal(modal, document.body) : null;
 }
