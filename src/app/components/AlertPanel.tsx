@@ -133,9 +133,7 @@ function extractOpsFromDescription(desc?: string): ExtractedOps {
   const mTrend = desc.match(/Trend:\s*([A-Za-z]+)/i);
   if (mTrend?.[1]) out.trendLabel = mTrend[1].trim();
 
-  const mFrp = desc.match(
-    /FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i
-  );
+  const mFrp = desc.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)\s*.*FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
   if (mFrp?.[1]) out.frpMax = Number(mFrp[1]);
   if (mFrp?.[2]) out.frpSum = Number(mFrp[2]);
 
@@ -389,8 +387,10 @@ type NewsItem = {
 };
 
 function sourceBadge(kind: NewsSourceKind) {
-  if (kind === "government") return { label: "GOBIERNO", cls: "border-emerald-400/30 bg-emerald-400/15 text-emerald-100" };
-  if (kind === "firefighters") return { label: "BOMBEROS", cls: "border-orange-400/30 bg-orange-400/15 text-orange-100" };
+  if (kind === "government")
+    return { label: "GOBIERNO", cls: "border-emerald-400/30 bg-emerald-400/15 text-emerald-100" };
+  if (kind === "firefighters")
+    return { label: "BOMBEROS", cls: "border-orange-400/30 bg-orange-400/15 text-orange-100" };
   return { label: "MEDIOS", cls: "border-white/10 bg-white/5 text-white/80" };
 }
 
@@ -411,7 +411,9 @@ function NewsCard(props: { item: NewsItem; onOpen: (id: string) => void }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={["rounded-full border px-2 py-0.5 text-[11px]", badge.cls].join(" ")}>{badge.label}</span>
+            <span className={["rounded-full border px-2 py-0.5 text-[11px]", badge.cls].join(" ")}>
+              {badge.label}
+            </span>
             <span className="text-white/40 text-[11px]">{timeAgoFrom(item.publishedAt)}</span>
             <span className="text-white/35 text-[11px]">•</span>
             <span className="text-white/45 text-[11px]">{item.sourceName}</span>
@@ -429,7 +431,9 @@ function NewsCard(props: { item: NewsItem; onOpen: (id: string) => void }) {
               Ver más
             </button>
 
-            {item.videoUrl ? <span className="text-white/55 text-[11px] inline-flex items-center gap-1">▶ video</span> : null}
+            {item.videoUrl ? (
+              <span className="text-white/55 text-[11px] inline-flex items-center gap-1">▶ video</span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -459,18 +463,16 @@ type PanelView =
   | "news_item";
 
 // ============================
-// AlertPanel wrapper (SIN hooks)
+// ✅ Wrapper SIN hooks (evita React #310)
 // ============================
 export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
   if (!event) return null;
-
-  // key fuerza remount limpio por evento (estabilidad total al cambiar de alerta)
   return <AlertPanelInner key={event.id} event={event} onClose={onClose} shareUrl={shareUrl} />;
 }
 
 // ============================
-// AlertPanelInner (CON hooks) – event SIEMPRE existe
+// ✅ Inner CON hooks (event nunca es null)
 // ============================
 function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
@@ -695,18 +697,10 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
         role="dialog"
         aria-modal="true"
       >
-        <div
-          className="h-1.5"
-          style={{ background: `linear-gradient(90deg, ${header.color}CC, ${header.color}14, transparent)` }}
-        />
+        <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${header.color}CC, ${header.color}14, transparent)` }} />
 
         {/* HEADER */}
-        <div
-          className={[
-            "relative border-b border-white/10 bg-black/10",
-            isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6",
-          ].join(" ")}
-        >
+        <div className={["relative border-b border-white/10 bg-black/10", isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6"].join(" ")}>
           <div className="flex items-center justify-between gap-2">
             {isCompact ? (
               <button
@@ -795,9 +789,7 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                 <div className="min-w-0 flex-1">
                   <div className="text-white text-2xl md:text-3xl font-semibold leading-tight">{event.title}</div>
                   <div className="mt-2 text-white/80 text-sm md:text-base font-medium">{event.location}</div>
-                  <div className="mt-1 text-white/45 text-xs">
-                    {fmtCoord(lat)}, {fmtCoord(lon)}
-                  </div>
+                  <div className="mt-1 text-white/45 text-xs">{fmtCoord(lat)}, {fmtCoord(lon)}</div>
                 </div>
 
                 <button
@@ -873,14 +865,10 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                 <CardButton
                   title="Observación satelital"
                   subtitle={
-                    event.satelliteImageUrl
-                      ? "Imagen asociada + métricas VIIRS/FRP. (Timeline después)."
-                      : "Aún sin imagen asociada."
+                    event.satelliteImageUrl ? "Imagen asociada + métricas VIIRS/FRP. (Timeline después)." : "Aún sin imagen asociada."
                   }
                   icon="🛰️"
-                  rightBadge={
-                    event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null
-                  }
+                  rightBadge={event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null}
                   onClick={() => setView("satellite")}
                 />
 
@@ -911,9 +899,7 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                 <CardButton
                   title="Impacto humano"
                   subtitle={`Población: ${
-                    typeof event.affectedPopulation === "number"
-                      ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}`
-                      : "—"
+                    typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"
                   } • Área: ${km2(event.affectedArea)}`}
                   icon="👥"
                   rightBadge={null}
@@ -1039,9 +1025,7 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
 
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">
-                      {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
-                    </div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
                     <div className="mt-1 text-white/45 text-xs">Fuente: (a definir cuando conectemos datos oficiales)</div>
                   </div>
                 </div>
@@ -1171,7 +1155,9 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Población</div>
                     <div className="mt-1 text-white/90 text-base font-semibold">
-                      {typeof event.affectedPopulation === "number" ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}` : "—"}
+                      {typeof event.affectedPopulation === "number"
+                        ? `≈ ${event.affectedPopulation.toLocaleString("es-AR")}`
+                        : "—"}
                     </div>
                   </div>
 
@@ -1182,7 +1168,9 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
 
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-white/40 text-xs uppercase tracking-wider">Evacuación</div>
-                    <div className="mt-1 text-white/90 text-base font-semibold">{event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}</div>
+                    <div className="mt-1 text-white/90 text-base font-semibold">
+                      {event.evacuationLevel ? event.evacuationLevel.toUpperCase() : "—"}
+                    </div>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -1205,7 +1193,9 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                   </div>
 
                   {typeof event.aiInsight?.confidence === "number" ? (
-                    <div className="mt-3 text-white/40 text-xs">Confianza del modelo: {Math.round(event.aiInsight.confidence * 100)}%</div>
+                    <div className="mt-3 text-white/40 text-xs">
+                      Confianza del modelo: {Math.round(event.aiInsight.confidence * 100)}%
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -1217,7 +1207,9 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                 <div className="text-white/45 text-sm mt-1">UI prototipo. Backend después.</div>
 
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-white/80 text-sm">Sos parte de la red. Podés reportar evidencia, confirmar datos y ayudar a priorizar.</div>
+                  <div className="text-white/80 text-sm">
+                    Sos parte de la red. Podés reportar evidencia, confirmar datos y ayudar a priorizar.
+                  </div>
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button
@@ -1249,7 +1241,6 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
             </>
           ) : view === "news" ? (
             <>
-              {/* (tu bloque news completo, sin cambios) */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="text-white/90 font-semibold text-lg">📰 Noticias + redes</div>
                 <div className="text-white/45 text-sm mt-1">
@@ -1328,12 +1319,13 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                   </div>
                 </div>
 
-                <div className="mt-3 text-white/35 text-xs">Próximo: Worker que normaliza RSS/APIs + deduplicación + adjunta multimedia.</div>
+                <div className="mt-3 text-white/35 text-xs">
+                  Próximo: Worker que normaliza RSS/APIs + deduplicación + adjunta multimedia.
+                </div>
               </div>
             </>
           ) : view === "news_item" ? (
             <>
-              {/* (tu bloque news_item completo, sin cambios) */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -1378,7 +1370,9 @@ function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">No se encontró la noticia seleccionada.</div>
+                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">
+                    No se encontró la noticia seleccionada.
+                  </div>
                 )}
               </div>
             </>
