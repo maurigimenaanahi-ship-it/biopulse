@@ -411,9 +411,7 @@ function NewsCard(props: { item: NewsItem; onOpen: (id: string) => void }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={["rounded-full border px-2 py-0.5 text-[11px]", badge.cls].join(" ")}>
-              {badge.label}
-            </span>
+            <span className={["rounded-full border px-2 py-0.5 text-[11px]", badge.cls].join(" ")}>{badge.label}</span>
             <span className="text-white/40 text-[11px]">{timeAgoFrom(item.publishedAt)}</span>
             <span className="text-white/35 text-[11px]">•</span>
             <span className="text-white/45 text-[11px]">{item.sourceName}</span>
@@ -431,9 +429,7 @@ function NewsCard(props: { item: NewsItem; onOpen: (id: string) => void }) {
               Ver más
             </button>
 
-            {item.videoUrl ? (
-              <span className="text-white/55 text-[11px] inline-flex items-center gap-1">▶ video</span>
-            ) : null}
+            {item.videoUrl ? <span className="text-white/55 text-[11px] inline-flex items-center gap-1">▶ video</span> : null}
           </div>
         </div>
       </div>
@@ -463,14 +459,21 @@ type PanelView =
   | "news_item";
 
 // ============================
-// AlertPanel (FIXED hooks order)
+// AlertPanel wrapper (SIN hooks)
 // ============================
 export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: () => void; shareUrl?: string }) {
   const { event, onClose, shareUrl } = props;
-
-  // ✅ Guard clause ANTES: si no hay event, no renderizamos nada.
-  // Esto evita renders intermedios raros y elimina la causa típica del #310.
   if (!event) return null;
+
+  // key fuerza remount limpio por evento (estabilidad total al cambiar de alerta)
+  return <AlertPanelInner key={event.id} event={event} onClose={onClose} shareUrl={shareUrl} />;
+}
+
+// ============================
+// AlertPanelInner (CON hooks) – event SIEMPRE existe
+// ============================
+function AlertPanelInner(props: { event: EnvironmentalEvent; onClose: () => void; shareUrl?: string }) {
+  const { event, onClose, shareUrl } = props;
 
   // State
   const [copied, setCopied] = useState(false);
@@ -698,7 +701,12 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
         />
 
         {/* HEADER */}
-        <div className={["relative border-b border-white/10 bg-black/10", isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6"].join(" ")}>
+        <div
+          className={[
+            "relative border-b border-white/10 bg-black/10",
+            isCompact ? "px-4 py-3 md:px-5 md:py-3" : "p-5 md:p-6",
+          ].join(" ")}
+        >
           <div className="flex items-center justify-between gap-2">
             {isCompact ? (
               <button
@@ -871,9 +879,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                   }
                   icon="🛰️"
                   rightBadge={
-                    event.satelliteImageUrl
-                      ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") }
-                      : null
+                    event.satelliteImageUrl ? { text: timeAgoFrom(event.timestamp), className: badgeStyle("snapshot") } : null
                   }
                   onClick={() => setView("satellite")}
                 />
@@ -886,11 +892,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                       : "No hay cámaras públicas registradas cerca por ahora."
                   }
                   icon="🎥"
-                  rightBadge={
-                    cameraCandidates.length
-                      ? { text: `${cameraCandidates.length} cerca`, className: badgeStyle("periodic") }
-                      : null
-                  }
+                  rightBadge={cameraCandidates.length ? { text: `${cameraCandidates.length} cerca`, className: badgeStyle("periodic") } : null}
                   onClick={() => setView("cameras")}
                 />
 
@@ -1062,9 +1064,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     <div className="text-white/50 text-sm">No hay imagen satelital asociada para este evento.</div>
                   )}
 
-                  <div className="mt-4 text-white/35 text-xs">
-                    Próximo: timeline + capas (hotspots, viento, humedad, combustible).
-                  </div>
+                  <div className="mt-4 text-white/35 text-xs">Próximo: timeline + capas (hotspots, viento, humedad, combustible).</div>
                 </div>
               </div>
             </>
@@ -1249,6 +1249,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             </>
           ) : view === "news" ? (
             <>
+              {/* (tu bloque news completo, sin cambios) */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="text-white/90 font-semibold text-lg">📰 Noticias + redes</div>
                 <div className="text-white/45 text-sm mt-1">
@@ -1332,6 +1333,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
             </>
           ) : view === "news_item" ? (
             <>
+              {/* (tu bloque news_item completo, sin cambios) */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -1376,9 +1378,7 @@ export function AlertPanel(props: { event: EnvironmentalEvent | null; onClose: (
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">
-                    No se encontró la noticia seleccionada.
-                  </div>
+                  <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-white/70 text-sm">No se encontró la noticia seleccionada.</div>
                 )}
               </div>
             </>
