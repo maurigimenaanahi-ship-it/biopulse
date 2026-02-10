@@ -22,8 +22,9 @@ type AlertPanelProps = {
   onClose: () => void;
 };
 
-const NEWS_WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
+// ---------- News types ----------
 type NewsItem = {
   id: string;
   title: string | null;
@@ -45,9 +46,10 @@ type NewsResponse = {
   fetched_at?: string;
 };
 
+// ---------- Worker clients ----------
 async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
   const url =
-    `${NEWS_WORKER_BASE}/news` +
+    `${WORKER_BASE}/news` +
     `?query=${encodeURIComponent(params.query)}` +
     `&days=${encodeURIComponent(String(params.days))}` +
     `&max=${encodeURIComponent(String(params.max))}`;
@@ -60,22 +62,44 @@ async function fetchNewsFromWorker(params: { query: string; days: number; max: n
   return (await res.json()) as NewsResponse;
 }
 
+type ReverseGeocodeResponse = {
+  label: string | null;
+  display_name?: string | null;
+  lat: number;
+  lon: number;
+};
+
+async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
+  const url = `${WORKER_BASE}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) return null;
+  const data = (await res.json()) as ReverseGeocodeResponse;
+  const label = data?.label ?? null;
+  return label && typeof label === "string" ? label : null;
+}
+
+// ---------- UI helpers ----------
 function cn(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
 }
 
-function fmtDateTime(d: Date) {
-  // Simple y estable (sin Intl pesado). Ajustá si querés locale.
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getUTCDate())} ${d.toLocaleString("en-US", { month: "short" }).toUpperCase()} ${d.getUTCFullYear()} ${pad(
-    d.getUTCHours()
-  )}:${pad(d.getUTCMinutes())} UTC`;
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function fmtDateTimeUTC(d: Date) {
+  return `${pad2(d.getUTCDate())} ${d
+    .toLocaleString("en-US", { month: "short" })
+    .toUpperCase()} ${d.getUTCFullYear()} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())} UTC`;
 }
 
 function sevChip(sev: EnvironmentalEvent["severity"]) {
-  if (sev === "critical") return { label: "CRITICAL", dot: "bg-red-500", ring: "border-red-400/30", bg: "bg-red-500/10" };
-  if (sev === "high") return { label: "HIGH", dot: "bg-orange-500", ring: "border-orange-400/30", bg: "bg-orange-500/10" };
-  if (sev === "moderate") return { label: "MODERATE", dot: "bg-yellow-400", ring: "border-yellow-300/30", bg: "bg-yellow-400/10" };
+  if (sev === "critical")
+    return { label: "CRITICAL", dot: "bg-red-500", ring: "border-red-400/30", bg: "bg-red-500/10" };
+  if (sev === "high")
+    return { label: "HIGH", dot: "bg-orange-500", ring: "border-orange-400/30", bg: "bg-orange-500/10" };
+  if (sev === "moderate")
+    return { label: "MODERATE", dot: "bg-yellow-400", ring: "border-yellow-300/30", bg: "bg-yellow-400/10" };
   return { label: "LOW", dot: "bg-emerald-400", ring: "border-emerald-300/30", bg: "bg-emerald-400/10" };
 }
 
@@ -90,34 +114,55 @@ function statusLabel(s?: string | null) {
   return s;
 }
 
-function titleCaseCompact(s: string) {
-  const t = (s ?? "").trim();
-  if (!t) return t;
-  return t.charAt(0).toUpperCase() + t.slice(1);
+function isGenericLocation(locRaw: string) {
+  const loc = (locRaw ?? "").trim().toLowerCase();
+  if (!loc) return true;
+
+  // tus fallbacks típicos
+  const generic = [
+    "américa",
+    "america",
+    "south america",
+    "américa del sur",
+    "latin america",
+    "latam",
+    "world",
+    "mundo",
+    "region",
+  ];
+
+  // si sólo tiene 1 palabra grande tipo "Argentina" puede servir, pero preferimos más específico.
+  if (generic.some((g) => loc.includes(g))) return true;
+
+  // Si no tiene coma, suele ser demasiado corto (ej. "Chubut" es ok, pero prefiero geocode igual)
+  // lo tratamos como "semi genérico"
+  if (!loc.includes(",")) return true;
+
+  return false;
 }
 
-function getPrimaryLocation(ev: EnvironmentalEvent) {
-  // Tomamos la primera parte antes de coma como “lugar corto”
-  const loc = (ev.location ?? "").trim();
-  if (!loc) return "Unknown location";
-  return loc.split(",")[0].trim() || loc;
+function normalizePlaceForQuery(place: string) {
+  // De "Departamento Cushamen, Chubut, Argentina" sacamos partes útiles
+  const parts = place
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const country = parts[parts.length - 1] ?? "";
+  const state = parts.length >= 2 ? parts[parts.length - 2] : "";
+  const locality = parts[0] ?? "";
+
+  return { locality, state, country, parts };
 }
 
-function buildNewsQuery(ev: EnvironmentalEvent) {
-  // Query híbrida (ES+EN) para GDELT, conservadora.
-  const loc = (ev.location ?? "").trim();
-  const shortLoc = getPrimaryLocation(ev);
-  const countryHint = loc.includes("Argentina") ? "Argentina" : "";
-  const coords = `${ev.latitude.toFixed(2)},${ev.longitude.toFixed(2)}`;
+function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
+  const { locality, state, country } = normalizePlaceForQuery(place);
 
-  if (ev.category === "fire") {
-    // Mix: incendio + wildfire + nombre de lugar
-    return `(${shortLoc} OR "${loc}") (incendio OR incendios OR wildfire OR wildfires OR fire) ${countryHint}`.trim();
-  }
-
-  // fallback genérico por categoría
-  const cat =
-    ev.category === "flood"
+  // Terms por categoría (hoy priorizamos fire)
+  const hazard =
+    ev.category === "fire"
+      ? "(incendio OR incendios OR wildfire OR wildfires OR fire OR forest fire OR bushfire)"
+      : ev.category === "flood"
       ? "(inundación OR flood)"
       : ev.category === "storm"
       ? "(tormenta OR storm)"
@@ -127,15 +172,24 @@ function buildNewsQuery(ev: EnvironmentalEvent) {
       ? "(sequía OR drought)"
       : "(emergency OR disaster)";
 
-  return `(${shortLoc} OR "${loc}" OR ${coords}) ${cat} ${countryHint}`.trim();
-}
+  // Lugar: metemos comillas para obligar coherencia, y también versión sin comillas por si el medio lo escribe distinto
+  const placeBlock = [
+    locality ? `"${locality}"` : null,
+    state ? `"${state}"` : null,
+    country ? `"${country}"` : null,
+    locality ? `${locality}` : null,
+    state ? `${state}` : null,
+    country ? `${country}` : null,
+  ]
+    .filter(Boolean)
+    .join(" OR ");
 
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
+  // Query final: lugar AND hazard
+  // (GDELT soporta esto bien)
+  return `(${placeBlock}) AND ${hazard}`;
 }
 
 function parseFRPFromDescription(desc?: string) {
-  // Busca "FRP max X" y "FRP sum Y" dentro del texto
   const s = String(desc ?? "");
   const maxMatch = s.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)/i);
   const sumMatch = s.match(/FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
@@ -155,7 +209,6 @@ function parseDetectionsFromTitle(title?: string) {
 }
 
 function guessTrendLabel(ev: EnvironmentalEvent) {
-  // Intentamos inferir de riskIndicators si existe "Trend:"
   const arr = Array.isArray(ev.riskIndicators) ? ev.riskIndicators : [];
   const trendLine = arr.find((x) => String(x).toLowerCase().startsWith("trend:"));
   if (!trendLine) return null;
@@ -164,39 +217,34 @@ function guessTrendLabel(ev: EnvironmentalEvent) {
   if (lower.includes("intens")) return "TREND: Intensifying";
   if (lower.includes("weak")) return "TREND: Weakening";
   if (lower.includes("stable")) return "TREND: Stable";
-  // fallback: mostrar lo que venga después de "Trend:"
+
   const after = trendLine.split(":").slice(1).join(":").trim();
-  return after ? `TREND: ${titleCaseCompact(after)}` : null;
+  return after ? `TREND: ${after}` : null;
+}
+
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n));
 }
 
 function levelFromFRPMax(frpMax: number | null) {
   if (frpMax == null) return null;
-  // Escala operativa (0–120) como la que venías usando visualmente
   return clamp(Math.round((frpMax / 120) * 100), 0, 100);
 }
 
 function levelFromDetections(d: number | null) {
   if (d == null) return null;
-  // Escala (0–25) -> 0–100
   return clamp(Math.round((d / 25) * 100), 0, 100);
 }
 
 function levelFromFRPSum(frpSum: number | null) {
   if (frpSum == null) return null;
-  // Escala (0–250) -> 0–100
   return clamp(Math.round((frpSum / 250) * 100), 0, 100);
 }
 
-function Dial({
-  value,
-  label,
-}: {
-  value: number | null;
-  label: string;
-}) {
+function Dial({ value, label }: { value: number | null; label: string }) {
   const v = value == null ? 0 : clamp(value, 0, 100);
-  // arco ~ 240°
   const deg = 240 * (v / 100);
+
   return (
     <div className="flex items-center gap-3">
       <div className="relative h-16 w-16">
@@ -256,22 +304,55 @@ function SectionShell({
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Cuando cambia el evento, volvemos arriba del panel
+  // scroll-to-top al cambiar evento
   useEffect(() => {
     if (!event) return;
-    // scroll-to-top (lo que tenés pendiente en memoria lo hacemos acá a nivel panel)
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
   }, [event?.id]);
 
-  // ===== NEWS state =====
+  // ====== NEWS state ======
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsErr, setNewsErr] = useState<string | null>(null);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string } | null>(null);
+  const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
 
-  const newsQuery = useMemo(() => (event ? buildNewsQuery(event) : ""), [event?.id]);
+  // cache de “place bueno” por event.id (evita pedir reverse geocode cada vez)
+  const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
+
+  const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
+
+  const { frpMax, frpSum } = useMemo(() => parseFRPFromDescription(event?.description), [event?.description]);
+  const detections = useMemo(() => parseDetectionsFromTitle(event?.title), [event?.title]);
+
+  const intensityLevel = useMemo(() => levelFromFRPMax(frpMax), [frpMax]);
+  const activityLevel = useMemo(() => levelFromDetections(detections), [detections]);
+  const energyLevel = useMemo(() => levelFromFRPSum(frpSum), [frpSum]);
+
+  async function ensureNewsPlace(ev: EnvironmentalEvent): Promise<string> {
+    const cached = placeCache[String(ev.id)];
+    if (cached) return cached;
+
+    const loc = (ev.location ?? "").trim();
+
+    // Si no es genérico, lo usamos tal cual
+    if (loc && !isGenericLocation(loc)) {
+      setPlaceCache((p) => ({ ...p, [String(ev.id)]: loc }));
+      return loc;
+    }
+
+    // Si es genérico → reverse geocode on-demand (esto es lo que te faltaba)
+    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
+    const finalPlace = (place ?? loc ?? "").trim();
+
+    // Si igual quedó vacío, tiramos algo mínimo pero sin "América del Sur"
+    const safe =
+      finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`; // fallback último, mejor que continente
+
+    setPlaceCache((p) => ({ ...p, [String(ev.id)]: safe }));
+    return safe;
+  }
 
   const loadNews = async () => {
     if (!event) return;
@@ -279,14 +360,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setNewsErr(null);
 
     try {
+      const place = await ensureNewsPlace(event);
+      const query = buildNewsQueryFromPlace(event, place);
+
       const data = await fetchNewsFromWorker({
-        query: newsQuery,
+        query,
         days: event.category === "fire" ? 10 : 14,
         max: 10,
       });
 
       const items = Array.isArray(data?.items) ? data.items : [];
-      // Limpieza mínima
       const cleaned = items
         .filter((x) => x && (x.title || x.url))
         .map((x) => ({
@@ -296,10 +379,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         }));
 
       setNewsItems(cleaned);
-      setNewsMeta({ query: data.query ?? newsQuery, fetchedAt: data.fetched_at });
+      setNewsMeta({ query: data.query ?? query, fetchedAt: data.fetched_at, placeUsed: place });
     } catch (e: any) {
       setNewsItems([]);
-      setNewsMeta({ query: newsQuery });
+      setNewsMeta(null);
       setNewsErr(e?.message ? String(e.message) : "No se pudo cargar noticias.");
     } finally {
       setNewsLoading(false);
@@ -316,21 +399,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   if (!event) return null;
 
   const chip = sevChip(event.severity);
-  const trend = guessTrendLabel(event) ?? "TREND: —";
-
-  const { frpMax, frpSum } = parseFRPFromDescription(event.description);
-  const detections = parseDetectionsFromTitle(event.title);
-
-  const intensityLevel = levelFromFRPMax(frpMax);
-  const activityLevel = levelFromDetections(detections);
-  const energyLevel = levelFromFRPSum(frpSum);
 
   return (
     <div className="pointer-events-auto fixed inset-0 z-[9998]">
-      {/* backdrop */}
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      {/* modal */}
       <div
         className={cn(
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
@@ -339,7 +412,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden"
         )}
       >
-        {/* header top bar */}
+        {/* Header */}
         <div className="px-5 pt-4 pb-3 border-b border-white/10">
           <div className="flex items-center justify-between gap-3">
             <button
@@ -371,7 +444,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           </div>
 
           <div className="mt-3 text-[11px] uppercase tracking-wide text-white/40">
-            {String(event.category ?? "").toUpperCase()} • {fmtDateTime(new Date(event.timestamp))}
+            {String(event.category ?? "").toUpperCase()} • {fmtDateTimeUTC(new Date(event.timestamp))}
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-3">
@@ -399,10 +472,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           </div>
         </div>
 
-        {/* body scroll */}
+        {/* Body */}
         <div ref={scrollRef} className="h-full overflow-y-auto px-5 py-5">
           <div className="space-y-4">
-            {/* ===== Estado operativo ===== */}
+            {/* Estado operativo */}
             <SectionShell
               icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
               title="Estado operativo"
@@ -450,11 +523,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
-            {/* ===== ✅ Noticias (DEBAJO de Estado operativo) ===== */}
+            {/* ✅ Noticias relacionadas (debajo de Estado operativo) */}
             <SectionShell
               icon={<Newspaper className="h-5 w-5 text-white/80" />}
               title="Noticias relacionadas"
-              subtitle="Cobertura reciente basada en la zona y el tipo de evento (proxy GDELT)."
+              subtitle="Cobertura reciente basada en ubicación real (reverse geocode) + tipo de evento."
               right={
                 <button
                   onClick={loadNews}
@@ -473,7 +546,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             >
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div className="text-[11px] uppercase tracking-wide text-white/45">
-                  Query: <span className="text-white/55 normal-case">{newsMeta?.query ?? newsQuery}</span>
+                  Lugar usado:{" "}
+                  <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
+                </div>
+                <div className="mt-1 text-[11px] uppercase tracking-wide text-white/45">
+                  Query:{" "}
+                  <span className="text-white/55 normal-case break-words">{newsMeta?.query ?? "—"}</span>
                 </div>
 
                 {newsErr ? (
@@ -496,9 +574,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="mt-4 space-y-3">
                     {newsItems.length === 0 ? (
                       <div className="text-sm text-white/45">
-                        No se encontraron artículos recientes para esta búsqueda.
+                        No se encontraron artículos relevantes con esta query.
                         <div className="text-xs text-white/35 mt-1">
-                          Tip: si la zona es muy chica, probá con provincia/departamento o con “Argentina wildfire”.
+                          (Esto es bueno: ahora la búsqueda es estricta. Si querés, luego hacemos “modo amplio” opcional.)
                         </div>
                       </div>
                     ) : (
@@ -554,16 +632,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 )}
 
                 {newsMeta?.fetchedAt ? (
-                  <div className="mt-3 text-[11px] text-white/35">Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}</div>
+                  <div className="mt-3 text-[11px] text-white/35">
+                    Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}
+                  </div>
                 ) : null}
               </div>
             </SectionShell>
 
-            {/* ===== Indicadores operativos ===== */}
+            {/* Indicadores operativos */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3">
                 <div className="text-white/90 font-semibold">Indicadores operativos</div>
-                <div className="text-xs text-white/45 mt-0.5">Visual + número + explicación. Esto traduce la señal, no la “inventa”.</div>
+                <div className="text-xs text-white/45 mt-0.5">
+                  Visual + número + explicación. Esto traduce la señal, no la “inventa”.
+                </div>
               </div>
 
               <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -594,7 +676,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             : "Baja"}
                         </span>
                       </div>
-                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–120).</div>
+                      <div className="text-[11px] text-white/30 mt-2">
+                        Base: señal satelital + escala operativa (0–120).
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -620,7 +704,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
                         </span>
                       </div>
-                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–25).</div>
+                      <div className="text-[11px] text-white/30 mt-2">
+                        Base: señal satelital + escala operativa (0–25).
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -640,19 +726,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       <div className="text-white/90 font-semibold">
                         {frpSum != null ? `${frpSum.toFixed(2)} FRP` : "—"} <span className="text-white/50">sum</span>
                       </div>
-                      <div className="text-xs text-white/45 mt-1">Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).</div>
-                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–250).</div>
+                      <div className="text-xs text-white/45 mt-1">
+                        Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).
+                      </div>
+                      <div className="text-[11px] text-white/30 mt-2">
+                        Base: señal satelital + escala operativa (0–250).
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ===== Condiciones (placeholder UI, hasta que conectemos tu fuente real) ===== */}
+            {/* Condiciones (placeholder) */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3">
                 <div className="text-white/90 font-semibold">Condiciones</div>
-                <div className="text-xs text-white/45 mt-0.5">Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).</div>
+                <div className="text-xs text-white/45 mt-0.5">
+                  Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
+                </div>
               </div>
 
               <div className="px-5 pb-5 space-y-3">
@@ -703,14 +795,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <div className="text-[11px] uppercase tracking-wide text-white/45">Status</div>
                     <div className="mt-2 text-white/90 font-semibold">{statusLabel(event.status)}</div>
                     <div className="text-[11px] text-white/35 mt-2">
-                      Last detection: {fmtDateTime(new Date(event.timestamp))}
+                      Last detection: {fmtDateTimeUTC(new Date(event.timestamp))}
                     </div>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/45">Evacuación</div>
                     <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-2">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                    <div className="text-[11px] text-white/35 mt-2">
+                      Fuente: (a definir cuando conectemos datos oficiales)
+                    </div>
                   </div>
                 </div>
 
@@ -721,7 +815,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             </div>
           </div>
 
-          {/* bottom padding */}
           <div className="h-6" />
         </div>
       </div>
