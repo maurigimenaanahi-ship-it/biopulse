@@ -1,827 +1,484 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { EnvironmentalEvent } from "@/data/events";
-import {
-  X,
-  CornerUpLeft,
-  AlertTriangle,
-  Flame,
-  Activity,
-  Gauge,
-  CloudRain,
-  Wind,
-  Droplets,
-  Thermometer,
-  Newspaper,
-  ExternalLink,
-  Loader2,
-  RefreshCw,
-} from "lucide-react";
+import { useMemo, useState } from "react";
+import { MapScene } from "./components/MapScene";
+import { Header } from "./components/Header";
+import { AlertPanel } from "./components/AlertPanel";
+import { Timeline } from "./components/Timeline";
+import { StatsPanel } from "./components/StatsPanel";
+import { SplashScreen } from "./components/SplashScreen";
+import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
+import { FollowedAlertsPanel } from "./components/FollowedAlertsPanel";
+import { mockEvents } from "@/data/events";
+import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
+import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import { SlidersHorizontal, CornerUpLeft, Bell } from "lucide-react";
 
-type AlertPanelProps = {
-  event: EnvironmentalEvent | null;
-  onClose: () => void;
-};
+const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
-const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+type AppStage = "splash" | "setup" | "dashboard";
 
-// ---------- News types ----------
-type NewsItem = {
-  id: string;
-  title: string | null;
-  url: string | null;
-  domain: string | null;
-  language: string | null;
-  publishedAt: string | null;
-  sourceCountry: string | null;
-  image: string | null;
-  summary: string | null;
-};
-
-type NewsResponse = {
-  query: string;
-  count: number;
-  items: NewsItem[];
-  range?: { days: number; start: string; end: string };
-  gdelt?: any;
-  fetched_at?: string;
-};
-
-// ---------- Worker clients ----------
-async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
-  const url =
-    `${WORKER_BASE}/news` +
-    `?query=${encodeURIComponent(params.query)}` +
-    `&days=${encodeURIComponent(String(params.days))}` +
-    `&max=${encodeURIComponent(String(params.max))}`;
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`News Worker error ${res.status}: ${txt.slice(0, 200)}`);
-  }
-  return (await res.json()) as NewsResponse;
-}
-
-type ReverseGeocodeResponse = {
-  label: string | null;
-  display_name?: string | null;
-  lat: number;
-  lon: number;
-};
+/** ===== Reverse geocode via Cloudflare Worker ===== */
+const GEO_CACHE = new Map<string, string>();
 
 async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
-  const url = `${WORKER_BASE}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) return null;
-  const data = (await res.json()) as ReverseGeocodeResponse;
-  const label = data?.label ?? null;
-  return label && typeof label === "string" ? label : null;
+  const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  if (GEO_CACHE.has(key)) return GEO_CACHE.get(key)!;
+
+  try {
+    const url = `${GEO_PROXY}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+
+    const data: any = await res.json();
+    const label = data?.label ?? null;
+
+    if (label && typeof label === "string") {
+      GEO_CACHE.set(key, label);
+      return label;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
-// ---------- UI helpers ----------
-function cn(...xs: Array<string | false | null | undefined>) {
-  return xs.filter(Boolean).join(" ");
+/** ===== status automático ===== */
+function statusFromLastSeen(lastSeen: Date | null, severity: EnvironmentalEvent["severity"]): EventStatus {
+  if (!lastSeen) return severity === "critical" ? "escalating" : "active";
+
+  const ageMs = Date.now() - lastSeen.getTime();
+  const ageH = ageMs / (1000 * 60 * 60);
+
+  if (ageH > 48) return "resolved";
+  if (ageH > 18) return "contained";
+  if (ageH > 6) return "stabilizing";
+
+  if (severity === "critical" || severity === "high") return "escalating";
+  return "active";
 }
 
+/** ===== Helpers ===== */
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function fmtDateTimeUTC(d: Date) {
-  return `${pad2(d.getUTCDate())} ${d
-    .toLocaleString("en-US", { month: "short" })
-    .toUpperCase()} ${d.getUTCFullYear()} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())} UTC`;
+function dateYYYYMMDD(d: Date) {
+  // UTC para que el link sea consistente
+  const yyyy = d.getUTCFullYear();
+  const mm = pad2(d.getUTCMonth() + 1);
+  const dd = pad2(d.getUTCDate());
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-function safeDateFromAny(s: string | null) {
-  if (!s) return null;
-  const d = new Date(s);
-  return Number.isFinite(d.getTime()) ? d : null;
-}
+/** ===== Paso A: tendencia del incendio (interpretación) ===== */
+type FireTrend = "intensifying" | "stable" | "weakening";
 
-function sevChip(sev: EnvironmentalEvent["severity"]) {
-  if (sev === "critical")
-    return { label: "CRITICAL", dot: "bg-red-500", ring: "border-red-400/30", bg: "bg-red-500/10" };
-  if (sev === "high")
-    return { label: "HIGH", dot: "bg-orange-500", ring: "border-orange-400/30", bg: "bg-orange-500/10" };
-  if (sev === "moderate")
-    return { label: "MODERATE", dot: "bg-yellow-400", ring: "border-yellow-300/30", bg: "bg-yellow-400/10" };
-  return { label: "LOW", dot: "bg-emerald-400", ring: "border-emerald-300/30", bg: "bg-emerald-400/10" };
-}
+function fireTrendFromMetrics(args: {
+  focusCount: number;
+  frpSum: number;
+  frpMax: number;
+  lastSeen: Date | null;
+}): { trend: FireTrend; label: string; hint: string } {
+  const focus = Number.isFinite(args.focusCount) ? args.focusCount : 0;
+  const sum = Number.isFinite(args.frpSum) ? args.frpSum : 0;
+  const max = Number.isFinite(args.frpMax) ? args.frpMax : 0;
 
-function statusLabel(s?: string | null) {
-  if (!s) return "—";
-  const k = String(s).toLowerCase();
-  if (k === "escalating") return "Escalating";
-  if (k === "active") return "Active";
-  if (k === "stabilizing") return "Stabilizing";
-  if (k === "contained") return "Contained";
-  if (k === "resolved") return "Resolved";
-  return s;
-}
+  const ageH =
+    args.lastSeen instanceof Date ? (Date.now() - args.lastSeen.getTime()) / (1000 * 60 * 60) : null;
 
-function isGenericLocation(locRaw: string) {
-  const loc = (locRaw ?? "").trim().toLowerCase();
-  if (!loc) return true;
+  const veryRecent = typeof ageH === "number" ? ageH <= 3 : true;
+  const oldSignal = typeof ageH === "number" ? ageH >= 12 : false;
 
-  const generic = [
-    "américa",
-    "america",
-    "south america",
-    "américa del sur",
-    "latin america",
-    "latam",
-    "world",
-    "mundo",
-    "region",
-  ];
+  const intensifying =
+    veryRecent && ((focus >= 10 && sum >= 40) || (focus >= 6 && sum >= 80) || (max >= 25 && sum >= 40));
 
-  if (generic.some((g) => loc.includes(g))) return true;
-  if (!loc.includes(",")) return true;
+  const weakening = oldSignal || ((focus <= 3 && sum <= 20) && max <= 10);
 
-  return false;
-}
-
-function normalizePlaceForQuery(place: string) {
-  const parts = place
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const country = parts[parts.length - 1] ?? "";
-  const state = parts.length >= 2 ? parts[parts.length - 2] : "";
-  const locality = parts[0] ?? "";
-
-  return { locality, state, country, parts };
-}
-
-function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
-  const { locality, state, country } = normalizePlaceForQuery(place);
-
-  const hazard =
-    ev.category === "fire"
-      ? "(incendio OR incendios OR wildfire OR wildfires OR fire OR forest fire OR bushfire)"
-      : ev.category === "flood"
-      ? "(inundación OR flood)"
-      : ev.category === "storm"
-      ? "(tormenta OR storm)"
-      : ev.category === "earthquake"
-      ? "(terremoto OR earthquake)"
-      : ev.category === "drought"
-      ? "(sequía OR drought)"
-      : "(emergency OR disaster)";
-
-  const placeBlock = [
-    locality ? `"${locality}"` : null,
-    state ? `"${state}"` : null,
-    country ? `"${country}"` : null,
-    locality ? `${locality}` : null,
-    state ? `${state}` : null,
-    country ? `${country}` : null,
-  ]
-    .filter(Boolean)
-    .join(" OR ");
-
-  return `(${placeBlock}) AND ${hazard}`;
-}
-
-function parseFRPFromDescription(desc?: string) {
-  const s = String(desc ?? "");
-  const maxMatch = s.match(/FRP\s*max\s*([0-9]+(?:\.[0-9]+)?)/i);
-  const sumMatch = s.match(/FRP\s*sum\s*([0-9]+(?:\.[0-9]+)?)/i);
-  const frpMax = maxMatch ? Number(maxMatch[1]) : null;
-  const frpSum = sumMatch ? Number(sumMatch[1]) : null;
-  return {
-    frpMax: Number.isFinite(frpMax as any) ? (frpMax as number) : null,
-    frpSum: Number.isFinite(frpSum as any) ? (frpSum as number) : null,
-  };
-}
-
-function parseDetectionsFromTitle(title?: string) {
-  const s = String(title ?? "");
-  const m = s.match(/\((\d+)\s*detections?\)/i);
-  const n = m ? Number(m[1]) : null;
-  return Number.isFinite(n as any) ? (n as number) : null;
-}
-
-function guessTrendLabel(ev: EnvironmentalEvent) {
-  const arr = Array.isArray(ev.riskIndicators) ? ev.riskIndicators : [];
-  const trendLine = arr.find((x) => String(x).toLowerCase().startsWith("trend:"));
-  if (!trendLine) return null;
-
-  const lower = String(trendLine).toLowerCase();
-  if (lower.includes("intens")) return "TREND: Intensifying";
-  if (lower.includes("weak")) return "TREND: Weakening";
-  if (lower.includes("stable")) return "TREND: Stable";
-
-  const after = trendLine.split(":").slice(1).join(":").trim();
-  return after ? `TREND: ${after}` : null;
-}
-
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
-}
-
-function levelFromFRPMax(frpMax: number | null) {
-  if (frpMax == null) return null;
-  return clamp(Math.round((frpMax / 120) * 100), 0, 100);
-}
-
-function levelFromDetections(d: number | null) {
-  if (d == null) return null;
-  return clamp(Math.round((d / 25) * 100), 0, 100);
-}
-
-function levelFromFRPSum(frpSum: number | null) {
-  if (frpSum == null) return null;
-  return clamp(Math.round((frpSum / 250) * 100), 0, 100);
-}
-
-function Dial({ value, label }: { value: number | null; label: string }) {
-  const v = value == null ? 0 : clamp(value, 0, 100);
-  const deg = 240 * (v / 100);
-
-  return (
-    <div className="flex items-center gap-3 shrink-0">
-      <div className="relative h-16 w-16 shrink-0">
-        <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10" />
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: `conic-gradient(from 210deg, rgba(255,0,68,0.85) ${deg}deg, rgba(255,255,255,0.06) 0deg)`,
-            maskImage: "radial-gradient(circle at center, transparent 58%, black 60%)",
-            WebkitMaskImage: "radial-gradient(circle at center, transparent 58%, black 60%)",
-          }}
-        />
-        <div className="absolute inset-0 flex items-end justify-center pb-2">
-          <div className="text-[11px] text-white/85 font-semibold">{value ?? "—"}</div>
-        </div>
-      </div>
-      <div className="leading-tight min-w-0">
-        <div className="text-[11px] uppercase tracking-wide text-white/45">{label}</div>
-        <div className="text-sm text-white/85 font-medium">{value == null ? "—" : `${v} nivel`}</div>
-      </div>
-    </div>
-  );
-}
-
-function SectionShell({
-  icon,
-  title,
-  right,
-  subtitle,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  right?: React.ReactNode;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-      <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 h-9 w-9 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
-            {icon}
-          </div>
-          <div>
-            <div className="text-white/90 font-semibold">{title}</div>
-            {subtitle ? <div className="text-xs text-white/45 mt-0.5">{subtitle}</div> : null}
-          </div>
-        </div>
-        {right ? <div className="shrink-0">{right}</div> : null}
-      </div>
-      <div className="px-5 pb-5">{children}</div>
-    </div>
-  );
-}
-
-export function AlertPanel({ event, onClose }: AlertPanelProps) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  // ESC cierra
-  useEffect(() => {
-    if (!event) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+  if (intensifying) {
+    return {
+      trend: "intensifying",
+      label: "Intensifying",
+      hint: "Más señales térmicas recientes y energía total elevada.",
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [event, onClose]);
-
-  // scroll-to-top al cambiar evento
-  useEffect(() => {
-    if (!event) return;
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }, [event?.id]);
-
-  // ====== NEWS state ======
-  const [newsLoading, setNewsLoading] = useState(false);
-  const [newsErr, setNewsErr] = useState<string | null>(null);
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
-
-  // cache de “place bueno” por event.id
-  const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
-
-  const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
-
-  const { frpMax, frpSum } = useMemo(() => parseFRPFromDescription(event?.description), [event?.description]);
-  const detections = useMemo(() => parseDetectionsFromTitle(event?.title), [event?.title]);
-
-  const intensityLevel = useMemo(() => levelFromFRPMax(frpMax), [frpMax]);
-  const activityLevel = useMemo(() => levelFromDetections(detections), [detections]);
-  const energyLevel = useMemo(() => levelFromFRPSum(frpSum), [frpSum]);
-
-  async function ensureNewsPlace(ev: EnvironmentalEvent): Promise<string> {
-    const cached = placeCache[String(ev.id)];
-    if (cached) return cached;
-
-    const loc = (ev.location ?? "").trim();
-
-    if (loc && !isGenericLocation(loc)) {
-      setPlaceCache((p) => ({ ...p, [String(ev.id)]: loc }));
-      return loc;
-    }
-
-    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
-    const finalPlace = (place ?? loc ?? "").trim();
-
-    const safe = finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`;
-
-    setPlaceCache((p) => ({ ...p, [String(ev.id)]: safe }));
-    return safe;
   }
 
-  const loadNews = async () => {
-    if (!event) return;
-    setNewsLoading(true);
-    setNewsErr(null);
+  if (weakening) {
+    return {
+      trend: "weakening",
+      label: "Weakening",
+      hint: "Señal menos reciente o energía baja en comparación.",
+    };
+  }
 
-    try {
-      const place = await ensureNewsPlace(event);
-      const query = buildNewsQueryFromPlace(event, place);
+  return {
+    trend: "stable",
+    label: "Stable",
+    hint: "Sin cambios fuertes detectables en las últimas horas.",
+  };
+}
 
-      const data = await fetchNewsFromWorker({
-        query,
-        days: event.category === "fire" ? 10 : 14,
-        max: 10,
-      });
+/** ===== Link FIRMS centrado en el punto ===== */
+function firmsViewerUrl(lat: number, lon: number) {
+  const today = dateYYYYMMDD(new Date());
+  return `https://firms.modaps.eosdis.nasa.gov/map/#t:adv;d:${today};@${lon.toFixed(4)},${lat.toFixed(4)},7z`;
+}
 
-      const items = Array.isArray(data?.items) ? data.items : [];
-      const cleaned = items
-        .filter((x) => x && (x.title || x.url))
-        .map((x) => ({
-          ...x,
-          title: x.title?.trim() ?? null,
-          summary: x.summary?.trim() ?? null,
-        }));
+export default function App() {
+  const [stage, setStage] = useState<AppStage>("splash");
+  const [activeView, setActiveView] = useState("home");
 
-      setNewsItems(cleaned);
-      setNewsMeta({ query: data.query ?? query, fetchedAt: data.fetched_at, placeUsed: place });
-    } catch (e: any) {
-      setNewsItems([]);
-      setNewsMeta(null);
-      setNewsErr(e?.message ? String(e.message) : "No se pudo cargar noticias.");
-    } finally {
-      setNewsLoading(false);
-    }
+  const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
+  const [selectedRegionKey, setSelectedRegionKey] = useState<string | null>(null);
+
+  const [events, setEvents] = useState<EnvironmentalEvent[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<EnvironmentalEvent | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  const [resetKey, setResetKey] = useState(0);
+
+  // “Explorando” (zoom-in) => colapsa panels
+  const [isExploring, setIsExploring] = useState(false);
+  const [mapZoom, setMapZoom] = useState(1.2);
+
+  // ✅ panel de seguidas
+  const [showFollowed, setShowFollowed] = useState(false);
+
+  const selectedRegion =
+    REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
+
+  const openSetup = () => {
+    setSelectedEvent(null);
+    setIsExploring(false);
+    setStage("setup");
   };
 
-  useEffect(() => {
-    if (!event) return;
-    loadNews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.id]);
+  const isAlertOpen = !!selectedEvent;
 
-  if (!event) return null;
+  /** ✅ On-demand reverse geocode */
+  async function ensureSelectedEventHasLocation(ev: EnvironmentalEvent) {
+    const regionLabel = selectedRegion?.label ?? "";
 
-  const chip = sevChip(event.severity);
+    const loc = (ev.location ?? "").trim();
+    const looksLikeFallback =
+      !loc ||
+      loc === regionLabel ||
+      loc.toLowerCase().includes("américa") ||
+      loc.toLowerCase().includes("america");
+
+    if (!looksLikeFallback) return;
+
+    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
+    if (!place) return;
+
+    setSelectedEvent((curr) => (curr && curr.id === ev.id ? { ...curr, location: place } : curr));
+    setEvents((prev) => prev.map((x) => (x.id === ev.id ? { ...x, location: place } : x)));
+  }
+
+  const startMonitoring = async (args: {
+    category: EventCategory;
+    region: { key: string; label: string; bbox: string };
+  }) => {
+    setSelectedCategory(args.category);
+    setSelectedRegionKey(args.region.key);
+
+    if (args.category === "fire") {
+      try {
+        const bbox = encodeURIComponent(args.region.bbox);
+        const url = `${FIRMS_PROXY}/fires?bbox=${bbox}&days=2&source=VIIRS_SNPP_NRT`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`FIRMS proxy error: ${res.status}`);
+        const data = await res.json();
+
+        const points: FirePoint[] = (data.features ?? [])
+          .map((f: any, i: number) => ({
+            id: f.id || `fire-${i}`,
+            latitude: Number(f.latitude),
+            longitude: Number(f.longitude),
+            frp: Number(f.frp ?? 0),
+            confidence: f.confidence,
+            acq_date: f.acq_date,
+            acq_time: f.acq_time,
+          }))
+          .filter((p: any) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+
+        const clusters = clusterFiresDBSCAN(points, 10, 4, true);
+
+        const MAX_GEOCODE = 45;
+
+        const clusteredEvents: EnvironmentalEvent[] = await Promise.all(
+          clusters.map(async (c: any, i: number) => {
+            const lat = Number(c.latitude);
+            const lon = Number(c.longitude);
+
+            const lastSeen: Date | null =
+              c.lastSeen instanceof Date
+                ? c.lastSeen
+                : typeof c.lastSeen === "string" || typeof c.lastSeen === "number"
+                ? new Date(c.lastSeen)
+                : null;
+
+            const place = i < MAX_GEOCODE ? await reverseGeocodeViaWorker(lat, lon) : null;
+            const locationLabel = place ?? args.region.label;
+
+            const sev = c.severity as EnvironmentalEvent["severity"];
+            const frpMax = Number(c.frpMax ?? 0);
+            const frpSum = Number(c.frpSum ?? 0);
+            const focusCount = Number(c.focusCount ?? 0);
+
+            const trend = fireTrendFromMetrics({
+              focusCount,
+              frpSum,
+              frpMax,
+              lastSeen,
+            });
+
+            const narrative =
+              `Satellite sensors detected ${focusCount} fire ` +
+              `${focusCount > 1 ? "signals" : "signal"} near ${locationLabel}. ` +
+              `Trend: ${trend.label}. ` +
+              `Radiative power suggests ${sev === "critical" || sev === "high" ? "high" : "moderate"} intensity.`;
+
+            return {
+              id: c.id || `cluster-${i}`,
+              category: "fire",
+              severity: sev,
+
+              title:
+                focusCount > 1
+                  ? `Active Fire Cluster (${focusCount} detections)`
+                  : "Active Fire",
+
+              description: `${narrative} FRP max ${frpMax.toFixed(2)} • FRP sum ${frpSum.toFixed(2)}.`,
+
+              latitude: lat,
+              longitude: lon,
+              location: locationLabel,
+
+              timestamp: lastSeen ?? new Date(),
+
+              affectedArea: 1,
+              affectedPopulation: undefined,
+
+              riskIndicators: [
+                `Trend: ${trend.label} (${trend.hint})`,
+                sev === "critical" ? "Rapid spread potential" : "Monitoring",
+                "Satellite detection (VIIRS)",
+                `FRP max ${frpMax.toFixed(1)}`,
+              ],
+
+              liveFeedUrl: firmsViewerUrl(lat, lon),
+              status: statusFromLastSeen(lastSeen, sev),
+
+              evacuationLevel: undefined,
+              nearbyInfrastructure: undefined,
+              ecosystems: undefined,
+              speciesAtRisk: undefined,
+              aiInsight: {
+                probabilityNext12h: sev === "critical" ? 78 : sev === "high" ? 62 : sev === "moderate" ? 48 : 35,
+                narrative:
+                  sev === "critical" || sev === "high"
+                    ? "BioPulse estimates a meaningful probability of continued activity in the next 12 hours. Maintain vigilance and verify conditions on the ground where possible."
+                    : "BioPulse continues monitoring this signal. Verify with local sources if available.",
+                recommendations:
+                  sev === "critical" || sev === "high"
+                    ? ["Monitor wind/humidity shifts", "Track nearby settlements", "Prepare response readiness"]
+                    : ["Continue observation", "Check for new detections", "Confirm local conditions"],
+              },
+            };
+          })
+        );
+
+        setEvents(clusteredEvents);
+      } catch (err) {
+        console.error("Error fetching FIRMS data:", err);
+        setEvents(mockEvents.filter((e) => e.category === "fire"));
+      }
+
+      setSelectedEvent(null);
+      setStage("dashboard");
+      setResetKey((k) => k + 1);
+      setIsExploring(false);
+      return;
+    }
+
+    setEvents(mockEvents.filter((e) => e.category === args.category));
+    setSelectedEvent(null);
+    setStage("dashboard");
+    setResetKey((k) => k + 1);
+    setIsExploring(false);
+  };
+
+  const stats = useMemo(() => {
+    const criticalCount = events.filter((e) => e.severity === "critical").length;
+    const uniqueLocations = new Set(events.map((e) => e.location.split(",")[0]));
+    return { total: events.length, critical: criticalCount, regions: uniqueLocations.size };
+  }, [events]);
+
+  const shouldShowZoomOut = isExploring && !selectedEvent;
 
   return (
-    <div className="pointer-events-auto fixed inset-0 z-[10050]">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+    <div className="w-screen h-screen bg-[#050a14] relative">
+      <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
 
-      <div
-        className={cn(
-          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-          "w-[min(980px,92vw)] h-[min(86vh,720px)]",
-          "rounded-3xl border border-white/10",
-          "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden",
-          "flex flex-col"
-        )}
-      >
-        {/* Header */}
-        <div className="px-5 pt-4 pb-3 border-b border-white/10 shrink-0">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              onClick={onClose}
-              className={cn(
-                "inline-flex items-center gap-2",
-                "px-3 py-2 rounded-2xl border border-white/10 bg-white/5",
-                "text-white/85 hover:text-white hover:bg-white/8 transition-colors"
-              )}
-              aria-label="Volver"
-              title="Volver"
-            >
-              <CornerUpLeft className="h-4 w-4" />
-              <span className="text-sm font-medium">Volver</span>
-            </button>
+      <Header activeView={activeView} onViewChange={setActiveView} />
 
-            <button
-              onClick={onClose}
-              className={cn(
-                "h-10 w-10 rounded-2xl border border-white/10 bg-white/5",
-                "text-white/70 hover:text-white hover:bg-white/10 transition-colors",
-                "flex items-center justify-center"
-              )}
-              aria-label="Cerrar"
-              title="Cerrar"
-            >
-              <X className="h-5 w-5" />
-            </button>
+      <FollowedAlertsPanel
+        open={showFollowed}
+        events={events}
+        onClose={() => setShowFollowed(false)}
+        onSelect={(ev) => {
+          setSelectedEvent(ev);
+          ensureSelectedEventHasLocation(ev);
+        }}
+      />
+
+      {stage === "setup" && (
+        <SetupPanel
+          category={selectedCategory}
+          regionKey={selectedRegionKey}
+          onChangeCategory={setSelectedCategory}
+          onChangeRegion={setSelectedRegionKey}
+          onStart={startMonitoring}
+          onClose={() => setStage("dashboard")}
+          canClose={events.length > 0}
+        />
+      )}
+
+      {stage === "dashboard" && (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 z-0">
+            <MapScene
+              events={events}
+              bbox={selectedRegion?.bbox ?? null}
+              onEventClick={(ev) => {
+                setSelectedEvent(ev);
+                ensureSelectedEventHasLocation(ev);
+              }}
+              resetKey={resetKey}
+              onZoomedInChange={setIsExploring}
+              onZoomChange={setMapZoom}
+            />
           </div>
 
-          <div className="mt-3 text-[11px] uppercase tracking-wide text-white/40">
-            {String(event.category ?? "").toUpperCase()} • {fmtDateTimeUTC(new Date(event.timestamp))}
+          <div className="pointer-events-none absolute inset-0 z-[1]">
+            <div className="absolute inset-0 bg-gradient-radial from-cyan-950/20 via-transparent to-transparent opacity-30" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <div className="text-xl md:text-2xl font-semibold text-white/95">{event.location}</div>
-
-            <div className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-full border", chip.ring, chip.bg)}>
-              <span className={cn("h-2 w-2 rounded-full", chip.dot)} />
-              <span className="text-xs font-semibold text-white/90">{chip.label}</span>
-            </div>
-
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
-              <span className="h-2 w-2 rounded-full bg-cyan-400/80" />
-              <span className="text-xs font-medium text-white/80">{statusLabel(event.status)}</span>
-            </div>
-
-            <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
-              <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
-            </div>
-
-            <div className="w-full text-xs text-white/45">
-              {event.title}
-              <span className="mx-2 text-white/25">•</span>
-              {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
-            </div>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
-          <div className="space-y-4">
-            {/* Estado operativo */}
-            <SectionShell
-              icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
-              title="Estado operativo"
-              subtitle="Lectura operativa basada en señales satelitales recientes, tendencia y estado estimado."
-              right={
-                <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
-                  <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
-                </div>
-              }
-            >
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2 flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-orange-200/80" />
-                  Lectura del evento
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                  <div className="text-white/80">
-                    <span className="text-white/55 font-medium">Intensidad:</span>{" "}
-                    <span className="font-semibold text-white/90">
-                      {event.severity === "critical"
-                        ? "Muy alta"
-                        : event.severity === "high"
-                        ? "Alta"
-                        : event.severity === "moderate"
-                        ? "Media"
-                        : "Baja"}
-                    </span>
-                  </div>
-                  <div className="text-white/80">
-                    <span className="text-white/55 font-medium">Actividad:</span>{" "}
-                    <span className="font-semibold text-white/90">
-                      {detections != null && detections >= 15
-                        ? "Sostenida"
-                        : detections != null && detections >= 6
-                        ? "Activa"
-                        : "Leve"}
-                    </span>
-                  </div>
-                  <div className="text-white/80">
-                    <span className="text-white/55 font-medium">Estado:</span>{" "}
-                    <span className="font-semibold text-white/90">{statusLabel(event.status)}</span>
-                  </div>
-                </div>
-
-                <div className="mt-3 text-[11px] text-white/35">
-                  Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
-                </div>
-              </div>
-            </SectionShell>
-
-            {/* Noticias relacionadas (por ahora como venía) */}
-            <SectionShell
-              icon={<Newspaper className="h-5 w-5 text-white/80" />}
-              title="Noticias relacionadas"
-              subtitle="Cobertura reciente basada en ubicación real (reverse geocode) + tipo de evento."
-              right={
+          <div className="absolute inset-0 z-[2] pointer-events-none">
+            {!isAlertOpen && (
+              <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24 space-y-3">
                 <button
-                  onClick={loadNews}
-                  className={cn(
-                    "inline-flex items-center gap-2",
-                    "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
-                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                  )}
-                  aria-label="Actualizar noticias"
-                  title="Actualizar"
+                  onClick={openSetup}
+                  className={[
+                    "group flex items-center gap-3",
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border border-cyan-300/25",
+                    "bg-cyan-400/12 hover:bg-cyan-400/18",
+                    "text-white/90 hover:text-white",
+                    "transition-colors",
+                    "min-w-[220px]",
+                  ].join(" ")}
+                  title="Cambiar categoría o región"
+                  aria-label="Cambiar categoría o región"
                 >
-                  {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  <span className="text-xs font-medium">Actualizar</span>
+                  <div className="h-10 w-10 rounded-xl border border-cyan-300/20 bg-black/20 flex items-center justify-center">
+                    <SlidersHorizontal className="h-5 w-5 text-cyan-200" />
+                  </div>
+                  <div className="text-left leading-tight">
+                    <div className="text-sm md:text-base font-semibold">Cambiar búsqueda</div>
+                    <div className="text-xs text-white/55 mt-0.5">Categoría • Región</div>
+                  </div>
                 </button>
-              }
-            >
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="text-[11px] uppercase tracking-wide text-white/45">
-                  Lugar usado: <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
-                </div>
-                <div className="mt-1 text-[11px] uppercase tracking-wide text-white/45">
-                  Query: <span className="text-white/55 normal-case break-words">{newsMeta?.query ?? "—"}</span>
-                </div>
 
-                {newsErr ? (
-                  <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
-                    No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
+                <button
+                  onClick={() => setShowFollowed(true)}
+                  className={[
+                    "group flex items-center gap-3",
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border border-white/10",
+                    "bg-white/6 hover:bg-white/10",
+                    "text-white/90 hover:text-white",
+                    "transition-colors",
+                    "min-w-[220px]",
+                  ].join(" ")}
+                  title="Ver alertas seguidas"
+                  aria-label="Ver alertas seguidas"
+                >
+                  <div className="h-10 w-10 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
+                    <Bell className="h-5 w-5 text-white/75" />
                   </div>
-                ) : null}
-
-                {newsLoading ? (
-                  <div className="mt-4 space-y-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
-                        <div className="h-4 w-2/3 bg-white/10 rounded" />
-                        <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
-                        <div className="h-3 w-full bg-white/10 rounded mt-3" />
-                      </div>
-                    ))}
+                  <div className="text-left leading-tight">
+                    <div className="text-sm md:text-base font-semibold">Mis alertas</div>
+                    <div className="text-xs text-white/55 mt-0.5">Following</div>
                   </div>
-                ) : (
-                  <div className="mt-4 space-y-3">
-                    {newsItems.length === 0 ? (
-                      <div className="text-sm text-white/45">
-                        No se encontraron artículos relevantes con esta query.
-                        <div className="text-xs text-white/35 mt-1">
-                          (Esto es bueno: ahora la búsqueda es estricta. Si querés, luego hacemos “modo amplio” opcional.)
-                        </div>
-                      </div>
-                    ) : (
-                      newsItems.map((it) => {
-                        const host = it.domain || (it.url ? new URL(it.url).hostname : "");
-                        const when = safeDateFromAny(it.publishedAt);
-
-                        return (
-                          <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="text-sm font-semibold text-white/90 line-clamp-2">
-                                  {it.title ?? "Artículo"}
-                                </div>
-                                <div className="mt-1 text-[11px] text-white/45">
-                                  {host ? <span className="text-white/55">{host}</span> : null}
-                                  {when ? (
-                                    <>
-                                      <span className="mx-2 text-white/20">•</span>
-                                      <span>{when.toUTCString().replace("GMT", "UTC")}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span className="mx-2 text-white/20">•</span>
-                                      <span>Fecha no disponible</span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-
-                              {it.url ? (
-                                <a
-                                  href={it.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={cn(
-                                    "shrink-0 inline-flex items-center gap-2",
-                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                  )}
-                                  title="Abrir"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                  <span className="text-xs font-medium">Abrir</span>
-                                </a>
-                              ) : null}
-                            </div>
-
-                            {it.summary ? (
-                              <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
-                                {it.summary}
-                              </div>
-                            ) : null}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-
-                {newsMeta?.fetchedAt ? (
-                  <div className="mt-3 text-[11px] text-white/35">
-                    Actualizado: {new Date(newsMeta.fetchedAt).toUTCString().replace("GMT", "UTC")}
-                  </div>
-                ) : null}
+                </button>
               </div>
-            </SectionShell>
+            )}
 
-            {/* Indicadores operativos */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="px-5 pt-4 pb-3">
-                <div className="text-white/90 font-semibold">Indicadores operativos</div>
-                <div className="text-xs text-white/45 mt-0.5">
-                  Visual + número + explicación. Esto traduce la señal, no la “inventa”.
-                </div>
-              </div>
-
-              <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Intensidad</div>
-                      <div className="text-[11px] text-white/35 mt-0.5">Radiative Power</div>
-                    </div>
-                    <Gauge className="h-4 w-4 text-white/40" />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Dial value={intensityLevel} label="nivel" />
-                    <div className="text-right min-w-0">
-                      <div className="text-white/90 font-semibold">
-                        {frpMax != null ? `${frpMax.toFixed(2)} FRP` : "—"} <span className="text-white/50">max</span>
-                      </div>
-                      <div className="text-xs text-white/45 mt-1">
-                        Lectura:{" "}
-                        <span className="text-white/70 font-medium">
-                          {event.severity === "critical"
-                            ? "Muy alta"
-                            : event.severity === "high"
-                            ? "Alta"
-                            : event.severity === "moderate"
-                            ? "Media"
-                            : "Baja"}
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–120).</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Actividad</div>
-                      <div className="text-[11px] text-white/35 mt-0.5">Señales VIIRS</div>
-                    </div>
-                    <Activity className="h-4 w-4 text-white/40" />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Dial value={activityLevel} label="nivel" />
-                    <div className="text-right min-w-0">
-                      <div className="text-white/90 font-semibold">
-                        {detections != null ? `${detections}` : "—"} <span className="text-white/50">detections</span>
-                      </div>
-                      <div className="text-xs text-white/45 mt-1">
-                        Lectura:{" "}
-                        <span className="text-white/70 font-medium">
-                          {detections != null && detections >= 15
-                            ? "Sostenida"
-                            : detections != null && detections >= 6
-                            ? "Activa"
-                            : "Leve"}
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–25).</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Energía total</div>
-                      <div className="text-[11px] text-white/35 mt-0.5">Acumulado</div>
-                    </div>
-                    <Flame className="h-4 w-4 text-white/40" />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Dial value={energyLevel} label="nivel" />
-                    <div className="text-right min-w-0">
-                      <div className="text-white/90 font-semibold">
-                        {frpSum != null ? `${frpSum.toFixed(2)} FRP` : "—"} <span className="text-white/50">sum</span>
-                      </div>
-                      <div className="text-xs text-white/45 mt-1">
-                        Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).
-                      </div>
-                      <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–250).</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="pointer-events-auto">
+              <StatsPanel
+                totalEvents={stats.total}
+                criticalEvents={stats.critical}
+                affectedRegions={stats.regions}
+                collapsed={isExploring || isAlertOpen}
+              />
             </div>
 
-            {/* Condiciones (placeholder) */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="px-5 pt-4 pb-3">
-                <div className="text-white/90 font-semibold">Condiciones</div>
-                <div className="text-xs text-white/45 mt-0.5">
-                  Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
-                </div>
-              </div>
-
-              <div className="px-5 pb-5 space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <CloudRain className="h-4 w-4" /> Lluvia
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">Próximas 12 h (UTC)</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <Wind className="h-4 w-4" /> Viento
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">máx. estimado</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <Droplets className="h-4 w-4" /> Humedad
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">mín. estimado</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <Thermometer className="h-4 w-4" /> Temp.
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">promedio</div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2">Ventana operativa</div>
-                  <div className="text-sm text-white/70 leading-relaxed">
-                    A completar cuando conectemos el módulo de condiciones (fuente meteorológica/índices). Por ahora,
-                    BioPulse muestra lectura satelital + noticias para contexto.
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/45">Status</div>
-                    <div className="mt-2 text-white/90 font-semibold">{statusLabel(event.status)}</div>
-                    <div className="text-[11px] text-white/35 mt-2">Last detection: {fmtDateTimeUTC(new Date(event.timestamp))}</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/45">Evacuación</div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-2">Fuente: (a definir cuando conectemos datos oficiales)</div>
-                  </div>
-                </div>
-
-                <div className="text-[11px] text-white/30">
-                  Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital + contexto informativo.
-                </div>
-              </div>
+            <div className="pointer-events-auto">
+              <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />
             </div>
+
+            <div className="pointer-events-auto">
+              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+            </div>
+
+            {!isAlertOpen && (
+              <div className="pointer-events-auto absolute left-4 md:left-6 bottom-4 md:bottom-6 px-4 py-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+                <div className="text-white/70 text-sm font-medium">Scan active</div>
+                <div className="text-white/45 text-xs mt-1">
+                  {selectedCategory?.toUpperCase()} • {selectedRegion?.label ?? "Region"}
+                </div>
+                <div className="text-white/30 text-[11px] mt-1">events loaded: {events.length}</div>
+                <div className="text-white/30 text-[11px] mt-1">zoom: {mapZoom.toFixed(2)}</div>
+              </div>
+            )}
+
+            {!isAlertOpen && (
+              <div
+                className={[
+                  "fixed right-4 z-[9999]",
+                  "bottom-[180px] md:right-6 md:bottom-28",
+                  "transition-all duration-300 ease-out will-change-transform",
+                  shouldShowZoomOut
+                    ? "opacity-100 translate-y-0 pointer-events-auto"
+                    : "opacity-0 translate-y-2 pointer-events-none",
+                ].join(" ")}
+              >
+                <button
+                  onClick={() => setResetKey((k) => k + 1)}
+                  className={[
+                    "flex items-center gap-2",
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border",
+                    "border-cyan-400/30 bg-cyan-400/15",
+                    "text-cyan-100 hover:text-white",
+                    "hover:bg-cyan-400/25",
+                    "transition-colors",
+                  ].join(" ")}
+                  title="Volver a la vista general"
+                  aria-label="Volver a la vista general"
+                >
+                  <CornerUpLeft className="h-5 w-5 text-cyan-200" />
+                  <span className="font-medium">Volver</span>
+                </button>
+              </div>
+            )}
           </div>
-
-          <div className="h-6" />
         </div>
-      </div>
+      )}
     </div>
   );
 }
