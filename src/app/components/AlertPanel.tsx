@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Loader2,
   RefreshCw,
+  Siren,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -300,7 +301,6 @@ function safeHostname(url: string) {
   }
 }
 
-// Heurística inicial: “esto podría ser oficial”
 function looksOfficial(item: NewsItem) {
   const host = (item.domain || (item.url ? safeHostname(item.url) : "")).toLowerCase();
   const url = (item.url ?? "").toLowerCase();
@@ -329,7 +329,6 @@ function looksOfficial(item: NewsItem) {
   return hints.some((h) => text.includes(h));
 }
 
-// Prioridad simple para Argentina (ampliamos después por país/provincia/local)
 function inferCountryCodeFromPlace(placeUsed?: string | null) {
   const p = String(placeUsed ?? "").toLowerCase();
   if (p.includes("argentina")) return "AR";
@@ -340,7 +339,6 @@ function scoreLocality(item: NewsItem, placeCountryCode: string | null) {
   const host = (item.domain || (item.url ? safeHostname(item.url) : "")).toLowerCase();
   const src = (item.sourceCountry ?? "").toUpperCase();
 
-  // 0 = más local, 1 = mismo país, 2 = resto
   if (placeCountryCode === "AR") {
     if (host.endsWith(".ar") || host.includes(".ar/") || host.includes(".ar.")) return 0;
     if (src === "AR") return 1;
@@ -353,6 +351,34 @@ function parsePublishedMs(item: NewsItem) {
   if (!item.publishedAt) return 0;
   const t = new Date(item.publishedAt).getTime();
   return Number.isFinite(t) ? t : 0;
+}
+
+// --- Evacuación signal (heurística temporal, luego reemplazamos por fuente real) ---
+function hasEvacuationSignal(textRaw: string) {
+  const t = String(textRaw ?? "").toLowerCase();
+  if (!t.trim()) return false;
+
+  const keys = [
+    "evacuación",
+    "evacuacion",
+    "evacuar",
+    "evacuate",
+    "evacuation",
+    "orden de evacu",
+    "desalojo",
+    "shelter",
+    "refugio",
+    "albergue",
+    "alerta",
+    "emergencia",
+    "estado de emergencia",
+    "zona de exclusión",
+    "zona de exclusion",
+    "corte de ruta",
+    "ruta cortada",
+  ];
+
+  return keys.some((k) => t.includes(k));
 }
 
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
@@ -492,6 +518,22 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       });
   }, [newsItems, countryCode]);
 
+  // --- EVACUACIÓN ACTIVE ---
+  const evacuationActive = useMemo(() => {
+    if (!event) return false;
+
+    // si algún día lo cargamos con fuente real:
+    if ((event as any)?.evacuationLevel != null) return true;
+
+    // heurística: mirar títulos/resúmenes de comunicados oficiales
+    const blob = officialItems
+      .slice(0, 8)
+      .map((x) => `${x.title ?? ""} ${x.summary ?? ""} ${x.url ?? ""}`)
+      .join(" • ");
+
+    return hasEvacuationSignal(blob);
+  }, [event, officialItems]);
+
   if (!event) return null;
 
   const chip = sevChip(event.severity);
@@ -505,19 +547,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     onClose();
   };
 
-  function PreviewCard({
-    item,
-    emptyText,
-  }: {
-    item: NewsItem | null;
-    emptyText: string;
-  }) {
+  function PreviewCard({ item, emptyText }: { item: NewsItem | null; emptyText: string }) {
     if (!item) {
-      return (
-        <div className="text-sm text-white/45">
-          {emptyText}
-        </div>
-      );
+      return <div className="text-sm text-white/45">{emptyText}</div>;
     }
 
     const host = item.domain || (item.url ? safeHostname(item.url) : "");
@@ -528,9 +560,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-white/90 line-clamp-2">
-              {item.title ?? "Publicación"}
-            </div>
+            <div className="text-sm font-semibold text-white/90 line-clamp-2">{item.title ?? "Publicación"}</div>
             <div className="mt-1 text-[11px] text-white/45">
               {host ? <span className="text-white/55">{host}</span> : null}
               {whenOk ? (
@@ -561,9 +591,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         </div>
 
         {item.summary ? (
-          <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
-            {item.summary}
-          </div>
+          <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">{item.summary}</div>
         ) : null}
       </div>
     );
@@ -599,9 +627,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-white/90 line-clamp-2">
-                    {it.title ?? "Publicación"}
-                  </div>
+                  <div className="text-sm font-semibold text-white/90 line-clamp-2">{it.title ?? "Publicación"}</div>
                   <div className="mt-1 text-[11px] text-white/45">
                     {host ? <span className="text-white/55">{host}</span> : null}
                     {whenOk ? (
@@ -631,11 +657,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 ) : null}
               </div>
 
-              {it.summary ? (
-                <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-4">
-                  {it.summary}
-                </div>
-              ) : null}
+              {it.summary ? <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-4">{it.summary}</div> : null}
             </div>
           );
         })}
@@ -645,6 +667,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
   return (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
+      {/* Sirena visual: bordes de pantalla (sólo cuando hay evacuación) */}
+      {evacuationActive ? (
+        <div className="pointer-events-none absolute inset-0 z-[0]">
+          <div className="bp-siren-overlay" />
+        </div>
+      ) : null}
+
+      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60" onClick={view === "main" ? onClose : undefined} />
 
       <div
@@ -653,7 +683,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           "w-[min(980px,92vw)] h-[min(86vh,720px)]",
           "rounded-3xl border border-white/10",
           "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden",
-          "flex flex-col"
+          "flex flex-col",
+          "relative z-[1]"
         )}
       >
         {/* Header */}
@@ -707,6 +738,35 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
               <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
             </div>
+
+            {/* Botón sirena (si corresponde) */}
+            {evacuationActive ? (
+              <div className="inline-flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    // por ahora, lo mandamos a comunicados oficiales,
+                    // porque ahí es donde debería estar la base del aviso.
+                    setView("official");
+                    scrollTopInstant();
+                  }}
+                  className={cn(
+                    "bp-siren-btn",
+                    "inline-flex items-center gap-2",
+                    "px-3 py-1.5 rounded-full border",
+                    "text-white font-semibold"
+                  )}
+                  aria-label="Alerta de evacuación"
+                  title="Alerta de evacuación"
+                >
+                  <Siren className="h-4 w-4" />
+                  <span className="text-xs">EVACUACIÓN</span>
+                </button>
+
+                <div className="text-[11px] text-white/50">
+                  Aviso crítico detectado
+                </div>
+              </div>
+            ) : null}
 
             <div className="w-full text-xs text-white/45">
               {event.title}
@@ -814,10 +874,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                   ) : null}
 
-                  <PreviewCard
-                    item={officialItems[0] ?? null}
-                    emptyText="No hay comunicados oficiales todavía."
-                  />
+                  <PreviewCard item={officialItems[0] ?? null} emptyText="No hay comunicados oficiales todavía." />
 
                   <div className="mt-3 text-[11px] text-white/35">
                     Nota: “oficial” es una clasificación heurística por dominio/palabras clave (hasta conectar fuentes oficiales reales).
@@ -850,15 +907,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               >
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <div className="text-[11px] uppercase tracking-wide text-white/45">
-                    Lugar usado:{" "}
-                    <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
+                    Lugar usado: <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
                   </div>
 
                   <div className="mt-3">
-                    <PreviewCard
-                      item={regionalItems[0] ?? null}
-                      emptyText="No se encontraron artículos relevantes con esta query."
-                    />
+                    <PreviewCard item={regionalItems[0] ?? null} emptyText="No se encontraron artículos relevantes con esta query." />
                   </div>
 
                   {newsMeta?.fetchedAt ? (
@@ -873,9 +926,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
                 <div className="px-5 pt-4 pb-3">
                   <div className="text-white/90 font-semibold">Indicadores operativos</div>
-                  <div className="text-xs text-white/45 mt-0.5">
-                    Visual + número + explicación. Esto traduce la señal, no la “inventa”.
-                  </div>
+                  <div className="text-xs text-white/45 mt-0.5">Visual + número + explicación. Esto traduce la señal, no la “inventa”.</div>
                 </div>
 
                 <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -945,9 +996,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
                 <div className="px-5 pt-4 pb-3">
                   <div className="text-white/90 font-semibold">Condiciones</div>
-                  <div className="text-xs text-white/45 mt-0.5">
-                    Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
-                  </div>
+                  <div className="text-xs text-white/45 mt-0.5">Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).</div>
                 </div>
 
                 <div className="px-5 pb-5 space-y-3">
@@ -994,14 +1043,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <div className="h-6" />
             </div>
           ) : (
-            // ===== Expanded views =====
             <div className="space-y-4">
               <SectionShell
                 icon={<Newspaper className="h-5 w-5 text-white/80" />}
                 title={view === "official" ? "Comunicados oficiales" : "Noticias de la región"}
-                subtitle={view === "official"
-                  ? "Vista completa (heurística por dominio/palabras clave)."
-                  : "Vista completa (prioriza país cuando es detectable)."}
+                subtitle={view === "official" ? "Vista completa (heurística por dominio/palabras clave)." : "Vista completa (prioriza país cuando es detectable)."}
                 right={
                   <button
                     onClick={loadNews}
@@ -1020,8 +1066,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               >
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <div className="text-[11px] uppercase tracking-wide text-white/45">
-                    Lugar usado:{" "}
-                    <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
+                    Lugar usado: <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
                   </div>
 
                   {newsErr ? (
@@ -1038,7 +1083,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <FeedList items={officialItems} />
                       )}
                       <div className="mt-3 text-[11px] text-white/35">
-                        Nota: “oficial” es una clasificación heurística. Próximo: fuente oficial real (API/feeds verificables).
+                        Nota: “oficial” es heurístico. Próximo (paso 3): fuente oficial real (feeds verificables) + campo “evacuación”.
                       </div>
                     </>
                   ) : (
@@ -1048,16 +1093,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       ) : (
                         <FeedList items={regionalItems} />
                       )}
-                      <div className="mt-3 text-[11px] text-white/35">
-                        Próximo: prioridad local → provincial → nacional → internacional (cuando tengamos mejor metadata / geofencing).
-                      </div>
                     </>
                   )}
 
                   {newsMeta?.fetchedAt ? (
-                    <div className="mt-3 text-[11px] text-white/35">
-                      Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}
-                    </div>
+                    <div className="mt-3 text-[11px] text-white/35">Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}</div>
                   ) : null}
                 </div>
               </SectionShell>
@@ -1067,6 +1107,59 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           )}
         </div>
       </div>
+
+      {/* CSS local para sirena (sin tocar tailwind config) */}
+      <style>{`
+        @keyframes bp_sirenGlow {
+          0%   { box-shadow: 0 0 0px rgba(255,0,70,0.0), 0 0 0px rgba(0,170,255,0.0); }
+          25%  { box-shadow: 0 0 18px rgba(255,0,70,0.55), 0 0 2px rgba(0,170,255,0.10); }
+          50%  { box-shadow: 0 0 2px rgba(255,0,70,0.10), 0 0 18px rgba(0,170,255,0.55); }
+          75%  { box-shadow: 0 0 18px rgba(255,0,70,0.55), 0 0 2px rgba(0,170,255,0.10); }
+          100% { box-shadow: 0 0 0px rgba(255,0,70,0.0), 0 0 0px rgba(0,170,255,0.0); }
+        }
+
+        @keyframes bp_sirenOverlay {
+          0% {
+            opacity: 0.0;
+            filter: blur(10px);
+          }
+          20% {
+            opacity: 0.55;
+            filter: blur(14px);
+          }
+          50% {
+            opacity: 0.12;
+            filter: blur(10px);
+          }
+          80% {
+            opacity: 0.55;
+            filter: blur(14px);
+          }
+          100% {
+            opacity: 0.0;
+            filter: blur(10px);
+          }
+        }
+
+        .bp-siren-btn {
+          background: linear-gradient(90deg, rgba(255,0,70,0.18), rgba(0,170,255,0.18));
+          border-color: rgba(255,255,255,0.14);
+          animation: bp_sirenGlow 1.2s linear infinite;
+        }
+
+        .bp-siren-overlay {
+          position: absolute;
+          inset: 0;
+          border-radius: 0;
+          background:
+            radial-gradient(80% 50% at 0% 0%, rgba(255,0,70,0.28), rgba(255,0,70,0.0) 60%),
+            radial-gradient(80% 50% at 100% 100%, rgba(0,170,255,0.28), rgba(0,170,255,0.0) 60%),
+            radial-gradient(70% 50% at 100% 0%, rgba(0,170,255,0.22), rgba(0,170,255,0.0) 60%),
+            radial-gradient(70% 50% at 0% 100%, rgba(255,0,70,0.22), rgba(255,0,70,0.0) 60%);
+          animation: bp_sirenOverlay 1.2s linear infinite;
+          mix-blend-mode: screen;
+        }
+      `}</style>
     </div>
   );
 }
