@@ -118,7 +118,6 @@ function isGenericLocation(locRaw: string) {
   const loc = (locRaw ?? "").trim().toLowerCase();
   if (!loc) return true;
 
-  // tus fallbacks típicos
   const generic = [
     "américa",
     "america",
@@ -131,18 +130,12 @@ function isGenericLocation(locRaw: string) {
     "region",
   ];
 
-  // si sólo tiene 1 palabra grande tipo "Argentina" puede servir, pero preferimos más específico.
   if (generic.some((g) => loc.includes(g))) return true;
-
-  // Si no tiene coma, suele ser demasiado corto (ej. "Chubut" es ok, pero prefiero geocode igual)
-  // lo tratamos como "semi genérico"
   if (!loc.includes(",")) return true;
-
   return false;
 }
 
 function normalizePlaceForQuery(place: string) {
-  // De "Departamento Cushamen, Chubut, Argentina" sacamos partes útiles
   const parts = place
     .split(",")
     .map((s) => s.trim())
@@ -158,7 +151,6 @@ function normalizePlaceForQuery(place: string) {
 function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
   const { locality, state, country } = normalizePlaceForQuery(place);
 
-  // Terms por categoría (hoy priorizamos fire)
   const hazard =
     ev.category === "fire"
       ? "(incendio OR incendios OR wildfire OR wildfires OR fire OR forest fire OR bushfire)"
@@ -172,7 +164,6 @@ function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
       ? "(sequía OR drought)"
       : "(emergency OR disaster)";
 
-  // Lugar: metemos comillas para obligar coherencia, y también versión sin comillas por si el medio lo escribe distinto
   const placeBlock = [
     locality ? `"${locality}"` : null,
     state ? `"${state}"` : null,
@@ -184,8 +175,6 @@ function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
     .filter(Boolean)
     .join(" OR ");
 
-  // Query final: lugar AND hazard
-  // (GDELT soporta esto bien)
   return `(${placeBlock}) AND ${hazard}`;
 }
 
@@ -301,16 +290,42 @@ function SectionShell({
   );
 }
 
+type PanelView = "main" | "news";
+
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // scroll-to-top al cambiar evento
+  const [view, setView] = useState<PanelView>("main");
+
+  function scrollTopInstant() {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    });
+  }
+
+  // al cambiar evento → volver a vista principal + scroll top
   useEffect(() => {
     if (!event) return;
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    });
+    setView("main");
+    scrollTopInstant();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
+
+  // Escape: si está en sub-vista vuelve; si está en main cierra
+  useEffect(() => {
+    if (!event) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (view !== "main") {
+        setView("main");
+        scrollTopInstant();
+        return;
+      }
+      onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [event, onClose, view]);
 
   // ====== NEWS state ======
   const [newsLoading, setNewsLoading] = useState(false);
@@ -318,7 +333,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
 
-  // cache de “place bueno” por event.id (evita pedir reverse geocode cada vez)
   const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
 
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
@@ -336,19 +350,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     const loc = (ev.location ?? "").trim();
 
-    // Si no es genérico, lo usamos tal cual
     if (loc && !isGenericLocation(loc)) {
       setPlaceCache((p) => ({ ...p, [String(ev.id)]: loc }));
       return loc;
     }
 
-    // Si es genérico → reverse geocode on-demand (esto es lo que te faltaba)
     const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
     const finalPlace = (place ?? loc ?? "").trim();
 
-    // Si igual quedó vacío, tiramos algo mínimo pero sin "América del Sur"
-    const safe =
-      finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`; // fallback último, mejor que continente
+    const safe = finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`;
 
     setPlaceCache((p) => ({ ...p, [String(ev.id)]: safe }));
     return safe;
@@ -400,23 +410,36 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
   const chip = sevChip(event.severity);
 
+  const onBack = () => {
+    if (view !== "main") {
+      setView("main");
+      scrollTopInstant();
+      return;
+    }
+    onClose();
+  };
+
+  const previewItem = newsItems[0] ?? null;
+  const hasMoreNews = newsItems.length > 1;
+
   return (
-    <div className="pointer-events-auto fixed inset-0 z-[9998]">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+    <div className="pointer-events-auto fixed inset-0 z-[10050]">
+      <div className="absolute inset-0 bg-black/60" onClick={view === "main" ? onClose : undefined} />
 
       <div
         className={cn(
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
           "w-[min(980px,92vw)] h-[min(86vh,720px)]",
           "rounded-3xl border border-white/10",
-          "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden"
+          "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden",
+          "flex flex-col" // ✅ FIX: layout correcto para scroll
         )}
       >
         {/* Header */}
         <div className="px-5 pt-4 pb-3 border-b border-white/10">
           <div className="flex items-center justify-between gap-3">
             <button
-              onClick={onClose}
+              onClick={onBack}
               className={cn(
                 "inline-flex items-center gap-2",
                 "px-3 py-2 rounded-2xl border border-white/10 bg-white/5",
@@ -472,352 +495,479 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           </div>
         </div>
 
-        {/* Body */}
-        <div ref={scrollRef} className="h-full overflow-y-auto px-5 py-5">
-          <div className="space-y-4">
-            {/* Estado operativo */}
-            <SectionShell
-              icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
-              title="Estado operativo"
-              subtitle="Lectura operativa basada en señales satelitales recientes, tendencia y estado estimado."
-              right={
-                <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
-                  <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
-                </div>
-              }
-            >
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2 flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-orange-200/80" />
-                  Lectura del evento
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                  <div className="text-white/80">
-                    <span className="text-white/55 font-medium">Intensidad:</span>{" "}
-                    <span className="font-semibold text-white/90">
-                      {event.severity === "critical"
-                        ? "Muy alta"
-                        : event.severity === "high"
-                        ? "Alta"
-                        : event.severity === "moderate"
-                        ? "Media"
-                        : "Baja"}
-                    </span>
+        {/* Body (scroll real) */}
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
+          {view === "main" ? (
+            <div className="space-y-4">
+              {/* Estado operativo */}
+              <SectionShell
+                icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
+                title="Estado operativo"
+                subtitle="Lectura operativa basada en señales satelitales recientes, tendencia y estado estimado."
+                right={
+                  <div className="inline-flex items-center px-3 py-1.5 rounded-full border border-yellow-300/20 bg-yellow-300/10">
+                    <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
                   </div>
-                  <div className="text-white/80">
-                    <span className="text-white/55 font-medium">Actividad:</span>{" "}
-                    <span className="font-semibold text-white/90">
-                      {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
-                    </span>
+                }
+              >
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2 flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-orange-200/80" />
+                    Lectura del evento
                   </div>
-                  <div className="text-white/80">
-                    <span className="text-white/55 font-medium">Estado:</span>{" "}
-                    <span className="font-semibold text-white/90">{statusLabel(event.status)}</span>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    <div className="text-white/80">
+                      <span className="text-white/55 font-medium">Intensidad:</span>{" "}
+                      <span className="font-semibold text-white/90">
+                        {event.severity === "critical"
+                          ? "Muy alta"
+                          : event.severity === "high"
+                          ? "Alta"
+                          : event.severity === "moderate"
+                          ? "Media"
+                          : "Baja"}
+                      </span>
+                    </div>
+                    <div className="text-white/80">
+                      <span className="text-white/55 font-medium">Actividad:</span>{" "}
+                      <span className="font-semibold text-white/90">
+                        {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
+                      </span>
+                    </div>
+                    <div className="text-white/80">
+                      <span className="text-white/55 font-medium">Estado:</span>{" "}
+                      <span className="font-semibold text-white/90">{statusLabel(event.status)}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-[11px] text-white/35">
+                    Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
                   </div>
                 </div>
+              </SectionShell>
 
-                <div className="mt-3 text-[11px] text-white/35">
-                  Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
-                </div>
-              </div>
-            </SectionShell>
+              {/* Noticias relacionadas (PREVIEW) */}
+              <SectionShell
+                icon={<Newspaper className="h-5 w-5 text-white/80" />}
+                title="Noticias relacionadas"
+                subtitle="Cobertura reciente basada en ubicación real (reverse geocode) + tipo de evento."
+                right={
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={loadNews}
+                      className={cn(
+                        "inline-flex items-center gap-2",
+                        "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                      )}
+                      aria-label="Actualizar noticias"
+                      title="Actualizar"
+                    >
+                      {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                      <span className="text-xs font-medium">Actualizar</span>
+                    </button>
 
-            {/* ✅ Noticias relacionadas (debajo de Estado operativo) */}
-            <SectionShell
-              icon={<Newspaper className="h-5 w-5 text-white/80" />}
-              title="Noticias relacionadas"
-              subtitle="Cobertura reciente basada en ubicación real (reverse geocode) + tipo de evento."
-              right={
-                <button
-                  onClick={loadNews}
-                  className={cn(
-                    "inline-flex items-center gap-2",
-                    "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
-                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                  )}
-                  aria-label="Actualizar noticias"
-                  title="Actualizar"
-                >
-                  {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  <span className="text-xs font-medium">Actualizar</span>
-                </button>
-              }
-            >
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="text-[11px] uppercase tracking-wide text-white/45">
-                  Lugar usado:{" "}
-                  <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
-                </div>
-                <div className="mt-1 text-[11px] uppercase tracking-wide text-white/45">
-                  Query:{" "}
-                  <span className="text-white/55 normal-case break-words">{newsMeta?.query ?? "—"}</span>
-                </div>
-
-                {newsErr ? (
-                  <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
-                    No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
+                    <button
+                      onClick={() => {
+                        setView("news");
+                        scrollTopInstant();
+                      }}
+                      className={cn(
+                        "inline-flex items-center gap-2",
+                        "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                      )}
+                      aria-label="Ver más noticias"
+                      title="Ver más"
+                    >
+                      <span className="text-xs font-medium">Ver más</span>
+                    </button>
                   </div>
-                ) : null}
+                }
+              >
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-[11px] uppercase tracking-wide text-white/45">
+                    Lugar usado:{" "}
+                    <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
+                  </div>
 
-                {newsLoading ? (
-                  <div className="mt-4 space-y-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
+                  {newsErr ? (
+                    <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                      No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
+                    </div>
+                  ) : null}
+
+                  {newsLoading ? (
+                    <div className="mt-4 space-y-3">
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
                         <div className="h-4 w-2/3 bg-white/10 rounded" />
                         <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
                         <div className="h-3 w-full bg-white/10 rounded mt-3" />
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-4 space-y-3">
-                    {newsItems.length === 0 ? (
-                      <div className="text-sm text-white/45">
-                        No se encontraron artículos relevantes con esta query.
-                        <div className="text-xs text-white/35 mt-1">
-                          (Esto es bueno: ahora la búsqueda es estricta. Si querés, luego hacemos “modo amplio” opcional.)
+                    </div>
+                  ) : (
+                    <div className="mt-4 space-y-3">
+                      {!previewItem ? (
+                        <div className="text-sm text-white/45">
+                          No se encontraron artículos relevantes con esta query.
+                          <div className="text-xs text-white/35 mt-1">
+                            (Esto es bueno: ahora la búsqueda es estricta. Luego haremos “modo amplio” opcional.)
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      newsItems.map((it) => {
-                        const host = it.domain || (it.url ? new URL(it.url).hostname : "");
-                        const when = it.publishedAt ? new Date(it.publishedAt) : null;
-                        return (
-                          <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="text-sm font-semibold text-white/90 line-clamp-2">
-                                  {it.title ?? "Artículo"}
-                                </div>
-                                <div className="mt-1 text-[11px] text-white/45">
-                                  {host ? <span className="text-white/55">{host}</span> : null}
-                                  {when ? (
-                                    <>
-                                      <span className="mx-2 text-white/20">•</span>
-                                      <span>{when.toUTCString().replace("GMT", "UTC")}</span>
-                                    </>
-                                  ) : null}
-                                </div>
+                      ) : (
+                        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                {previewItem.title ?? "Artículo"}
                               </div>
-
-                              {it.url ? (
-                                <a
-                                  href={it.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={cn(
-                                    "shrink-0 inline-flex items-center gap-2",
-                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                  )}
-                                  title="Abrir"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                  <span className="text-xs font-medium">Abrir</span>
-                                </a>
-                              ) : null}
+                              <div className="mt-1 text-[11px] text-white/45">
+                                <span className="text-white/55">
+                                  {previewItem.domain || (previewItem.url ? safeHostname(previewItem.url) : "")}
+                                </span>
+                              </div>
                             </div>
 
-                            {it.summary ? (
-                              <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
-                                {it.summary}
-                              </div>
+                            {previewItem.url ? (
+                              <a
+                                href={previewItem.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={cn(
+                                  "shrink-0 inline-flex items-center gap-2",
+                                  "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                  "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                )}
+                                title="Abrir"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                <span className="text-xs font-medium">Abrir</span>
+                              </a>
                             ) : null}
                           </div>
-                        );
-                      })
+
+                          {previewItem.summary ? (
+                            <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+                              {previewItem.summary}
+                            </div>
+                          ) : null}
+
+                          {hasMoreNews ? (
+                            <div className="mt-3 text-[11px] text-white/35">
+                              +{newsItems.length - 1} más
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {newsMeta?.fetchedAt ? (
+                    <div className="mt-3 text-[11px] text-white/35">
+                      Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}
+                    </div>
+                  ) : null}
+                </div>
+              </SectionShell>
+
+              {/* Indicadores operativos */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+                <div className="px-5 pt-4 pb-3">
+                  <div className="text-white/90 font-semibold">Indicadores operativos</div>
+                  <div className="text-xs text-white/45 mt-0.5">
+                    Visual + número + explicación. Esto traduce la señal, no la “inventa”.
+                  </div>
+                </div>
+
+                <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">Intensidad</div>
+                        <div className="text-[11px] text-white/35 mt-0.5">Radiative Power</div>
+                      </div>
+                      <Gauge className="h-4 w-4 text-white/40" />
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <Dial value={intensityLevel} label="nivel" />
+                      <div className="text-right">
+                        <div className="text-white/90 font-semibold">
+                          {frpMax != null ? `${frpMax.toFixed(2)} FRP` : "—"} <span className="text-white/50">max</span>
+                        </div>
+                        <div className="text-xs text-white/45 mt-1">
+                          Lectura:{" "}
+                          <span className="text-white/70 font-medium">
+                            {event.severity === "critical"
+                              ? "Muy alta"
+                              : event.severity === "high"
+                              ? "Alta"
+                              : event.severity === "moderate"
+                              ? "Media"
+                              : "Baja"}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–120).</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">Actividad</div>
+                        <div className="text-[11px] text-white/35 mt-0.5">Señales VIIRS</div>
+                      </div>
+                      <Activity className="h-4 w-4 text-white/40" />
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <Dial value={activityLevel} label="nivel" />
+                      <div className="text-right">
+                        <div className="text-white/90 font-semibold">
+                          {detections != null ? `${detections}` : "—"} <span className="text-white/50">detections</span>
+                        </div>
+                        <div className="text-xs text-white/45 mt-1">
+                          Lectura:{" "}
+                          <span className="text-white/70 font-medium">
+                            {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–25).</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">Energía total</div>
+                        <div className="text-[11px] text-white/35 mt-0.5">Acumulado</div>
+                      </div>
+                      <Flame className="h-4 w-4 text-white/40" />
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <Dial value={energyLevel} label="nivel" />
+                      <div className="text-right">
+                        <div className="text-white/90 font-semibold">
+                          {frpSum != null ? `${frpSum.toFixed(2)} FRP` : "—"} <span className="text-white/50">sum</span>
+                        </div>
+                        <div className="text-xs text-white/45 mt-1">
+                          Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).
+                        </div>
+                        <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–250).</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Condiciones (placeholder) */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+                <div className="px-5 pt-4 pb-3">
+                  <div className="text-white/90 font-semibold">Condiciones</div>
+                  <div className="text-xs text-white/45 mt-0.5">
+                    Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
+                  </div>
+                </div>
+
+                <div className="px-5 pb-5 space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                        <CloudRain className="h-4 w-4" /> Lluvia
+                      </div>
+                      <div className="mt-2 text-white/90 font-semibold">—</div>
+                      <div className="text-[11px] text-white/35 mt-1">Próximas 12 h (UTC)</div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                        <Wind className="h-4 w-4" /> Viento
+                      </div>
+                      <div className="mt-2 text-white/90 font-semibold">—</div>
+                      <div className="text-[11px] text-white/35 mt-1">máx. estimado</div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                        <Droplets className="h-4 w-4" /> Humedad
+                      </div>
+                      <div className="mt-2 text-white/90 font-semibold">—</div>
+                      <div className="text-[11px] text-white/35 mt-1">mín. estimado</div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
+                        <Thermometer className="h-4 w-4" /> Temp.
+                      </div>
+                      <div className="mt-2 text-white/90 font-semibold">—</div>
+                      <div className="text-[11px] text-white/35 mt-1">promedio</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2">Ventana operativa</div>
+                    <div className="text-sm text-white/70 leading-relaxed">
+                      A completar cuando conectemos el módulo de condiciones (fuente meteorológica/índices). Por ahora, BioPulse
+                      muestra lectura satelital + noticias para contexto.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-[11px] uppercase tracking-wide text-white/45">Status</div>
+                      <div className="mt-2 text-white/90 font-semibold">{statusLabel(event.status)}</div>
+                      <div className="text-[11px] text-white/35 mt-2">Last detection: {fmtDateTimeUTC(new Date(event.timestamp))}</div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-[11px] uppercase tracking-wide text-white/45">Evacuación</div>
+                      <div className="mt-2 text-white/90 font-semibold">—</div>
+                      <div className="text-[11px] text-white/35 mt-2">Fuente: (a definir cuando conectemos datos oficiales)</div>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-white/30">
+                    Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital + contexto informativo.
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-6" />
+            </div>
+          ) : (
+            // ===== NEWS VIEW (expandida) =====
+            <div className="space-y-4">
+              <SectionShell
+                icon={<Newspaper className="h-5 w-5 text-white/80" />}
+                title="Noticias relacionadas"
+                subtitle="Vista completa (orden cronológico simple por ahora)."
+                right={
+                  <button
+                    onClick={loadNews}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                     )}
-                  </div>
-                )}
-
-                {newsMeta?.fetchedAt ? (
-                  <div className="mt-3 text-[11px] text-white/35">
-                    Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}
-                  </div>
-                ) : null}
-              </div>
-            </SectionShell>
-
-            {/* Indicadores operativos */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="px-5 pt-4 pb-3">
-                <div className="text-white/90 font-semibold">Indicadores operativos</div>
-                <div className="text-xs text-white/45 mt-0.5">
-                  Visual + número + explicación. Esto traduce la señal, no la “inventa”.
-                </div>
-              </div>
-
-              <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    aria-label="Actualizar noticias"
+                    title="Actualizar"
+                  >
+                    {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    <span className="text-xs font-medium">Actualizar</span>
+                  </button>
+                }
+              >
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Intensidad</div>
-                      <div className="text-[11px] text-white/35 mt-0.5">Radiative Power</div>
-                    </div>
-                    <Gauge className="h-4 w-4 text-white/40" />
+                  <div className="text-[11px] uppercase tracking-wide text-white/45">
+                    Lugar usado:{" "}
+                    <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
+                  </div>
+                  <div className="mt-1 text-[11px] uppercase tracking-wide text-white/45">
+                    Query: <span className="text-white/55 normal-case break-words">{newsMeta?.query ?? "—"}</span>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Dial value={intensityLevel} label="nivel" />
-                    <div className="text-right">
-                      <div className="text-white/90 font-semibold">
-                        {frpMax != null ? `${frpMax.toFixed(2)} FRP` : "—"} <span className="text-white/50">max</span>
-                      </div>
-                      <div className="text-xs text-white/45 mt-1">
-                        Lectura:{" "}
-                        <span className="text-white/70 font-medium">
-                          {event.severity === "critical"
-                            ? "Muy alta"
-                            : event.severity === "high"
-                            ? "Alta"
-                            : event.severity === "moderate"
-                            ? "Media"
-                            : "Baja"}
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-white/30 mt-2">
-                        Base: señal satelital + escala operativa (0–120).
-                      </div>
+                  {newsErr ? (
+                    <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                      No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
                     </div>
-                  </div>
+                  ) : null}
+
+                  {newsLoading ? (
+                    <div className="mt-4 space-y-3">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
+                          <div className="h-4 w-2/3 bg-white/10 rounded" />
+                          <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
+                          <div className="h-3 w-full bg-white/10 rounded mt-3" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-4 space-y-3">
+                      {newsItems.length === 0 ? (
+                        <div className="text-sm text-white/45">
+                          No se encontraron artículos relevantes con esta query.
+                          <div className="text-xs text-white/35 mt-1">(Luego agregamos “modo amplio” opcional.)</div>
+                        </div>
+                      ) : (
+                        newsItems.map((it) => {
+                          const host = it.domain || (it.url ? safeHostname(it.url) : "");
+                          const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                          const whenOk = when && !isNaN(when.getTime());
+
+                          return (
+                            <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                    {it.title ?? "Artículo"}
+                                  </div>
+                                  <div className="mt-1 text-[11px] text-white/45">
+                                    {host ? <span className="text-white/55">{host}</span> : null}
+                                    {whenOk ? (
+                                      <>
+                                        <span className="mx-2 text-white/20">•</span>
+                                        <span>{when!.toUTCString().replace("GMT", "UTC")}</span>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                </div>
+
+                                {it.url ? (
+                                  <a
+                                    href={it.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className={cn(
+                                      "shrink-0 inline-flex items-center gap-2",
+                                      "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                    )}
+                                    title="Abrir"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                    <span className="text-xs font-medium">Abrir</span>
+                                  </a>
+                                ) : null}
+                              </div>
+
+                              {it.summary ? (
+                                <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-4">
+                                  {it.summary}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+
+                  {newsMeta?.fetchedAt ? (
+                    <div className="mt-3 text-[11px] text-white/35">
+                      Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}
+                    </div>
+                  ) : null}
                 </div>
+              </SectionShell>
 
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Actividad</div>
-                      <div className="text-[11px] text-white/35 mt-0.5">Señales VIIRS</div>
-                    </div>
-                    <Activity className="h-4 w-4 text-white/40" />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Dial value={activityLevel} label="nivel" />
-                    <div className="text-right">
-                      <div className="text-white/90 font-semibold">
-                        {detections != null ? `${detections}` : "—"} <span className="text-white/50">detections</span>
-                      </div>
-                      <div className="text-xs text-white/45 mt-1">
-                        Lectura:{" "}
-                        <span className="text-white/70 font-medium">
-                          {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-white/30 mt-2">
-                        Base: señal satelital + escala operativa (0–25).
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Energía total</div>
-                      <div className="text-[11px] text-white/35 mt-0.5">Acumulado</div>
-                    </div>
-                    <Flame className="h-4 w-4 text-white/40" />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Dial value={energyLevel} label="nivel" />
-                    <div className="text-right">
-                      <div className="text-white/90 font-semibold">
-                        {frpSum != null ? `${frpSum.toFixed(2)} FRP` : "—"} <span className="text-white/50">sum</span>
-                      </div>
-                      <div className="text-xs text-white/45 mt-1">
-                        Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).
-                      </div>
-                      <div className="text-[11px] text-white/30 mt-2">
-                        Base: señal satelital + escala operativa (0–250).
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div className="h-6" />
             </div>
-
-            {/* Condiciones (placeholder) */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="px-5 pt-4 pb-3">
-                <div className="text-white/90 font-semibold">Condiciones</div>
-                <div className="text-xs text-white/45 mt-0.5">
-                  Condiciones que pueden cambiar la dinámica del evento (no es pronóstico general).
-                </div>
-              </div>
-
-              <div className="px-5 pb-5 space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <CloudRain className="h-4 w-4" /> Lluvia
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">Próximas 12 h (UTC)</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <Wind className="h-4 w-4" /> Viento
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">máx. estimado</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <Droplets className="h-4 w-4" /> Humedad
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">mín. estimado</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
-                      <Thermometer className="h-4 w-4" /> Temp.
-                    </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-1">promedio</div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2">Ventana operativa</div>
-                  <div className="text-sm text-white/70 leading-relaxed">
-                    A completar cuando conectemos el módulo de condiciones (fuente meteorológica/índices).
-                    Por ahora, BioPulse muestra lectura satelital + noticias para contexto.
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/45">Status</div>
-                    <div className="mt-2 text-white/90 font-semibold">{statusLabel(event.status)}</div>
-                    <div className="text-[11px] text-white/35 mt-2">
-                      Last detection: {fmtDateTimeUTC(new Date(event.timestamp))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/45">Evacuación</div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
-                    <div className="text-[11px] text-white/35 mt-2">
-                      Fuente: (a definir cuando conectemos datos oficiales)
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-[11px] text-white/30">
-                  Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital + contexto informativo.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="h-6" />
+          )}
         </div>
       </div>
     </div>
   );
+}
+
+function safeHostname(url: string) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
 }
