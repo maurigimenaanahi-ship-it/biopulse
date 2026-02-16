@@ -290,7 +290,70 @@ function SectionShell({
   );
 }
 
-type PanelView = "main" | "news";
+type PanelView = "main" | "official" | "regional";
+
+function safeHostname(url: string) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
+
+// Heurística inicial: “esto podría ser oficial”
+function looksOfficial(item: NewsItem) {
+  const host = (item.domain || (item.url ? safeHostname(item.url) : "")).toLowerCase();
+  const url = (item.url ?? "").toLowerCase();
+  const text = `${host} ${url}`;
+
+  if (!text.trim()) return false;
+
+  const hints = [
+    ".gov",
+    ".gob",
+    "gobierno",
+    "ministerio",
+    "defensacivil",
+    "defensa-civil",
+    "proteccioncivil",
+    "proteccion-civil",
+    "bomberos",
+    "policia",
+    "municip",
+    "prefect",
+    "emergenc",
+    "rescate",
+  ];
+
+  if (host.endsWith(".gov") || host.includes(".gov.") || host.endsWith(".gob") || host.includes(".gob.")) return true;
+  return hints.some((h) => text.includes(h));
+}
+
+// Prioridad simple para Argentina (ampliamos después por país/provincia/local)
+function inferCountryCodeFromPlace(placeUsed?: string | null) {
+  const p = String(placeUsed ?? "").toLowerCase();
+  if (p.includes("argentina")) return "AR";
+  return null;
+}
+
+function scoreLocality(item: NewsItem, placeCountryCode: string | null) {
+  const host = (item.domain || (item.url ? safeHostname(item.url) : "")).toLowerCase();
+  const src = (item.sourceCountry ?? "").toUpperCase();
+
+  // 0 = más local, 1 = mismo país, 2 = resto
+  if (placeCountryCode === "AR") {
+    if (host.endsWith(".ar") || host.includes(".ar/") || host.includes(".ar.")) return 0;
+    if (src === "AR") return 1;
+    return 2;
+  }
+  return 1;
+}
+
+function parsePublishedMs(item: NewsItem) {
+  if (!item.publishedAt) return 0;
+  const t = new Date(item.publishedAt).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
 
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -303,7 +366,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   }
 
-  // al cambiar evento → volver a vista principal + scroll top
   useEffect(() => {
     if (!event) return;
     setView("main");
@@ -311,7 +373,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
 
-  // Escape: si está en sub-vista vuelve; si está en main cierra
   useEffect(() => {
     if (!event) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -376,7 +437,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       const data = await fetchNewsFromWorker({
         query,
         days: event.category === "fire" ? 10 : 14,
-        max: 10,
+        max: 20,
       });
 
       const items = Array.isArray(data?.items) ? data.items : [];
@@ -399,12 +460,37 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
-  // Autoload al abrir/cambiar evento
   useEffect(() => {
     if (!event) return;
     loadNews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
+
+  const countryCode = useMemo(() => inferCountryCodeFromPlace(newsMeta?.placeUsed ?? null), [newsMeta?.placeUsed]);
+
+  const officialItems = useMemo(() => {
+    const items = Array.isArray(newsItems) ? newsItems : [];
+    return items
+      .filter(looksOfficial)
+      .sort((a, b) => {
+        const la = scoreLocality(a, countryCode);
+        const lb = scoreLocality(b, countryCode);
+        if (la !== lb) return la - lb;
+        return parsePublishedMs(b) - parsePublishedMs(a);
+      });
+  }, [newsItems, countryCode]);
+
+  const regionalItems = useMemo(() => {
+    const items = Array.isArray(newsItems) ? newsItems : [];
+    return items
+      .filter((x) => !looksOfficial(x))
+      .sort((a, b) => {
+        const la = scoreLocality(a, countryCode);
+        const lb = scoreLocality(b, countryCode);
+        if (la !== lb) return la - lb;
+        return parsePublishedMs(b) - parsePublishedMs(a);
+      });
+  }, [newsItems, countryCode]);
 
   if (!event) return null;
 
@@ -419,8 +505,143 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     onClose();
   };
 
-  const previewItem = newsItems[0] ?? null;
-  const hasMoreNews = newsItems.length > 1;
+  function PreviewCard({
+    item,
+    emptyText,
+  }: {
+    item: NewsItem | null;
+    emptyText: string;
+  }) {
+    if (!item) {
+      return (
+        <div className="text-sm text-white/45">
+          {emptyText}
+        </div>
+      );
+    }
+
+    const host = item.domain || (item.url ? safeHostname(item.url) : "");
+    const when = item.publishedAt ? new Date(item.publishedAt) : null;
+    const whenOk = when && !isNaN(when.getTime());
+
+    return (
+      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-white/90 line-clamp-2">
+              {item.title ?? "Publicación"}
+            </div>
+            <div className="mt-1 text-[11px] text-white/45">
+              {host ? <span className="text-white/55">{host}</span> : null}
+              {whenOk ? (
+                <>
+                  <span className="mx-2 text-white/20">•</span>
+                  <span>{when!.toUTCString().replace("GMT", "UTC")}</span>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          {item.url ? (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(
+                "shrink-0 inline-flex items-center gap-2",
+                "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+              )}
+              title="Abrir"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="text-xs font-medium">Abrir</span>
+            </a>
+          ) : null}
+        </div>
+
+        {item.summary ? (
+          <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+            {item.summary}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  function FeedList({ items }: { items: NewsItem[] }) {
+    if (newsLoading) {
+      return (
+        <div className="mt-4 space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
+              <div className="h-4 w-2/3 bg-white/10 rounded" />
+              <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
+              <div className="h-3 w-full bg-white/10 rounded mt-3" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (!items.length) {
+      return <div className="text-sm text-white/45">No hay resultados para mostrar.</div>;
+    }
+
+    return (
+      <div className="mt-4 space-y-3">
+        {items.map((it) => {
+          const host = it.domain || (it.url ? safeHostname(it.url) : "");
+          const when = it.publishedAt ? new Date(it.publishedAt) : null;
+          const whenOk = when && !isNaN(when.getTime());
+
+          return (
+            <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                    {it.title ?? "Publicación"}
+                  </div>
+                  <div className="mt-1 text-[11px] text-white/45">
+                    {host ? <span className="text-white/55">{host}</span> : null}
+                    {whenOk ? (
+                      <>
+                        <span className="mx-2 text-white/20">•</span>
+                        <span>{when!.toUTCString().replace("GMT", "UTC")}</span>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+
+                {it.url ? (
+                  <a
+                    href={it.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      "shrink-0 inline-flex items-center gap-2",
+                      "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    title="Abrir"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="text-xs font-medium">Abrir</span>
+                  </a>
+                ) : null}
+              </div>
+
+              {it.summary ? (
+                <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-4">
+                  {it.summary}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -432,7 +653,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           "w-[min(980px,92vw)] h-[min(86vh,720px)]",
           "rounded-3xl border border-white/10",
           "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden",
-          "flex flex-col" // ✅ FIX: layout correcto para scroll
+          "flex flex-col"
         )}
       >
         {/* Header */}
@@ -547,11 +768,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
               </SectionShell>
 
-              {/* Noticias relacionadas (PREVIEW) */}
+              {/* Comunicados oficiales (preview) */}
               <SectionShell
                 icon={<Newspaper className="h-5 w-5 text-white/80" />}
-                title="Noticias relacionadas"
-                subtitle="Cobertura reciente basada en ubicación real (reverse geocode) + tipo de evento."
+                title="Comunicados oficiales"
+                subtitle="Si existe un aviso oficial (gobierno / protección civil / bomberos), aparece primero."
                 right={
                   <div className="flex items-center gap-2">
                     <button
@@ -561,7 +782,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
                         "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                       )}
-                      aria-label="Actualizar noticias"
+                      aria-label="Actualizar"
                       title="Actualizar"
                     >
                       {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -570,7 +791,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                     <button
                       onClick={() => {
-                        setView("news");
+                        setView("official");
                         scrollTopInstant();
                       }}
                       className={cn(
@@ -578,7 +799,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
                         "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                       )}
-                      aria-label="Ver más noticias"
+                      aria-label="Ver más"
                       title="Ver más"
                     >
                       <span className="text-xs font-medium">Ver más</span>
@@ -587,81 +808,58 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 }
               >
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  {newsErr ? (
+                    <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                      No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
+                    </div>
+                  ) : null}
+
+                  <PreviewCard
+                    item={officialItems[0] ?? null}
+                    emptyText="No hay comunicados oficiales todavía."
+                  />
+
+                  <div className="mt-3 text-[11px] text-white/35">
+                    Nota: “oficial” es una clasificación heurística por dominio/palabras clave (hasta conectar fuentes oficiales reales).
+                  </div>
+                </div>
+              </SectionShell>
+
+              {/* Noticias de la región (preview) */}
+              <SectionShell
+                icon={<Newspaper className="h-5 w-5 text-white/80" />}
+                title="Noticias de la región"
+                subtitle="Cobertura general (prioriza medios del país si se reconoce el país del lugar)."
+                right={
+                  <button
+                    onClick={() => {
+                      setView("regional");
+                      scrollTopInstant();
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    aria-label="Ver más"
+                    title="Ver más"
+                  >
+                    <span className="text-xs font-medium">Ver más</span>
+                  </button>
+                }
+              >
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <div className="text-[11px] uppercase tracking-wide text-white/45">
                     Lugar usado:{" "}
                     <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
                   </div>
 
-                  {newsErr ? (
-                    <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
-                      No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
-                    </div>
-                  ) : null}
-
-                  {newsLoading ? (
-                    <div className="mt-4 space-y-3">
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
-                        <div className="h-4 w-2/3 bg-white/10 rounded" />
-                        <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
-                        <div className="h-3 w-full bg-white/10 rounded mt-3" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-4 space-y-3">
-                      {!previewItem ? (
-                        <div className="text-sm text-white/45">
-                          No se encontraron artículos relevantes con esta query.
-                          <div className="text-xs text-white/35 mt-1">
-                            (Esto es bueno: ahora la búsqueda es estricta. Luego haremos “modo amplio” opcional.)
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="text-sm font-semibold text-white/90 line-clamp-2">
-                                {previewItem.title ?? "Artículo"}
-                              </div>
-                              <div className="mt-1 text-[11px] text-white/45">
-                                <span className="text-white/55">
-                                  {previewItem.domain || (previewItem.url ? safeHostname(previewItem.url) : "")}
-                                </span>
-                              </div>
-                            </div>
-
-                            {previewItem.url ? (
-                              <a
-                                href={previewItem.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={cn(
-                                  "shrink-0 inline-flex items-center gap-2",
-                                  "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                  "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                )}
-                                title="Abrir"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                                <span className="text-xs font-medium">Abrir</span>
-                              </a>
-                            ) : null}
-                          </div>
-
-                          {previewItem.summary ? (
-                            <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
-                              {previewItem.summary}
-                            </div>
-                          ) : null}
-
-                          {hasMoreNews ? (
-                            <div className="mt-3 text-[11px] text-white/35">
-                              +{newsItems.length - 1} más
-                            </div>
-                          ) : null}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="mt-3">
+                    <PreviewCard
+                      item={regionalItems[0] ?? null}
+                      emptyText="No se encontraron artículos relevantes con esta query."
+                    />
+                  </div>
 
                   {newsMeta?.fetchedAt ? (
                     <div className="mt-3 text-[11px] text-white/35">
@@ -696,18 +894,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div className="text-white/90 font-semibold">
                           {frpMax != null ? `${frpMax.toFixed(2)} FRP` : "—"} <span className="text-white/50">max</span>
                         </div>
-                        <div className="text-xs text-white/45 mt-1">
-                          Lectura:{" "}
-                          <span className="text-white/70 font-medium">
-                            {event.severity === "critical"
-                              ? "Muy alta"
-                              : event.severity === "high"
-                              ? "Alta"
-                              : event.severity === "moderate"
-                              ? "Media"
-                              : "Baja"}
-                          </span>
-                        </div>
                         <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–120).</div>
                       </div>
                     </div>
@@ -728,12 +914,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div className="text-white/90 font-semibold">
                           {detections != null ? `${detections}` : "—"} <span className="text-white/50">detections</span>
                         </div>
-                        <div className="text-xs text-white/45 mt-1">
-                          Lectura:{" "}
-                          <span className="text-white/70 font-medium">
-                            {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
-                          </span>
-                        </div>
                         <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–25).</div>
                       </div>
                     </div>
@@ -753,9 +933,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       <div className="text-right">
                         <div className="text-white/90 font-semibold">
                           {frpSum != null ? `${frpSum.toFixed(2)} FRP` : "—"} <span className="text-white/50">sum</span>
-                        </div>
-                        <div className="text-xs text-white/45 mt-1">
-                          Aprox. energía radiativa acumulada del cluster (no es “bomberos”, es del fuego).
                         </div>
                         <div className="text-[11px] text-white/30 mt-2">Base: señal satelital + escala operativa (0–250).</div>
                       </div>
@@ -808,28 +985,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/45 mb-2">Ventana operativa</div>
-                    <div className="text-sm text-white/70 leading-relaxed">
-                      A completar cuando conectemos el módulo de condiciones (fuente meteorológica/índices). Por ahora, BioPulse
-                      muestra lectura satelital + noticias para contexto.
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Status</div>
-                      <div className="mt-2 text-white/90 font-semibold">{statusLabel(event.status)}</div>
-                      <div className="text-[11px] text-white/35 mt-2">Last detection: {fmtDateTimeUTC(new Date(event.timestamp))}</div>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-[11px] uppercase tracking-wide text-white/45">Evacuación</div>
-                      <div className="mt-2 text-white/90 font-semibold">—</div>
-                      <div className="text-[11px] text-white/35 mt-2">Fuente: (a definir cuando conectemos datos oficiales)</div>
-                    </div>
-                  </div>
-
                   <div className="text-[11px] text-white/30">
                     Nota: esto no sustituye fuentes locales. Es una lectura de señal satelital + contexto informativo.
                   </div>
@@ -839,12 +994,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <div className="h-6" />
             </div>
           ) : (
-            // ===== NEWS VIEW (expandida) =====
+            // ===== Expanded views =====
             <div className="space-y-4">
               <SectionShell
                 icon={<Newspaper className="h-5 w-5 text-white/80" />}
-                title="Noticias relacionadas"
-                subtitle="Vista completa (orden cronológico simple por ahora)."
+                title={view === "official" ? "Comunicados oficiales" : "Noticias de la región"}
+                subtitle={view === "official"
+                  ? "Vista completa (heurística por dominio/palabras clave)."
+                  : "Vista completa (prioriza país cuando es detectable)."}
                 right={
                   <button
                     onClick={loadNews}
@@ -853,7 +1010,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
                       "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                     )}
-                    aria-label="Actualizar noticias"
+                    aria-label="Actualizar"
                     title="Actualizar"
                   >
                     {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -866,9 +1023,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     Lugar usado:{" "}
                     <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
                   </div>
-                  <div className="mt-1 text-[11px] uppercase tracking-wide text-white/45">
-                    Query: <span className="text-white/55 normal-case break-words">{newsMeta?.query ?? "—"}</span>
-                  </div>
 
                   {newsErr ? (
                     <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
@@ -876,75 +1030,28 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                   ) : null}
 
-                  {newsLoading ? (
-                    <div className="mt-4 space-y-3">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
-                          <div className="h-4 w-2/3 bg-white/10 rounded" />
-                          <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
-                          <div className="h-3 w-full bg-white/10 rounded mt-3" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-4 space-y-3">
-                      {newsItems.length === 0 ? (
-                        <div className="text-sm text-white/45">
-                          No se encontraron artículos relevantes con esta query.
-                          <div className="text-xs text-white/35 mt-1">(Luego agregamos “modo amplio” opcional.)</div>
-                        </div>
+                  {view === "official" ? (
+                    <>
+                      {!officialItems.length && !newsLoading ? (
+                        <div className="mt-4 text-sm text-white/45">No hay comunicados oficiales todavía.</div>
                       ) : (
-                        newsItems.map((it) => {
-                          const host = it.domain || (it.url ? safeHostname(it.url) : "");
-                          const when = it.publishedAt ? new Date(it.publishedAt) : null;
-                          const whenOk = when && !isNaN(when.getTime());
-
-                          return (
-                            <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <div className="text-sm font-semibold text-white/90 line-clamp-2">
-                                    {it.title ?? "Artículo"}
-                                  </div>
-                                  <div className="mt-1 text-[11px] text-white/45">
-                                    {host ? <span className="text-white/55">{host}</span> : null}
-                                    {whenOk ? (
-                                      <>
-                                        <span className="mx-2 text-white/20">•</span>
-                                        <span>{when!.toUTCString().replace("GMT", "UTC")}</span>
-                                      </>
-                                    ) : null}
-                                  </div>
-                                </div>
-
-                                {it.url ? (
-                                  <a
-                                    href={it.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={cn(
-                                      "shrink-0 inline-flex items-center gap-2",
-                                      "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                    )}
-                                    title="Abrir"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                    <span className="text-xs font-medium">Abrir</span>
-                                  </a>
-                                ) : null}
-                              </div>
-
-                              {it.summary ? (
-                                <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-4">
-                                  {it.summary}
-                                </div>
-                              ) : null}
-                            </div>
-                          );
-                        })
+                        <FeedList items={officialItems} />
                       )}
-                    </div>
+                      <div className="mt-3 text-[11px] text-white/35">
+                        Nota: “oficial” es una clasificación heurística. Próximo: fuente oficial real (API/feeds verificables).
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {!regionalItems.length && !newsLoading ? (
+                        <div className="mt-4 text-sm text-white/45">No hay noticias regionales relevantes con esta query.</div>
+                      ) : (
+                        <FeedList items={regionalItems} />
+                      )}
+                      <div className="mt-3 text-[11px] text-white/35">
+                        Próximo: prioridad local → provincial → nacional → internacional (cuando tengamos mejor metadata / geofencing).
+                      </div>
+                    </>
                   )}
 
                   {newsMeta?.fetchedAt ? (
@@ -962,12 +1069,4 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       </div>
     </div>
   );
-}
-
-function safeHostname(url: string) {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return "";
-  }
 }
