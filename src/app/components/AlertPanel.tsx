@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Loader2,
   RefreshCw,
+  Siren,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -131,7 +132,6 @@ function isGenericLocation(locRaw: string) {
   ];
 
   if (generic.some((g) => loc.includes(g))) return true;
-
   if (!loc.includes(",")) return true;
 
   return false;
@@ -232,6 +232,131 @@ function levelFromFRPSum(frpSum: number | null) {
   return clamp(Math.round((frpSum / 250) * 100), 0, 100);
 }
 
+// ---------- Official + siren logic (Opción A) ----------
+const OFFICIAL_DOMAIN_ALLOWLIST = [
+  // dominios “obvios”
+  "argentina.gob.ar",
+  "gob.ar",
+  "gov.ar",
+  "ina.gob.ar",
+  "smn.gob.ar",
+  "mininterior.gob.ar",
+  "seguridad.gob.ar",
+  "ambiente.gob.ar",
+  "prefecturanaval.gob.ar",
+];
+
+const OFFICIAL_DOMAIN_HINTS = [
+  "gobierno",
+  "municipalidad",
+  "defensacivil",
+  "proteccioncivil",
+  "proteccióncivil",
+  "bomberos",
+  "prefectura",
+  "coe",
+  "comite",
+  "comité",
+  "emergencia",
+  "emergencias",
+  "parquenacional",
+  "parquesnacionales",
+  "salud",
+];
+
+const OFFICIAL_TEXT_KEYWORDS = [
+  "comunicado",
+  "se informa",
+  "se dispone",
+  "se solicita",
+  "aviso oficial",
+  "defensa civil",
+  "protección civil",
+  "proteccion civil",
+  "municipalidad",
+  "gobierno",
+  "ministerio",
+  "prefectura",
+  "bomberos",
+  "coe",
+  "comité de emergencia",
+  "comite de emergencia",
+];
+
+const SIREN_KEYWORDS = [
+  "evacuación",
+  "evacuar",
+  "evacue",
+  "evacuen",
+  "orden de evacuación",
+  "orden de evacuacion",
+  "alerta roja",
+  "alerta naranja",
+  "emergencia",
+  "desalojo",
+  "refugio",
+  "centro de evacuados",
+  "crecida",
+  "desborde",
+  "inminente",
+];
+
+function safeLower(s: string | null | undefined) {
+  return String(s ?? "").toLowerCase();
+}
+
+function domainIsOfficial(domain: string | null) {
+  const d = safeLower(domain).trim();
+  if (!d) return false;
+
+  if (OFFICIAL_DOMAIN_ALLOWLIST.some((x) => d === x || d.endsWith(`.${x}`))) return true;
+
+  if (d.endsWith(".gob.ar") || d.endsWith(".gov.ar")) return true;
+  if (d.endsWith(".gov") || d.endsWith(".gob")) return true;
+
+  // heurística: palabras clave en el dominio
+  if (OFFICIAL_DOMAIN_HINTS.some((k) => d.includes(k))) return true;
+
+  return false;
+}
+
+function textLooksOfficial(title: string | null, summary: string | null) {
+  const t = safeLower(title);
+  const s = safeLower(summary);
+  const blob = `${t} ${s}`.trim();
+  if (!blob) return false;
+  return OFFICIAL_TEXT_KEYWORDS.some((k) => blob.includes(k));
+}
+
+function isOfficialItem(it: NewsItem) {
+  return domainIsOfficial(it.domain) || textLooksOfficial(it.title, it.summary);
+}
+
+function isEvacuationRelevant(it: NewsItem) {
+  const blob = `${safeLower(it.title)} ${safeLower(it.summary)}`.trim();
+  if (!blob) return false;
+  return SIREN_KEYWORDS.some((k) => blob.includes(k));
+}
+
+function NewsThumb({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  const ok = !!src && /^https?:\/\//i.test(src) && !failed;
+
+  if (!ok) return null;
+
+  return (
+    <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="h-full w-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
 function Dial({ value, label }: { value: number | null; label: string }) {
   const v = value == null ? 0 : clamp(value, 0, 100);
   const deg = 240 * (v / 100);
@@ -308,6 +433,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
 
+  // Noticias: vista expandida dentro del panel (sin cambiar estructura global)
+  const [newsView, setNewsView] = useState<"main" | "official" | "regional">("main");
+
   const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
 
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
@@ -333,8 +461,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
     const finalPlace = (place ?? loc ?? "").trim();
 
-    const safe =
-      finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`;
+    const safe = finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`;
 
     setPlaceCache((p) => ({ ...p, [String(ev.id)]: safe }));
     return safe;
@@ -352,7 +479,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       const data = await fetchNewsFromWorker({
         query,
         days: event.category === "fire" ? 10 : 14,
-        max: 10,
+        max: 12,
       });
 
       const items = Array.isArray(data?.items) ? data.items : [];
@@ -362,6 +489,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           ...x,
           title: x.title?.trim() ?? null,
           summary: x.summary?.trim() ?? null,
+          image: x.image?.trim() ?? null,
         }));
 
       setNewsItems(cleaned);
@@ -377,31 +505,58 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
   useEffect(() => {
     if (!event) return;
+    setNewsView("main");
     loadNews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
+
+  const splitNews = useMemo(() => {
+    const items = Array.isArray(newsItems) ? newsItems : [];
+    const official = items.filter(isOfficialItem);
+    const regional = items.filter((x) => !isOfficialItem(x));
+    return { official, regional };
+  }, [newsItems]);
+
+  const sirenActive = useMemo(() => {
+    // regla: SOLO si existe comunicado oficial relevante
+    return splitNews.official.some(isEvacuationRelevant);
+  }, [splitNews.official]);
 
   if (!event) return null;
 
   const chip = sevChip(event.severity);
 
   return (
-    // ✅ mantenemos tu z-index original (no invento otro)
-    <div className="pointer-events-auto fixed inset-0 z-[9998]">
-      {/* ✅ FIX CLAVE: backdrop atrás */}
+    // ✅ FIX: z-index alto para no quedar debajo de “Cambiar búsqueda / Mis alertas”
+    <div className="pointer-events-auto fixed inset-0 z-[10050]">
+      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 z-0" onClick={onClose} />
 
-      {/* ✅ FIX CLAVE: modal adelante */}
+      {/* Modal */}
       <div
         className={cn(
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10",
           "w-[min(980px,92vw)] h-[min(86vh,720px)]",
           "rounded-3xl border border-white/10",
-          "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden"
+          "bg-[#060b16]/90 backdrop-blur-xl shadow-2xl overflow-hidden",
+          "flex flex-col"
         )}
       >
+        {/* Siren overlay (solo si sirenActive) */}
+        {sirenActive ? (
+          <>
+            <div className="pointer-events-none absolute inset-0 rounded-3xl ring-2 ring-red-500/25" />
+            <div className="pointer-events-none absolute inset-0 rounded-3xl animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-transparent to-blue-500/10" />
+            </div>
+            <div className="pointer-events-none absolute -inset-1 rounded-[28px] animate-ping opacity-20">
+              <div className="absolute inset-0 bg-red-500/10" />
+            </div>
+          </>
+        ) : null}
+
         {/* Header */}
-        <div className="px-5 pt-4 pb-3 border-b border-white/10">
+        <div className="shrink-0 px-5 pt-4 pb-3 border-b border-white/10">
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={onClose}
@@ -417,18 +572,38 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <span className="text-sm font-medium">Volver</span>
             </button>
 
-            <button
-              onClick={onClose}
-              className={cn(
-                "h-10 w-10 rounded-2xl border border-white/10 bg-white/5",
-                "text-white/70 hover:text-white hover:bg-white/10 transition-colors",
-                "flex items-center justify-center"
-              )}
-              aria-label="Cerrar"
-              title="Cerrar"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Botón alerta/sirena (solo si sirenActive) */}
+              {sirenActive ? (
+                <button
+                  onClick={() => setNewsView("official")}
+                  className={cn(
+                    "inline-flex items-center gap-2",
+                    "px-3 py-2 rounded-2xl border border-red-400/30 bg-red-500/10",
+                    "text-red-100/90 hover:text-white hover:bg-red-500/20 transition-colors",
+                    "animate-pulse"
+                  )}
+                  aria-label="Alerta oficial detectada"
+                  title="Alerta oficial detectada (ver comunicados)"
+                >
+                  <Siren className="h-4 w-4" />
+                  <span className="text-sm font-semibold">ALERTA</span>
+                </button>
+              ) : null}
+
+              <button
+                onClick={onClose}
+                className={cn(
+                  "h-10 w-10 rounded-2xl border border-white/10 bg-white/5",
+                  "text-white/70 hover:text-white hover:bg-white/10 transition-colors",
+                  "flex items-center justify-center"
+                )}
+                aria-label="Cerrar"
+                title="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           <div className="mt-3 text-[11px] uppercase tracking-wide text-white/40">
@@ -460,8 +635,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           </div>
         </div>
 
-        {/* Body (LO DEJO COMO VOS LO TENÍAS) */}
-        <div ref={scrollRef} className="h-full overflow-y-auto px-5 py-5">
+        {/* Body (FIX scroll: flex-1 + min-h-0) */}
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
           <div className="space-y-4">
             {/* Estado operativo */}
             <SectionShell
@@ -511,35 +686,46 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
-            {/* Noticias relacionadas (tu bloque actual) */}
+            {/* Noticias relacionadas (ahora: 2 subpaneles + Ver más + Volver) */}
             <SectionShell
               icon={<Newspaper className="h-5 w-5 text-white/80" />}
-              title="Noticias relacionadas"
-              subtitle="Cobertura reciente basada en ubicación real (reverse geocode) + tipo de evento."
+              title="Noticias"
+              subtitle="Comunicados oficiales (prioridad) + noticias de la región."
               right={
-                <button
-                  onClick={loadNews}
-                  className={cn(
-                    "inline-flex items-center gap-2",
-                    "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
-                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                  )}
-                  aria-label="Actualizar noticias"
-                  title="Actualizar"
-                >
-                  {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  <span className="text-xs font-medium">Actualizar</span>
-                </button>
+                newsView !== "main" ? (
+                  <button
+                    onClick={() => setNewsView("main")}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    aria-label="Volver a resumen"
+                    title="Volver"
+                  >
+                    <CornerUpLeft className="h-4 w-4" />
+                    <span className="text-xs font-medium">Volver</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={loadNews}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    aria-label="Actualizar noticias"
+                    title="Actualizar"
+                  >
+                    {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    <span className="text-xs font-medium">Actualizar</span>
+                  </button>
+                )
               }
             >
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div className="text-[11px] uppercase tracking-wide text-white/45">
-                  Lugar usado:{" "}
-                  <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
-                </div>
-                <div className="mt-1 text-[11px] uppercase tracking-wide text-white/45">
-                  Query:{" "}
-                  <span className="text-white/55 normal-case break-words">{newsMeta?.query ?? "—"}</span>
+                  Lugar usado: <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
                 </div>
 
                 {newsErr ? (
@@ -559,60 +745,305 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 space-y-3">
-                    {newsItems.length === 0 ? (
-                      <div className="text-sm text-white/45">
-                        No se encontraron artículos relevantes con esta query.
-                      </div>
-                    ) : (
-                      newsItems.map((it) => {
-                        const host = it.domain || "";
-                        const when = it.publishedAt ? new Date(it.publishedAt) : null;
-                        return (
-                          <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="text-sm font-semibold text-white/90 line-clamp-2">
-                                  {it.title ?? "Artículo"}
-                                </div>
-                                <div className="mt-1 text-[11px] text-white/45">
-                                  {host ? <span className="text-white/55">{host}</span> : null}
-                                  {when ? (
-                                    <>
-                                      <span className="mx-2 text-white/20">•</span>
-                                      <span>{when.toUTCString().replace("GMT", "UTC")}</span>
-                                    </>
+                  <div className="mt-4 space-y-4">
+                    {/* MAIN: previews + Ver más */}
+                    {newsView === "main" ? (
+                      <>
+                        {/* A) Comunicados oficiales */}
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white/90">Comunicados oficiales</div>
+                              <div className="text-xs text-white/45 mt-0.5">
+                                Prioridad máxima. Activa alerta si menciona evacuación/alerta.
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setNewsView("official")}
+                              className={cn(
+                                "shrink-0 inline-flex items-center gap-2",
+                                "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                              )}
+                              title="Ver más"
+                            >
+                              <span className="text-xs font-medium">Ver más</span>
+                              <ExternalLink className="h-4 w-4 opacity-70" />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {splitNews.official.length === 0 ? (
+                              <div className="text-sm text-white/55">No hay comunicados oficiales todavía.</div>
+                            ) : (
+                              splitNews.official.slice(0, 3).map((it) => {
+                                const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                                const evac = isEvacuationRelevant(it);
+                                return (
+                                  <div key={it.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                            {it.title ?? "Comunicado"}
+                                          </div>
+                                          {evac ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-red-400/30 bg-red-500/10 text-[10px] font-semibold text-red-100/90">
+                                              ALERTA
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                        <div className="mt-1 text-[11px] text-white/45">
+                                          {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                          {when ? (
+                                            <>
+                                              <span className="mx-2 text-white/20">•</span>
+                                              <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                            </>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      {it.url ? (
+                                        <a
+                                          href={it.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className={cn(
+                                            "shrink-0 inline-flex items-center gap-2",
+                                            "px-3 py-2 rounded-xl border border-white/10 bg-white/5",
+                                            "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                          )}
+                                          title="Abrir"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                          <span className="text-xs font-medium">Abrir</span>
+                                        </a>
+                                      ) : null}
+                                    </div>
+
+                                    {it.summary ? (
+                                      <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+                                        {it.summary}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+
+                        {/* B) Noticias de la región */}
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white/90">Noticias de la región</div>
+                              <div className="text-xs text-white/45 mt-0.5">Secundario. Orden cronológico según resultados.</div>
+                            </div>
+                            <button
+                              onClick={() => setNewsView("regional")}
+                              className={cn(
+                                "shrink-0 inline-flex items-center gap-2",
+                                "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                              )}
+                              title="Ver más"
+                            >
+                              <span className="text-xs font-medium">Ver más</span>
+                              <ExternalLink className="h-4 w-4 opacity-70" />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {splitNews.regional.length === 0 ? (
+                              <div className="text-sm text-white/55">No se encontraron noticias regionales con esta query.</div>
+                            ) : (
+                              splitNews.regional.slice(0, 3).map((it) => {
+                                const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                                return (
+                                  <div key={it.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                          {it.title ?? "Artículo"}
+                                        </div>
+                                        <div className="mt-1 text-[11px] text-white/45">
+                                          {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                          {when ? (
+                                            <>
+                                              <span className="mx-2 text-white/20">•</span>
+                                              <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                            </>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      {it.url ? (
+                                        <a
+                                          href={it.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className={cn(
+                                            "shrink-0 inline-flex items-center gap-2",
+                                            "px-3 py-2 rounded-xl border border-white/10 bg-white/5",
+                                            "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                          )}
+                                          title="Abrir"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                          <span className="text-xs font-medium">Abrir</span>
+                                        </a>
+                                      ) : null}
+                                    </div>
+
+                                    {it.summary ? (
+                                      <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+                                        {it.summary}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
+
+                    {/* OFFICIAL expanded */}
+                    {newsView === "official" ? (
+                      <div className="space-y-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">
+                          Sección: <span className="text-white/55 normal-case">Comunicados oficiales</span>
+                        </div>
+
+                        {splitNews.official.length === 0 ? (
+                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/55">
+                            No hay comunicados oficiales todavía.
+                          </div>
+                        ) : (
+                          splitNews.official.map((it) => {
+                            const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                            const evac = isEvacuationRelevant(it);
+                            return (
+                              <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                          {it.title ?? "Comunicado"}
+                                        </div>
+                                        {evac ? (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-red-400/30 bg-red-500/10 text-[10px] font-semibold text-red-100/90">
+                                            ALERTA
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                      <div className="mt-1 text-[11px] text-white/45">
+                                        {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                        {when ? (
+                                          <>
+                                            <span className="mx-2 text-white/20">•</span>
+                                            <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                          </>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {it.url ? (
+                                    <a
+                                      href={it.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={cn(
+                                        "shrink-0 inline-flex items-center gap-2",
+                                        "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                      )}
+                                      title="Abrir"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                      <span className="text-xs font-medium">Abrir</span>
+                                    </a>
                                   ) : null}
                                 </div>
-                              </div>
 
-                              {it.url ? (
-                                <a
-                                  href={it.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={cn(
-                                    "shrink-0 inline-flex items-center gap-2",
-                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                  )}
-                                  title="Abrir"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                  <span className="text-xs font-medium">Abrir</span>
-                                </a>
-                              ) : null}
-                            </div>
-
-                            {it.summary ? (
-                              <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
-                                {it.summary}
+                                {it.summary ? (
+                                  <div className="mt-2 text-sm text-white/60 leading-relaxed">{it.summary}</div>
+                                ) : null}
                               </div>
-                            ) : null}
+                            );
+                          })
+                        )}
+                      </div>
+                    ) : null}
+
+                    {/* REGIONAL expanded */}
+                    {newsView === "regional" ? (
+                      <div className="space-y-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">
+                          Sección: <span className="text-white/55 normal-case">Noticias de la región</span>
+                        </div>
+
+                        {splitNews.regional.length === 0 ? (
+                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/55">
+                            No se encontraron noticias regionales con esta query.
                           </div>
-                        );
-                      })
-                    )}
+                        ) : (
+                          splitNews.regional.map((it) => {
+                            const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                            return (
+                              <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                        {it.title ?? "Artículo"}
+                                      </div>
+                                      <div className="mt-1 text-[11px] text-white/45">
+                                        {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                        {when ? (
+                                          <>
+                                            <span className="mx-2 text-white/20">•</span>
+                                            <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                          </>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {it.url ? (
+                                    <a
+                                      href={it.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={cn(
+                                        "shrink-0 inline-flex items-center gap-2",
+                                        "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                      )}
+                                      title="Abrir"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                      <span className="text-xs font-medium">Abrir</span>
+                                    </a>
+                                  ) : null}
+                                </div>
+
+                                {it.summary ? (
+                                  <div className="mt-2 text-sm text-white/60 leading-relaxed">{it.summary}</div>
+                                ) : null}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
@@ -691,7 +1122,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </div>
 
-            {/* Condiciones placeholder (tu bloque) */}
+            {/* Condiciones placeholder (tu bloque, sin reestructurar) */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3">
                 <div className="text-white/90 font-semibold">Condiciones</div>
