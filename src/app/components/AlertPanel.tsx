@@ -16,6 +16,10 @@ import {
   Loader2,
   RefreshCw,
   Siren,
+  Camera,
+  MapPin,
+  Radius,
+  Image as ImageIcon,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -69,6 +73,31 @@ type WeatherResponse = {
     wind_direction_10m?: number;
   };
 };
+
+// ---------- Cameras (biopulse.camera.v1) ----------
+type CameraRegistryItem = {
+  schema: "biopulse.camera.v1";
+  id: string;
+  providerId?: string;
+  title?: string;
+  description?: string;
+  geo: { lat: number; lon: number };
+  coverage?: { countryISO2?: string; admin1?: string; locality?: string };
+  mediaType?: "snapshot" | "video" | "stream";
+  fetch:
+    | { kind: "image_url"; url: string }
+    | { kind: "provider_api"; provider: string; cameraKey: string }
+    | { kind: string; [k: string]: any };
+  update?: { expectedIntervalSec?: number };
+  usage?: { isPublic?: boolean; attributionText?: string; termsUrl?: string };
+  tags?: string[];
+  priority?: number;
+  validation?: { status?: "pending" | "verified" | "rejected"; verifiedBy?: string; verifiedAt?: string };
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type LoadedCamera = CameraRegistryItem & { distanceKm: number };
 
 // ---------- Worker clients ----------
 async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
@@ -127,6 +156,39 @@ async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number): Promise<W
     wind_speed_10m: Number.isFinite(c.wind_speed_10m as any) ? (c.wind_speed_10m as number) : null,
     wind_direction_10m: Number.isFinite(c.wind_direction_10m as any) ? (c.wind_direction_10m as number) : null,
   };
+}
+
+// ---------- Camera registry loader ----------
+async function fetchCameraRegistry(): Promise<CameraRegistryItem[]> {
+  const candidates = [
+    "/cameraRegistry.json",
+    "/cameraRegistry.sample.json",
+    "/cameraregistry.sample.json",
+  ];
+
+  let lastErr: any = null;
+
+  for (const path of candidates) {
+    try {
+      const res = await fetch(path, { headers: { Accept: "application/json" } });
+      if (!res.ok) {
+        lastErr = new Error(`HTTP ${res.status} for ${path}`);
+        continue;
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        lastErr = new Error(`Registry is not an array at ${path}`);
+        continue;
+      }
+      const items = data.filter((x) => x && x.schema === "biopulse.camera.v1") as CameraRegistryItem[];
+      return items;
+    } catch (e) {
+      lastErr = e;
+      continue;
+    }
+  }
+
+  throw new Error(lastErr?.message ? String(lastErr.message) : "No se pudo cargar el registry de cámaras.");
 }
 
 // ---------- UI helpers ----------
@@ -397,8 +459,8 @@ function isEvacuationRelevant(it: NewsItem) {
 type GuardianWeatherInsight = {
   headline: string;
   mood: "good" | "watch" | "bad" | "unknown";
-  reliefPct: number | null; // 0-100 o null
-  lines: string[]; // 1-3 líneas
+  reliefPct: number | null;
+  lines: string[];
 };
 
 function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent | null): GuardianWeatherInsight {
@@ -414,12 +476,11 @@ function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent
     };
   }
 
-  const rain = w.precipitation ?? null; // mm
-  const wind = w.wind_speed_10m ?? null; // km/h
-  const hum = w.relative_humidity_2m ?? null; // %
-  const temp = w.temperature_2m ?? null; // °C
+  const rain = w.precipitation ?? null;
+  const wind = w.wind_speed_10m ?? null;
+  const hum = w.relative_humidity_2m ?? null;
+  const temp = w.temperature_2m ?? null;
 
-  // Score simple (0-100) = "probabilidad de alivio por clima"
   let score = 50;
 
   if (ev.category === "fire") {
@@ -428,18 +489,15 @@ function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent
       else if (rain >= 0.5) score += 12;
       else score -= 10;
     }
-
     if (wind != null) {
       if (wind >= 35) score -= 25;
       else if (wind >= 20) score -= 12;
       else score += 6;
     }
-
     if (hum != null) {
       if (hum >= 60) score += 12;
       else if (hum <= 30) score -= 12;
     }
-
     if (temp != null) {
       if (temp >= 32) score -= 10;
       else if (temp <= 20) score += 4;
@@ -479,11 +537,8 @@ function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent
   const lines: string[] = [];
 
   if (ev.category === "fire") {
-    if (rain != null && rain >= 0.5) {
-      lines.push("Hay lluvia registrada: puede ayudar a bajar intensidad, aunque no garantiza control.");
-    } else {
-      lines.push("No se ve lluvia útil en este punto ahora: el fuego tiende a sostenerse más tiempo.");
-    }
+    if (rain != null && rain >= 0.5) lines.push("Hay lluvia registrada: puede ayudar a bajar intensidad, aunque no garantiza control.");
+    else lines.push("No se ve lluvia útil en este punto ahora: el fuego tiende a sostenerse más tiempo.");
 
     if (wind != null) {
       if (wind >= 35) lines.push("El viento está fuerte: puede empujar el frente y empeorar la propagación.");
@@ -496,17 +551,11 @@ function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent
       else if (hum <= 30) lines.push("La humedad es baja: el ambiente está seco y el fuego se vuelve más agresivo.");
     }
   } else if (ev.category === "flood") {
-    if (rain != null && rain >= 3) {
-      lines.push("Se registra lluvia: puede sostener la crecida o empeorar anegamientos.");
-    } else if (rain != null && rain >= 0.5) {
-      lines.push("Hay lluvia leve: puede sumar, aunque el impacto depende del suelo y del cauce.");
-    } else {
-      lines.push("No se ve lluvia relevante ahora: eso ayuda a que la situación no escale por precipitación.");
-    }
+    if (rain != null && rain >= 3) lines.push("Se registra lluvia: puede sostener la crecida o empeorar anegamientos.");
+    else if (rain != null && rain >= 0.5) lines.push("Hay lluvia leve: puede sumar, aunque el impacto depende del suelo y del cauce.");
+    else lines.push("No se ve lluvia relevante ahora: eso ayuda a que la situación no escale por precipitación.");
 
-    if (wind != null && wind >= 35) {
-      lines.push("El viento está fuerte: puede complicar traslados y operaciones en zonas expuestas.");
-    }
+    if (wind != null && wind >= 35) lines.push("El viento está fuerte: puede complicar traslados y operaciones en zonas expuestas.");
   } else if (ev.category === "storm") {
     if (wind != null && wind >= 30) lines.push("Viento sostenido: posible caída de ramas, cables y riesgo en traslados.");
     if (rain != null && rain >= 3) lines.push("Lluvia activa: atención a calles anegadas y visibilidad reducida.");
@@ -520,11 +569,55 @@ function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent
   return { headline, mood, reliefPct: score, lines: lines.slice(0, 3) };
 }
 
+// ---------- Distance helpers (haversine) ----------
+function toRad(n: number) {
+  return (n * Math.PI) / 180;
+}
+
+function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number) {
+  const R = 6371;
+  const dLat = toRad(bLat - aLat);
+  const dLon = toRad(bLon - aLon);
+  const sLat1 = toRad(aLat);
+  const sLat2 = toRad(bLat);
+
+  const aa =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(sLat1) * Math.cos(sLat2) * Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+  return R * c;
+}
+
 // ---------- UI bits ----------
 function NewsThumb({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   const ok = !!src && /^https?:\/\//i.test(src) && !failed;
   if (!ok) return null;
+
+  return (
+    <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="h-full w-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
+function CameraThumb({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  const ok = !!src && /^https?:\/\//i.test(src) && !failed;
+  if (!ok) {
+    return (
+      <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+        <ImageIcon className="h-5 w-5 text-white/35" />
+      </div>
+    );
+  }
 
   return (
     <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5">
@@ -622,6 +715,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [weatherErr, setWeatherErr] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherCurrent | null>(null);
 
+  // ====== CAMERAS state ======
+  const [camLoading, setCamLoading] = useState(false);
+  const [camErr, setCamErr] = useState<string | null>(null);
+  const [camRegistry, setCamRegistry] = useState<CameraRegistryItem[]>([]);
+  const [camRadiusKm, setCamRadiusKm] = useState<number>(60);
+  const [camRefreshTick, setCamRefreshTick] = useState<number>(0);
+
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
 
   const { frpMax, frpSum } = useMemo(() => parseFRPFromDescription(event?.description), [event?.description]);
@@ -644,7 +744,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
     const finalPlace = (place ?? loc ?? "").trim();
-
     const safe = finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`;
 
     setPlaceCache((p) => ({ ...p, [String(ev.id)]: safe }));
@@ -703,18 +802,37 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadCameraRegistry = async () => {
+    setCamLoading(true);
+    setCamErr(null);
+    try {
+      const items = await fetchCameraRegistry();
+      setCamRegistry(items);
+    } catch (e: any) {
+      setCamRegistry([]);
+      setCamErr(e?.message ? String(e.message) : "No se pudo cargar cámaras.");
+    } finally {
+      setCamLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
     loadNews();
     loadWeather();
+    loadCameraRegistry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
 
+  useEffect(() => {
+    // permite re-cargar snapshots (cache bust)
+  }, [camRefreshTick]);
+
   const splitNews = useMemo(() => {
     const items = Array.isArray(newsItems) ? newsItems : [];
-    const official = items.filter(isOfficialItem);
-    const regional = items.filter((x) => !isOfficialItem(x));
+    const official = items.filter((it) => (domainIsOfficial(it.domain) || textLooksOfficial(it.title, it.summary)));
+    const regional = items.filter((x) => !(domainIsOfficial(x.domain) || textLooksOfficial(x.title, x.summary)));
     return { official, regional };
   }, [newsItems]);
 
@@ -742,6 +860,28 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : guardianInsight.mood === "bad"
       ? "border-red-400/20 bg-red-500/10 text-red-100/90"
       : "border-white/10 bg-white/5 text-white/80";
+
+  const nearbyCameras = useMemo(() => {
+    if (!event) return [] as LoadedCamera[];
+    const baseLat = event.latitude;
+    const baseLon = event.longitude;
+
+    const list = (Array.isArray(camRegistry) ? camRegistry : [])
+      .filter((c) => c?.geo && Number.isFinite(c.geo.lat as any) && Number.isFinite(c.geo.lon as any))
+      .map((c) => {
+        const d = haversineKm(baseLat, baseLon, c.geo.lat, c.geo.lon);
+        return { ...c, distanceKm: d } as LoadedCamera;
+      })
+      .filter((c) => c.distanceKm <= camRadiusKm)
+      .sort((a, b) => {
+        const pa = a.priority ?? 0;
+        const pb = b.priority ?? 0;
+        if (pb !== pa) return pb - pa;
+        return a.distanceKm - b.distanceKm;
+      });
+
+    return list;
+  }, [camRegistry, camRadiusKm, event?.id]);
 
   if (!event) return null;
 
@@ -1342,11 +1482,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </div>
 
-            {/* Condiciones + Lectura guardián */}
+            {/* Condiciones climáticas + Lectura guardián */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-white/90 font-semibold">Condiciones</div>
+                  <div className="text-white/90 font-semibold">Condiciones climáticas</div>
                   <div className="text-xs text-white/45 mt-0.5">Clima actual estimado en el punto del evento.</div>
                 </div>
 
@@ -1433,6 +1573,217 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
               </div>
             </div>
+
+            {/* Cámaras en vivo (BLOQUE NUEVO) */}
+            <SectionShell
+              icon={<Camera className="h-5 w-5 text-white/80" />}
+              title="Cámaras en vivo"
+              subtitle="Puntos cercanos para verificar visualmente la situación."
+              right={
+                <div className="flex items-center gap-2">
+                  <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/75">
+                    <Radius className="h-4 w-4 opacity-70" />
+                    <span className="text-xs">Radio {camRadiusKm} km</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      loadCameraRegistry();
+                      setCamRefreshTick((t) => t + 1);
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    aria-label="Actualizar cámaras"
+                    title="Actualizar cámaras"
+                  >
+                    {camLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    <span className="text-xs font-medium">Actualizar</span>
+                  </button>
+                </div>
+              }
+            >
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                {camErr ? (
+                  <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                    No se pudo cargar cámaras. <span className="text-red-100/70">{camErr}</span>
+                    <div className="mt-2 text-xs text-red-100/70">
+                      Tip: asegurate de tener el JSON en <span className="font-semibold">/public</span> (ej. <span className="font-mono">public/cameraRegistry.sample.json</span>)
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Controls */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div className="text-[11px] uppercase tracking-wide text-white/45 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 opacity-70" />
+                    Centro: <span className="text-white/55 normal-case">{event.latitude.toFixed(3)}, {event.longitude.toFixed(3)}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="text-[11px] text-white/45">Radio:</div>
+                    <div className="inline-flex overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                      {[20, 40, 60, 100].map((km) => (
+                        <button
+                          key={km}
+                          onClick={() => setCamRadiusKm(km)}
+                          className={cn(
+                            "px-3 py-1.5 text-xs font-semibold transition-colors",
+                            camRadiusKm === km ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/10"
+                          )}
+                          title={`Mostrar cámaras hasta ${km} km`}
+                        >
+                          {km}km
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setCamRefreshTick((t) => t + 1)}
+                      className={cn(
+                        "inline-flex items-center gap-2",
+                        "px-3 py-1.5 rounded-xl border border-white/10 bg-black/20",
+                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                      )}
+                      title="Refrescar snapshots"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      <span className="text-xs font-medium">Refrescar</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* List */}
+                <div className="mt-4 space-y-3">
+                  {camLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
+                          <div className="h-4 w-2/3 bg-white/10 rounded" />
+                          <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
+                          <div className="h-3 w-full bg-white/10 rounded mt-3" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : nearbyCameras.length === 0 ? (
+                    <div className="text-sm text-white/55">
+                      No hay cámaras dentro del radio actual. Probá ampliar a 100 km o registrar nuevas cámaras.
+                    </div>
+                  ) : (
+                    nearbyCameras.map((cam) => {
+                      const title = cam.title ?? cam.id;
+                      const locality =
+                        cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
+                      const dist = `${cam.distanceKm.toFixed(1)} km`;
+                      const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
+                      const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
+                      const snapUrl = snapUrlRaw ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}` : null;
+
+                      const providerInfo =
+                        cam.fetch?.kind === "provider_api"
+                          ? `Provider: ${(cam.fetch as any).provider}`
+                          : cam.providerId
+                          ? `Provider: ${cam.providerId}`
+                          : null;
+
+                      const attribution = cam.usage?.attributionText ?? null;
+
+                      return (
+                        <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <CameraThumb src={snapUrl ?? ""} alt={title} />
+
+                              <div className="min-w-0">
+                                <div className="text-sm font-semibold text-white/90 line-clamp-2">{title}</div>
+                                <div className="mt-1 text-[11px] text-white/45">
+                                  <span className="text-white/55">{dist}</span>
+                                  {locality ? (
+                                    <>
+                                      <span className="mx-2 text-white/20">•</span>
+                                      <span>{locality}</span>
+                                    </>
+                                  ) : null}
+                                </div>
+
+                                {cam.description ? (
+                                  <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-2">
+                                    {cam.description}
+                                  </div>
+                                ) : null}
+
+                                <div className="mt-2 text-[11px] text-white/35">
+                                  {providerInfo ? <span>{providerInfo}</span> : null}
+                                  {providerInfo && attribution ? <span className="mx-2 text-white/20">•</span> : null}
+                                  {attribution ? <span>{attribution}</span> : null}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0 flex flex-col gap-2">
+                              {isSnapshot && snapUrlRaw ? (
+                                <a
+                                  href={snapUrlRaw}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={cn(
+                                    "inline-flex items-center gap-2",
+                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                  )}
+                                  title="Abrir snapshot"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span className="text-xs font-medium">Abrir</span>
+                                </a>
+                              ) : cam.fetch?.kind === "provider_api" ? (
+                                <button
+                                  onClick={() => {
+                                    // Por ahora: no hay URL real. Esto queda para cuando conectemos provider.
+                                    // Igual dejamos una acción que te lleve a la sección de noticias oficiales (o nada).
+                                    setNewsView("official");
+                                  }}
+                                  className={cn(
+                                    "inline-flex items-center gap-2",
+                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                  )}
+                                  title="Provider API (pendiente)"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span className="text-xs font-medium">Fuente</span>
+                                </button>
+                              ) : (
+                                <div className="px-3 py-2 rounded-xl border border-white/10 bg-black/20 text-xs text-white/55">
+                                  Sin URL
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {isSnapshot && snapUrl ? (
+                            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
+                              <img
+                                src={snapUrl}
+                                alt={title}
+                                className="w-full max-h-[260px] object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <div className="mt-4 text-[11px] text-white/30">
+                  Nota: si el registry está en <span className="font-mono">public/</span>, Vercel lo sirve directo.
+                  Luego conectamos providers reales (ej. alertcalifornia) sin cambiar este bloque.
+                </div>
+              </div>
+            </SectionShell>
           </div>
 
           <div className="h-6" />
