@@ -144,6 +144,13 @@ function fmtDateTimeUTC(d: Date) {
     .toUpperCase()} ${d.getUTCFullYear()} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())} UTC`;
 }
 
+function fmtNowishUTC(iso: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toUTCString().replace("GMT", "UTC");
+}
+
 function sevChip(sev: EnvironmentalEvent["severity"]) {
   if (sev === "critical")
     return { label: "CRITICAL", dot: "bg-red-500", ring: "border-red-400/30", bg: "bg-red-500/10" };
@@ -386,10 +393,137 @@ function isEvacuationRelevant(it: NewsItem) {
   return SIREN_KEYWORDS.some((k) => blob.includes(k));
 }
 
+// ---------- Guardian climate insight (heurística) ----------
+type GuardianWeatherInsight = {
+  headline: string;
+  mood: "good" | "watch" | "bad" | "unknown";
+  reliefPct: number | null; // 0-100 o null
+  lines: string[]; // 1-3 líneas
+};
+
+function computeGuardianWeatherInsight(ev: EnvironmentalEvent, w: WeatherCurrent | null): GuardianWeatherInsight {
+  if (!w) {
+    return {
+      headline: "Clima no disponible",
+      mood: "unknown",
+      reliefPct: null,
+      lines: [
+        "No pude leer condiciones en este punto ahora mismo.",
+        "Si estás cerca del evento, priorizá tu seguridad y revisá actualizaciones oficiales.",
+      ],
+    };
+  }
+
+  const rain = w.precipitation ?? null; // mm
+  const wind = w.wind_speed_10m ?? null; // km/h
+  const hum = w.relative_humidity_2m ?? null; // %
+  const temp = w.temperature_2m ?? null; // °C
+
+  // Score simple (0-100) = "probabilidad de alivio por clima"
+  let score = 50;
+
+  if (ev.category === "fire") {
+    if (rain != null) {
+      if (rain >= 2) score += 25;
+      else if (rain >= 0.5) score += 12;
+      else score -= 10;
+    }
+
+    if (wind != null) {
+      if (wind >= 35) score -= 25;
+      else if (wind >= 20) score -= 12;
+      else score += 6;
+    }
+
+    if (hum != null) {
+      if (hum >= 60) score += 12;
+      else if (hum <= 30) score -= 12;
+    }
+
+    if (temp != null) {
+      if (temp >= 32) score -= 10;
+      else if (temp <= 20) score += 4;
+    }
+  } else if (ev.category === "flood") {
+    if (rain != null) {
+      if (rain >= 10) score -= 30;
+      else if (rain >= 3) score -= 18;
+      else if (rain >= 0.5) score -= 8;
+      else score += 6;
+    }
+    if (wind != null) {
+      if (wind >= 35) score -= 6;
+      else score += 2;
+    }
+  } else if (ev.category === "storm") {
+    if (wind != null) {
+      if (wind >= 50) score -= 25;
+      else if (wind >= 30) score -= 15;
+      else score += 6;
+    }
+    if (rain != null) {
+      if (rain >= 10) score -= 15;
+      else if (rain >= 3) score -= 8;
+      else score += 2;
+    }
+  } else {
+    if (wind != null && wind >= 35) score -= 10;
+    if (rain != null && rain >= 5) score -= 5;
+  }
+
+  score = clamp(Math.round(score), 0, 100);
+
+  const mood: GuardianWeatherInsight["mood"] = score >= 70 ? "good" : score >= 45 ? "watch" : "bad";
+  const headline = mood === "good" ? "Buenas señales" : mood === "watch" ? "Atención" : "Condición difícil";
+
+  const lines: string[] = [];
+
+  if (ev.category === "fire") {
+    if (rain != null && rain >= 0.5) {
+      lines.push("Hay lluvia registrada: puede ayudar a bajar intensidad, aunque no garantiza control.");
+    } else {
+      lines.push("No se ve lluvia útil en este punto ahora: el fuego tiende a sostenerse más tiempo.");
+    }
+
+    if (wind != null) {
+      if (wind >= 35) lines.push("El viento está fuerte: puede empujar el frente y empeorar la propagación.");
+      else if (wind >= 20) lines.push("El viento es moderado: puede complicar focos activos y cambios rápidos.");
+      else lines.push("El viento está relativamente calmo: eso suele ayudar a que el frente no corra tan rápido.");
+    }
+
+    if (hum != null) {
+      if (hum >= 60) lines.push("La humedad es alta: es una condición un poco más favorable.");
+      else if (hum <= 30) lines.push("La humedad es baja: el ambiente está seco y el fuego se vuelve más agresivo.");
+    }
+  } else if (ev.category === "flood") {
+    if (rain != null && rain >= 3) {
+      lines.push("Se registra lluvia: puede sostener la crecida o empeorar anegamientos.");
+    } else if (rain != null && rain >= 0.5) {
+      lines.push("Hay lluvia leve: puede sumar, aunque el impacto depende del suelo y del cauce.");
+    } else {
+      lines.push("No se ve lluvia relevante ahora: eso ayuda a que la situación no escale por precipitación.");
+    }
+
+    if (wind != null && wind >= 35) {
+      lines.push("El viento está fuerte: puede complicar traslados y operaciones en zonas expuestas.");
+    }
+  } else if (ev.category === "storm") {
+    if (wind != null && wind >= 30) lines.push("Viento sostenido: posible caída de ramas, cables y riesgo en traslados.");
+    if (rain != null && rain >= 3) lines.push("Lluvia activa: atención a calles anegadas y visibilidad reducida.");
+    if (lines.length === 0) lines.push("Condiciones moderadas ahora, pero una tormenta puede cambiar rápido.");
+  } else {
+    lines.push("Estas condiciones ayudan a leer el contexto, pero el riesgo depende de varios factores.");
+  }
+
+  lines.push("Si estás cerca, priorizá moverte a un lugar seguro y mantené tu plan listo.");
+
+  return { headline, mood, reliefPct: score, lines: lines.slice(0, 3) };
+}
+
+// ---------- UI bits ----------
 function NewsThumb({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   const ok = !!src && /^https?:\/\//i.test(src) && !failed;
-
   if (!ok) return null;
 
   return (
@@ -588,18 +722,35 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     return splitNews.official.some(isEvacuationRelevant);
   }, [splitNews.official]);
 
+  const guardianInsight = useMemo(() => {
+    if (!event) {
+      return {
+        headline: "Clima no disponible",
+        mood: "unknown" as const,
+        reliefPct: null,
+        lines: ["No pude leer condiciones en este punto ahora mismo."],
+      };
+    }
+    return computeGuardianWeatherInsight(event, weather);
+  }, [event, weather]);
+
+  const insightPill =
+    guardianInsight.mood === "good"
+      ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/90"
+      : guardianInsight.mood === "watch"
+      ? "border-yellow-300/20 bg-yellow-300/10 text-yellow-100/90"
+      : guardianInsight.mood === "bad"
+      ? "border-red-400/20 bg-red-500/10 text-red-100/90"
+      : "border-white/10 bg-white/5 text-white/80";
+
   if (!event) return null;
 
   const chip = sevChip(event.severity);
 
-  const rainText =
-    weather?.precipitation == null ? "—" : `${weather.precipitation.toFixed(1)} mm`;
-  const windText =
-    weather?.wind_speed_10m == null ? "—" : `${weather.wind_speed_10m.toFixed(0)} km/h`;
-  const humText =
-    weather?.relative_humidity_2m == null ? "—" : `${weather.relative_humidity_2m.toFixed(0)}%`;
-  const tempText =
-    weather?.temperature_2m == null ? "—" : `${weather.temperature_2m.toFixed(1)}°C`;
+  const rainText = weather?.precipitation == null ? "—" : `${weather.precipitation.toFixed(1)} mm`;
+  const windText = weather?.wind_speed_10m == null ? "—" : `${weather.wind_speed_10m.toFixed(0)} km/h`;
+  const humText = weather?.relative_humidity_2m == null ? "—" : `${weather.relative_humidity_2m.toFixed(0)}%`;
+  const tempText = weather?.temperature_2m == null ? "—" : `${weather.temperature_2m.toFixed(1)}°C`;
 
   return (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -741,7 +892,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="text-white/80">
                     <span className="text-white/55 font-medium">Actividad:</span>{" "}
                     <span className="font-semibold text-white/90">
-                      {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
+                      {detections != null && detections >= 15
+                        ? "Sostenida"
+                        : detections != null && detections >= 6
+                        ? "Activa"
+                        : "Leve"}
                     </span>
                   </div>
                   <div className="text-white/80">
@@ -902,7 +1057,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
                               <div className="text-sm font-semibold text-white/90">Noticias de la región</div>
-                              <div className="text-xs text-white/45 mt-0.5">Secundario. Orden cronológico según resultados.</div>
+                              <div className="text-xs text-white/45 mt-0.5">
+                                Secundario. Orden cronológico según resultados.
+                              </div>
                             </div>
                             <button
                               onClick={() => setNewsView("regional")}
@@ -920,7 +1077,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                           <div className="mt-3 space-y-3">
                             {splitNews.regional.length === 0 ? (
-                              <div className="text-sm text-white/55">No se encontraron noticias regionales con esta query.</div>
+                              <div className="text-sm text-white/55">
+                                No se encontraron noticias regionales con esta query.
+                              </div>
                             ) : (
                               splitNews.regional.slice(0, 3).map((it) => {
                                 const when = it.publishedAt ? new Date(it.publishedAt) : null;
@@ -1107,6 +1266,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     ) : null}
                   </div>
                 )}
+
+                {newsMeta?.fetchedAt ? (
+                  <div className="mt-4 text-[11px] text-white/35">
+                    Actualizado: {new Date(newsMeta.fetchedAt).toUTCString().replace("GMT", "UTC")}
+                  </div>
+                ) : null}
               </div>
             </SectionShell>
 
@@ -1177,7 +1342,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </div>
 
-            {/* Condiciones (RECONectado) */}
+            {/* Condiciones + Lectura guardián */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
                 <div>
@@ -1237,15 +1402,35 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
-                {weather?.time ? (
-                  <div className="text-[11px] text-white/35">
-                    Actualizado (UTC): {weather.time}
+                {/* Lectura guardián */}
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[11px] uppercase tracking-wide text-white/45">Lectura (modo guardián)</div>
+                      <div className="mt-1 text-sm font-semibold text-white/90">{guardianInsight.headline}</div>
+                    </div>
+
+                    <div className={cn("shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border", insightPill)}>
+                      <span className="text-xs font-semibold">
+                        {guardianInsight.reliefPct == null ? "—" : `Mejora por clima: ${guardianInsight.reliefPct}%`}
+                      </span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-[11px] text-white/30">
-                    Nota: si no aparece clima, revisamos consola y lo pasamos al Worker.
+
+                  <div className="mt-3 space-y-2">
+                    {guardianInsight.lines.map((ln, idx) => (
+                      <div key={idx} className="text-sm text-white/65 leading-relaxed">
+                        {ln}
+                      </div>
+                    ))}
                   </div>
-                )}
+
+                  {weather?.time ? (
+                    <div className="mt-3 text-[11px] text-white/35">
+                      Lectura basada en clima actual (UTC): {fmtNowishUTC(weather.time)}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
