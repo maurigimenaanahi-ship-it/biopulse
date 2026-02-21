@@ -47,6 +47,29 @@ type NewsResponse = {
   fetched_at?: string;
 };
 
+// ---------- Weather types (Open-Meteo current) ----------
+type WeatherCurrent = {
+  temperature_2m: number | null;
+  relative_humidity_2m: number | null;
+  precipitation: number | null;
+  wind_speed_10m: number | null;
+  wind_direction_10m: number | null;
+  time: string | null;
+};
+
+type WeatherResponse = {
+  latitude?: number;
+  longitude?: number;
+  current?: {
+    time?: string;
+    temperature_2m?: number;
+    relative_humidity_2m?: number;
+    precipitation?: number;
+    wind_speed_10m?: number;
+    wind_direction_10m?: number;
+  };
+};
+
 // ---------- Worker clients ----------
 async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
   const url =
@@ -77,6 +100,33 @@ async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string
   const data = (await res.json()) as ReverseGeocodeResponse;
   const label = data?.label ?? null;
   return label && typeof label === "string" ? label : null;
+}
+
+// ---------- Weather fetch (Open-Meteo, sin key) ----------
+async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number): Promise<WeatherCurrent> {
+  const url =
+    `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${encodeURIComponent(String(lat))}` +
+    `&longitude=${encodeURIComponent(String(lon))}` +
+    `&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m` +
+    `&timezone=UTC`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Weather error ${res.status}: ${txt.slice(0, 200)}`);
+  }
+
+  const data = (await res.json()) as WeatherResponse;
+  const c = data?.current ?? {};
+  return {
+    time: typeof c.time === "string" ? c.time : null,
+    temperature_2m: Number.isFinite(c.temperature_2m as any) ? (c.temperature_2m as number) : null,
+    relative_humidity_2m: Number.isFinite(c.relative_humidity_2m as any) ? (c.relative_humidity_2m as number) : null,
+    precipitation: Number.isFinite(c.precipitation as any) ? (c.precipitation as number) : null,
+    wind_speed_10m: Number.isFinite(c.wind_speed_10m as any) ? (c.wind_speed_10m as number) : null,
+    wind_direction_10m: Number.isFinite(c.wind_direction_10m as any) ? (c.wind_direction_10m as number) : null,
+  };
 }
 
 // ---------- UI helpers ----------
@@ -234,7 +284,6 @@ function levelFromFRPSum(frpSum: number | null) {
 
 // ---------- Official + siren logic (Opción A) ----------
 const OFFICIAL_DOMAIN_ALLOWLIST = [
-  // dominios “obvios”
   "argentina.gob.ar",
   "gob.ar",
   "gov.ar",
@@ -314,7 +363,6 @@ function domainIsOfficial(domain: string | null) {
   if (d.endsWith(".gob.ar") || d.endsWith(".gov.ar")) return true;
   if (d.endsWith(".gov") || d.endsWith(".gob")) return true;
 
-  // heurística: palabras clave en el dominio
   if (OFFICIAL_DOMAIN_HINTS.some((k) => d.includes(k))) return true;
 
   return false;
@@ -432,11 +480,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [newsErr, setNewsErr] = useState<string | null>(null);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
-
-  // Noticias: vista expandida dentro del panel (sin cambiar estructura global)
   const [newsView, setNewsView] = useState<"main" | "official" | "regional">("main");
-
   const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
+
+  // ====== WEATHER state ======
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherErr, setWeatherErr] = useState<string | null>(null);
+  const [weather, setWeather] = useState<WeatherCurrent | null>(null);
 
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
 
@@ -503,10 +553,27 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadWeather = async () => {
+    if (!event) return;
+    setWeatherLoading(true);
+    setWeatherErr(null);
+
+    try {
+      const w = await fetchCurrentWeatherOpenMeteo(event.latitude, event.longitude);
+      setWeather(w);
+    } catch (e: any) {
+      setWeather(null);
+      setWeatherErr(e?.message ? String(e.message) : "No se pudo cargar clima.");
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
     loadNews();
+    loadWeather();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
 
@@ -518,7 +585,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   }, [newsItems]);
 
   const sirenActive = useMemo(() => {
-    // regla: SOLO si existe comunicado oficial relevante
     return splitNews.official.some(isEvacuationRelevant);
   }, [splitNews.official]);
 
@@ -526,13 +592,19 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
   const chip = sevChip(event.severity);
 
+  const rainText =
+    weather?.precipitation == null ? "—" : `${weather.precipitation.toFixed(1)} mm`;
+  const windText =
+    weather?.wind_speed_10m == null ? "—" : `${weather.wind_speed_10m.toFixed(0)} km/h`;
+  const humText =
+    weather?.relative_humidity_2m == null ? "—" : `${weather.relative_humidity_2m.toFixed(0)}%`;
+  const tempText =
+    weather?.temperature_2m == null ? "—" : `${weather.temperature_2m.toFixed(1)}°C`;
+
   return (
-    // ✅ FIX: z-index alto para no quedar debajo de “Cambiar búsqueda / Mis alertas”
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 z-0" onClick={onClose} />
 
-      {/* Modal */}
       <div
         className={cn(
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10",
@@ -542,7 +614,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           "flex flex-col"
         )}
       >
-        {/* Siren overlay (solo si sirenActive) */}
         {sirenActive ? (
           <>
             <div className="pointer-events-none absolute inset-0 rounded-3xl ring-2 ring-red-500/25" />
@@ -573,7 +644,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             </button>
 
             <div className="flex items-center gap-2">
-              {/* Botón alerta/sirena (solo si sirenActive) */}
               {sirenActive ? (
                 <button
                   onClick={() => setNewsView("official")}
@@ -635,7 +705,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           </div>
         </div>
 
-        {/* Body (FIX scroll: flex-1 + min-h-0) */}
+        {/* Body */}
         <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
           <div className="space-y-4">
             {/* Estado operativo */}
@@ -686,7 +756,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
-            {/* Noticias relacionadas (ahora: 2 subpaneles + Ver más + Volver) */}
+            {/* Noticias */}
             <SectionShell
               icon={<Newspaper className="h-5 w-5 text-white/80" />}
               title="Noticias"
@@ -724,18 +794,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               }
             >
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="text-[11px] uppercase tracking-wide text-white/45">
-                  Lugar usado: <span className="text-white/55 normal-case">{newsMeta?.placeUsed ?? "—"}</span>
-                </div>
-
                 {newsErr ? (
-                  <div className="mt-3 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                  <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
                     No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
                   </div>
                 ) : null}
 
                 {newsLoading ? (
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-2 space-y-3">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
                         <div className="h-4 w-2/3 bg-white/10 rounded" />
@@ -745,11 +811,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 space-y-4">
-                    {/* MAIN: previews + Ver más */}
+                  <div className="mt-2 space-y-4">
                     {newsView === "main" ? (
                       <>
-                        {/* A) Comunicados oficiales */}
                         <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                           <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
@@ -834,7 +898,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           </div>
                         </div>
 
-                        {/* B) Noticias de la región */}
                         <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                           <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
@@ -911,7 +974,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </>
                     ) : null}
 
-                    {/* OFFICIAL expanded */}
                     {newsView === "official" ? (
                       <div className="space-y-3">
                         <div className="text-[11px] uppercase tracking-wide text-white/45">
@@ -982,7 +1044,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </div>
                     ) : null}
 
-                    {/* REGIONAL expanded */}
                     {newsView === "regional" ? (
                       <div className="space-y-3">
                         <div className="text-[11px] uppercase tracking-wide text-white/45">
@@ -1046,16 +1107,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     ) : null}
                   </div>
                 )}
-
-                {newsMeta?.fetchedAt ? (
-                  <div className="mt-3 text-[11px] text-white/35">
-                    Actualizado: {new Date(newsMeta.fetchedAt).toUTCString()}
-                  </div>
-                ) : null}
               </div>
             </SectionShell>
 
-            {/* Indicadores operativos (tu bloque) */}
+            {/* Indicadores operativos */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3">
                 <div className="text-white/90 font-semibold">Indicadores operativos</div>
@@ -1122,47 +1177,75 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </div>
 
-            {/* Condiciones placeholder (tu bloque, sin reestructurar) */}
+            {/* Condiciones (RECONectado) */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="px-5 pt-4 pb-3">
-                <div className="text-white/90 font-semibold">Condiciones</div>
-                <div className="text-xs text-white/45 mt-0.5">A reconectar luego.</div>
+              <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-white/90 font-semibold">Condiciones</div>
+                  <div className="text-xs text-white/45 mt-0.5">Clima actual estimado en el punto del evento.</div>
+                </div>
+
+                <button
+                  onClick={loadWeather}
+                  className={cn(
+                    "inline-flex items-center gap-2",
+                    "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                  )}
+                  aria-label="Actualizar clima"
+                  title="Actualizar clima"
+                >
+                  {weatherLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  <span className="text-xs font-medium">Actualizar</span>
+                </button>
               </div>
 
               <div className="px-5 pb-5 space-y-3">
+                {weatherErr ? (
+                  <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                    No se pudo cargar clima. <span className="text-red-100/70">{weatherErr}</span>
+                  </div>
+                ) : null}
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
                       <CloudRain className="h-4 w-4" /> Lluvia
                     </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="mt-2 text-white/90 font-semibold">{rainText}</div>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
                       <Wind className="h-4 w-4" /> Viento
                     </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="mt-2 text-white/90 font-semibold">{windText}</div>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
                       <Droplets className="h-4 w-4" /> Humedad
                     </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="mt-2 text-white/90 font-semibold">{humText}</div>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/40 flex items-center gap-2">
                       <Thermometer className="h-4 w-4" /> Temp.
                     </div>
-                    <div className="mt-2 text-white/90 font-semibold">—</div>
+                    <div className="mt-2 text-white/90 font-semibold">{tempText}</div>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-white/30">
-                  Nota: esto se completa cuando reconectemos el módulo de condiciones.
-                </div>
+                {weather?.time ? (
+                  <div className="text-[11px] text-white/35">
+                    Actualizado (UTC): {weather.time}
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-white/30">
+                    Nota: si no aparece clima, revisamos consola y lo pasamos al Worker.
+                  </div>
+                )}
               </div>
             </div>
           </div>
