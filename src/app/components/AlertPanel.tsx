@@ -1,4 +1,6 @@
+// AlertPanel.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { EnvironmentalEvent } from "@/data/events";
 import {
   X,
@@ -234,7 +236,17 @@ function isGenericLocation(locRaw: string) {
   const loc = (locRaw ?? "").trim().toLowerCase();
   if (!loc) return true;
 
-  const generic = ["américa", "america", "south america", "américa del sur", "latin america", "latam", "world", "mundo", "region"];
+  const generic = [
+    "américa",
+    "america",
+    "south america",
+    "américa del sur",
+    "latin america",
+    "latam",
+    "world",
+    "mundo",
+    "region",
+  ];
 
   if (generic.some((g) => loc.includes(g))) return true;
   if (!loc.includes(",")) return true;
@@ -271,7 +283,14 @@ function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
       ? "(sequía OR drought)"
       : "(emergency OR disaster)";
 
-  const placeBlock = [locality ? `"${locality}"` : null, state ? `"${state}"` : null, country ? `"${country}"` : null, locality ? `${locality}` : null, state ? `${state}` : null, country ? `${country}` : null]
+  const placeBlock = [
+    locality ? `"${locality}"` : null,
+    state ? `"${state}"` : null,
+    country ? `"${country}"` : null,
+    locality ? `${locality}` : null,
+    state ? `${state}` : null,
+    country ? `${country}` : null,
+  ]
     .filter(Boolean)
     .join(" OR ");
 
@@ -570,7 +589,13 @@ function NewsThumb({ src, alt }: { src: string; alt: string }) {
 
   return (
     <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5">
-      <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" onError={() => setFailed(true)} />
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="h-full w-full object-cover"
+        onError={() => setFailed(true)}
+      />
     </div>
   );
 }
@@ -588,7 +613,13 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
 
   return (
     <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5">
-      <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" onError={() => setFailed(true)} />
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="h-full w-full object-cover"
+        onError={() => setFailed(true)}
+      />
     </div>
   );
 }
@@ -628,11 +659,11 @@ function SectionShell({
   subtitle,
   children,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
-  right?: React.ReactNode;
+  right?: ReactNode;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
@@ -786,10 +817,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
 
-  useEffect(() => {
-    // permite re-cargar snapshots (cache bust)
-  }, [camRefreshTick]);
-
   const splitNews = useMemo(() => {
     const items = Array.isArray(newsItems) ? newsItems : [];
     const official = items.filter((it) => domainIsOfficial(it.domain) || textLooksOfficial(it.title, it.summary));
@@ -822,21 +849,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "border-red-400/20 bg-red-500/10 text-red-100/90"
       : "border-white/10 bg-white/5 text-white/80";
 
-  // ✅ NEW: compute cameras once, then apply radius + fallback
-  const cameraDisplay = useMemo(() => {
-    if (!event) return { mode: "nearby" as const, list: [] as LoadedCamera[] };
-
+  const nearbyCameras = useMemo(() => {
+    if (!event) return [] as LoadedCamera[];
     const baseLat = event.latitude;
     const baseLon = event.longitude;
 
-    const all = (Array.isArray(camRegistry) ? camRegistry : [])
+    const list = (Array.isArray(camRegistry) ? camRegistry : [])
       .filter((c) => c?.geo && Number.isFinite(c.geo.lat as any) && Number.isFinite(c.geo.lon as any))
       .map((c) => {
         const d = haversineKm(baseLat, baseLon, c.geo.lat, c.geo.lon);
         return { ...c, distanceKm: d } as LoadedCamera;
-      });
-
-    const nearby = all
+      })
       .filter((c) => c.distanceKm <= camRadiusKm)
       .sort((a, b) => {
         const pa = a.priority ?? 0;
@@ -845,14 +868,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         return a.distanceKm - b.distanceKm;
       });
 
-    if (nearby.length > 0) return { mode: "nearby" as const, list: nearby };
-
-    // Fallback: show nearest available cameras even if far away
-    const nearest = all
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-      .slice(0, 5);
-
-    return { mode: "fallback" as const, list: nearest };
+    return list;
   }, [camRegistry, camRadiusKm, event?.id]);
 
   if (!event) return null;
@@ -1004,7 +1020,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="text-white/80">
                     <span className="text-white/55 font-medium">Actividad:</span>{" "}
                     <span className="font-semibold text-white/90">
-                      {detections != null && detections >= 15 ? "Sostenida" : detections != null && detections >= 6 ? "Activa" : "Leve"}
+                      {detections != null && detections >= 15
+                        ? "Sostenida"
+                        : detections != null && detections >= 6
+                        ? "Activa"
+                        : "Leve"}
                     </span>
                   </div>
                   <div className="text-white/80">
@@ -1019,9 +1039,369 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
-            {/* Noticias */}
-            {/* (tu bloque de noticias queda exactamente igual que lo que pegaste; no lo toco aquí para no meter ruido) */}
-            {/* Si querés, lo dejo igual: no cambia por el fallback de cámaras */}
+            {/* ✅ Noticias (ARREGLADO / INCLUIDO) */}
+            <SectionShell
+              icon={<Newspaper className="h-5 w-5 text-white/80" />}
+              title="Noticias"
+              subtitle="Comunicados oficiales (prioridad) + noticias de la región."
+              right={
+                newsView !== "main" ? (
+                  <button
+                    onClick={() => setNewsView("main")}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    aria-label="Volver a resumen"
+                    title="Volver"
+                  >
+                    <CornerUpLeft className="h-4 w-4" />
+                    <span className="text-xs font-medium">Volver</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={loadNews}
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
+                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                    aria-label="Actualizar noticias"
+                    title="Actualizar"
+                  >
+                    {newsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    <span className="text-xs font-medium">Actualizar</span>
+                  </button>
+                )
+              }
+            >
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                {newsErr ? (
+                  <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
+                    No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
+                  </div>
+                ) : null}
+
+                {newsLoading ? (
+                  <div className="mt-2 space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
+                        <div className="h-4 w-2/3 bg-white/10 rounded" />
+                        <div className="h-3 w-1/3 bg-white/10 rounded mt-2" />
+                        <div className="h-3 w-full bg-white/10 rounded mt-3" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 space-y-4">
+                    {newsView === "main" ? (
+                      <>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white/90">Comunicados oficiales</div>
+                              <div className="text-xs text-white/45 mt-0.5">
+                                Prioridad máxima. Activa alerta si menciona evacuación/alerta.
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setNewsView("official")}
+                              className={cn(
+                                "shrink-0 inline-flex items-center gap-2",
+                                "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                              )}
+                              title="Ver más"
+                            >
+                              <span className="text-xs font-medium">Ver más</span>
+                              <ExternalLink className="h-4 w-4 opacity-70" />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {splitNews.official.length === 0 ? (
+                              <div className="text-sm text-white/55">No hay comunicados oficiales todavía.</div>
+                            ) : (
+                              splitNews.official.slice(0, 3).map((it) => {
+                                const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                                const evac = isEvacuationRelevant(it);
+                                return (
+                                  <div key={it.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                            {it.title ?? "Comunicado"}
+                                          </div>
+                                          {evac ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-red-400/30 bg-red-500/10 text-[10px] font-semibold text-red-100/90">
+                                              ALERTA
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                        <div className="mt-1 text-[11px] text-white/45">
+                                          {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                          {when ? (
+                                            <>
+                                              <span className="mx-2 text-white/20">•</span>
+                                              <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                            </>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      {it.url ? (
+                                        <a
+                                          href={it.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className={cn(
+                                            "shrink-0 inline-flex items-center gap-2",
+                                            "px-3 py-2 rounded-xl border border-white/10 bg-white/5",
+                                            "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                          )}
+                                          title="Abrir"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                          <span className="text-xs font-medium">Abrir</span>
+                                        </a>
+                                      ) : null}
+                                    </div>
+
+                                    {it.summary ? (
+                                      <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+                                        {it.summary}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white/90">Noticias de la región</div>
+                              <div className="text-xs text-white/45 mt-0.5">
+                                Secundario. Orden cronológico según resultados.
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setNewsView("regional")}
+                              className={cn(
+                                "shrink-0 inline-flex items-center gap-2",
+                                "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                              )}
+                              title="Ver más"
+                            >
+                              <span className="text-xs font-medium">Ver más</span>
+                              <ExternalLink className="h-4 w-4 opacity-70" />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {splitNews.regional.length === 0 ? (
+                              <div className="text-sm text-white/55">
+                                No se encontraron noticias regionales con esta query.
+                              </div>
+                            ) : (
+                              splitNews.regional.slice(0, 3).map((it) => {
+                                const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                                return (
+                                  <div key={it.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                          {it.title ?? "Artículo"}
+                                        </div>
+                                        <div className="mt-1 text-[11px] text-white/45">
+                                          {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                          {when ? (
+                                            <>
+                                              <span className="mx-2 text-white/20">•</span>
+                                              <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                            </>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      {it.url ? (
+                                        <a
+                                          href={it.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className={cn(
+                                            "shrink-0 inline-flex items-center gap-2",
+                                            "px-3 py-2 rounded-xl border border-white/10 bg-white/5",
+                                            "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                          )}
+                                          title="Abrir"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                          <span className="text-xs font-medium">Abrir</span>
+                                        </a>
+                                      ) : null}
+                                    </div>
+
+                                    {it.summary ? (
+                                      <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-3">
+                                        {it.summary}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
+
+                    {newsView === "official" ? (
+                      <div className="space-y-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">
+                          Sección: <span className="text-white/55 normal-case">Comunicados oficiales</span>
+                        </div>
+
+                        {splitNews.official.length === 0 ? (
+                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/55">
+                            No hay comunicados oficiales todavía.
+                          </div>
+                        ) : (
+                          splitNews.official.map((it) => {
+                            const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                            const evac = isEvacuationRelevant(it);
+                            return (
+                              <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                          {it.title ?? "Comunicado"}
+                                        </div>
+                                        {evac ? (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-red-400/30 bg-red-500/10 text-[10px] font-semibold text-red-100/90">
+                                            ALERTA
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                      <div className="mt-1 text-[11px] text-white/45">
+                                        {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                        {when ? (
+                                          <>
+                                            <span className="mx-2 text-white/20">•</span>
+                                            <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                          </>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {it.url ? (
+                                    <a
+                                      href={it.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={cn(
+                                        "shrink-0 inline-flex items-center gap-2",
+                                        "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                      )}
+                                      title="Abrir"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                      <span className="text-xs font-medium">Abrir</span>
+                                    </a>
+                                  ) : null}
+                                </div>
+
+                                {it.summary ? (
+                                  <div className="mt-2 text-sm text-white/60 leading-relaxed">{it.summary}</div>
+                                ) : null}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    ) : null}
+
+                    {newsView === "regional" ? (
+                      <div className="space-y-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/45">
+                          Sección: <span className="text-white/55 normal-case">Noticias de la región</span>
+                        </div>
+
+                        {splitNews.regional.length === 0 ? (
+                          <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/55">
+                            No se encontraron noticias regionales con esta query.
+                          </div>
+                        ) : (
+                          splitNews.regional.map((it) => {
+                            const when = it.publishedAt ? new Date(it.publishedAt) : null;
+                            return (
+                              <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-semibold text-white/90 line-clamp-2">
+                                        {it.title ?? "Artículo"}
+                                      </div>
+                                      <div className="mt-1 text-[11px] text-white/45">
+                                        {it.domain ? <span className="text-white/55">{it.domain}</span> : null}
+                                        {when ? (
+                                          <>
+                                            <span className="mx-2 text-white/20">•</span>
+                                            <span>{when.toUTCString().replace("GMT", "UTC")}</span>
+                                          </>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {it.url ? (
+                                    <a
+                                      href={it.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={cn(
+                                        "shrink-0 inline-flex items-center gap-2",
+                                        "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                        "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                      )}
+                                      title="Abrir"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                      <span className="text-xs font-medium">Abrir</span>
+                                    </a>
+                                  ) : null}
+                                </div>
+
+                                {it.summary ? (
+                                  <div className="mt-2 text-sm text-white/60 leading-relaxed">{it.summary}</div>
+                                ) : null}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {newsMeta?.fetchedAt ? (
+                  <div className="mt-4 text-[11px] text-white/35">
+                    Actualizado: {new Date(newsMeta.fetchedAt).toUTCString().replace("GMT", "UTC")}
+                  </div>
+                ) : null}
+              </div>
+            </SectionShell>
 
             {/* Indicadores operativos */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
@@ -1150,6 +1530,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
+                {/* Lectura guardián */}
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -1173,7 +1554,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
 
                   {weather?.time ? (
-                    <div className="mt-3 text-[11px] text-white/35">Lectura basada en clima actual (UTC): {fmtNowishUTC(weather.time)}</div>
+                    <div className="mt-3 text-[11px] text-white/35">
+                      Lectura basada en clima actual (UTC): {fmtNowishUTC(weather.time)}
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -1215,7 +1598,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     No se pudo cargar cámaras. <span className="text-red-100/70">{camErr}</span>
                     <div className="mt-2 text-xs text-red-100/70">
                       Tip: asegurate de tener el JSON en <span className="font-semibold">/public</span> (ej.{" "}
-                      <span className="font-mono">public/cameraregistry.sample.json</span>)
+                      <span className="font-mono">public/cameraRegistry.sample.json</span>)
                     </div>
                   </div>
                 ) : null}
@@ -1273,113 +1656,105 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         </div>
                       ))}
                     </div>
-                  ) : cameraDisplay.list.length === 0 ? (
-                    <div className="text-sm text-white/55">No hay cámaras en el registry todavía.</div>
+                  ) : nearbyCameras.length === 0 ? (
+                    <div className="text-sm text-white/55">
+                      No hay cámaras dentro del radio actual. Probá ampliar a 100 km o registrar nuevas cámaras.
+                    </div>
                   ) : (
-                    <>
-                      {cameraDisplay.mode === "fallback" ? (
-                        <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/60">
-                          No hay cámaras dentro del radio actual. Mostrando las cámaras más cercanas disponibles en el registry.
-                        </div>
-                      ) : null}
+                    nearbyCameras.map((cam) => {
+                      const title = cam.title ?? cam.id;
+                      const locality = cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
+                      const dist = `${cam.distanceKm.toFixed(1)} km`;
 
-                      {cameraDisplay.list.map((cam) => {
-                        const title = cam.title ?? cam.id;
-                        const locality = cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
-                        const dist = `${cam.distanceKm.toFixed(1)} km`;
+                      const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
+                      const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
+                      const snapUrl = snapUrlRaw
+                        ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
+                        : null;
 
-                        const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
-                        const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
-                        const snapUrl = snapUrlRaw ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}` : null;
+                      const providerInfo =
+                        cam.fetch?.kind === "provider_api"
+                          ? `Provider: ${(cam.fetch as any).provider}`
+                          : cam.providerId
+                          ? `Provider: ${cam.providerId}`
+                          : null;
 
-                        const providerInfo =
-                          cam.fetch?.kind === "provider_api"
-                            ? `Provider: ${(cam.fetch as any).provider}`
-                            : cam.providerId
-                            ? `Provider: ${cam.providerId}`
-                            : null;
+                      const attribution = cam.usage?.attributionText ?? null;
 
-                        const attribution = cam.usage?.attributionText ?? null;
+                      return (
+                        <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <CameraThumb src={snapUrl ?? ""} alt={title} />
 
-                        return (
-                          <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 min-w-0">
-                                <CameraThumb src={snapUrl ?? ""} alt={title} />
-
-                                <div className="min-w-0">
-                                  <div className="text-sm font-semibold text-white/90 line-clamp-2">{title}</div>
-                                  <div className="mt-1 text-[11px] text-white/45">
-                                    <span className="text-white/55">{dist}</span>
-                                    {locality ? (
-                                      <>
-                                        <span className="mx-2 text-white/20">•</span>
-                                        <span>{locality}</span>
-                                      </>
-                                    ) : null}
-                                  </div>
-
-                                  {cam.description ? (
-                                    <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-2">{cam.description}</div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-semibold text-white/90 line-clamp-2">{title}</div>
+                                <div className="mt-1 text-[11px] text-white/45">
+                                  <span className="text-white/55">{dist}</span>
+                                  {locality ? (
+                                    <>
+                                      <span className="mx-2 text-white/20">•</span>
+                                      <span>{locality}</span>
+                                    </>
                                   ) : null}
-
-                                  <div className="mt-2 text-[11px] text-white/35">
-                                    {providerInfo ? <span>{providerInfo}</span> : null}
-                                    {providerInfo && attribution ? <span className="mx-2 text-white/20">•</span> : null}
-                                    {attribution ? <span>{attribution}</span> : null}
-                                  </div>
                                 </div>
-                              </div>
 
-                              <div className="shrink-0 flex flex-col gap-2">
-                                {isSnapshot && snapUrlRaw ? (
-                                  <a
-                                    href={snapUrlRaw}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={cn(
-                                      "inline-flex items-center gap-2",
-                                      "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                    )}
-                                    title="Abrir snapshot"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                    <span className="text-xs font-medium">Abrir</span>
-                                  </a>
-                                ) : cam.fetch?.kind === "provider_api" ? (
-                                  <button
-                                    onClick={() => setNewsView("official")}
-                                    className={cn(
-                                      "inline-flex items-center gap-2",
-                                      "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
-                                      "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-                                    )}
-                                    title="Provider API (pendiente)"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                    <span className="text-xs font-medium">Fuente</span>
-                                  </button>
-                                ) : (
-                                  <div className="px-3 py-2 rounded-xl border border-white/10 bg-black/20 text-xs text-white/55">Sin URL</div>
-                                )}
+                                {cam.description ? (
+                                  <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-2">
+                                    {cam.description}
+                                  </div>
+                                ) : null}
+
+                                <div className="mt-2 text-[11px] text-white/35">
+                                  {providerInfo ? <span>{providerInfo}</span> : null}
+                                  {providerInfo && attribution ? <span className="mx-2 text-white/20">•</span> : null}
+                                  {attribution ? <span>{attribution}</span> : null}
+                                </div>
                               </div>
                             </div>
 
-                            {isSnapshot && snapUrl ? (
-                              <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
-                                <img src={snapUrl} alt={title} className="w-full max-h-[260px] object-cover" loading="lazy" />
-                              </div>
-                            ) : null}
+                            <div className="shrink-0 flex flex-col gap-2">
+                              {isSnapshot && snapUrlRaw ? (
+                                <a
+                                  href={snapUrlRaw}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={cn(
+                                    "inline-flex items-center gap-2",
+                                    "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
+                                    "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                                  )}
+                                  title="Abrir snapshot"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span className="text-xs font-medium">Abrir</span>
+                                </a>
+                              ) : cam.fetch?.kind === "provider_api" ? (
+                                <div className="px-3 py-2 rounded-xl border border-white/10 bg-black/20 text-xs text-white/55">
+                                  Provider pendiente
+                                </div>
+                              ) : (
+                                <div className="px-3 py-2 rounded-xl border border-white/10 bg-black/20 text-xs text-white/55">
+                                  Sin URL
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        );
-                      })}
-                    </>
+
+                          {isSnapshot && snapUrl ? (
+                            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
+                              <img src={snapUrl} alt={title} className="w-full max-h-[260px] object-cover" loading="lazy" />
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
 
                 <div className="mt-4 text-[11px] text-white/30">
-                  Nota: si el registry está en <span className="font-mono">public/</span>, Vercel lo sirve directo. Luego conectamos providers reales sin cambiar este bloque.
+                  Nota: si el registry está en <span className="font-mono">public/</span>, Vercel lo sirve directo.
+                  Luego conectamos providers reales (vialidad/municipios/alertcalifornia/etc.) sin cambiar este bloque.
                 </div>
               </div>
             </SectionShell>
