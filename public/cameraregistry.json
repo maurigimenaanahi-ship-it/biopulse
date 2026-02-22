@@ -1,0 +1,81 @@
+[
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-bariloche-1497537282",
+    "providerId": "windy",
+    "title": "Bariloche — Vista (Windy)",
+    "description": "Snapshot público (Windy).",
+    "geo": { "lat": -41.133, "lon": -71.308 },
+    "coverage": { "countryISO2": "AR", "admin1": "Río Negro", "locality": "San Carlos de Bariloche" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://images-webcams.windy.com/20/1497537282/current/full/1497537282.jpg"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "weather", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "pending" }
+  },
+
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-1252080680",
+    "providerId": "windy",
+    "title": "Mar del Plata — Plaza Colón 2 (Windy)",
+    "description": "Snapshot público (Windy).",
+    "geo": { "lat": -38.006, "lon": -57.542 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Mar del Plata" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://images-webcams.windy.com/20/1252080680/current/full/1252080680.jpg"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["coast", "city", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "pending" }
+  },
+
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-ushuaia-1243366423",
+    "providerId": "windy",
+    "title": "Ushuaia — Vista (Windy)",
+    "description": "Snapshot público (Windy).",
+    "geo": { "lat": -54.801, "lon": -68.303 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://images-webcams.windy.com/20/1243366423/current/full/1243366423.jpg"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "pending" }
+  },
+
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-rio-de-la-plata-1462803263",
+    "providerId": "windy",
+    "title": "Río de la Plata — Vista (Windy)",
+    "description": "Snapshot público (Windy).",
+    "geo": { "lat": -34.603, "lon": -58.381 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://images-webcams.windy.com/20/1462803263/current/full/1462803263.jpg"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["river", "city", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "pending" }
+  }
+]
