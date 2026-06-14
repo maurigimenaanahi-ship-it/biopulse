@@ -605,8 +605,9 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
   const ok = !!src && /^https?:\/\//i.test(src) && !failed;
   if (!ok) {
     return (
-      <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
-        <ImageIcon className="h-5 w-5 text-white/35" />
+      <div className="shrink-0 h-16 w-16 rounded-xl overflow-hidden border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-1 px-1 text-center">
+        <ImageIcon className="h-4 w-4 text-white/35" />
+        <span className="text-[9px] leading-tight text-white/45">Snapshot no disponible</span>
       </div>
     );
   }
@@ -618,6 +619,32 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
         alt={alt}
         loading="lazy"
         className="h-full w-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
+function CameraSnapshotPreview({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  const ok = !!src && /^https?:\/\//i.test(src) && !failed;
+
+  if (!ok) {
+    return (
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/20 min-h-[180px] flex flex-col items-center justify-center gap-2 px-4 text-center">
+        <ImageIcon className="h-6 w-6 text-white/35" />
+        <div className="text-sm font-medium text-white/65">Snapshot no disponible</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
+      <img
+        src={src}
+        alt={alt}
+        className="w-full max-h-[260px] object-cover"
+        loading="lazy"
         onError={() => setFailed(true)}
       />
     </div>
@@ -1741,11 +1768,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             </div>
                           </div>
 
-                          {isSnapshot && snapUrl ? (
-                            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
-                              <img src={snapUrl} alt={title} className="w-full max-h-[260px] object-cover" loading="lazy" />
-                            </div>
-                          ) : null}
+                          {isSnapshot && snapUrl ? <CameraSnapshotPreview src={snapUrl} alt={title} /> : null}
                         </div>
                       );
                     })
