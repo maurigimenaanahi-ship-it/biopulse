@@ -88,7 +88,7 @@ type CameraRegistryItem = {
   mediaType?: "snapshot" | "video" | "stream";
   fetch:
     | { kind: "image_url"; url: string }
-    | { kind: "provider_api"; provider: string; cameraKey: string }
+    | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string }
     | { kind: string; [k: string]: any };
   update?: { expectedIntervalSec?: number };
   usage?: { isPublic?: boolean; attributionText?: string; termsUrl?: string };
@@ -100,6 +100,14 @@ type CameraRegistryItem = {
 };
 
 type LoadedCamera = CameraRegistryItem & { distanceKm: number };
+
+type ProviderCameraSnapshot = {
+  status: "loading" | "ready" | "error";
+  snapshotUrl?: string | null;
+  detailUrl?: string | null;
+  attributionText?: string | null;
+  message?: string;
+};
 
 // ---------- Worker clients ----------
 async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
@@ -187,6 +195,28 @@ async function fetchCameraRegistry(): Promise<CameraRegistryItem[]> {
   }
 
   throw new Error(lastErr?.message ? String(lastErr.message) : "No se pudo cargar el registry de cámaras.");
+}
+
+async function fetchWindyCameraSnapshot(args: {
+  cameraKey: string;
+  endpoint?: string;
+}): Promise<ProviderCameraSnapshot> {
+  const endpoint = args.endpoint || "/api/windy-camera";
+  const url = `${endpoint}?cameraId=${encodeURIComponent(args.cameraKey)}`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const data: any = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.error || `Windy camera error ${res.status}`);
+  }
+
+  return {
+    status: "ready",
+    snapshotUrl: typeof data?.snapshotUrl === "string" ? data.snapshotUrl : null,
+    detailUrl: typeof data?.detailUrl === "string" ? data.detailUrl : null,
+    attributionText: typeof data?.attributionText === "string" ? data.attributionText : null,
+  };
 }
 
 // ---------- UI helpers ----------
@@ -740,6 +770,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [camRegistry, setCamRegistry] = useState<CameraRegistryItem[]>([]);
   const [camRadiusKm, setCamRadiusKm] = useState<number>(60);
   const [camRefreshTick, setCamRefreshTick] = useState<number>(0);
+  const [providerSnapshots, setProviderSnapshots] = useState<Record<string, ProviderCameraSnapshot>>({});
 
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
 
@@ -897,6 +928,51 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     return list;
   }, [camRegistry, camRadiusKm, event?.id]);
+
+  useEffect(() => {
+    if (!event || nearbyCameras.length === 0) return;
+
+    let cancelled = false;
+
+    nearbyCameras.forEach((cam) => {
+      const fetchInfo: any = cam.fetch;
+      if (fetchInfo?.kind !== "provider_api" || fetchInfo?.provider !== "windy" || !fetchInfo?.cameraKey) return;
+
+      setProviderSnapshots((prev) => ({
+        ...prev,
+        [cam.id]: {
+          status: "loading",
+          detailUrl: `https://www.windy.com/webcams/${fetchInfo.cameraKey}`,
+          attributionText: cam.usage?.attributionText ?? "Webcams provided by Windy.com",
+        },
+      }));
+
+      fetchWindyCameraSnapshot({
+        cameraKey: String(fetchInfo.cameraKey),
+        endpoint: typeof fetchInfo.endpoint === "string" ? fetchInfo.endpoint : undefined,
+      })
+        .then((snapshot) => {
+          if (cancelled) return;
+          setProviderSnapshots((prev) => ({ ...prev, [cam.id]: snapshot }));
+        })
+        .catch((err: any) => {
+          if (cancelled) return;
+          setProviderSnapshots((prev) => ({
+            ...prev,
+            [cam.id]: {
+              status: "error",
+              detailUrl: `https://www.windy.com/webcams/${fetchInfo.cameraKey}`,
+              attributionText: cam.usage?.attributionText ?? "Webcams provided by Windy.com",
+              message: err?.message ? String(err.message) : "No se pudo cargar snapshot.",
+            },
+          }));
+        });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [nearbyCameras, camRefreshTick, event?.id]);
 
   if (!event) return null;
 
@@ -1694,10 +1770,22 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       const dist = `${cam.distanceKm.toFixed(1)} km`;
 
                       const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
+                      const isWindyProvider =
+                        cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
+                      const providerSnapshot = providerSnapshots[cam.id] ?? null;
                       const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
                       const snapUrl = snapUrlRaw
                         ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
+                        : isWindyProvider && providerSnapshot?.snapshotUrl
+                        ? `${providerSnapshot.snapshotUrl}${
+                            providerSnapshot.snapshotUrl.includes("?") ? "&" : "?"
+                          }t=${camRefreshTick}`
                         : null;
+                      const providerDetailUrl =
+                        isWindyProvider && (cam.fetch as any)?.cameraKey
+                          ? providerSnapshot?.detailUrl ?? `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
+                          : null;
+                      const openUrl = snapUrlRaw ?? providerDetailUrl;
 
                       const providerInfo =
                         cam.fetch?.kind === "provider_api"
@@ -1706,7 +1794,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           ? `Provider: ${cam.providerId}`
                           : null;
 
-                      const attribution = cam.usage?.attributionText ?? null;
+                      const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
 
                       return (
                         <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
@@ -1737,13 +1825,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                   {providerInfo && attribution ? <span className="mx-2 text-white/20">•</span> : null}
                                   {attribution ? <span>{attribution}</span> : null}
                                 </div>
+
+                                {isWindyProvider && providerSnapshot?.status === "loading" ? (
+                                  <div className="mt-2 text-[11px] text-white/35">Cargando snapshot...</div>
+                                ) : null}
                               </div>
                             </div>
 
                             <div className="shrink-0 flex flex-col gap-2">
-                              {isSnapshot && snapUrlRaw ? (
+                              {openUrl ? (
                                 <a
-                                  href={snapUrlRaw}
+                                  href={openUrl}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={cn(
@@ -1751,15 +1843,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                     "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
                                     "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                                   )}
-                                  title="Abrir snapshot"
+                                  title={isWindyProvider ? "Abrir fuente" : "Abrir snapshot"}
                                 >
                                   <ExternalLink className="h-4 w-4" />
                                   <span className="text-xs font-medium">Abrir</span>
                                 </a>
-                              ) : cam.fetch?.kind === "provider_api" ? (
-                                <div className="px-3 py-2 rounded-xl border border-white/10 bg-black/20 text-xs text-white/55">
-                                  Provider pendiente
-                                </div>
                               ) : (
                                 <div className="px-3 py-2 rounded-xl border border-white/10 bg-black/20 text-xs text-white/55">
                                   Sin URL
@@ -1768,7 +1856,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             </div>
                           </div>
 
-                          {isSnapshot && snapUrl ? <CameraSnapshotPreview src={snapUrl} alt={title} /> : null}
+                          {isSnapshot || isWindyProvider ? <CameraSnapshotPreview src={snapUrl ?? ""} alt={title} /> : null}
                         </div>
                       );
                     })

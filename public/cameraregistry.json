@@ -69,8 +69,10 @@
     "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
     "mediaType": "snapshot",
     "fetch": {
-      "kind": "image_url",
-      "url": "https://images-webcams.windy.com/20/1462803263/current/full/1462803263.jpg"
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1462803263",
+      "endpoint": "/api/windy-camera"
     },
     "update": { "expectedIntervalSec": 300 },
     "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
