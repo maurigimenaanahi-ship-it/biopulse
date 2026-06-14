@@ -162,7 +162,7 @@ async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number): Promise<W
 
 // ---------- Camera registry loader ----------
 async function fetchCameraRegistry(): Promise<CameraRegistryItem[]> {
-  const candidates = ["/cameraRegistry.json", "/cameraRegistry.sample.json", "/cameraregistry.sample.json"];
+  const candidates = ["/cameraregistry.json", "/cameraRegistry.json", "/cameraRegistry.sample.json", "/cameraregistry.sample.json"];
 
   let lastErr: any = null;
 
