@@ -25,6 +25,7 @@ import {
   Bell,
   Image as ImageIcon,
   Satellite,
+  Brain,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -1105,6 +1106,21 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const satelliteDetections = Number.isFinite(event.focusCount) ? event.focusCount! : detections;
   const satelliteFrpMax = Number.isFinite(event.frpMax) ? event.frpMax! : frpMax;
   const satelliteFrpSum = Number.isFinite(event.frpSum) ? event.frpSum! : frpSum;
+  const insightProbability =
+    Number.isFinite(event.aiInsight?.probabilityNext12h) &&
+    event.aiInsight!.probabilityNext12h! >= 0 &&
+    event.aiInsight!.probabilityNext12h! <= 100
+      ? event.aiInsight!.probabilityNext12h!
+      : null;
+  const insightNarrative = event.aiInsight?.narrative?.trim() || null;
+  const insightRecommendations = Array.isArray(event.aiInsight?.recommendations)
+    ? event.aiInsight.recommendations.filter((item) => typeof item === "string" && item.trim().length > 0)
+    : [];
+  const observedWeather = [
+    Number.isFinite(event.temperature) ? `Temperatura: ${event.temperature!.toFixed(1)}°C` : null,
+    Number.isFinite(event.humidity) ? `Humedad: ${event.humidity!.toFixed(0)}%` : null,
+    Number.isFinite(event.windSpeed) ? `Viento: ${event.windSpeed!.toFixed(0)} km/h` : null,
+  ].filter((item): item is string => Boolean(item));
 
   const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -1438,6 +1454,110 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 <div className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-white/40">
                   Datos instrumentales: NASA FIRMS / VIIRS cuando estén disponibles. Estas señales pueden tener demoras, cobertura parcial o falsos positivos.
+                </div>
+              </div>
+            </SectionShell>
+
+            {/* BioPulse Insight */}
+            <SectionShell
+              icon={<Brain className="h-5 w-5 text-violet-200" />}
+              title="BioPulse Insight"
+              subtitle="Lectura interpretativa separada de los datos observados."
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-cyan-300/15 bg-cyan-400/[0.04] p-4">
+                  <div className="text-[11px] uppercase tracking-wide text-cyan-100/60">Dato observado</div>
+                  <div className="mt-1 text-xs leading-relaxed text-white/45">
+                    Valores disponibles en el registro actual del evento.
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40">Detecciones</div>
+                      <div className="mt-1 text-sm font-semibold text-white/85">
+                        {satelliteDetections != null ? satelliteDetections : "No disponible"}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40">Tendencia</div>
+                      <div className="mt-1 text-sm font-semibold text-white/85">{trend}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40">FRP máximo</div>
+                      <div className="mt-1 text-sm font-semibold text-white/85">
+                        {satelliteFrpMax != null ? `${satelliteFrpMax.toFixed(2)} MW` : "No disponible"}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-white/40">FRP acumulado</div>
+                      <div className="mt-1 text-sm font-semibold text-white/85">
+                        {satelliteFrpSum != null ? `${satelliteFrpSum.toFixed(2)} MW` : "No disponible"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Fecha de observación</div>
+                    <div className="mt-1 text-sm font-semibold text-white/85">
+                      {observationDate ? fmtDateTimeUTC(observationDate) : "No disponible"}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Clima actual registrado</div>
+                    {observedWeather.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {observedWeather.map((item) => (
+                          <span
+                            key={item}
+                            className="inline-flex rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-white/75"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-sm text-white/50">No hay clima observado guardado en este evento.</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-violet-300/15 bg-violet-400/[0.04] p-4">
+                  <div className="text-[11px] uppercase tracking-wide text-violet-100/60">Inferencia BioPulse</div>
+
+                  <div className="mt-3 rounded-xl border border-amber-300/20 bg-amber-400/10 p-3 text-xs font-medium leading-relaxed text-amber-100/90">
+                    Estimación heurística de BioPulse. No constituye confirmación oficial.
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Probabilidad próximas 12 h</div>
+                    <div className="mt-1 text-lg font-semibold text-white/90">
+                      {insightProbability != null ? `${insightProbability}%` : "No disponible"}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Interpretación</div>
+                    <div className="mt-2 text-sm leading-relaxed text-white/75">
+                      {insightNarrative || "No hay una inferencia BioPulse disponible para este evento."}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Recomendaciones</div>
+                    {insightRecommendations.length > 0 ? (
+                      <ul className="mt-2 space-y-2">
+                        {insightRecommendations.map((recommendation, index) => (
+                          <li key={`${recommendation}-${index}`} className="flex items-start gap-2 text-sm text-white/70">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-300/70" />
+                            <span>{recommendation}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="mt-1 text-sm text-white/50">No hay recomendaciones disponibles.</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </SectionShell>
