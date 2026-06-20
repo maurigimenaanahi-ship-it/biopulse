@@ -71,7 +71,7 @@
     "fetch": {
       "kind": "provider_api",
       "provider": "windy",
-      "cameraKey": "1462803263",
+      "cameraKey": "1691337947",
       "endpoint": "/api/windy-camera"
     },
     "update": { "expectedIntervalSec": 300 },
