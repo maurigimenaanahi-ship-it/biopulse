@@ -1,6 +1,7 @@
 // AlertPanel.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
 import {
   X,
@@ -21,6 +22,7 @@ import {
   Camera,
   MapPin,
   Radius,
+  Bell,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -30,6 +32,35 @@ type AlertPanelProps = {
 };
 
 const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+const FAV_KEY = "biopulse:followed-alerts";
+
+function readFollowedIds(): string[] {
+  try {
+    const raw = localStorage.getItem(FAV_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function toggleFollowedId(id: string): string[] {
+  const ids = new Set(readFollowedIds());
+  if (ids.has(id)) ids.delete(id);
+  else ids.add(id);
+  const next = Array.from(ids);
+  try {
+    localStorage.setItem(FAV_KEY, JSON.stringify(next));
+  } catch {
+    return readFollowedIds();
+  }
+  return next;
+}
+
+function isAbortError(err: unknown) {
+  return (err instanceof DOMException && err.name === "AbortError") || (err as any)?.name === "AbortError";
+}
 
 // ---------- News types ----------
 type NewsItem = {
@@ -110,14 +141,14 @@ type ProviderCameraSnapshot = {
 };
 
 // ---------- Worker clients ----------
-async function fetchNewsFromWorker(params: { query: string; days: number; max: number }) {
+async function fetchNewsFromWorker(params: { query: string; days: number; max: number; signal?: AbortSignal }) {
   const url =
     `${WORKER_BASE}/news` +
     `?query=${encodeURIComponent(params.query)}` +
     `&days=${encodeURIComponent(String(params.days))}` +
     `&max=${encodeURIComponent(String(params.max))}`;
 
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: params.signal });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(`News Worker error ${res.status}: ${txt.slice(0, 200)}`);
@@ -132,9 +163,9 @@ type ReverseGeocodeResponse = {
   lon: number;
 };
 
-async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string | null> {
+async function reverseGeocodeViaWorker(lat: number, lon: number, signal?: AbortSignal): Promise<string | null> {
   const url = `${WORKER_BASE}/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) return null;
   const data = (await res.json()) as ReverseGeocodeResponse;
   const label = data?.label ?? null;
@@ -142,7 +173,7 @@ async function reverseGeocodeViaWorker(lat: number, lon: number): Promise<string
 }
 
 // ---------- Weather fetch (Open-Meteo, sin key) ----------
-async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number): Promise<WeatherCurrent> {
+async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number, signal?: AbortSignal): Promise<WeatherCurrent> {
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${encodeURIComponent(String(lat))}` +
@@ -150,7 +181,7 @@ async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number): Promise<W
     `&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m` +
     `&timezone=UTC`;
 
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(`Weather error ${res.status}: ${txt.slice(0, 200)}`);
@@ -169,14 +200,14 @@ async function fetchCurrentWeatherOpenMeteo(lat: number, lon: number): Promise<W
 }
 
 // ---------- Camera registry loader ----------
-async function fetchCameraRegistry(): Promise<CameraRegistryItem[]> {
+async function fetchCameraRegistry(signal?: AbortSignal): Promise<CameraRegistryItem[]> {
   const candidates = ["/cameraregistry.json", "/cameraRegistry.json", "/cameraRegistry.sample.json", "/cameraregistry.sample.json"];
 
   let lastErr: any = null;
 
   for (const path of candidates) {
     try {
-      const res = await fetch(path, { headers: { Accept: "application/json" } });
+      const res = await fetch(path, { headers: { Accept: "application/json" }, signal });
       if (!res.ok) {
         lastErr = new Error(`HTTP ${res.status} for ${path}`);
         continue;
@@ -200,11 +231,12 @@ async function fetchCameraRegistry(): Promise<CameraRegistryItem[]> {
 async function fetchWindyCameraSnapshot(args: {
   cameraKey: string;
   endpoint?: string;
+  signal?: AbortSignal;
 }): Promise<ProviderCameraSnapshot> {
   const endpoint = args.endpoint || "/api/windy-camera";
   const url = `${endpoint}?cameraId=${encodeURIComponent(args.cameraKey)}`;
 
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
   const data: any = await res.json().catch(() => null);
 
   if (!res.ok) {
@@ -743,6 +775,10 @@ function SectionShell({
 
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const newsAbortRef = useRef<AbortController | null>(null);
+  const weatherAbortRef = useRef<AbortController | null>(null);
+  const cameraAbortRef = useRef<AbortController | null>(null);
+  const [followedIds, setFollowedIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!event) return;
@@ -751,11 +787,26 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   }, [event?.id]);
 
+  useEffect(() => {
+    if (!event) return;
+    setFollowedIds(readFollowedIds());
+  }, [event?.id]);
+
+  useEffect(() => {
+    if (!event) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [event?.id, onClose]);
+
   // ====== NEWS state ======
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsErr, setNewsErr] = useState<string | null>(null);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
+  const [newsLimited, setNewsLimited] = useState(false);
   const [newsView, setNewsView] = useState<"main" | "official" | "regional">("main");
   const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
 
@@ -781,7 +832,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const activityLevel = useMemo(() => levelFromDetections(detections), [detections]);
   const energyLevel = useMemo(() => levelFromFRPSum(frpSum), [frpSum]);
 
-  async function ensureNewsPlace(ev: EnvironmentalEvent): Promise<string> {
+  async function ensureNewsPlace(ev: EnvironmentalEvent, signal?: AbortSignal): Promise<string> {
     const cached = placeCache[String(ev.id)];
     if (cached) return cached;
 
@@ -792,7 +843,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       return loc;
     }
 
-    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude);
+    const place = await reverseGeocodeViaWorker(ev.latitude, ev.longitude, signal);
     const finalPlace = (place ?? loc ?? "").trim();
     const safe = finalPlace && !isGenericLocation(finalPlace) ? finalPlace : `Argentina`;
 
@@ -802,18 +853,28 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
   const loadNews = async () => {
     if (!event) return;
+    newsAbortRef.current?.abort();
+    const controller = new AbortController();
+    newsAbortRef.current = controller;
+
     setNewsLoading(true);
     setNewsErr(null);
+    setNewsLimited(false);
+    setNewsItems([]);
+    setNewsMeta(null);
 
     try {
-      const place = await ensureNewsPlace(event);
+      const place = await ensureNewsPlace(event, controller.signal);
       const query = buildNewsQueryFromPlace(event, place);
 
       const data = await fetchNewsFromWorker({
         query,
         days: event.category === "fire" ? 10 : 14,
         max: 12,
+        signal: controller.signal,
       });
+
+      if (controller.signal.aborted) return;
 
       const items = Array.isArray(data?.items) ? data.items : [];
       const cleaned = items
@@ -826,52 +887,74 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         }));
 
       setNewsItems(cleaned);
+      setNewsLimited(data?.gdelt?.ok === false || Number(data?.gdelt?.status) === 429);
       setNewsMeta({ query: data.query ?? query, fetchedAt: data.fetched_at, placeUsed: place });
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setNewsItems([]);
       setNewsMeta(null);
       setNewsErr(e?.message ? String(e.message) : "No se pudo cargar noticias.");
     } finally {
-      setNewsLoading(false);
+      if (!controller.signal.aborted) setNewsLoading(false);
     }
   };
 
   const loadWeather = async () => {
     if (!event) return;
+    weatherAbortRef.current?.abort();
+    const controller = new AbortController();
+    weatherAbortRef.current = controller;
+
     setWeatherLoading(true);
     setWeatherErr(null);
+    setWeather(null);
 
     try {
-      const w = await fetchCurrentWeatherOpenMeteo(event.latitude, event.longitude);
+      const w = await fetchCurrentWeatherOpenMeteo(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
       setWeather(w);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setWeather(null);
       setWeatherErr(e?.message ? String(e.message) : "No se pudo cargar clima.");
     } finally {
-      setWeatherLoading(false);
+      if (!controller.signal.aborted) setWeatherLoading(false);
     }
   };
 
   const loadCameraRegistry = async () => {
+    cameraAbortRef.current?.abort();
+    const controller = new AbortController();
+    cameraAbortRef.current = controller;
+
     setCamLoading(true);
     setCamErr(null);
     try {
-      const items = await fetchCameraRegistry();
+      const items = await fetchCameraRegistry(controller.signal);
+      if (controller.signal.aborted) return;
       setCamRegistry(items);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setCamRegistry([]);
       setCamErr(e?.message ? String(e.message) : "No se pudo cargar cámaras.");
     } finally {
-      setCamLoading(false);
+      if (!controller.signal.aborted) setCamLoading(false);
     }
   };
 
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
+    setProviderSnapshots({});
     loadNews();
     loadWeather();
     loadCameraRegistry();
+
+    return () => {
+      newsAbortRef.current?.abort();
+      weatherAbortRef.current?.abort();
+      cameraAbortRef.current?.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
 
@@ -883,8 +966,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   }, [newsItems]);
 
   const sirenActive = useMemo(() => {
-    return splitNews.official.some(isEvacuationRelevant);
-  }, [splitNews.official]);
+    if (event?.evacuationLevel === "mandatory") return true;
+    return splitNews.official.some((item) => domainIsOfficial(item.domain) && isEvacuationRelevant(item));
+  }, [event?.evacuationLevel, splitNews.official]);
 
   const guardianInsight = useMemo(() => {
     if (!event) {
@@ -933,6 +1017,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     if (!event || nearbyCameras.length === 0) return;
 
     let cancelled = false;
+    const controller = new AbortController();
 
     nearbyCameras.forEach((cam) => {
       const fetchInfo: any = cam.fetch;
@@ -950,13 +1035,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       fetchWindyCameraSnapshot({
         cameraKey: String(fetchInfo.cameraKey),
         endpoint: typeof fetchInfo.endpoint === "string" ? fetchInfo.endpoint : undefined,
+        signal: controller.signal,
       })
         .then((snapshot) => {
           if (cancelled) return;
           setProviderSnapshots((prev) => ({ ...prev, [cam.id]: snapshot }));
         })
         .catch((err: any) => {
-          if (cancelled) return;
+          if (cancelled || isAbortError(err)) return;
           setProviderSnapshots((prev) => ({
             ...prev,
             [cam.id]: {
@@ -971,23 +1057,36 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [nearbyCameras, camRefreshTick, event?.id]);
 
   if (!event) return null;
 
   const chip = sevChip(event.severity);
+  const isFollowed = followedIds.includes(event.id);
+  const evacuationLabel =
+    event.evacuationLevel === "mandatory"
+      ? "Evacuación obligatoria"
+      : event.evacuationLevel === "recommended"
+      ? "Evacuación recomendada"
+      : event.evacuationLevel === "none"
+      ? "Sin evacuación indicada"
+      : null;
 
   const rainText = weather?.precipitation == null ? "—" : `${weather.precipitation.toFixed(1)} mm`;
   const windText = weather?.wind_speed_10m == null ? "—" : `${weather.wind_speed_10m.toFixed(0)} km/h`;
   const humText = weather?.relative_humidity_2m == null ? "—" : `${weather.relative_humidity_2m.toFixed(0)}%`;
   const tempText = weather?.temperature_2m == null ? "—" : `${weather.temperature_2m.toFixed(1)}°C`;
 
-  return (
+  const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
       <div className="absolute inset-0 bg-black/60 z-0" onClick={onClose} />
 
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Alerta: ${event.location}`}
         className={cn(
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10",
           "w-[min(980px,92vw)] h-[min(86vh,720px)]",
@@ -1010,9 +1109,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
         {/* Header */}
         <div className="shrink-0 px-5 pt-4 pb-3 border-b border-white/10">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (newsView !== "main") setNewsView("main");
+                else onClose();
+              }}
               className={cn(
                 "inline-flex items-center gap-2",
                 "px-3 py-2 rounded-2xl border border-white/10 bg-white/5",
@@ -1025,7 +1127,23 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <span className="text-sm font-medium">Volver</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                onClick={() => setFollowedIds(toggleFollowedId(event.id))}
+                className={cn(
+                  "inline-flex items-center gap-2",
+                  "px-3 py-2 rounded-2xl border transition-colors",
+                  isFollowed
+                    ? "border-cyan-300/30 bg-cyan-400/15 text-cyan-100"
+                    : "border-white/10 bg-white/5 text-white/80 hover:text-white hover:bg-white/10"
+                )}
+                aria-pressed={isFollowed}
+                title={isFollowed ? "Dejar de seguir alerta" : "Seguir alerta"}
+              >
+                <Bell className="h-4 w-4" />
+                <span className="text-xs sm:text-sm font-medium">{isFollowed ? "Siguiendo" : "Seguir alerta"}</span>
+              </button>
+
               {sirenActive ? (
                 <button
                   onClick={() => setNewsView("official")}
@@ -1079,6 +1197,21 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <span className="text-xs font-semibold text-yellow-100/90">{trend}</span>
             </div>
 
+            {evacuationLabel ? (
+              <div
+                className={cn(
+                  "inline-flex items-center px-3 py-1.5 rounded-full border",
+                  event.evacuationLevel === "mandatory"
+                    ? "border-red-400/35 bg-red-500/15 text-red-100"
+                    : event.evacuationLevel === "recommended"
+                    ? "border-amber-300/30 bg-amber-400/10 text-amber-100"
+                    : "border-white/10 bg-white/5 text-white/65"
+                )}
+              >
+                <span className="text-xs font-semibold">{evacuationLabel}</span>
+              </div>
+            ) : null}
+
             <div className="w-full text-xs text-white/45">
               {event.title}
               <span className="mx-2 text-white/25">•</span>
@@ -1090,6 +1223,26 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         {/* Body */}
         <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
           <div className="space-y-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <div className="text-[11px] uppercase tracking-wide text-white/45">Qué está pasando</div>
+              <div className="mt-2 text-sm leading-relaxed text-white/80">
+                {event.description?.trim() || "BioPulse está monitoreando este evento y actualizará la información disponible."}
+              </div>
+
+              {event.liveFeedUrl ? (
+                <a
+                  href={event.liveFeedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-400/15 transition-colors"
+                  title="Abrir observación FIRMS/NASA"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Abrir observación FIRMS / NASA
+                </a>
+              ) : null}
+            </div>
+
             {/* Estado operativo */}
             <SectionShell
               icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
@@ -1183,6 +1336,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 {newsErr ? (
                   <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90">
                     No se pudo cargar noticias. <span className="text-red-100/70">{newsErr}</span>
+                  </div>
+                ) : null}
+
+                {newsLimited ? (
+                  <div className="mb-3 rounded-xl border border-amber-300/20 bg-amber-400/10 p-3 text-sm text-amber-100/90">
+                    Fuente de noticias temporalmente limitada. Intentá nuevamente más tarde.
                   </div>
                 ) : null}
 
@@ -1876,4 +2035,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(panel, document.body) : panel;
 }
