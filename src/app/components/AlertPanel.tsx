@@ -24,6 +24,7 @@ import {
   Radius,
   Bell,
   Image as ImageIcon,
+  Satellite,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -264,6 +265,26 @@ function fmtDateTimeUTC(d: Date) {
   return `${pad2(d.getUTCDate())} ${d
     .toLocaleString("en-US", { month: "short" })
     .toUpperCase()} ${d.getUTCFullYear()} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())} UTC`;
+}
+
+function toValidDate(value: Date | string | number | null | undefined) {
+  if (value == null) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatObservationFreshness(date: Date | null) {
+  if (!date) return "Antigüedad no disponible";
+
+  const elapsedMinutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60_000));
+  if (elapsedMinutes < 1) return "Observación reciente";
+  if (elapsedMinutes < 60) return `Actualizada hace ${elapsedMinutes} min`;
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `Actualizada hace ${elapsedHours} h`;
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  return `Actualizada hace ${elapsedDays} d`;
 }
 
 function fmtNowishUTC(iso: string | null) {
@@ -1079,6 +1100,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const humText = weather?.relative_humidity_2m == null ? "—" : `${weather.relative_humidity_2m.toFixed(0)}%`;
   const tempText = weather?.temperature_2m == null ? "—" : `${weather.temperature_2m.toFixed(1)}°C`;
 
+  const observationDate = toValidDate(event.lastSeen) ?? toValidDate(event.timestamp);
+  const observationFreshness = formatObservationFreshness(observationDate);
+  const satelliteDetections = Number.isFinite(event.focusCount) ? event.focusCount! : detections;
+  const satelliteFrpMax = Number.isFinite(event.frpMax) ? event.frpMax! : frpMax;
+  const satelliteFrpSum = Number.isFinite(event.frpSum) ? event.frpSum! : frpSum;
+
   const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
       <div className="absolute inset-0 bg-black/60 z-0" onClick={onClose} />
@@ -1291,6 +1318,126 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 <div className="mt-3 text-[11px] text-white/35">
                   Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
+                </div>
+              </div>
+            </SectionShell>
+
+            {/* Observación satelital */}
+            <SectionShell
+              icon={<Satellite className="h-5 w-5 text-cyan-200" />}
+              title="Observación satelital"
+              subtitle="Señales instrumentales y referencias disponibles para este evento."
+              right={
+                <div
+                  className={cn(
+                    "inline-flex items-center px-3 py-1.5 rounded-full border",
+                    event.stale
+                      ? "border-amber-300/25 bg-amber-400/10 text-amber-100/90"
+                      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/90"
+                  )}
+                >
+                  <span className="text-xs font-semibold">
+                    {event.stale ? `Desactualizada · ${observationFreshness}` : observationFreshness}
+                  </span>
+                </div>
+              }
+            >
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)] gap-4">
+                  <div>
+                    {event.satelliteImageUrl ? (
+                      <div>
+                        <div className="mb-2 text-[11px] uppercase tracking-wide text-white/45">
+                          Imagen asociada al evento
+                        </div>
+                        <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+                          <img
+                            src={event.satelliteImageUrl}
+                            alt={`Imagen asociada al evento ${event.title}`}
+                            className="h-56 w-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="mt-2 text-[11px] leading-relaxed text-white/35">
+                          La imagen se presenta como referencia asociada. Su procedencia no se atribuye a NASA salvo que la fuente lo indique expresamente.
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
+                        <div>
+                          <ImageIcon className="mx-auto h-7 w-7 text-white/30" />
+                          <div className="mt-3 text-sm font-medium text-white/70">
+                            Sin imagen satelital disponible en BioPulse para este evento
+                          </div>
+                          <div className="mt-1 text-xs text-white/40">
+                            Las métricas y el acceso a la fuente permanecen disponibles.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/40">Observación</div>
+                        <div className="mt-1 text-sm font-semibold text-white/85">
+                          {observationDate ? fmtDateTimeUTC(observationDate) : "No disponible"}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/40">Vigencia</div>
+                        <div className="mt-1 text-sm font-semibold text-white/85">
+                          {event.stale ? "Marcada como desactualizada" : observationFreshness}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/40">Detecciones</div>
+                        <div className="mt-1 text-sm font-semibold text-white/85">
+                          {satelliteDetections != null ? satelliteDetections : "No disponible"}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/40">FRP máximo</div>
+                        <div className="mt-1 text-sm font-semibold text-white/85">
+                          {satelliteFrpMax != null ? `${satelliteFrpMax.toFixed(2)} MW` : "No disponible"}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/40">FRP acumulado</div>
+                        <div className="mt-1 text-sm font-semibold text-white/85">
+                          {satelliteFrpSum != null ? `${satelliteFrpSum.toFixed(2)} MW` : "No disponible"}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-[11px] uppercase tracking-wide text-white/40">Coordenadas</div>
+                        <div className="mt-1 text-sm font-semibold text-white/85">
+                          {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {event.liveFeedUrl ? (
+                      <a
+                        href={event.liveFeedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-2.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-400/15"
+                        title="Abrir observación FIRMS/NASA"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Abrir observación FIRMS / NASA
+                      </a>
+                    ) : (
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center text-xs text-white/45">
+                        No hay un enlace externo de observación asociado.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-white/40">
+                  Datos instrumentales: NASA FIRMS / VIIRS cuando estén disponibles. Estas señales pueden tener demoras, cobertura parcial o falsos positivos.
                 </div>
               </div>
             </SectionShell>
