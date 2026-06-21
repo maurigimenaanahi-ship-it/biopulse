@@ -138,6 +138,25 @@ type ProtectedContextResponse = {
   interpretation: string;
 };
 
+type CriticalFacility = {
+  id: string;
+  category: "healthcare" | "fire_station" | "shelter";
+  name: string;
+  address: string | null;
+  distanceKm: number | null;
+  lat: number;
+  lon: number;
+  mapUrl: string;
+};
+
+type CriticalInfrastructureResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  facilities: CriticalFacility[];
+  source: { name: string; attribution: string; attributionUrl: string };
+  interpretation: string;
+};
+
 // ---------- Cameras (biopulse.camera.v1) ----------
 type CameraRegistryItem = {
   schema: "biopulse.camera.v1";
@@ -296,6 +315,23 @@ async function fetchProtectedContext(
   return {
     ...data,
     areas: Array.isArray(data.areas) ? data.areas : [],
+  };
+}
+
+async function fetchCriticalInfrastructure(
+  lat: number,
+  lon: number,
+  signal?: AbortSignal
+): Promise<CriticalInfrastructureResponse> {
+  const url =
+    `/api/critical-infrastructure?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=25`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Infraestructura crítica no disponible (${res.status}).`);
+  const data = (await res.json()) as CriticalInfrastructureResponse;
+  return {
+    ...data,
+    facilities: Array.isArray(data.facilities) ? data.facilities : [],
   };
 }
 
@@ -841,12 +877,72 @@ function SectionShell({
   );
 }
 
+function CriticalFacilitySummary({
+  items,
+  loading,
+  error,
+  loaded,
+}: {
+  items: CriticalFacility[];
+  loading: boolean;
+  error: boolean;
+  loaded: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-white/45">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Consultando servicios cercanos…
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="mt-1 text-xs text-amber-100/65">Fuente temporalmente limitada.</div>;
+  }
+
+  if (items.length > 0) {
+    return (
+      <div className="mt-1">
+        <div className="text-xs text-white/55">
+          {items.length} {items.length === 1 ? "registro cartografiado" : "registros cartografiados"} en 25 km
+        </div>
+        <div className="mt-2 space-y-1.5">
+          {items.slice(0, 3).map((facility) => (
+            <a
+              key={facility.id}
+              href={facility.mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-w-0 items-start justify-between gap-2 text-xs text-cyan-100/65 hover:text-cyan-100/90"
+            >
+              <span className="min-w-0 truncate">{facility.name}</span>
+              <span className="shrink-0 text-white/35">
+                {facility.distanceKm != null ? `${facility.distanceKm.toFixed(1)} km` : "distancia n/d"}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-1 text-xs leading-relaxed text-white/45">
+      {loaded
+        ? "Sin registros cercanos en la fuente consultada; la cobertura puede ser incompleta."
+        : "Fuente aún no conectada."}
+    </div>
+  );
+}
+
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const newsAbortRef = useRef<AbortController | null>(null);
   const weatherAbortRef = useRef<AbortController | null>(null);
   const cameraAbortRef = useRef<AbortController | null>(null);
   const protectedContextAbortRef = useRef<AbortController | null>(null);
+  const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -888,6 +984,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [protectedContextLoading, setProtectedContextLoading] = useState(false);
   const [protectedContextErr, setProtectedContextErr] = useState<string | null>(null);
   const [protectedContext, setProtectedContext] = useState<ProtectedContextResponse | null>(null);
+
+  // ====== CRITICAL INFRASTRUCTURE state ======
+  const [criticalInfrastructureLoading, setCriticalInfrastructureLoading] = useState(false);
+  const [criticalInfrastructureErr, setCriticalInfrastructureErr] = useState<string | null>(null);
+  const [criticalInfrastructure, setCriticalInfrastructure] = useState<CriticalInfrastructureResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -1042,6 +1143,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadCriticalInfrastructure = async () => {
+    if (!event) return;
+    criticalInfrastructureAbortRef.current?.abort();
+    const controller = new AbortController();
+    criticalInfrastructureAbortRef.current = controller;
+
+    setCriticalInfrastructureLoading(true);
+    setCriticalInfrastructureErr(null);
+    setCriticalInfrastructure(null);
+
+    try {
+      const context = await fetchCriticalInfrastructure(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setCriticalInfrastructure(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setCriticalInfrastructure(null);
+      setCriticalInfrastructureErr(e?.message ? String(e.message) : "No se pudo consultar infraestructura crítica.");
+    } finally {
+      if (!controller.signal.aborted) setCriticalInfrastructureLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -1050,12 +1174,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadWeather();
     loadCameraRegistry();
     loadProtectedContext();
+    loadCriticalInfrastructure();
 
     return () => {
       newsAbortRef.current?.abort();
       weatherAbortRef.current?.abort();
       cameraAbortRef.current?.abort();
       protectedContextAbortRef.current?.abort();
+      criticalInfrastructureAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -1221,6 +1347,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const eventInfrastructure = Array.isArray(event.nearbyInfrastructure)
     ? event.nearbyInfrastructure.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
+  const criticalFacilities = Array.isArray(criticalInfrastructure?.facilities)
+    ? criticalInfrastructure.facilities
+    : [];
+  const nearbyHealthcare = criticalFacilities.filter((facility) => facility.category === "healthcare");
+  const nearbyFireStations = criticalFacilities.filter((facility) => facility.category === "fire_station");
+  const nearbyShelters = criticalFacilities.filter((facility) => facility.category === "shelter");
   const humanEvacuationLabel =
     event.evacuationLevel === "mandatory"
       ? "Evacuación obligatoria informada en el evento"
@@ -1230,7 +1362,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "El evento no registra una evacuación"
       : "Estado de evacuación no conectado";
   const hasHumanContext =
-    event.evacuationLevel != null || eventPopulation != null || eventArea != null || eventInfrastructure.length > 0;
+    event.evacuationLevel != null ||
+    eventPopulation != null ||
+    eventArea != null ||
+    eventInfrastructure.length > 0 ||
+    criticalFacilities.length > 0;
   const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
   const firstSeenDate = toValidDate(event.firstSeen);
   const eventHistory = Array.isArray(event.history) ? event.history : [];
@@ -1974,9 +2110,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                     <div className="flex items-start gap-3 px-4 py-3">
                       <Hospital className="mt-0.5 h-4 w-4 shrink-0 text-red-200/65" />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium text-white/75">Hospitales</div>
-                        <div className="mt-0.5 text-xs text-white/45">Fuente de centros de salud aún no conectada.</div>
+                        <CriticalFacilitySummary
+                          items={nearbyHealthcare}
+                          loading={criticalInfrastructureLoading}
+                          error={Boolean(criticalInfrastructureErr)}
+                          loaded={Boolean(criticalInfrastructure)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1997,6 +2138,47 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 divide-y divide-white/10 border-t border-white/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                  <div className="flex items-start gap-3 px-4 py-3">
+                    <Siren className="mt-0.5 h-4 w-4 shrink-0 text-orange-200/70" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-white/75">Bomberos</div>
+                      <CriticalFacilitySummary
+                        items={nearbyFireStations}
+                        loading={criticalInfrastructureLoading}
+                        error={Boolean(criticalInfrastructureErr)}
+                        loaded={Boolean(criticalInfrastructure)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 px-4 py-3">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200/70" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-white/75">Refugios y puntos de encuentro</div>
+                      <CriticalFacilitySummary
+                        items={nearbyShelters}
+                        loading={criticalInfrastructureLoading}
+                        error={Boolean(criticalInfrastructureErr)}
+                        loaded={Boolean(criticalInfrastructure)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {criticalInfrastructure?.source ? (
+                  <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
+                    Servicios cercanos, no necesariamente disponibles ni afectados. Estado operativo no verificado. {" "}
+                    <a
+                      href={criticalInfrastructure.source.attributionUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-cyan-100/55 hover:text-cyan-100/80"
+                    >
+                      {criticalInfrastructure.source.attribution}
+                    </a>
+                  </div>
+                ) : null}
 
                 <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
                   Última observación del evento: {observationDate ? fmtDateTimeUTC(observationDate) : "no disponible"}
