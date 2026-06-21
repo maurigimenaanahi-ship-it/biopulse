@@ -157,6 +157,27 @@ type CriticalInfrastructureResponse = {
   interpretation: string;
 };
 
+type NearbyCommunity = {
+  id: string;
+  kind: "city" | "town" | "village" | "hamlet" | "municipality" | "township";
+  name: string;
+  state: string | null;
+  country: string | null;
+  address: string | null;
+  distanceKm: number | null;
+  lat: number;
+  lon: number;
+  mapUrl: string;
+};
+
+type NearbyCommunitiesResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  communities: NearbyCommunity[];
+  source: { name: string; attribution: string; attributionUrl: string };
+  interpretation: string;
+};
+
 // ---------- Cameras (biopulse.camera.v1) ----------
 type CameraRegistryItem = {
   schema: "biopulse.camera.v1";
@@ -332,6 +353,23 @@ async function fetchCriticalInfrastructure(
   return {
     ...data,
     facilities: Array.isArray(data.facilities) ? data.facilities : [],
+  };
+}
+
+async function fetchNearbyCommunities(
+  lat: number,
+  lon: number,
+  signal?: AbortSignal
+): Promise<NearbyCommunitiesResponse> {
+  const url =
+    `/api/nearby-communities?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=50`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Comunidades cercanas no disponibles (${res.status}).`);
+  const data = (await res.json()) as NearbyCommunitiesResponse;
+  return {
+    ...data,
+    communities: Array.isArray(data.communities) ? data.communities : [],
   };
 }
 
@@ -936,6 +974,72 @@ function CriticalFacilitySummary({
   );
 }
 
+const COMMUNITY_KIND_LABEL: Record<NearbyCommunity["kind"], string> = {
+  city: "Ciudad",
+  town: "Localidad",
+  village: "Pueblo",
+  hamlet: "Paraje",
+  municipality: "Municipio",
+  township: "Municipio/localidad",
+};
+
+function NearbyCommunitySummary({
+  items,
+  loading,
+  error,
+  loaded,
+}: {
+  items: NearbyCommunity[];
+  loading: boolean;
+  error: boolean;
+  loaded: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-white/45">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Consultando núcleos habitados…
+      </div>
+    );
+  }
+  if (error) return <div className="mt-1 text-xs text-amber-100/65">Fuente temporalmente limitada.</div>;
+  if (items.length === 0) {
+    return (
+      <div className="mt-1 text-xs leading-relaxed text-white/45">
+        {loaded
+          ? "Sin comunidades registradas dentro del radio; la cobertura puede ser incompleta."
+          : "Información territorial aún no conectada."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-1">
+      <div className="text-xs text-white/55">
+        {items.length} {items.length === 1 ? "núcleo habitado" : "núcleos habitados"} en 50 km
+      </div>
+      <div className="mt-2 space-y-1.5">
+        {items.slice(0, 3).map((community) => (
+          <a
+            key={community.id}
+            href={community.mapUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-w-0 items-start justify-between gap-2 text-xs text-cyan-100/65 hover:text-cyan-100/90"
+          >
+            <span className="min-w-0 truncate">
+              {community.name} · {COMMUNITY_KIND_LABEL[community.kind]}
+            </span>
+            <span className="shrink-0 text-white/35">
+              {community.distanceKm != null ? `${community.distanceKm.toFixed(1)} km` : "distancia n/d"}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const newsAbortRef = useRef<AbortController | null>(null);
@@ -943,6 +1047,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const cameraAbortRef = useRef<AbortController | null>(null);
   const protectedContextAbortRef = useRef<AbortController | null>(null);
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
+  const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -989,6 +1094,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [criticalInfrastructureLoading, setCriticalInfrastructureLoading] = useState(false);
   const [criticalInfrastructureErr, setCriticalInfrastructureErr] = useState<string | null>(null);
   const [criticalInfrastructure, setCriticalInfrastructure] = useState<CriticalInfrastructureResponse | null>(null);
+
+  // ====== NEARBY COMMUNITIES state ======
+  const [nearbyCommunitiesLoading, setNearbyCommunitiesLoading] = useState(false);
+  const [nearbyCommunitiesErr, setNearbyCommunitiesErr] = useState<string | null>(null);
+  const [nearbyCommunitiesContext, setNearbyCommunitiesContext] = useState<NearbyCommunitiesResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -1166,6 +1276,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadNearbyCommunities = async () => {
+    if (!event) return;
+    nearbyCommunitiesAbortRef.current?.abort();
+    const controller = new AbortController();
+    nearbyCommunitiesAbortRef.current = controller;
+
+    setNearbyCommunitiesLoading(true);
+    setNearbyCommunitiesErr(null);
+    setNearbyCommunitiesContext(null);
+
+    try {
+      const context = await fetchNearbyCommunities(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setNearbyCommunitiesContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setNearbyCommunitiesContext(null);
+      setNearbyCommunitiesErr(e?.message ? String(e.message) : "No se pudo consultar comunidades cercanas.");
+    } finally {
+      if (!controller.signal.aborted) setNearbyCommunitiesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -1175,6 +1308,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadCameraRegistry();
     loadProtectedContext();
     loadCriticalInfrastructure();
+    loadNearbyCommunities();
 
     return () => {
       newsAbortRef.current?.abort();
@@ -1182,6 +1316,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       cameraAbortRef.current?.abort();
       protectedContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
+      nearbyCommunitiesAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -1353,6 +1488,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const nearbyHealthcare = criticalFacilities.filter((facility) => facility.category === "healthcare");
   const nearbyFireStations = criticalFacilities.filter((facility) => facility.category === "fire_station");
   const nearbyShelters = criticalFacilities.filter((facility) => facility.category === "shelter");
+  const nearbyCommunities = Array.isArray(nearbyCommunitiesContext?.communities)
+    ? nearbyCommunitiesContext.communities
+    : [];
+  const humanGeoSource = criticalInfrastructure?.source ?? nearbyCommunitiesContext?.source ?? null;
   const humanEvacuationLabel =
     event.evacuationLevel === "mandatory"
       ? "Evacuación obligatoria informada en el evento"
@@ -1366,7 +1505,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     eventPopulation != null ||
     eventArea != null ||
     eventInfrastructure.length > 0 ||
-    criticalFacilities.length > 0;
+    criticalFacilities.length > 0 ||
+    nearbyCommunities.length > 0;
   const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
   const firstSeenDate = toValidDate(event.firstSeen);
   const eventHistory = Array.isArray(event.history) ? event.history : [];
@@ -2103,9 +2243,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="divide-y divide-white/10">
                     <div className="flex items-start gap-3 px-4 py-3">
                       <House className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200/65" />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium text-white/75">Comunidades cercanas</div>
-                        <div className="mt-0.5 text-xs text-white/45">Información territorial aún no conectada.</div>
+                        <NearbyCommunitySummary
+                          items={nearbyCommunities}
+                          loading={nearbyCommunitiesLoading}
+                          error={Boolean(nearbyCommunitiesErr)}
+                          loaded={Boolean(nearbyCommunitiesContext)}
+                        />
                       </div>
                     </div>
                     <div className="flex items-start gap-3 px-4 py-3">
@@ -2166,16 +2311,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
-                {criticalInfrastructure?.source ? (
+                {humanGeoSource ? (
                   <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
-                    Servicios cercanos, no necesariamente disponibles ni afectados. Estado operativo no verificado. {" "}
+                    Comunidades y servicios cercanos no implican población expuesta, disponibilidad ni afectación. {" "}
                     <a
-                      href={criticalInfrastructure.source.attributionUrl}
+                      href={humanGeoSource.attributionUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="text-cyan-100/55 hover:text-cyan-100/80"
                     >
-                      {criticalInfrastructure.source.attribution}
+                      {humanGeoSource.attribution}
                     </a>
                   </div>
                 ) : null}
