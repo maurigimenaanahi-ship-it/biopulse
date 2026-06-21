@@ -26,6 +26,10 @@ import {
   Image as ImageIcon,
   Satellite,
   Brain,
+  Leaf,
+  PawPrint,
+  Flower2,
+  ShieldCheck,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -1121,6 +1125,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     Number.isFinite(event.humidity) ? `Humedad: ${event.humidity!.toFixed(0)}%` : null,
     Number.isFinite(event.windSpeed) ? `Viento: ${event.windSpeed!.toFixed(0)} km/h` : null,
   ].filter((item): item is string => Boolean(item));
+  const eventEcosystems = Array.isArray(event.ecosystems)
+    ? event.ecosystems.filter((item) => typeof item === "string" && item.trim().length > 0)
+    : [];
+  const eventSpecies = Array.isArray(event.speciesAtRisk)
+    ? event.speciesAtRisk.filter((item) => typeof item === "string" && item.trim().length > 0)
+    : [];
+  const eventWaterLevel = Number.isFinite(event.waterLevel) ? event.waterLevel! : null;
+  const hasProtectionContext = eventEcosystems.length > 0 || eventSpecies.length > 0 || eventWaterLevel != null;
 
   const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -1454,6 +1466,135 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 <div className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-white/40">
                   Datos instrumentales: NASA FIRMS / VIIRS cuando estén disponibles. Estas señales pueden tener demoras, cobertura parcial o falsos positivos.
+                </div>
+              </div>
+            </SectionShell>
+
+            {/* Qué protegemos aquí */}
+            <SectionShell
+              icon={<Leaf className="h-5 w-5 text-emerald-200" />}
+              title="Qué protegemos aquí"
+              subtitle="Contexto ambiental disponible alrededor del evento. La cercanía no implica afectación confirmada."
+              right={
+                <div
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-3 py-1.5",
+                    hasProtectionContext
+                      ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/90"
+                      : "border-white/10 bg-white/5 text-white/55"
+                  )}
+                >
+                  <span className="text-xs font-semibold">
+                    {hasProtectionContext ? "Parcial" : "No conectado"}
+                  </span>
+                </div>
+              }
+            >
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <div className="border-b border-amber-300/15 bg-amber-400/[0.06] px-4 py-3 text-xs leading-relaxed text-amber-100/75">
+                  Los registros disponibles están asociados al evento. BioPulse todavía no dispone de procedencia específica ni análisis de exposición para estas capas.
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2">
+                  <div className="border-b border-white/10 p-4 md:border-r">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
+                        <Leaf className="h-4 w-4 text-emerald-200/75" />
+                        Ecosistemas
+                      </div>
+                      <span className="text-[11px] text-white/40">
+                        {eventEcosystems.length > 0 ? "Información asociada" : "No conectada"}
+                      </span>
+                    </div>
+                    {eventEcosystems.length > 0 ? (
+                      <ul className="mt-3 space-y-2">
+                        {eventEcosystems.map((ecosystem, index) => (
+                          <li key={`${ecosystem}-${index}`} className="flex items-start gap-2 text-sm text-white/70">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-300/65" />
+                            <span>{ecosystem}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="mt-3 text-sm leading-relaxed text-white/50">
+                        Información de ecosistemas aún no conectada para este evento.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="border-b border-white/10 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
+                        <PawPrint className="h-4 w-4 text-amber-200/75" />
+                        Fauna y especies relevantes
+                      </div>
+                      <span className="text-[11px] text-white/40">
+                        {eventSpecies.length > 0 ? "Información asociada" : "No conectada"}
+                      </span>
+                    </div>
+                    {eventSpecies.length > 0 ? (
+                      <>
+                        <ul className="mt-3 space-y-2">
+                          {eventSpecies.map((species, index) => (
+                            <li key={`${species}-${index}`} className="flex items-start gap-2 text-sm text-white/70">
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-200/65" />
+                              <span>{species}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="mt-3 text-[11px] leading-relaxed text-white/35">
+                          Su exposición o afectación no está confirmada.
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mt-3 text-sm leading-relaxed text-white/50">
+                        Información de fauna aún no conectada.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="divide-y divide-white/10">
+                  <div className="flex items-start gap-3 px-4 py-3">
+                    <Flower2 className="mt-0.5 h-4 w-4 shrink-0 text-pink-200/65" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-white/75">Flora</div>
+                      <div className="mt-0.5 text-xs text-white/45">Información de flora aún no conectada.</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 px-4 py-3">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200/65" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-white/75">Áreas protegidas</div>
+                      <div className="mt-0.5 text-xs text-white/45">
+                        Catálogo de áreas protegidas aún no conectado.
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 px-4 py-3">
+                    <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-sky-200/65" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-white/75">Recursos hídricos</div>
+                      {eventWaterLevel != null ? (
+                        <>
+                          <div className="mt-0.5 text-sm text-white/70">
+                            Nivel de agua informado: {eventWaterLevel.toFixed(1)} m
+                          </div>
+                          <div className="mt-1 text-xs leading-relaxed text-white/40">
+                            La fuente y el recurso hídrico específico no están identificados en el modelo actual.
+                          </div>
+                        </>
+                      ) : (
+                        <div className="mt-0.5 text-xs text-white/45">
+                          Información de recursos hídricos aún no conectada.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
+                  Relación con el evento: desconocida. No se confirma exposición, daño ni afectación ambiental.
                 </div>
               </div>
             </SectionShell>
