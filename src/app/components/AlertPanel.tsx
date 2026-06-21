@@ -403,10 +403,10 @@ function parseFRPFromDescription(desc?: string) {
   };
 }
 
-function parseDetectionsFromTitle(title?: string) {
-  const s = String(title ?? "");
-  const m = s.match(/\((\d+)\s*detections?\)/i);
-  const n = m ? Number(m[1]) : null;
+function parseDetections(title?: string, description?: string) {
+  const titleMatch = String(title ?? "").match(/\((\d+)\s*detections?\)/i);
+  const descriptionMatch = String(description ?? "").match(/detected\s+(\d+)\s+fire\s+signals?/i);
+  const n = Number(titleMatch?.[1] ?? descriptionMatch?.[1] ?? Number.NaN);
   return Number.isFinite(n as any) ? (n as number) : null;
 }
 
@@ -858,7 +858,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
 
   const { frpMax, frpSum } = useMemo(() => parseFRPFromDescription(event?.description), [event?.description]);
-  const detections = useMemo(() => parseDetectionsFromTitle(event?.title), [event?.title]);
+  const detections = useMemo(
+    () => parseDetections(event?.title, event?.description),
+    [event?.title, event?.description]
+  );
 
   const intensityLevel = useMemo(() => levelFromFRPMax(frpMax), [frpMax]);
   const activityLevel = useMemo(() => levelFromDetections(detections), [detections]);
