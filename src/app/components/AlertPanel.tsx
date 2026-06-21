@@ -411,6 +411,46 @@ function cn(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
 }
 
+type SourceCoverageState = "available" | "partial" | "loading" | "limited" | "empty" | "stale" | "not_connected";
+
+const sourceCoverageMeta: Record<SourceCoverageState, { label: string; className: string; dot: string }> = {
+  available: {
+    label: "Disponible",
+    className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85",
+    dot: "bg-emerald-300",
+  },
+  partial: {
+    label: "Parcial",
+    className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/85",
+    dot: "bg-cyan-300",
+  },
+  loading: {
+    label: "Consultando",
+    className: "border-white/10 bg-white/5 text-white/60",
+    dot: "bg-white/45 animate-pulse",
+  },
+  limited: {
+    label: "Limitada",
+    className: "border-amber-300/20 bg-amber-400/10 text-amber-100/85",
+    dot: "bg-amber-300",
+  },
+  empty: {
+    label: "Sin resultados",
+    className: "border-white/10 bg-white/5 text-white/55",
+    dot: "bg-white/35",
+  },
+  stale: {
+    label: "Desactualizada",
+    className: "border-amber-300/20 bg-amber-400/10 text-amber-100/85",
+    dot: "bg-amber-300",
+  },
+  not_connected: {
+    label: "No conectada",
+    className: "border-white/10 bg-white/[0.03] text-white/45",
+    dot: "bg-white/25",
+  },
+};
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -1728,8 +1768,89 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : trend.toLowerCase().includes("stable")
       ? "Estable"
       : "No disponible";
+  const hasInstrumentalFireData =
+    satelliteDetections != null || satelliteFrpMax != null || satelliteFrpSum != null || Boolean(event.liveFeedUrl);
+  const sourceCoverageItems: Array<{
+    id: string;
+    label: string;
+    icon: ReactNode;
+    state: SourceCoverageState;
+    detail: string;
+  }> = [
+    {
+      id: "firms",
+      label: "Satélite / FIRMS",
+      icon: <Satellite className="h-4 w-4 text-cyan-200/75" />,
+      state: event.stale ? "stale" : hasInstrumentalFireData ? "available" : "partial",
+      detail: event.stale
+        ? `Última señal conservada · ${observationFreshness}`
+        : hasInstrumentalFireData
+        ? `${satelliteDetections ?? "Sin conteo"} ${satelliteDetections === 1 ? "detección" : "detecciones"} · ${observationFreshness}`
+        : "Evento disponible sin métricas instrumentales completas.",
+    },
+    {
+      id: "weather",
+      label: "Clima",
+      icon: <CloudRain className="h-4 w-4 text-sky-200/75" />,
+      state: weatherLoading ? "loading" : weatherErr ? "limited" : weather ? "available" : "empty",
+      detail: weatherLoading
+        ? "Consultando Open-Meteo."
+        : weatherErr
+        ? "Open-Meteo no respondió para este evento."
+        : weather
+        ? `Open-Meteo · ${weather.time ? fmtNowishUTC(weather.time) : "hora no informada"}`
+        : "No hay condiciones disponibles.",
+    },
+    {
+      id: "cameras",
+      label: "Cámaras",
+      icon: <Camera className="h-4 w-4 text-white/65" />,
+      state: camLoading ? "loading" : camErr ? "limited" : camRegistry.length > 0 ? "available" : "empty",
+      detail: camLoading
+        ? "Cargando registro de cámaras."
+        : camErr
+        ? "El registro de cámaras no está disponible."
+        : camRegistry.length > 0
+        ? `${camRegistry.length} registradas · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
+        : "Registro cargado sin cámaras válidas.",
+    },
+    {
+      id: "news",
+      label: "Noticias",
+      icon: <Newspaper className="h-4 w-4 text-violet-200/75" />,
+      state: newsLoading ? "loading" : newsErr || newsLimited ? "limited" : newsMeta && newsItems.length === 0 ? "empty" : newsItems.length > 0 ? "available" : "loading",
+      detail: newsLoading
+        ? "Consultando noticias regionales."
+        : newsErr || newsLimited
+        ? "La fuente de noticias está temporalmente limitada."
+        : newsItems.length > 0
+        ? `${newsItems.length} referencias regionales recuperadas.`
+        : "La consulta terminó sin resultados útiles.",
+    },
+    {
+      id: "official-alerts",
+      label: "Alertas oficiales",
+      icon: <Siren className="h-4 w-4 text-orange-200/75" />,
+      state: splitNews.official.length > 0 ? "partial" : "not_connected",
+      detail:
+        newsLoading
+          ? "Clasificando referencias; el canal oficial estructurado sigue sin conectar."
+          : splitNews.official.length > 0
+          ? `${splitNews.official.length} referencias clasificadas desde noticias; falta un canal oficial estructurado.`
+          : "Fuente oficial estructurada todavía no conectada.",
+    },
+    {
+      id: "guardians",
+      label: "Guardianes",
+      icon: <Users className="h-4 w-4 text-emerald-200/65" />,
+      state: "not_connected",
+      detail: "Observaciones de Guardianes todavía no conectadas.",
+    },
+  ];
   const currentTimelineMetrics = [
-    satelliteDetections != null ? `${satelliteDetections} detección${satelliteDetections === 1 ? "" : "es"}` : null,
+    satelliteDetections != null
+      ? `${satelliteDetections} ${satelliteDetections === 1 ? "detección" : "detecciones"}`
+      : null,
     satelliteFrpMax != null ? `FRP máximo ${satelliteFrpMax.toFixed(2)} MW` : null,
     satelliteFrpSum != null ? `FRP acumulado ${satelliteFrpSum.toFixed(2)} MW` : null,
   ].filter((item): item is string => Boolean(item));
@@ -1749,7 +1870,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     const metrics = [
       Number.isFinite(point.focusCount)
-        ? `${point.focusCount} detección${point.focusCount === 1 ? "" : "es"}`
+        ? `${point.focusCount} ${point.focusCount === 1 ? "detección" : "detecciones"}`
         : null,
       Number.isFinite(point.frpMax) ? `FRP máximo ${point.frpMax!.toFixed(2)} MW` : null,
       Number.isFinite(point.frpSum) ? `FRP acumulado ${point.frpSum!.toFixed(2)} MW` : null,
@@ -1965,6 +2086,52 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </a>
               ) : null}
             </div>
+
+            {/* Cobertura de fuentes */}
+            <SectionShell
+              icon={<Activity className="h-5 w-5 text-cyan-200" />}
+              title="Cobertura de fuentes"
+              subtitle="Estado de las fuentes consultadas para este evento. Disponibilidad no implica confirmación del impacto."
+              right={
+                <div className="hidden sm:inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-white/60">
+                  <span className="text-xs font-semibold">{sourceCoverageItems.length} capas auditadas</span>
+                </div>
+              }
+            >
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <div className="grid grid-cols-1 divide-y divide-white/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-3">
+                  {sourceCoverageItems.map((source, index) => {
+                    const meta = sourceCoverageMeta[source.state];
+                    return (
+                      <div
+                        key={source.id}
+                        className={cn(
+                          "min-w-0 px-4 py-3",
+                          index >= 2 && "sm:border-t sm:border-white/10",
+                          index >= 3 && "lg:border-t lg:border-white/10",
+                          index === 2 && "sm:border-l-0 lg:border-l"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-2">
+                            {source.icon}
+                            <span className="text-sm font-medium leading-tight text-white/80">{source.label}</span>
+                          </div>
+                          <div className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1", meta.className)}>
+                            <span className={cn("h-1.5 w-1.5 rounded-full", meta.dot)} />
+                            <span className="text-[10px] font-semibold uppercase tracking-wide">{meta.label}</span>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs leading-relaxed text-white/40">{source.detail}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
+                  “No conectada”, “sin resultados” y “limitada” describen situaciones diferentes y no deben interpretarse como ausencia del fenómeno.
+                </div>
+              </div>
+            </SectionShell>
 
             {/* Estado operativo */}
             <SectionShell
