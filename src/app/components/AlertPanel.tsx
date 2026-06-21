@@ -1074,7 +1074,7 @@ function NearbyCommunitySummary({
 }
 
 const WATER_KIND_LABEL: Record<WaterResource["kind"], string> = {
-  river: "Sistema fluvial",
+  river: "Curso o sistema hídrico",
   waterbody: "Cuerpo de agua",
   wetland: "Humedal",
   bay: "Bahía",
