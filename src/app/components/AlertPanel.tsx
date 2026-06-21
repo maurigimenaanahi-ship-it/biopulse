@@ -120,6 +120,24 @@ type WeatherResponse = {
   };
 };
 
+type ProtectedArea = {
+  id: string;
+  name: string;
+  designation: string | null;
+  protectClass: string | null;
+  operator: string | null;
+  website: string | null;
+  sourceUrl: string;
+};
+
+type ProtectedContextResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  areas: ProtectedArea[];
+  source: { name: string; attribution: string; licenseUrl: string };
+  interpretation: string;
+};
+
 // ---------- Cameras (biopulse.camera.v1) ----------
 type CameraRegistryItem = {
   schema: "biopulse.camera.v1";
@@ -261,6 +279,23 @@ async function fetchWindyCameraSnapshot(args: {
     snapshotUrl: typeof data?.snapshotUrl === "string" ? data.snapshotUrl : null,
     detailUrl: typeof data?.detailUrl === "string" ? data.detailUrl : null,
     attributionText: typeof data?.attributionText === "string" ? data.attributionText : null,
+  };
+}
+
+async function fetchProtectedContext(
+  lat: number,
+  lon: number,
+  signal?: AbortSignal
+): Promise<ProtectedContextResponse> {
+  const url =
+    `/api/protected-context?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=50`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Contexto ambiental no disponible (${res.status}).`);
+  const data = (await res.json()) as ProtectedContextResponse;
+  return {
+    ...data,
+    areas: Array.isArray(data.areas) ? data.areas : [],
   };
 }
 
@@ -811,6 +846,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const newsAbortRef = useRef<AbortController | null>(null);
   const weatherAbortRef = useRef<AbortController | null>(null);
   const cameraAbortRef = useRef<AbortController | null>(null);
+  const protectedContextAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -847,6 +883,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherErr, setWeatherErr] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherCurrent | null>(null);
+
+  // ====== PROTECTED CONTEXT state ======
+  const [protectedContextLoading, setProtectedContextLoading] = useState(false);
+  const [protectedContextErr, setProtectedContextErr] = useState<string | null>(null);
+  const [protectedContext, setProtectedContext] = useState<ProtectedContextResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -978,6 +1019,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadProtectedContext = async () => {
+    if (!event) return;
+    protectedContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    protectedContextAbortRef.current = controller;
+
+    setProtectedContextLoading(true);
+    setProtectedContextErr(null);
+    setProtectedContext(null);
+
+    try {
+      const context = await fetchProtectedContext(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setProtectedContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setProtectedContext(null);
+      setProtectedContextErr(e?.message ? String(e.message) : "No se pudo consultar áreas protegidas.");
+    } finally {
+      if (!controller.signal.aborted) setProtectedContextLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -985,11 +1049,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadNews();
     loadWeather();
     loadCameraRegistry();
+    loadProtectedContext();
 
     return () => {
       newsAbortRef.current?.abort();
       weatherAbortRef.current?.abort();
       cameraAbortRef.current?.abort();
+      protectedContextAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -1142,7 +1208,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     ? event.speciesAtRisk.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
   const eventWaterLevel = Number.isFinite(event.waterLevel) ? event.waterLevel! : null;
-  const hasProtectionContext = eventEcosystems.length > 0 || eventSpecies.length > 0 || eventWaterLevel != null;
+  const protectedAreas = Array.isArray(protectedContext?.areas) ? protectedContext.areas : [];
+  const hasProtectionContext =
+    eventEcosystems.length > 0 || eventSpecies.length > 0 || eventWaterLevel != null || protectedAreas.length > 0;
   const eventPopulation =
     Number.isFinite(event.affectedPopulation) && event.affectedPopulation! >= 0 ? event.affectedPopulation! : null;
   const hasTechnicalFireArea = event.category === "fire" && event.affectedArea === 1;
@@ -1598,7 +1666,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             >
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
                 <div className="border-b border-amber-300/15 bg-amber-400/[0.06] px-4 py-3 text-xs leading-relaxed text-amber-100/75">
-                  Los registros disponibles están asociados al evento. BioPulse todavía no dispone de procedencia específica ni análisis de exposición para estas capas.
+                  BioPulse identifica la procedencia cuando la fuente está conectada. La cercanía espacial no constituye
+                  por sí sola un análisis de exposición o afectación.
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2">
@@ -1670,11 +1739,71 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                   <div className="flex items-start gap-3 px-4 py-3">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200/65" />
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium text-white/75">Áreas protegidas</div>
-                      <div className="mt-0.5 text-xs text-white/45">
-                        Catálogo de áreas protegidas aún no conectado.
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-sm font-medium text-white/75">Áreas protegidas</div>
+                        <div className="text-[11px] text-white/40">Radio consultado: 50 km</div>
                       </div>
+
+                      {protectedContextLoading ? (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-white/45">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Consultando registros cartográficos cercanos…
+                        </div>
+                      ) : protectedContextErr ? (
+                        <div className="mt-2 text-xs leading-relaxed text-amber-100/65">
+                          La fuente de áreas protegidas está temporalmente limitada. Intentá nuevamente más tarde.
+                        </div>
+                      ) : protectedAreas.length > 0 ? (
+                        <div className="mt-3 space-y-2">
+                          {protectedAreas.map((area) => (
+                            <a
+                              key={area.id}
+                              href={area.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-start justify-between gap-3 rounded-xl border border-cyan-300/10 bg-cyan-400/[0.04] px-3 py-2.5 transition-colors hover:bg-cyan-400/[0.08]"
+                            >
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium text-cyan-50/85">{area.name}</div>
+                                <div className="mt-0.5 text-[11px] leading-relaxed text-white/40">
+                                  {[
+                                    area.designation,
+                                    area.protectClass ? `Clase de protección ${area.protectClass}` : null,
+                                    area.operator,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ") ||
+                                    "Clasificación u operador no informados"}
+                                </div>
+                              </div>
+                              <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200/55" />
+                            </a>
+                          ))}
+                          <div className="text-[11px] leading-relaxed text-white/35">
+                            Registros cercanos en OpenStreetMap. Su presencia no confirma exposición ni daño.
+                          </div>
+                        </div>
+                      ) : protectedContext ? (
+                        <div className="mt-2 text-xs leading-relaxed text-white/45">
+                          No se encontraron áreas protegidas con nombre dentro del radio consultado. Esto puede reflejar
+                          ausencia de registros o cobertura cartográfica incompleta.
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-xs text-white/45">Catálogo de áreas protegidas aún no conectado.</div>
+                      )}
+
+                      {protectedContext?.source ? (
+                        <a
+                          href={protectedContext.source.licenseUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] text-cyan-100/50 hover:text-cyan-100/75"
+                        >
+                          {protectedContext.source.attribution}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex items-start gap-3 px-4 py-3">
