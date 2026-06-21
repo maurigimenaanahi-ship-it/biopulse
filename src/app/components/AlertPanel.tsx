@@ -36,6 +36,7 @@ import {
   Hospital,
   School,
   Route,
+  History,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -1162,6 +1163,82 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : "Estado de evacuación no conectado";
   const hasHumanContext =
     event.evacuationLevel != null || eventPopulation != null || eventArea != null || eventInfrastructure.length > 0;
+  const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
+  const firstSeenDate = toValidDate(event.firstSeen);
+  const eventHistory = Array.isArray(event.history) ? event.history : [];
+  const currentTimelineMetrics = [
+    satelliteDetections != null ? `${satelliteDetections} detección${satelliteDetections === 1 ? "" : "es"}` : null,
+    satelliteFrpMax != null ? `FRP máximo ${satelliteFrpMax.toFixed(2)} MW` : null,
+    satelliteFrpSum != null ? `FRP acumulado ${satelliteFrpSum.toFixed(2)} MW` : null,
+  ].filter((item): item is string => Boolean(item));
+
+  if (firstSeenDate) {
+    timelineEntries.push({
+      id: `first-${firstSeenDate.getTime()}`,
+      date: firstSeenDate,
+      title: "Primera señal registrada",
+      detail: "Primer momento conservado por BioPulse para este evento.",
+    });
+  }
+
+  eventHistory.forEach((point, index) => {
+    const date = toValidDate(point?.t as any);
+    if (!date) return;
+
+    const metrics = [
+      Number.isFinite(point.focusCount)
+        ? `${point.focusCount} detección${point.focusCount === 1 ? "" : "es"}`
+        : null,
+      Number.isFinite(point.frpMax) ? `FRP máximo ${point.frpMax!.toFixed(2)} MW` : null,
+      Number.isFinite(point.frpSum) ? `FRP acumulado ${point.frpSum!.toFixed(2)} MW` : null,
+      point.severity ? `Severidad ${point.severity}` : null,
+    ].filter((item): item is string => Boolean(item));
+
+    const existingIndex = timelineEntries.findIndex(
+      (entry) => Math.abs(entry.date.getTime() - date.getTime()) <= 30_000
+    );
+    if (existingIndex >= 0) {
+      const existingEntry = timelineEntries[existingIndex];
+      if (existingEntry && metrics.length > 0) {
+        timelineEntries[existingIndex] = { ...existingEntry, detail: metrics.join(" · ") };
+      }
+      return;
+    }
+
+    timelineEntries.push({
+      id: `history-${date.getTime()}-${index}`,
+      date,
+      title: "Observación registrada",
+      detail: metrics.length > 0 ? metrics.join(" · ") : "Sin métricas comparables adicionales.",
+    });
+  });
+
+  if (observationDate) {
+    const alreadyRepresented = timelineEntries.some(
+      (entry) => Math.abs(entry.date.getTime() - observationDate.getTime()) <= 30_000
+    );
+    if (!alreadyRepresented) {
+      timelineEntries.push({
+        id: `latest-${observationDate.getTime()}`,
+        date: observationDate,
+        title: timelineEntries.length > 0 ? "Última señal registrada" : "Observación disponible",
+        detail:
+          currentTimelineMetrics.length > 0
+            ? currentTimelineMetrics.join(" · ")
+            : "Sin métricas comparables adicionales.",
+      });
+    } else if (timelineEntries.length === 1 && currentTimelineMetrics.length > 0) {
+      const onlyEntry = timelineEntries[0];
+      if (onlyEntry) {
+        timelineEntries[0] = { ...onlyEntry, detail: currentTimelineMetrics.join(" · ") };
+      }
+    }
+  }
+
+  timelineEntries.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const visibleTimelineEntries =
+    timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
+  const hasComparableHistory = visibleTimelineEntries.length > 1;
 
   const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -2633,6 +2710,70 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 <div className="mt-4 text-[11px] text-white/30">
                   Nota: si el registry está en <span className="font-mono">public/</span>, Vercel lo sirve directo.
                   Luego conectamos providers reales (vialidad/municipios/alertcalifornia/etc.) sin cambiar este bloque.
+                </div>
+              </div>
+            </SectionShell>
+
+            {/* Historial del evento */}
+            <SectionShell
+              icon={<History className="h-5 w-5 text-cyan-200" />}
+              title="Historial del evento"
+              subtitle="Cronología de señales y observaciones conservadas por BioPulse."
+              right={
+                <div className="hidden sm:inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 text-cyan-100/90">
+                  <span className="text-xs font-semibold">
+                    {visibleTimelineEntries.length} {visibleTimelineEntries.length === 1 ? "punto" : "puntos"}
+                  </span>
+                </div>
+              }
+            >
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <div
+                  className={cn(
+                    "border-b px-4 py-3 text-xs leading-relaxed",
+                    hasComparableHistory
+                      ? "border-cyan-300/15 bg-cyan-400/[0.05] text-cyan-100/70"
+                      : "border-white/10 bg-white/[0.03] text-white/50"
+                  )}
+                >
+                  {hasComparableHistory
+                    ? "BioPulse conserva más de un momento comparable para este evento."
+                    : "Este evento solo conserva una observación comparable. Todavía no puede mostrarse una evolución temporal."}
+                </div>
+
+                {visibleTimelineEntries.length > 0 ? (
+                  <div className="relative px-4 py-2">
+                    <div className="absolute bottom-5 left-[25px] top-5 w-px bg-white/10" />
+                    {visibleTimelineEntries.map((entry, index) => (
+                      <div key={entry.id} className="relative flex gap-4 py-3">
+                        <div
+                          className={cn(
+                            "relative z-10 mt-1 h-3 w-3 shrink-0 rounded-full border-2",
+                            index === visibleTimelineEntries.length - 1
+                              ? "border-cyan-200 bg-cyan-400/70"
+                              : "border-white/30 bg-[#0b111d]"
+                          )}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                            <div className="text-sm font-semibold text-white/80">{entry.title}</div>
+                            <div className="text-[11px] text-white/40">{fmtDateTimeUTC(entry.date)}</div>
+                          </div>
+                          <div className="mt-1 text-xs leading-relaxed text-white/50">{entry.detail}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-6 text-center text-sm text-white/50">
+                    No hay puntos temporales válidos disponibles para este evento.
+                  </div>
+                )}
+
+                <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
+                  {event.stale
+                    ? "El evento está marcado como desactualizado; esto no significa que haya finalizado."
+                    : "La cronología refleja únicamente los puntos conservados y no garantiza observación continua."}
                 </div>
               </div>
             </SectionShell>
