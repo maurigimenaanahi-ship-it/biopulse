@@ -89,31 +89,46 @@ export default async function handler(req: Request): Promise<Response> {
   const apiKey = process.env.GEOAPIFY_API_KEY;
   if (!apiKey) return errorJson({ error: "Missing GEOAPIFY_API_KEY" }, 500);
 
-  const categories = [
-    "healthcare.hospital",
-    "healthcare.clinic_or_praxis",
-    "service.fire_station",
-    "service.social_facility.shelter",
-    "emergency.assembly_point",
-    "emergency.disaster_help_point",
+  const categoryGroups = [
+    { categories: ["healthcare.hospital", "healthcare.clinic_or_praxis"], limit: 20 },
+    { categories: ["service.fire_station"], limit: 10 },
+    {
+      categories: [
+        "service.social_facility.shelter",
+        "emergency.assembly_point",
+        "emergency.disaster_help_point",
+      ],
+      limit: 10,
+    },
   ];
   const radiusMeters = Math.round(radiusKm * 1000);
-  const upstreamUrl = new URL("https://api.geoapify.com/v2/places");
-  upstreamUrl.searchParams.set("categories", categories.join(","));
-  upstreamUrl.searchParams.set("filter", `circle:${lon},${lat},${radiusMeters}`);
-  upstreamUrl.searchParams.set("bias", `proximity:${lon},${lat}`);
-  upstreamUrl.searchParams.set("limit", "40");
-  upstreamUrl.searchParams.set("apiKey", apiKey);
 
   try {
-    const upstream = await fetch(upstreamUrl, { headers: { Accept: "application/json" } });
-    if (!upstream.ok) {
-      return errorJson({ error: "Infrastructure source temporarily unavailable", status: upstream.status }, 502);
+    const upstreamResponses = await Promise.all(
+      categoryGroups.map(({ categories, limit }) => {
+        const upstreamUrl = new URL("https://api.geoapify.com/v2/places");
+        upstreamUrl.searchParams.set("categories", categories.join(","));
+        upstreamUrl.searchParams.set("filter", `circle:${lon},${lat},${radiusMeters}`);
+        upstreamUrl.searchParams.set("bias", `proximity:${lon},${lat}`);
+        upstreamUrl.searchParams.set("limit", String(limit));
+        upstreamUrl.searchParams.set("apiKey", apiKey);
+        return fetch(upstreamUrl, { headers: { Accept: "application/json" } });
+      })
+    );
+    const failedResponse = upstreamResponses.find((response) => !response.ok);
+    if (failedResponse) {
+      return errorJson(
+        { error: "Infrastructure source temporarily unavailable", status: failedResponse.status },
+        502
+      );
     }
 
-    const raw = (await upstream.json()) as { features?: GeoapifyFeature[] };
+    const payloads = (await Promise.all(upstreamResponses.map((response) => response.json()))) as Array<{
+      features?: GeoapifyFeature[];
+    }>;
+    const rawFeatures = payloads.flatMap((payload) => (Array.isArray(payload.features) ? payload.features : []));
     const seen = new Set<string>();
-    const facilities = (Array.isArray(raw.features) ? raw.features : [])
+    const facilities = rawFeatures
       .map((feature, index) => {
         const properties = feature.properties ?? {};
         const categories = Array.isArray(properties.categories) ? properties.categories : [];
