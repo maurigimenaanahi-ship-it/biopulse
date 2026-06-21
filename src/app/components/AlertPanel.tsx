@@ -30,6 +30,12 @@ import {
   PawPrint,
   Flower2,
   ShieldCheck,
+  Users,
+  Building2,
+  House,
+  Hospital,
+  School,
+  Route,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -1133,6 +1139,26 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     : [];
   const eventWaterLevel = Number.isFinite(event.waterLevel) ? event.waterLevel! : null;
   const hasProtectionContext = eventEcosystems.length > 0 || eventSpecies.length > 0 || eventWaterLevel != null;
+  const eventPopulation =
+    Number.isFinite(event.affectedPopulation) && event.affectedPopulation! >= 0 ? event.affectedPopulation! : null;
+  const hasTechnicalFireArea = event.category === "fire" && event.affectedArea === 1;
+  const eventArea =
+    Number.isFinite(event.affectedArea) && event.affectedArea >= 0 && !hasTechnicalFireArea
+      ? event.affectedArea
+      : null;
+  const eventInfrastructure = Array.isArray(event.nearbyInfrastructure)
+    ? event.nearbyInfrastructure.filter((item) => typeof item === "string" && item.trim().length > 0)
+    : [];
+  const humanEvacuationLabel =
+    event.evacuationLevel === "mandatory"
+      ? "Evacuación obligatoria informada en el evento"
+      : event.evacuationLevel === "recommended"
+      ? "Evacuación recomendada informada en el evento"
+      : event.evacuationLevel === "none"
+      ? "El evento no registra una evacuación"
+      : "Estado de evacuación no conectado";
+  const hasHumanContext =
+    event.evacuationLevel != null || eventPopulation != null || eventArea != null || eventInfrastructure.length > 0;
 
   const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -1595,6 +1621,177 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
                   Relación con el evento: desconocida. No se confirma exposición, daño ni afectación ambiental.
+                </div>
+              </div>
+            </SectionShell>
+
+            {/* Impacto humano */}
+            <SectionShell
+              icon={<Users className="h-5 w-5 text-sky-200" />}
+              title="Impacto humano"
+              subtitle="Información disponible sobre población, evacuación e infraestructura. Los datos sin fuente explícita no constituyen confirmación oficial."
+              right={
+                <div
+                  className={cn(
+                    "hidden sm:inline-flex items-center rounded-full border px-3 py-1.5",
+                    hasHumanContext
+                      ? "border-sky-300/20 bg-sky-400/10 text-sky-100/90"
+                      : "border-white/10 bg-white/5 text-white/55"
+                  )}
+                >
+                  <span className="text-xs font-semibold">{hasHumanContext ? "Parcial" : "No conectado"}</span>
+                </div>
+              }
+            >
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <div
+                  className={cn(
+                    "flex items-start gap-3 border-b px-4 py-4",
+                    event.evacuationLevel === "mandatory"
+                      ? "border-red-400/20 bg-red-500/10"
+                      : event.evacuationLevel === "recommended"
+                      ? "border-amber-300/20 bg-amber-400/[0.08]"
+                      : "border-white/10 bg-white/[0.03]"
+                  )}
+                >
+                  <Siren
+                    className={cn(
+                      "mt-0.5 h-5 w-5 shrink-0",
+                      event.evacuationLevel === "mandatory"
+                        ? "text-red-200"
+                        : event.evacuationLevel === "recommended"
+                        ? "text-amber-200"
+                        : "text-white/45"
+                    )}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Evacuación</div>
+                    <div className="mt-1 text-sm font-semibold text-white/85">{humanEvacuationLabel}</div>
+                    {event.evacuationLevel != null ? (
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        La fuente oficial no está especificada en el modelo actual.
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        BioPulse todavía no dispone de una fuente estructurada para este estado.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 border-b border-white/10">
+                  <div className="p-4 sm:border-r sm:border-white/10">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white/80">
+                      <Users className="h-4 w-4 text-sky-200/70" />
+                      Población informada
+                    </div>
+                    {eventPopulation != null ? (
+                      <>
+                        <div className="mt-2 text-xl font-semibold text-white/90">
+                          Aproximadamente {eventPopulation.toLocaleString("es-AR")}
+                        </div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/40">
+                          Sin fuente, metodología ni distinción entre población expuesta o afectada.
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mt-2 text-sm text-white/50">Información poblacional aún no conectada.</div>
+                    )}
+                  </div>
+
+                  <div className="border-t border-white/10 p-4 sm:border-t-0">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white/80">
+                      <MapPin className="h-4 w-4 text-amber-200/70" />
+                      Superficie informada
+                    </div>
+                    {eventArea != null ? (
+                      <>
+                        <div className="mt-2 text-xl font-semibold text-white/90">
+                          {eventArea.toLocaleString("es-AR", { maximumFractionDigits: 1 })} km²
+                        </div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/40">
+                          Sin fuente ni metodología especificada; no se presenta como superficie afectada validada.
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mt-2 text-sm text-white/50">
+                        {hasTechnicalFireArea
+                          ? "El valor técnico provisional fue ocultado. El cálculo real aún no está disponible."
+                          : "Cálculo de superficie aún no disponible."}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-b border-white/10 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white/80">
+                      <Building2 className="h-4 w-4 text-cyan-200/70" />
+                      Infraestructura asociada al evento
+                    </div>
+                    <span className="text-[11px] text-white/40">
+                      {eventInfrastructure.length > 0 ? "Información asociada" : "No conectada"}
+                    </span>
+                  </div>
+                  {eventInfrastructure.length > 0 ? (
+                    <>
+                      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {eventInfrastructure.map((item, index) => (
+                          <li key={`${item}-${index}`} className="flex items-start gap-2 text-sm text-white/70">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300/60" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-3 text-[11px] leading-relaxed text-white/35">
+                        La proximidad, el estado operativo y cualquier impacto no están confirmados.
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-2 text-sm text-white/50">
+                      Inventario de infraestructura aún no conectado.
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 divide-y divide-white/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                  <div className="divide-y divide-white/10">
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <House className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200/65" />
+                      <div>
+                        <div className="text-sm font-medium text-white/75">Comunidades cercanas</div>
+                        <div className="mt-0.5 text-xs text-white/45">Información territorial aún no conectada.</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <Hospital className="mt-0.5 h-4 w-4 shrink-0 text-red-200/65" />
+                      <div>
+                        <div className="text-sm font-medium text-white/75">Hospitales</div>
+                        <div className="mt-0.5 text-xs text-white/45">Fuente de centros de salud aún no conectada.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="divide-y divide-white/10">
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <School className="mt-0.5 h-4 w-4 shrink-0 text-yellow-200/65" />
+                      <div>
+                        <div className="text-sm font-medium text-white/75">Escuelas</div>
+                        <div className="mt-0.5 text-xs text-white/45">Fuente educativa aún no conectada.</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <Route className="mt-0.5 h-4 w-4 shrink-0 text-white/55" />
+                      <div>
+                        <div className="text-sm font-medium text-white/75">Rutas y accesos</div>
+                        <div className="mt-0.5 text-xs text-white/45">Estado vial aún no conectado.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
+                  Última observación del evento: {observationDate ? fmtDateTimeUTC(observationDate) : "no disponible"}
+                  {observationDate ? ` · ${observationFreshness}` : ""}. La vigencia de cada dato humano puede ser diferente.
                 </div>
               </div>
             </SectionShell>
