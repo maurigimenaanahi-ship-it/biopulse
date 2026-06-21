@@ -140,7 +140,7 @@ type ProtectedContextResponse = {
 
 type CriticalFacility = {
   id: string;
-  category: "healthcare" | "fire_station" | "shelter";
+  category: "healthcare" | "fire_station" | "shelter" | "school";
   name: string;
   address: string | null;
   distanceKm: number | null;
@@ -346,7 +346,7 @@ async function fetchCriticalInfrastructure(
 ): Promise<CriticalInfrastructureResponse> {
   const url =
     `/api/critical-infrastructure?lat=${encodeURIComponent(String(lat))}` +
-    `&lon=${encodeURIComponent(String(lon))}&radiusKm=25`;
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=25&schema=2`;
   const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) throw new Error(`Infraestructura crítica no disponible (${res.status}).`);
   const data = (await res.json()) as CriticalInfrastructureResponse;
@@ -1488,6 +1488,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const nearbyHealthcare = criticalFacilities.filter((facility) => facility.category === "healthcare");
   const nearbyFireStations = criticalFacilities.filter((facility) => facility.category === "fire_station");
   const nearbyShelters = criticalFacilities.filter((facility) => facility.category === "shelter");
+  const nearbySchools = criticalFacilities.filter((facility) => facility.category === "school");
   const nearbyCommunities = Array.isArray(nearbyCommunitiesContext?.communities)
     ? nearbyCommunitiesContext.communities
     : [];
@@ -2269,9 +2270,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="divide-y divide-white/10">
                     <div className="flex items-start gap-3 px-4 py-3">
                       <School className="mt-0.5 h-4 w-4 shrink-0 text-yellow-200/65" />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium text-white/75">Escuelas</div>
-                        <div className="mt-0.5 text-xs text-white/45">Fuente educativa aún no conectada.</div>
+                        <CriticalFacilitySummary
+                          items={nearbySchools}
+                          loading={criticalInfrastructureLoading}
+                          error={Boolean(criticalInfrastructureErr)}
+                          loaded={Boolean(criticalInfrastructure)}
+                        />
                       </div>
                     </div>
                     <div className="flex items-start gap-3 px-4 py-3">

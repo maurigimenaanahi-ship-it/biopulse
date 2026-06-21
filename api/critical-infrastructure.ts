@@ -2,7 +2,7 @@ export const config = {
   runtime: "edge",
 };
 
-type FacilityCategory = "healthcare" | "fire_station" | "shelter";
+type FacilityCategory = "healthcare" | "fire_station" | "shelter" | "school";
 
 type GeoapifyFeature = {
   properties?: {
@@ -44,6 +44,7 @@ function cleanText(value?: string, maxLength = 240) {
 
 function classify(categories: string[]): FacilityCategory | null {
   if (categories.some((category) => category === "service.fire_station")) return "fire_station";
+  if (categories.some((category) => category === "education.school")) return "school";
   if (
     categories.some(
       (category) =>
@@ -100,6 +101,7 @@ export default async function handler(req: Request): Promise<Response> {
       ],
       limit: 10,
     },
+    { categories: ["education.school"], limit: 10 },
   ];
   const radiusMeters = Math.round(radiusKm * 1000);
 
