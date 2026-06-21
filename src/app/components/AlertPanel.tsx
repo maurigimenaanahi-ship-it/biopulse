@@ -1478,7 +1478,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               right={
                 <div
                   className={cn(
-                    "inline-flex items-center rounded-full border px-3 py-1.5",
+                    "hidden sm:inline-flex items-center rounded-full border px-3 py-1.5",
                     hasProtectionContext
                       ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/90"
                       : "border-white/10 bg-white/5 text-white/55"
