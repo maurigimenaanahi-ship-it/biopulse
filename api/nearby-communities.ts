@@ -116,17 +116,22 @@ export default async function handler(req: Request): Promise<Response> {
 
         const name = cleanText(properties.name);
         if (!name) return null;
+        const state = cleanText(properties.state);
+        const country = cleanText(properties.country);
+        const identity = `${kind}|${name.toLocaleLowerCase()}|${state?.toLocaleLowerCase() ?? ""}|${
+          country?.toLocaleLowerCase() ?? ""
+        }`;
+        if (seen.has(identity)) return null;
+        seen.add(identity);
         const id = cleanText(properties.place_id, 160) ?? `${kind}-${communityLat}-${communityLon}-${index}`;
-        if (seen.has(id)) return null;
-        seen.add(id);
 
         const distanceMeters = Number(properties.distance);
         return {
           id,
           kind,
           name,
-          state: cleanText(properties.state),
-          country: cleanText(properties.country),
+          state,
+          country,
           address: cleanText(properties.formatted),
           distanceKm: Number.isFinite(distanceMeters) ? Math.max(0, distanceMeters / 1000) : null,
           lat: communityLat,
