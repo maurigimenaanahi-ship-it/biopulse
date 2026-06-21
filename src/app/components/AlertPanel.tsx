@@ -1645,6 +1645,89 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
   const firstSeenDate = toValidDate(event.firstSeen);
   const eventHistory = Array.isArray(event.history) ? event.history : [];
+  const comparableHistory = eventHistory
+    .map((point) => {
+      const date = toValidDate(point?.t as any);
+      return date ? { point, date } : null;
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+  const comparisonCurrent = comparableHistory[comparableHistory.length - 1] ?? null;
+  const comparisonPrevious = comparableHistory[comparableHistory.length - 2] ?? null;
+  const metricChanges: Array<{
+    label: string;
+    previous: string;
+    current: string;
+    delta: string;
+    direction: "up" | "down" | "same";
+  }> = [];
+
+  if (comparisonPrevious && comparisonCurrent) {
+    const addNumericChange = (
+      label: string,
+      previousValue: number | undefined,
+      currentValue: number | undefined,
+      decimals: number,
+      unit = ""
+    ) => {
+      if (!Number.isFinite(previousValue) || !Number.isFinite(currentValue)) return;
+      const previous = previousValue as number;
+      const current = currentValue as number;
+      const delta = current - previous;
+      const threshold = decimals === 0 ? 0.5 : 0.005;
+      const direction = Math.abs(delta) < threshold ? "same" : delta > 0 ? "up" : "down";
+      const format = (value: number) => `${value.toFixed(decimals)}${unit}`;
+      metricChanges.push({
+        label,
+        previous: format(previous),
+        current: format(current),
+        delta: direction === "same" ? "Sin cambio" : `${delta > 0 ? "+" : ""}${format(delta)}`,
+        direction,
+      });
+    };
+
+    addNumericChange(
+      "Detecciones",
+      comparisonPrevious.point.focusCount,
+      comparisonCurrent.point.focusCount,
+      0
+    );
+    addNumericChange("FRP acumulado", comparisonPrevious.point.frpSum, comparisonCurrent.point.frpSum, 2, " MW");
+    addNumericChange("FRP máximo", comparisonPrevious.point.frpMax, comparisonCurrent.point.frpMax, 2, " MW");
+
+    if (comparisonPrevious.point.severity && comparisonCurrent.point.severity) {
+      const severityRank = { low: 0, moderate: 1, high: 2, critical: 3 } as const;
+      const previousSeverity = comparisonPrevious.point.severity;
+      const currentSeverity = comparisonCurrent.point.severity;
+      const direction =
+        severityRank[currentSeverity] === severityRank[previousSeverity]
+          ? "same"
+          : severityRank[currentSeverity] > severityRank[previousSeverity]
+          ? "up"
+          : "down";
+      metricChanges.push({
+        label: "Severidad",
+        previous: sevChip(previousSeverity).label,
+        current: sevChip(currentSeverity).label,
+        delta: direction === "same" ? "Sin cambio" : direction === "up" ? "Aumentó" : "Disminuyó",
+        direction,
+      });
+    }
+  }
+  const currentTrendLabel =
+    event.trend === "rising"
+      ? "En aumento"
+      : event.trend === "falling"
+      ? "En descenso"
+      : event.trend === "stable"
+      ? "Estable"
+      : trend.toLowerCase().includes("intens")
+      ? "En aumento"
+      : trend.toLowerCase().includes("weak")
+      ? "En descenso"
+      : trend.toLowerCase().includes("stable")
+      ? "Estable"
+      : "No disponible";
   const currentTimelineMetrics = [
     satelliteDetections != null ? `${satelliteDetections} detección${satelliteDetections === 1 ? "" : "es"}` : null,
     satelliteFrpMax != null ? `FRP máximo ${satelliteFrpMax.toFixed(2)} MW` : null,
@@ -1931,6 +2014,86 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 <div className="mt-3 text-[11px] text-white/35">
                   Interpretación basada en detecciones VIIRS + FRP. Puede haber retrasos o falsos positivos.
+                </div>
+              </div>
+            </SectionShell>
+
+            {/* Qué cambió */}
+            <SectionShell
+              icon={<Activity className="h-5 w-5 text-cyan-200" />}
+              title="Qué cambió"
+              subtitle="Comparación entre las dos observaciones instrumentales más recientes conservadas por BioPulse."
+              right={
+                comparisonPrevious && comparisonCurrent ? (
+                  <div className="hidden sm:inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 text-cyan-100/90">
+                    <span className="text-xs font-semibold">2 puntos comparados</span>
+                  </div>
+                ) : null
+              }
+            >
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                {comparisonPrevious && comparisonCurrent ? (
+                  <>
+                    <div className="border-b border-white/10 px-4 py-3 text-xs text-white/50">
+                      {fmtDateTimeUTC(comparisonPrevious.date)}
+                      <span className="mx-2 text-white/20">→</span>
+                      {fmtDateTimeUTC(comparisonCurrent.date)}
+                    </div>
+
+                    {metricChanges.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+                        {metricChanges.map((change) => (
+                          <div key={change.label} className="bg-[#080e19] p-4">
+                            <div className="text-[11px] uppercase tracking-wide text-white/40">{change.label}</div>
+                            <div className="mt-2 flex items-baseline gap-2 text-sm">
+                              <span className="text-white/40">{change.previous}</span>
+                              <span className="text-white/20">→</span>
+                              <span className="font-semibold text-white/90">{change.current}</span>
+                            </div>
+                            <div
+                              className={cn(
+                                "mt-2 text-xs font-medium",
+                                change.direction === "up"
+                                  ? "text-amber-200/80"
+                                  : change.direction === "down"
+                                  ? "text-cyan-200/80"
+                                  : "text-white/45"
+                              )}
+                            >
+                              {change.delta}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-6 text-center text-sm text-white/50">
+                        Hay dos observaciones, pero no comparten métricas comparables.
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="px-4 py-6 text-center text-sm text-white/50">
+                    Todavía no hay un estado anterior comparable.
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-3 border-t border-white/10 px-4 py-3 text-xs sm:grid-cols-3">
+                  <div>
+                    <span className="text-white/40">Tendencia actual:</span>{" "}
+                    <span className="font-medium text-white/70">{currentTrendLabel}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40">Estado actual:</span>{" "}
+                    <span className="font-medium text-white/70">{statusLabel(event.status)}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40">Antigüedad:</span>{" "}
+                    <span className="font-medium text-white/70">{observationFreshness}</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
+                  Los cambios reflejan únicamente puntos conservados; no implican observación continua ni impacto confirmado.
                 </div>
               </div>
             </SectionShell>
