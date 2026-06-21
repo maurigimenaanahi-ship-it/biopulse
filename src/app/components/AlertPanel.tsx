@@ -178,6 +178,26 @@ type NearbyCommunitiesResponse = {
   interpretation: string;
 };
 
+type WaterResource = {
+  id: string;
+  kind: "river" | "waterbody" | "wetland" | "bay" | "spring";
+  name: string;
+  state: string | null;
+  country: string | null;
+  distanceKm: number | null;
+  lat: number;
+  lon: number;
+  mapUrl: string;
+};
+
+type WaterContextResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  resources: WaterResource[];
+  source: { name: string; attribution: string; attributionUrl: string };
+  interpretation: string;
+};
+
 // ---------- Cameras (biopulse.camera.v1) ----------
 type CameraRegistryItem = {
   schema: "biopulse.camera.v1";
@@ -370,6 +390,19 @@ async function fetchNearbyCommunities(
   return {
     ...data,
     communities: Array.isArray(data.communities) ? data.communities : [],
+  };
+}
+
+async function fetchWaterContext(lat: number, lon: number, signal?: AbortSignal): Promise<WaterContextResponse> {
+  const url =
+    `/api/water-context?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=50`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Recursos hídricos no disponibles (${res.status}).`);
+  const data = (await res.json()) as WaterContextResponse;
+  return {
+    ...data,
+    resources: Array.isArray(data.resources) ? data.resources : [],
   };
 }
 
@@ -1040,6 +1073,71 @@ function NearbyCommunitySummary({
   );
 }
 
+const WATER_KIND_LABEL: Record<WaterResource["kind"], string> = {
+  river: "Sistema fluvial",
+  waterbody: "Cuerpo de agua",
+  wetland: "Humedal",
+  bay: "Bahía",
+  spring: "Manantial",
+};
+
+function WaterResourceSummary({
+  items,
+  loading,
+  error,
+  loaded,
+}: {
+  items: WaterResource[];
+  loading: boolean;
+  error: boolean;
+  loaded: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-2 flex items-center gap-2 text-xs text-white/45">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Consultando recursos hídricos cercanos…
+      </div>
+    );
+  }
+  if (error) return <div className="mt-2 text-xs text-amber-100/65">Fuente temporalmente limitada.</div>;
+  if (items.length === 0) {
+    return (
+      <div className="mt-2 text-xs leading-relaxed text-white/45">
+        {loaded
+          ? "Sin recursos hídricos con nombre dentro del radio; la cobertura puede ser incompleta."
+          : "Información de recursos hídricos aún no conectada."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2">
+      <div className="text-xs text-white/55">
+        {items.length} {items.length === 1 ? "recurso cartografiado" : "recursos cartografiados"} en 50 km
+      </div>
+      <div className="mt-2 space-y-1.5">
+        {items.slice(0, 4).map((resource) => (
+          <a
+            key={resource.id}
+            href={resource.mapUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-w-0 items-start justify-between gap-2 text-xs text-cyan-100/65 hover:text-cyan-100/90"
+          >
+            <span className="min-w-0 truncate">
+              {resource.name} · {WATER_KIND_LABEL[resource.kind]}
+            </span>
+            <span className="shrink-0 text-white/35">
+              {resource.distanceKm != null ? `${resource.distanceKm.toFixed(1)} km` : "distancia n/d"}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const newsAbortRef = useRef<AbortController | null>(null);
@@ -1048,6 +1146,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const protectedContextAbortRef = useRef<AbortController | null>(null);
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
+  const waterContextAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -1099,6 +1198,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [nearbyCommunitiesLoading, setNearbyCommunitiesLoading] = useState(false);
   const [nearbyCommunitiesErr, setNearbyCommunitiesErr] = useState<string | null>(null);
   const [nearbyCommunitiesContext, setNearbyCommunitiesContext] = useState<NearbyCommunitiesResponse | null>(null);
+
+  // ====== WATER CONTEXT state ======
+  const [waterContextLoading, setWaterContextLoading] = useState(false);
+  const [waterContextErr, setWaterContextErr] = useState<string | null>(null);
+  const [waterContext, setWaterContext] = useState<WaterContextResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -1299,6 +1403,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadWaterContext = async () => {
+    if (!event) return;
+    waterContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    waterContextAbortRef.current = controller;
+
+    setWaterContextLoading(true);
+    setWaterContextErr(null);
+    setWaterContext(null);
+
+    try {
+      const context = await fetchWaterContext(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setWaterContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setWaterContext(null);
+      setWaterContextErr(e?.message ? String(e.message) : "No se pudo consultar recursos hídricos.");
+    } finally {
+      if (!controller.signal.aborted) setWaterContextLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -1309,6 +1436,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadProtectedContext();
     loadCriticalInfrastructure();
     loadNearbyCommunities();
+    loadWaterContext();
 
     return () => {
       newsAbortRef.current?.abort();
@@ -1317,6 +1445,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       protectedContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
       nearbyCommunitiesAbortRef.current?.abort();
+      waterContextAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -1469,9 +1598,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     ? event.speciesAtRisk.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
   const eventWaterLevel = Number.isFinite(event.waterLevel) ? event.waterLevel! : null;
+  const nearbyWaterResources = Array.isArray(waterContext?.resources) ? waterContext.resources : [];
   const protectedAreas = Array.isArray(protectedContext?.areas) ? protectedContext.areas : [];
   const hasProtectionContext =
-    eventEcosystems.length > 0 || eventSpecies.length > 0 || eventWaterLevel != null || protectedAreas.length > 0;
+    eventEcosystems.length > 0 ||
+    eventSpecies.length > 0 ||
+    eventWaterLevel != null ||
+    protectedAreas.length > 0 ||
+    nearbyWaterResources.length > 0;
   const eventPopulation =
     Number.isFinite(event.affectedPopulation) && event.affectedPopulation! >= 0 ? event.affectedPopulation! : null;
   const hasTechnicalFireArea = event.category === "fire" && event.affectedArea === 1;
@@ -2085,22 +2219,37 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                   <div className="flex items-start gap-3 px-4 py-3">
                     <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-sky-200/65" />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-white/75">Recursos hídricos</div>
                       {eventWaterLevel != null ? (
-                        <>
+                        <div className="mt-1">
                           <div className="mt-0.5 text-sm text-white/70">
                             Nivel de agua informado: {eventWaterLevel.toFixed(1)} m
                           </div>
                           <div className="mt-1 text-xs leading-relaxed text-white/40">
                             La fuente y el recurso hídrico específico no están identificados en el modelo actual.
                           </div>
-                        </>
-                      ) : (
-                        <div className="mt-0.5 text-xs text-white/45">
-                          Información de recursos hídricos aún no conectada.
                         </div>
-                      )}
+                      ) : null}
+
+                      <WaterResourceSummary
+                        items={nearbyWaterResources}
+                        loading={waterContextLoading}
+                        error={Boolean(waterContextErr)}
+                        loaded={Boolean(waterContext)}
+                      />
+
+                      {waterContext?.source ? (
+                        <a
+                          href={waterContext.source.attributionUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] text-cyan-100/50 hover:text-cyan-100/75"
+                        >
+                          {waterContext.source.attribution}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : null}
                     </div>
                   </div>
                 </div>
