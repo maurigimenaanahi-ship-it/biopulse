@@ -9,6 +9,7 @@ import { GuardianObservationReview } from "@/app/components/GuardianObservationR
 import { GuardianObservationIntegrity } from "@/app/components/GuardianObservationIntegrity";
 import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationDialog";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
+import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -2539,6 +2540,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         </div>
                       )}
                     </div>
+
+                    <GuardianMemoryTimeline
+                      memory={guardianEventMemory}
+                      missions={guardianMissions}
+                      observations={guardianObservations}
+                    />
 
                     <GuardianReportPanel
                       event={event}
