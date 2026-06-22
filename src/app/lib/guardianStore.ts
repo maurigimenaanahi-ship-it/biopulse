@@ -1,6 +1,7 @@
 import type { EnvironmentalEvent, EventCategory, EventStatus, EventTrend, EvacuationLevel } from "@/data/events";
 
 export const GUARDIAN_STORAGE_KEY = "biopulse:guardian:local:v1";
+export const GUARDIAN_PREPARATION_VERSION = "biopulse.guardian.preparation.v1" as const;
 
 export type GuardianExposurePreference =
   | "data_only"
@@ -109,6 +110,8 @@ export type GuardianLocalStore = {
   schema: "biopulse.guardian.local.v1";
   preferences: {
     exposure: GuardianExposurePreference;
+    preparationVersion: typeof GUARDIAN_PREPARATION_VERSION | null;
+    preparedAt: string | null;
   };
   events: Record<string, GuardianEventMemory>;
   observations: Record<string, GuardianObservation>;
@@ -120,7 +123,7 @@ const DEFAULT_EXPOSURE: GuardianExposurePreference = "ask_first";
 function emptyStore(): GuardianLocalStore {
   return {
     schema: "biopulse.guardian.local.v1",
-    preferences: { exposure: DEFAULT_EXPOSURE },
+    preferences: { exposure: DEFAULT_EXPOSURE, preparationVersion: null, preparedAt: null },
     events: {},
     observations: {},
     missions: {},
@@ -453,6 +456,15 @@ export function readGuardianLocalStore(): GuardianLocalStore {
         exposure: isExposurePreference(parsed.preferences?.exposure)
           ? parsed.preferences.exposure
           : DEFAULT_EXPOSURE,
+        preparationVersion:
+          parsed.preferences?.preparationVersion === GUARDIAN_PREPARATION_VERSION
+            ? GUARDIAN_PREPARATION_VERSION
+            : null,
+        preparedAt:
+          typeof parsed.preferences?.preparedAt === "string" &&
+          Number.isFinite(new Date(parsed.preferences.preparedAt).getTime())
+            ? parsed.preferences.preparedAt
+            : null,
       },
       events,
       observations,
@@ -502,6 +514,24 @@ export function setGuardianExposurePreference(exposure: GuardianExposurePreferen
   const next: GuardianLocalStore = {
     ...store,
     preferences: { ...store.preferences, exposure },
+  };
+  writeGuardianLocalStore(next);
+  return next;
+}
+
+export function completeGuardianPreparation(
+  exposure: GuardianExposurePreference,
+  now = new Date()
+): GuardianLocalStore {
+  const store = readGuardianLocalStore();
+  const next: GuardianLocalStore = {
+    ...store,
+    preferences: {
+      ...store.preferences,
+      exposure: isExposurePreference(exposure) ? exposure : DEFAULT_EXPOSURE,
+      preparationVersion: GUARDIAN_PREPARATION_VERSION,
+      preparedAt: now.toISOString(),
+    },
   };
   writeGuardianLocalStore(next);
   return next;

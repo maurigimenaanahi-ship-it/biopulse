@@ -7,9 +7,11 @@ import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/compon
 import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
 import { GuardianObservationReview } from "@/app/components/GuardianObservationReview";
 import { GuardianObservationIntegrity } from "@/app/components/GuardianObservationIntegrity";
+import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationDialog";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import {
   prepareGuardianEvent,
+  completeGuardianPreparation,
   findGuardianEventRecord,
   readGuardianLocalStore,
   removeGuardianEvent,
@@ -19,6 +21,7 @@ import {
   type GuardianLocalStore,
   type GuardianMission,
   type GuardianObservation,
+  GUARDIAN_PREPARATION_VERSION,
 } from "@/app/lib/guardianStore";
 import {
   X,
@@ -1275,6 +1278,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [guardianVisualConsent, setGuardianVisualConsent] = useState(false);
   const [guardianDeletePending, setGuardianDeletePending] = useState(false);
   const [guardianObservationDeleteId, setGuardianObservationDeleteId] = useState<string | null>(null);
+  const [guardianPreparationOpen, setGuardianPreparationOpen] = useState(false);
 
   useEffect(() => {
     if (!event) return;
@@ -1291,16 +1295,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setGuardianVisualConsent(false);
     setGuardianDeletePending(false);
     setGuardianObservationDeleteId(null);
+    setGuardianPreparationOpen(false);
   }, [event?.id]);
 
   useEffect(() => {
     if (!event) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !guardianPreparationOpen) onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [event?.id, onClose]);
+  }, [event?.id, guardianPreparationOpen, onClose]);
 
   // ====== NEWS state ======
   const [newsLoading, setNewsLoading] = useState(false);
@@ -1885,8 +1890,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     { value: "hide_sensitive", label: "Ocultar sensibles" },
   ];
   const guardianExposure = guardianStore.preferences.exposure;
+  const guardianPreparationComplete =
+    guardianStore.preferences.preparationVersion === GUARDIAN_PREPARATION_VERSION;
   const visualMediaAllowed =
-    guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent);
+    guardianPreparationComplete &&
+    (guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent));
   const hasInstrumentalFireData =
     satelliteDetections != null || satelliteFrpMax != null || satelliteFrpSum != null || Boolean(event.liveFeedUrl);
   const guardianMissionTemplates: GuardianMissionTemplate[] = [
@@ -2094,9 +2102,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       <div className="absolute inset-0 bg-black/60 z-0" onClick={onClose} />
 
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Alerta: ${event.location}`}
+        role={guardianPreparationOpen ? undefined : "dialog"}
+        aria-modal={guardianPreparationOpen ? undefined : "true"}
+        aria-hidden={guardianPreparationOpen ? true : undefined}
+        aria-label={guardianPreparationOpen ? undefined : `Alerta: ${event.location}`}
         className={cn(
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10",
           "w-[min(980px,92vw)] h-[min(86vh,720px)]",
@@ -2375,9 +2384,27 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       );
                     })}
                   </div>
+                  {guardianPreparationComplete ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                      <span className="text-white/35">
+                        Preparación completada
+                        {guardianStore.preferences.preparedAt
+                          ? ` · ${fmtDateTimeUTC(new Date(guardianStore.preferences.preparedAt))}`
+                          : ""}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setGuardianPreparationOpen(true)}
+                        aria-label="Revisar preparación Guardian"
+                        className="font-medium text-emerald-100/55 hover:text-emerald-100/80"
+                      >
+                        Revisar
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
 
-                {guardianEventMemory ? (
+                {guardianEventMemory && guardianPreparationComplete ? (
                   <>
                     <GuardianMissionPanel
                       eventId={guardianEventRecordId!}
@@ -2521,6 +2548,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </>
                 ) : null}
 
+                {guardianEventMemory && !guardianPreparationComplete ? (
+                  <div className="border-t border-amber-300/10 bg-amber-400/[0.03] px-4 py-4">
+                    <div className="text-sm font-semibold text-white/75">Preparación pendiente</div>
+                    <div className="mt-1 text-xs leading-relaxed text-white/40">
+                      Tu memoria local permanece intacta. Completá la preparación para volver a misiones, observaciones e informes.
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-col gap-3 border-t border-white/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-[11px] leading-relaxed text-white/35">
                     Trabajo privado guardado en este dispositivo. BioPulse no lo transmite ni lo publica.
@@ -2529,6 +2565,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <button
                       type="button"
                       onClick={() => {
+                        if (!guardianPreparationComplete) {
+                          setGuardianPreparationOpen(true);
+                          return;
+                        }
                         try {
                           setGuardianStore(prepareGuardianEvent(event));
                           setGuardianStorageErr(null);
@@ -2539,7 +2579,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/15"
                     >
                       <ShieldCheck className="h-4 w-4" />
-                      {guardianEventMemory ? "Registrar apertura" : "Preparar espacio privado"}
+                      {!guardianPreparationComplete
+                        ? "Prepararme como Guardián"
+                        : guardianEventMemory
+                        ? "Registrar apertura"
+                        : "Preparar espacio privado"}
                     </button>
                     {guardianEventMemory ? (
                       <button
@@ -2598,6 +2642,23 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 ) : null}
               </div>
             </SectionShell>
+
+            <GuardianPreparationDialog
+              open={guardianPreparationOpen}
+              initialExposure={guardianExposure}
+              onClose={() => setGuardianPreparationOpen(false)}
+              onComplete={(exposure) => {
+                try {
+                  completeGuardianPreparation(exposure);
+                  setGuardianStore(prepareGuardianEvent(event));
+                  if (exposure !== "general_images") setGuardianVisualConsent(false);
+                  setGuardianPreparationOpen(false);
+                  setGuardianStorageErr(null);
+                } catch {
+                  setGuardianStorageErr("No se pudo guardar la preparación Guardian en este dispositivo.");
+                }
+              }}
+            />
 
             {/* Estado operativo */}
             <SectionShell
