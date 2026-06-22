@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
 import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/components/GuardianMissionPanel";
 import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
+import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import {
   prepareGuardianEvent,
   readGuardianLocalStore,
@@ -2490,6 +2491,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         </div>
                       )}
                     </div>
+
+                    <GuardianReportPanel
+                      event={event}
+                      missions={guardianMissions}
+                      observations={guardianObservations}
+                    />
                   </>
                 ) : null}
 
