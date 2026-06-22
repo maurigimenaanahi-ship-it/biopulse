@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
+import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/components/GuardianMissionPanel";
 import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
 import {
   prepareGuardianEvent,
@@ -12,6 +13,7 @@ import {
   setGuardianExposurePreference,
   type GuardianExposurePreference,
   type GuardianLocalStore,
+  type GuardianMission,
   type GuardianObservation,
 } from "@/app/lib/guardianStore";
 import {
@@ -1859,6 +1861,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     .map((id) => guardianStore.observations[id])
     .filter((observation): observation is GuardianObservation => Boolean(observation))
     .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+  const guardianMissions = (guardianEventMemory?.missionIds ?? [])
+    .map((id) => guardianStore.missions[id])
+    .filter((mission): mission is GuardianMission => Boolean(mission))
+    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+  const activeGuardianMission = guardianEventMemory?.activeMissionId
+    ? guardianStore.missions[guardianEventMemory.activeMissionId] ?? null
+    : null;
+  const previousGuardianMissions = guardianMissions.filter((mission) => mission.status !== "active");
+  const activeMissionObservationCount = activeGuardianMission
+    ? guardianObservations.filter((observation) => observation.missionId === activeGuardianMission.id).length
+    : 0;
   const guardianExposureOptions: Array<{ value: GuardianExposurePreference; label: string }> = [
     { value: "data_only", label: "Solo datos" },
     { value: "general_images", label: "Imágenes generales" },
@@ -1870,6 +1883,51 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent);
   const hasInstrumentalFireData =
     satelliteDetections != null || satelliteFrpMax != null || satelliteFrpSum != null || Boolean(event.liveFeedUrl);
+  const guardianMissionTemplates: GuardianMissionTemplate[] = [
+    {
+      kind: "review_satellite",
+      title: "Revisar observación satelital",
+      question: "¿Qué muestran las señales instrumentales más recientes y cuáles son sus limitaciones?",
+      available: hasInstrumentalFireData,
+      unavailableReason: "Este evento todavía no tiene señales instrumentales o enlace FIRMS disponible.",
+    },
+    {
+      kind: "review_cameras",
+      title: "Revisar cámaras cercanas",
+      question: "¿Qué puede verificarse en las cámaras cercanas sin exceder lo que muestran las imágenes?",
+      available: nearbyCameras.length > 0,
+      unavailableReason: `No hay cámaras dentro del radio actual de ${camRadiusKm} km.`,
+    },
+    {
+      kind: "review_weather",
+      title: "Revisar condiciones meteorológicas",
+      question: "¿Qué condiciones meteorológicas actuales podrían ser relevantes para comprender este evento?",
+      available: Boolean(weather) && !weatherErr,
+      unavailableReason: weatherLoading
+        ? "Las condiciones meteorológicas todavía se están consultando."
+        : "No hay condiciones meteorológicas disponibles para revisar.",
+    },
+    {
+      kind: "document_source",
+      title: "Documentar una fuente",
+      question: "¿Qué afirma la fuente, cuándo fue publicada y qué grado de procedencia puede conservarse?",
+      available: Boolean(event.liveFeedUrl) || newsItems.some((item) => Boolean(item.url)),
+      unavailableReason: "No hay enlaces satelitales o noticias recuperadas para documentar en este momento.",
+    },
+    {
+      kind: "compare_changes",
+      title: "Comparar cambios",
+      question: "¿Qué cambió entre las dos observaciones conservadas y qué permanece incierto?",
+      available: Boolean(comparisonPrevious && comparisonCurrent),
+      unavailableReason: "BioPulse necesita al menos dos puntos comparables para proponer esta misión.",
+    },
+    {
+      kind: "identify_gaps",
+      title: "Identificar vacíos de información",
+      question: "¿Qué información falta para comprender mejor el evento y qué fuente podría aportarla?",
+      available: true,
+    },
+  ];
   const sourceCoverageItems: Array<{
     id: string;
     label: string;
@@ -2315,9 +2373,23 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 {guardianEventMemory ? (
                   <>
+                    <GuardianMissionPanel
+                      eventId={event.id}
+                      templates={guardianMissionTemplates}
+                      activeMission={activeGuardianMission}
+                      linkedObservationCount={activeMissionObservationCount}
+                      recentMissions={previousGuardianMissions}
+                      onStoreChange={(store) => {
+                        setGuardianStore(store);
+                        setGuardianStorageErr(null);
+                      }}
+                    />
+
                     <GuardianObservationForm
                       eventId={event.id}
                       exposure={guardianExposure}
+                      missionId={activeGuardianMission?.id}
+                      missionTitle={activeGuardianMission?.title}
                       onSaved={(store) => {
                         setGuardianStore(store);
                         setGuardianStorageErr(null);
@@ -2346,6 +2418,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                     <span>{guardianSourceLabel(observation.sourceType)}</span>
                                     <span>Observado: {fmtDateTimeUTC(new Date(observation.observedAt))}</span>
                                     <span>Registrado: {fmtDateTimeUTC(new Date(observation.recordedAt))}</span>
+                                    {observation.missionId && guardianStore.missions[observation.missionId] ? (
+                                      <span>Misión: {guardianStore.missions[observation.missionId].title}</span>
+                                    ) : null}
                                     <span>Privada</span>
                                   </div>
                                 </div>

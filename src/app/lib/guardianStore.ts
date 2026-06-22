@@ -17,6 +17,26 @@ export type GuardianObservationSource =
 
 export type GuardianLocationPrecision = "event_area" | "approximate" | "protected" | "unknown";
 export type GuardianSensitivity = "none" | "sensitive" | "unknown";
+export type GuardianMissionKind =
+  | "review_satellite"
+  | "review_cameras"
+  | "review_weather"
+  | "document_source"
+  | "compare_changes"
+  | "identify_gaps";
+export type GuardianMissionStatus = "active" | "completed" | "insufficient_information";
+
+export type GuardianMission = {
+  id: string;
+  eventId: string;
+  kind: GuardianMissionKind;
+  title: string;
+  question: string;
+  status: GuardianMissionStatus;
+  startedAt: string;
+  updatedAt: string;
+  closedAt: string | null;
+};
 
 export type GuardianObservation = {
   id: string;
@@ -30,6 +50,7 @@ export type GuardianObservation = {
   limitations: string | null;
   locationPrecision: GuardianLocationPrecision;
   sensitivity: GuardianSensitivity;
+  missionId: string | null;
   visibility: "private";
   status: "recorded";
 };
@@ -39,6 +60,8 @@ export type GuardianEventMemory = {
   firstEnteredAt: string;
   lastOpenedAt: string;
   observationIds: string[];
+  missionIds: string[];
+  activeMissionId: string | null;
 };
 
 export type GuardianLocalStore = {
@@ -48,6 +71,7 @@ export type GuardianLocalStore = {
   };
   events: Record<string, GuardianEventMemory>;
   observations: Record<string, GuardianObservation>;
+  missions: Record<string, GuardianMission>;
 };
 
 const DEFAULT_EXPOSURE: GuardianExposurePreference = "ask_first";
@@ -58,6 +82,7 @@ function emptyStore(): GuardianLocalStore {
     preferences: { exposure: DEFAULT_EXPOSURE },
     events: {},
     observations: {},
+    missions: {},
   };
 }
 
@@ -87,7 +112,26 @@ function normalizeEventMemory(eventId: string, value: unknown): GuardianEventMem
   const observationIds = Array.isArray(record.observationIds)
     ? record.observationIds.filter((id): id is string => typeof id === "string")
     : [];
-  return { eventId, firstEnteredAt, lastOpenedAt, observationIds };
+  const missionIds = Array.isArray(record.missionIds)
+    ? record.missionIds.filter((id): id is string => typeof id === "string")
+    : [];
+  const activeMissionId = typeof record.activeMissionId === "string" ? record.activeMissionId : null;
+  return { eventId, firstEnteredAt, lastOpenedAt, observationIds, missionIds, activeMissionId };
+}
+
+function isMissionKind(value: unknown): value is GuardianMissionKind {
+  return [
+    "review_satellite",
+    "review_cameras",
+    "review_weather",
+    "document_source",
+    "compare_changes",
+    "identify_gaps",
+  ].includes(String(value));
+}
+
+function isMissionStatus(value: unknown): value is GuardianMissionStatus {
+  return ["active", "completed", "insufficient_information"].includes(String(value));
 }
 
 function isObservationSource(value: unknown): value is GuardianObservationSource {
@@ -132,8 +176,33 @@ function normalizeObservation(id: string, value: unknown): GuardianObservation |
     limitations: optionalText(record.limitations, 2000),
     locationPrecision: isLocationPrecision(record.locationPrecision) ? record.locationPrecision : "unknown",
     sensitivity: isSensitivity(record.sensitivity) ? record.sensitivity : "unknown",
+    missionId: optionalText(record.missionId, 200),
     visibility: "private",
     status: "recorded",
+  };
+}
+
+function normalizeMission(id: string, value: unknown): GuardianMission | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Partial<GuardianMission>;
+  const eventId = optionalText(record.eventId, 200);
+  const title = optionalText(record.title, 200);
+  const question = optionalText(record.question, 500);
+  const startedAt = optionalText(record.startedAt, 80);
+  const updatedAt = optionalText(record.updatedAt, 80);
+  if (!eventId || !title || !question || !startedAt || !updatedAt || !isMissionKind(record.kind)) return null;
+  if (!Number.isFinite(new Date(startedAt).getTime()) || !Number.isFinite(new Date(updatedAt).getTime())) return null;
+  const closedAt = optionalText(record.closedAt, 80);
+  return {
+    id,
+    eventId,
+    kind: record.kind,
+    title,
+    question,
+    status: isMissionStatus(record.status) ? record.status : "active",
+    startedAt,
+    updatedAt,
+    closedAt: closedAt && Number.isFinite(new Date(closedAt).getTime()) ? closedAt : null,
   };
 }
 
@@ -145,6 +214,14 @@ export function readGuardianLocalStore(): GuardianLocalStore {
     if (!raw) return emptyStore();
     const parsed = JSON.parse(raw) as Partial<GuardianLocalStore>;
     if (parsed?.schema !== "biopulse.guardian.local.v1") return emptyStore();
+
+    const missions: Record<string, GuardianMission> = {};
+    if (parsed.missions && typeof parsed.missions === "object") {
+      for (const [id, value] of Object.entries(parsed.missions)) {
+        const normalized = normalizeMission(id, value);
+        if (normalized) missions[id] = normalized;
+      }
+    }
 
     const observations: Record<string, GuardianObservation> = {};
     if (parsed.observations && typeof parsed.observations === "object") {
@@ -171,6 +248,7 @@ export function readGuardianLocalStore(): GuardianLocalStore {
       },
       events,
       observations,
+      missions,
     };
   } catch {
     return emptyStore();
@@ -195,6 +273,8 @@ export function prepareGuardianEvent(eventId: string, now = new Date()): Guardia
         firstEnteredAt: previous?.firstEnteredAt ?? timestamp,
         lastOpenedAt: timestamp,
         observationIds: previous?.observationIds ?? [],
+        missionIds: previous?.missionIds ?? [],
+        activeMissionId: previous?.activeMissionId ?? null,
       },
     },
   };
@@ -216,11 +296,15 @@ export function removeGuardianEvent(eventId: string): GuardianLocalStore {
   const store = readGuardianLocalStore();
   const events = { ...store.events };
   const observations = { ...store.observations };
+  const missions = { ...store.missions };
   delete events[eventId];
   for (const [id, observation] of Object.entries(observations)) {
     if (observation.eventId === eventId) delete observations[id];
   }
-  const next: GuardianLocalStore = { ...store, events, observations };
+  for (const [id, mission] of Object.entries(missions)) {
+    if (mission.eventId === eventId) delete missions[id];
+  }
+  const next: GuardianLocalStore = { ...store, events, observations, missions };
   writeGuardianLocalStore(next);
   return next;
 }
@@ -235,6 +319,7 @@ export type CreateGuardianObservationInput = {
   limitations?: string;
   locationPrecision: GuardianLocationPrecision;
   sensitivity: GuardianSensitivity;
+  missionId?: string;
 };
 
 function createLocalId() {
@@ -269,6 +354,13 @@ export function createGuardianObservation(
     limitations: optionalText(input.limitations, 2000),
     locationPrecision: isLocationPrecision(input.locationPrecision) ? input.locationPrecision : "unknown",
     sensitivity: isSensitivity(input.sensitivity) ? input.sensitivity : "unknown",
+    missionId:
+      input.missionId &&
+      prepared.activeMissionId === input.missionId &&
+      store.missions[input.missionId]?.eventId === eventId &&
+      store.missions[input.missionId]?.status === "active"
+        ? input.missionId
+        : null,
     visibility: "private",
     status: "recorded",
   };
@@ -307,6 +399,93 @@ export function removeGuardianObservation(observationId: string): GuardianLocalS
       }
     : store.events;
   const next: GuardianLocalStore = { ...store, events, observations };
+  writeGuardianLocalStore(next);
+  return next;
+}
+
+export type StartGuardianMissionInput = {
+  eventId: string;
+  kind: GuardianMissionKind;
+  title: string;
+  question: string;
+};
+
+export function startGuardianMission(
+  input: StartGuardianMissionInput,
+  now = new Date()
+): { store: GuardianLocalStore; mission: GuardianMission } {
+  const store = readGuardianLocalStore();
+  const eventMemory = store.events[input.eventId];
+  if (!eventMemory) throw new Error("Prepará el espacio Guardian antes de iniciar una misión.");
+  if (eventMemory.activeMissionId && store.missions[eventMemory.activeMissionId]?.status === "active") {
+    throw new Error("Ya existe una misión activa para este evento.");
+  }
+
+  const title = optionalText(input.title, 200);
+  const question = optionalText(input.question, 500);
+  if (!title || !question || !isMissionKind(input.kind)) throw new Error("La misión no es válida.");
+  const id = createLocalId();
+  const timestamp = now.toISOString();
+  const mission: GuardianMission = {
+    id,
+    eventId: input.eventId,
+    kind: input.kind,
+    title,
+    question,
+    status: "active",
+    startedAt: timestamp,
+    updatedAt: timestamp,
+    closedAt: null,
+  };
+  const next: GuardianLocalStore = {
+    ...store,
+    events: {
+      ...store.events,
+      [input.eventId]: {
+        ...eventMemory,
+        lastOpenedAt: timestamp,
+        missionIds: [...eventMemory.missionIds, id],
+        activeMissionId: id,
+      },
+    },
+    missions: { ...store.missions, [id]: mission },
+  };
+  writeGuardianLocalStore(next);
+  return { store: next, mission };
+}
+
+export function closeGuardianMission(
+  missionId: string,
+  status: Extract<GuardianMissionStatus, "completed" | "insufficient_information">,
+  now = new Date()
+): GuardianLocalStore {
+  const store = readGuardianLocalStore();
+  const mission = store.missions[missionId];
+  if (!mission || mission.status !== "active") return store;
+  if (
+    status === "completed" &&
+    !Object.values(store.observations).some((observation) => observation.missionId === missionId)
+  ) {
+    throw new Error("Guardá al menos una observación vinculada antes de completar la misión.");
+  }
+  const timestamp = now.toISOString();
+  const eventMemory = store.events[mission.eventId];
+  const next: GuardianLocalStore = {
+    ...store,
+    events: eventMemory
+      ? {
+          ...store.events,
+          [mission.eventId]: {
+            ...eventMemory,
+            activeMissionId: eventMemory.activeMissionId === missionId ? null : eventMemory.activeMissionId,
+          },
+        }
+      : store.events,
+    missions: {
+      ...store.missions,
+      [missionId]: { ...mission, status, updatedAt: timestamp, closedAt: timestamp },
+    },
+  };
   writeGuardianLocalStore(next);
   return next;
 }

@@ -20,10 +20,14 @@ const fieldClass =
 export function GuardianObservationForm({
   eventId,
   exposure,
+  missionId,
+  missionTitle,
   onSaved,
 }: {
   eventId: string;
   exposure: GuardianExposurePreference;
+  missionId?: string | null;
+  missionTitle?: string | null;
   onSaved: (store: GuardianLocalStore) => void;
 }) {
   const [observedText, setObservedText] = useState("");
@@ -48,6 +52,7 @@ export function GuardianObservationForm({
         limitations,
         locationPrecision,
         sensitivity,
+        missionId: missionId ?? undefined,
       });
       onSaved(result.store);
       setObservedText("");
@@ -67,6 +72,11 @@ export function GuardianObservationForm({
       <div className="mt-1 text-xs leading-relaxed text-white/40">
         Describí algo concreto. Las conclusiones pertenecen al campo de interpretación.
       </div>
+      {missionId && missionTitle ? (
+        <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.04] px-3 py-2 text-xs text-cyan-100/65">
+          Misión activa: {missionTitle}
+        </div>
+      ) : null}
 
       <div className="mt-4">
         <label className="text-xs font-medium text-white/60" htmlFor={`guardian-observed-${eventId}`}>
