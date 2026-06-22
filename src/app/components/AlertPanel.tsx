@@ -5,9 +5,11 @@ import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
 import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/components/GuardianMissionPanel";
 import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
+import { GuardianObservationReview } from "@/app/components/GuardianObservationReview";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import {
   prepareGuardianEvent,
+  findGuardianEventRecord,
   readGuardianLocalStore,
   removeGuardianEvent,
   removeGuardianObservation,
@@ -1857,7 +1859,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : trend.toLowerCase().includes("stable")
       ? "Estable"
       : "No disponible";
-  const guardianEventMemory = guardianStore.events[event.id] ?? null;
+  const guardianEventRecord = findGuardianEventRecord(guardianStore, event);
+  const guardianEventMemory = guardianEventRecord?.memory ?? null;
+  const guardianEventRecordId = guardianEventRecord?.recordId ?? null;
   const guardianObservations = (guardianEventMemory?.observationIds ?? [])
     .map((id) => guardianStore.observations[id])
     .filter((observation): observation is GuardianObservation => Boolean(observation))
@@ -2375,7 +2379,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 {guardianEventMemory ? (
                   <>
                     <GuardianMissionPanel
-                      eventId={event.id}
+                      eventId={guardianEventRecordId!}
                       templates={guardianMissionTemplates}
                       activeMission={activeGuardianMission}
                       linkedObservationCount={activeMissionObservationCount}
@@ -2387,7 +2391,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     />
 
                     <GuardianObservationForm
-                      eventId={event.id}
+                      eventId={guardianEventRecordId!}
                       exposure={guardianExposure}
                       missionId={activeGuardianMission?.id}
                       missionTitle={activeGuardianMission?.title}
@@ -2452,6 +2456,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                   Limitaciones: {observation.limitations}
                                 </div>
                               ) : null}
+
+                              <GuardianObservationReview
+                                observation={observation}
+                                onSaved={(store) => {
+                                  setGuardianStore(store);
+                                  setGuardianStorageErr(null);
+                                }}
+                              />
 
                               {guardianObservationDeleteId === observation.id ? (
                                 <div className="mt-3 rounded-xl border border-red-300/15 bg-red-500/[0.05] p-3">
@@ -2551,7 +2563,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         type="button"
                         onClick={() => {
                           try {
-                            setGuardianStore(removeGuardianEvent(event.id));
+                            if (!guardianEventRecordId) return;
+                            setGuardianStore(removeGuardianEvent(guardianEventRecordId));
                             setGuardianDeletePending(false);
                             setGuardianObservationDeleteId(null);
                             setGuardianVisualConsent(false);

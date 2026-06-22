@@ -19,6 +19,12 @@ export type GuardianObservationSource =
 
 export type GuardianLocationPrecision = "event_area" | "approximate" | "protected" | "unknown";
 export type GuardianSensitivity = "none" | "sensitive" | "unknown";
+export type GuardianReviewStatus =
+  | "unreviewed"
+  | "source_reviewed"
+  | "source_agreement"
+  | "source_conflict"
+  | "inconclusive";
 export type GuardianMissionKind =
   | "review_satellite"
   | "review_cameras"
@@ -73,6 +79,10 @@ export type GuardianObservation = {
   locationPrecision: GuardianLocationPrecision;
   sensitivity: GuardianSensitivity;
   missionId: string | null;
+  reviewStatus: GuardianReviewStatus;
+  reviewNote: string | null;
+  reviewSourceReference: string | null;
+  reviewedAt: string | null;
   visibility: "private";
   status: "recorded";
 };
@@ -211,6 +221,37 @@ function normalizeEventSnapshot(value: unknown): GuardianEventSnapshot | null {
   };
 }
 
+function deg2rad(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+export function guardianSnapshotDistanceKm(snapshot: GuardianEventSnapshot, event: EnvironmentalEvent) {
+  const earthRadiusKm = 6371;
+  const dLat = deg2rad(event.latitude - snapshot.latitude);
+  const dLon = deg2rad(event.longitude - snapshot.longitude);
+  const lat1 = deg2rad(snapshot.latitude);
+  const lat2 = deg2rad(event.latitude);
+  const value =
+    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * earthRadiusKm * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
+
+export function findGuardianEventRecord(
+  store: GuardianLocalStore,
+  event: EnvironmentalEvent,
+  maxDistanceKm = 30
+): { recordId: string; memory: GuardianEventMemory } | null {
+  let best: { recordId: string; memory: GuardianEventMemory; distanceKm: number } | null = null;
+  for (const [recordId, memory] of Object.entries(store.events)) {
+    if (!memory.snapshot || memory.snapshot.category !== event.category) continue;
+    const distanceKm = guardianSnapshotDistanceKm(memory.snapshot, event);
+    if (distanceKm > maxDistanceKm || (best && best.distanceKm <= distanceKm)) continue;
+    best = { recordId, memory, distanceKm };
+  }
+  return best ? { recordId: best.recordId, memory: best.memory } : null;
+}
+
 function normalizeEventMemory(eventId: string, value: unknown): GuardianEventMemory | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Partial<GuardianEventMemory> & { firstObservedAt?: string };
@@ -272,6 +313,12 @@ function isSensitivity(value: unknown): value is GuardianSensitivity {
   return ["none", "sensitive", "unknown"].includes(String(value));
 }
 
+function isReviewStatus(value: unknown): value is GuardianReviewStatus {
+  return ["unreviewed", "source_reviewed", "source_agreement", "source_conflict", "inconclusive"].includes(
+    String(value)
+  );
+}
+
 function optionalText(value: unknown, maxLength: number) {
   if (typeof value !== "string") return null;
   const text = value.trim();
@@ -301,6 +348,13 @@ function normalizeObservation(id: string, value: unknown): GuardianObservation |
     locationPrecision: isLocationPrecision(record.locationPrecision) ? record.locationPrecision : "unknown",
     sensitivity: isSensitivity(record.sensitivity) ? record.sensitivity : "unknown",
     missionId: optionalText(record.missionId, 200),
+    reviewStatus: isReviewStatus(record.reviewStatus) ? record.reviewStatus : "unreviewed",
+    reviewNote: optionalText(record.reviewNote, 3000),
+    reviewSourceReference: optionalText(record.reviewSourceReference, 1000),
+    reviewedAt:
+      typeof record.reviewedAt === "string" && Number.isFinite(new Date(record.reviewedAt).getTime())
+        ? record.reviewedAt
+        : null,
     visibility: "private",
     status: "recorded",
   };
@@ -386,10 +440,14 @@ function writeGuardianLocalStore(store: GuardianLocalStore) {
 
 export function prepareGuardianEvent(eventOrId: EnvironmentalEvent | string, now = new Date()): GuardianLocalStore {
   const store = readGuardianLocalStore();
-  const eventId = typeof eventOrId === "string" ? eventOrId : eventOrId.id;
+  const matched = typeof eventOrId === "string" ? null : findGuardianEventRecord(store, eventOrId);
+  const eventId =
+    typeof eventOrId === "string"
+      ? eventOrId
+      : matched?.recordId ?? `guardian-event-${createLocalId()}`;
   const snapshot = typeof eventOrId === "string" ? null : snapshotFromEvent(eventOrId);
   const timestamp = now.toISOString();
-  const previous = store.events[eventId];
+  const previous = matched?.memory ?? store.events[eventId];
   const next: GuardianLocalStore = {
     ...store,
     events: {
@@ -488,6 +546,10 @@ export function createGuardianObservation(
       store.missions[input.missionId]?.status === "active"
         ? input.missionId
         : null,
+    reviewStatus: "unreviewed",
+    reviewNote: null,
+    reviewSourceReference: null,
+    reviewedAt: null,
     visibility: "private",
     status: "recorded",
   };
@@ -526,6 +588,48 @@ export function removeGuardianObservation(observationId: string): GuardianLocalS
       }
     : store.events;
   const next: GuardianLocalStore = { ...store, events, observations };
+  writeGuardianLocalStore(next);
+  return next;
+}
+
+export type ReviewGuardianObservationInput = {
+  status: GuardianReviewStatus;
+  note?: string;
+  sourceReference?: string;
+};
+
+export function reviewGuardianObservation(
+  observationId: string,
+  input: ReviewGuardianObservationInput,
+  now = new Date()
+): GuardianLocalStore {
+  const store = readGuardianLocalStore();
+  const observation = store.observations[observationId];
+  if (!observation) throw new Error("La observación ya no está disponible.");
+  if (!isReviewStatus(input.status)) throw new Error("El estado de revisión no es válido.");
+
+  const sourceReference = optionalText(input.sourceReference, 1000);
+  if (
+    (input.status === "source_agreement" || input.status === "source_conflict") &&
+    !sourceReference
+  ) {
+    throw new Error("Registrá la fuente utilizada para el contraste.");
+  }
+
+  const reset = input.status === "unreviewed";
+  const next: GuardianLocalStore = {
+    ...store,
+    observations: {
+      ...store.observations,
+      [observationId]: {
+        ...observation,
+        reviewStatus: input.status,
+        reviewNote: reset ? null : optionalText(input.note, 3000),
+        reviewSourceReference: reset ? null : sourceReference,
+        reviewedAt: reset ? null : now.toISOString(),
+      },
+    },
+  };
   writeGuardianLocalStore(next);
   return next;
 }

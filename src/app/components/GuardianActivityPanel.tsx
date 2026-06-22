@@ -3,6 +3,7 @@ import { ClipboardList, MapPin, ShieldCheck, X } from "lucide-react";
 import type { EnvironmentalEvent } from "@/data/events";
 import {
   readGuardianLocalStore,
+  guardianSnapshotDistanceKm,
   type GuardianEventSnapshot,
   type GuardianLocalStore,
   type GuardianMission,
@@ -74,10 +75,15 @@ export function GuardianActivityPanel({
   }, [open, onClose]);
 
   const rows = useMemo(() => {
-    const liveById = new Map(events.map((event) => [event.id, event]));
     return Object.values(store.events)
       .map((memory) => {
-        const liveEvent = liveById.get(memory.eventId) ?? null;
+        const liveEvent = memory.snapshot
+          ? events
+              .filter((event) => event.category === memory.snapshot!.category)
+              .map((event) => ({ event, distanceKm: guardianSnapshotDistanceKm(memory.snapshot!, event) }))
+              .filter((candidate) => candidate.distanceKm <= 30)
+              .sort((a, b) => a.distanceKm - b.distanceKm)[0]?.event ?? null
+          : null;
         const event = liveEvent ?? (memory.snapshot ? eventFromSnapshot(memory.snapshot) : null);
         const missions = memory.missionIds
           .map((id) => store.missions[id])

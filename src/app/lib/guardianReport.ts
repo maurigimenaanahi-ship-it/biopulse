@@ -39,6 +39,14 @@ const SENSITIVITY_LABELS: Record<GuardianObservation["sensitivity"], string> = {
   unknown: "Sin evaluar",
 };
 
+const REVIEW_LABELS: Record<GuardianObservation["reviewStatus"], string> = {
+  unreviewed: "Sin revisar",
+  source_reviewed: "Fuente revisada sin segunda fuente independiente",
+  source_agreement: "Coincidencia entre fuentes",
+  source_conflict: "Contradicción entre fuentes",
+  inconclusive: "No concluyente",
+};
+
 function utc(value: string | Date | null | undefined) {
   if (!value) return "No disponible";
   const date = value instanceof Date ? value : new Date(value);
@@ -134,6 +142,10 @@ export function buildGuardianReport({
         `- Misión vinculada: ${mission ? singleLine(mission.title) : "Ninguna"}`,
         `- Precisión de ubicación declarada: ${LOCATION_LABELS[observation.locationPrecision]}`,
         `- Sensibilidad declarada: ${SENSITIVITY_LABELS[observation.sensitivity]}`,
+        `- Revisión de procedencia: ${REVIEW_LABELS[observation.reviewStatus]}`,
+        `- Fuente de contraste: ${observation.reviewSourceReference ? singleLine(observation.reviewSourceReference) : "No informada"}`,
+        `- Notas de revisión: ${observation.reviewNote ? singleLine(observation.reviewNote) : "No informadas"}`,
+        `- Momento de revisión: ${utc(observation.reviewedAt)}`,
         `- Interpretación Guardian: ${observation.interpretation ? singleLine(observation.interpretation) : "No informada"}`,
         `- Limitaciones: ${observation.limitations ? singleLine(observation.limitations) : "No informadas"}`,
         ""
