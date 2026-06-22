@@ -2509,7 +2509,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       type="button"
                       onClick={() => {
                         try {
-                          setGuardianStore(prepareGuardianEvent(event.id));
+                          setGuardianStore(prepareGuardianEvent(event));
                           setGuardianStorageErr(null);
                         } catch {
                           setGuardianStorageErr("No se pudo preparar el espacio Guardian en este dispositivo.");

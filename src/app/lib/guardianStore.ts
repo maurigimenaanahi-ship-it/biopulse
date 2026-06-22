@@ -1,3 +1,5 @@
+import type { EnvironmentalEvent, EventCategory, EventStatus, EventTrend, EvacuationLevel } from "@/data/events";
+
 export const GUARDIAN_STORAGE_KEY = "biopulse:guardian:local:v1";
 
 export type GuardianExposurePreference =
@@ -25,6 +27,26 @@ export type GuardianMissionKind =
   | "compare_changes"
   | "identify_gaps";
 export type GuardianMissionStatus = "active" | "completed" | "insufficient_information";
+
+export type GuardianEventSnapshot = {
+  id: string;
+  category: EventCategory;
+  title: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  severity: EnvironmentalEvent["severity"];
+  description: string;
+  timestamp: string;
+  lastSeen: string | null;
+  liveFeedUrl: string | null;
+  status: EventStatus | null;
+  trend: EventTrend | null;
+  evacuationLevel: EvacuationLevel | null;
+  focusCount: number | null;
+  frpMax: number | null;
+  frpSum: number | null;
+};
 
 export type GuardianMission = {
   id: string;
@@ -57,6 +79,7 @@ export type GuardianObservation = {
 
 export type GuardianEventMemory = {
   eventId: string;
+  snapshot: GuardianEventSnapshot | null;
   firstEnteredAt: string;
   lastOpenedAt: string;
   observationIds: string[];
@@ -95,6 +118,99 @@ function isExposurePreference(value: unknown): value is GuardianExposurePreferen
   );
 }
 
+function optionalFiniteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function isEventCategory(value: unknown): value is EventCategory {
+  return ["flood", "fire", "storm", "heatwave", "air-pollution", "ocean-anomaly"].includes(String(value));
+}
+
+function isEventSeverity(value: unknown): value is EnvironmentalEvent["severity"] {
+  return ["low", "moderate", "high", "critical"].includes(String(value));
+}
+
+function isEventStatus(value: unknown): value is EventStatus {
+  return ["active", "contained", "escalating", "stabilizing", "resolved"].includes(String(value));
+}
+
+function isEvacuationLevel(value: unknown): value is EvacuationLevel {
+  return ["none", "recommended", "mandatory"].includes(String(value));
+}
+
+function isEventTrend(value: unknown): value is EventTrend {
+  return ["rising", "stable", "falling"].includes(String(value));
+}
+
+function snapshotFromEvent(event: EnvironmentalEvent): GuardianEventSnapshot {
+  const timestamp = event.timestamp instanceof Date ? event.timestamp : new Date(event.timestamp);
+  const lastSeen = event.lastSeen instanceof Date ? event.lastSeen : event.lastSeen ? new Date(event.lastSeen) : null;
+  return {
+    id: event.id,
+    category: event.category,
+    title: event.title,
+    location: event.location,
+    latitude: event.latitude,
+    longitude: event.longitude,
+    severity: event.severity,
+    description: event.description,
+    timestamp: Number.isFinite(timestamp.getTime()) ? timestamp.toISOString() : new Date().toISOString(),
+    lastSeen: lastSeen && Number.isFinite(lastSeen.getTime()) ? lastSeen.toISOString() : null,
+    liveFeedUrl: optionalText(event.liveFeedUrl, 2000),
+    status: isEventStatus(event.status) ? event.status : null,
+    trend: isEventTrend(event.trend) ? event.trend : null,
+    evacuationLevel: isEvacuationLevel(event.evacuationLevel) ? event.evacuationLevel : null,
+    focusCount: optionalFiniteNumber(event.focusCount),
+    frpMax: optionalFiniteNumber(event.frpMax),
+    frpSum: optionalFiniteNumber(event.frpSum),
+  };
+}
+
+function normalizeEventSnapshot(value: unknown): GuardianEventSnapshot | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Partial<GuardianEventSnapshot>;
+  const id = optionalText(record.id, 200);
+  const title = optionalText(record.title, 500);
+  const location = optionalText(record.location, 500);
+  const description = optionalText(record.description, 4000) ?? "";
+  const timestamp = optionalText(record.timestamp, 80);
+  const latitude = optionalFiniteNumber(record.latitude);
+  const longitude = optionalFiniteNumber(record.longitude);
+  if (
+    !id ||
+    !title ||
+    !location ||
+    !timestamp ||
+    latitude == null ||
+    longitude == null ||
+    !Number.isFinite(new Date(timestamp).getTime()) ||
+    !isEventCategory(record.category) ||
+    !isEventSeverity(record.severity)
+  ) {
+    return null;
+  }
+  const lastSeen = optionalText(record.lastSeen, 80);
+  return {
+    id,
+    category: record.category,
+    title,
+    location,
+    latitude,
+    longitude,
+    severity: record.severity,
+    description,
+    timestamp,
+    lastSeen: lastSeen && Number.isFinite(new Date(lastSeen).getTime()) ? lastSeen : null,
+    liveFeedUrl: optionalText(record.liveFeedUrl, 2000),
+    status: isEventStatus(record.status) ? record.status : null,
+    trend: isEventTrend(record.trend) ? record.trend : null,
+    evacuationLevel: isEvacuationLevel(record.evacuationLevel) ? record.evacuationLevel : null,
+    focusCount: optionalFiniteNumber(record.focusCount),
+    frpMax: optionalFiniteNumber(record.frpMax),
+    frpSum: optionalFiniteNumber(record.frpSum),
+  };
+}
+
 function normalizeEventMemory(eventId: string, value: unknown): GuardianEventMemory | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Partial<GuardianEventMemory> & { firstObservedAt?: string };
@@ -116,7 +232,15 @@ function normalizeEventMemory(eventId: string, value: unknown): GuardianEventMem
     ? record.missionIds.filter((id): id is string => typeof id === "string")
     : [];
   const activeMissionId = typeof record.activeMissionId === "string" ? record.activeMissionId : null;
-  return { eventId, firstEnteredAt, lastOpenedAt, observationIds, missionIds, activeMissionId };
+  return {
+    eventId,
+    snapshot: normalizeEventSnapshot(record.snapshot),
+    firstEnteredAt,
+    lastOpenedAt,
+    observationIds,
+    missionIds,
+    activeMissionId,
+  };
 }
 
 function isMissionKind(value: unknown): value is GuardianMissionKind {
@@ -260,8 +384,10 @@ function writeGuardianLocalStore(store: GuardianLocalStore) {
   localStorage.setItem(GUARDIAN_STORAGE_KEY, JSON.stringify(store));
 }
 
-export function prepareGuardianEvent(eventId: string, now = new Date()): GuardianLocalStore {
+export function prepareGuardianEvent(eventOrId: EnvironmentalEvent | string, now = new Date()): GuardianLocalStore {
   const store = readGuardianLocalStore();
+  const eventId = typeof eventOrId === "string" ? eventOrId : eventOrId.id;
+  const snapshot = typeof eventOrId === "string" ? null : snapshotFromEvent(eventOrId);
   const timestamp = now.toISOString();
   const previous = store.events[eventId];
   const next: GuardianLocalStore = {
@@ -270,6 +396,7 @@ export function prepareGuardianEvent(eventId: string, now = new Date()): Guardia
       ...store.events,
       [eventId]: {
         eventId,
+        snapshot: snapshot ?? previous?.snapshot ?? null,
         firstEnteredAt: previous?.firstEnteredAt ?? timestamp,
         lastOpenedAt: timestamp,
         observationIds: previous?.observationIds ?? [],

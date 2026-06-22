@@ -7,10 +7,11 @@ import { StatsPanel } from "./components/StatsPanel";
 import { SplashScreen } from "./components/SplashScreen";
 import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { FollowedAlertsPanel } from "./components/FollowedAlertsPanel";
+import { GuardianActivityPanel } from "./components/GuardianActivityPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
-import { SlidersHorizontal, CornerUpLeft, Bell } from "lucide-react";
+import { SlidersHorizontal, CornerUpLeft, Bell, ShieldCheck } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -142,6 +143,7 @@ export default function App() {
 
   // ✅ panel de seguidas
   const [showFollowed, setShowFollowed] = useState(false);
+  const [showGuardianActivity, setShowGuardianActivity] = useState(false);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -333,6 +335,16 @@ export default function App() {
         }}
       />
 
+      <GuardianActivityPanel
+        open={showGuardianActivity}
+        events={events}
+        onClose={() => setShowGuardianActivity(false)}
+        onSelect={(ev) => {
+          setSelectedEvent(ev);
+          ensureSelectedEventHasLocation(ev);
+        }}
+      />
+
       {stage === "setup" && (
         <SetupPanel
           category={selectedCategory}
@@ -394,7 +406,10 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => setShowFollowed(true)}
+                  onClick={() => {
+                    setShowGuardianActivity(false);
+                    setShowFollowed(true);
+                  }}
                   className={[
                     "group flex items-center gap-3",
                     "px-4 py-3 rounded-2xl shadow-lg",
@@ -413,6 +428,32 @@ export default function App() {
                   <div className="text-left leading-tight">
                     <div className="text-sm md:text-base font-semibold">Mis alertas</div>
                     <div className="text-xs text-white/55 mt-0.5">Following</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowFollowed(false);
+                    setShowGuardianActivity(true);
+                  }}
+                  className={[
+                    "group flex items-center gap-3",
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border border-emerald-300/15",
+                    "bg-emerald-400/[0.07] hover:bg-emerald-400/10",
+                    "text-white/90 hover:text-white",
+                    "transition-colors",
+                    "min-w-[220px]",
+                  ].join(" ")}
+                  title="Ver actividad Guardian local"
+                  aria-label="Ver actividad Guardian local"
+                >
+                  <div className="h-10 w-10 rounded-xl border border-emerald-300/15 bg-black/20 flex items-center justify-center">
+                    <ShieldCheck className="h-5 w-5 text-emerald-200/75" />
+                  </div>
+                  <div className="text-left leading-tight">
+                    <div className="text-sm md:text-base font-semibold">Mi actividad Guardian</div>
+                    <div className="text-xs text-white/55 mt-0.5">Privada · local</div>
                   </div>
                 </button>
               </div>
