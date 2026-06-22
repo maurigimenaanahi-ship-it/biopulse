@@ -3,13 +3,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
+import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
 import {
   prepareGuardianEvent,
   readGuardianLocalStore,
   removeGuardianEvent,
+  removeGuardianObservation,
   setGuardianExposurePreference,
   type GuardianExposurePreference,
   type GuardianLocalStore,
+  type GuardianObservation,
 } from "@/app/lib/guardianStore";
 import {
   X,
@@ -472,6 +475,25 @@ const sourceCoverageMeta: Record<SourceCoverageState, { label: string; className
     dot: "bg-white/25",
   },
 };
+
+function guardianSourceLabel(source: GuardianObservation["sourceType"]) {
+  switch (source) {
+    case "satellite":
+      return "Satélite";
+    case "camera":
+      return "Cámara";
+    case "news":
+      return "Noticia";
+    case "official_document":
+      return "Documento oficial";
+    case "physical_observation":
+      return "Observación física";
+    case "other":
+      return "Otra fuente";
+    default:
+      return "Sin fuente identificada";
+  }
+}
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -1246,6 +1268,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [guardianStorageErr, setGuardianStorageErr] = useState<string | null>(null);
   const [guardianVisualConsent, setGuardianVisualConsent] = useState(false);
   const [guardianDeletePending, setGuardianDeletePending] = useState(false);
+  const [guardianObservationDeleteId, setGuardianObservationDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!event) return;
@@ -1261,6 +1284,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setGuardianStorageErr(null);
     setGuardianVisualConsent(false);
     setGuardianDeletePending(false);
+    setGuardianObservationDeleteId(null);
   }, [event?.id]);
 
   useEffect(() => {
@@ -1831,6 +1855,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "Estable"
       : "No disponible";
   const guardianEventMemory = guardianStore.events[event.id] ?? null;
+  const guardianObservations = (guardianEventMemory?.observationIds ?? [])
+    .map((id) => guardianStore.observations[id])
+    .filter((observation): observation is GuardianObservation => Boolean(observation))
+    .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
   const guardianExposureOptions: Array<{ value: GuardianExposurePreference; label: string }> = [
     { value: "data_only", label: "Solo datos" },
     { value: "general_images", label: "Imágenes generales" },
@@ -2285,6 +2313,111 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
+                {guardianEventMemory ? (
+                  <>
+                    <GuardianObservationForm
+                      eventId={event.id}
+                      exposure={guardianExposure}
+                      onSaved={(store) => {
+                        setGuardianStore(store);
+                        setGuardianStorageErr(null);
+                      }}
+                    />
+
+                    <div className="border-t border-white/10">
+                      <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div>
+                          <div className="text-sm font-semibold text-white/80">Observaciones guardadas</div>
+                          <div className="mt-0.5 text-xs text-white/35">Privadas en este dispositivo</div>
+                        </div>
+                        <div className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-white/55">
+                          {guardianObservations.length}
+                        </div>
+                      </div>
+
+                      {guardianObservations.length > 0 ? (
+                        <div className="divide-y divide-white/10 border-t border-white/10">
+                          {guardianObservations.map((observation) => (
+                            <div key={observation.id} className="px-4 py-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-sm leading-relaxed text-white/75">{observation.observedText}</div>
+                                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/35">
+                                    <span>{guardianSourceLabel(observation.sourceType)}</span>
+                                    <span>Observado: {fmtDateTimeUTC(new Date(observation.observedAt))}</span>
+                                    <span>Registrado: {fmtDateTimeUTC(new Date(observation.recordedAt))}</span>
+                                    <span>Privada</span>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setGuardianObservationDeleteId(observation.id)}
+                                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white/35 hover:bg-white/5 hover:text-red-100/70"
+                                  aria-label="Eliminar observación"
+                                  title="Eliminar observación"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+
+                              {observation.sourceReference ? (
+                                <div className="mt-2 break-words text-xs text-cyan-100/55">
+                                  Fuente: {observation.sourceReference}
+                                </div>
+                              ) : null}
+                              {observation.interpretation ? (
+                                <div className="mt-3 border-l-2 border-violet-300/20 pl-3">
+                                  <div className="text-[10px] uppercase tracking-wide text-violet-100/45">Interpretación</div>
+                                  <div className="mt-1 text-xs leading-relaxed text-white/50">{observation.interpretation}</div>
+                                </div>
+                              ) : null}
+                              {observation.limitations ? (
+                                <div className="mt-2 text-xs leading-relaxed text-white/40">
+                                  Limitaciones: {observation.limitations}
+                                </div>
+                              ) : null}
+
+                              {guardianObservationDeleteId === observation.id ? (
+                                <div className="mt-3 rounded-xl border border-red-300/15 bg-red-500/[0.05] p-3">
+                                  <div className="text-xs text-red-100/75">¿Eliminar esta observación privada?</div>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setGuardianObservationDeleteId(null)}
+                                      className="min-h-8 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60"
+                                    >
+                                      Cancelar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        try {
+                                          setGuardianStore(removeGuardianObservation(observation.id));
+                                          setGuardianObservationDeleteId(null);
+                                          setGuardianStorageErr(null);
+                                        } catch {
+                                          setGuardianStorageErr("No se pudo eliminar la observación de este dispositivo.");
+                                        }
+                                      }}
+                                      className="min-h-8 rounded-lg border border-red-300/20 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-100/80"
+                                    >
+                                      Confirmar eliminación
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="border-t border-white/10 px-4 py-4 text-sm text-white/40">
+                          Todavía no registraste observaciones para este evento.
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : null}
+
                 <div className="flex flex-col gap-3 border-t border-white/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-[11px] leading-relaxed text-white/35">
                     Trabajo privado guardado en este dispositivo. BioPulse no lo transmite ni lo publica.
@@ -2322,7 +2455,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="border-t border-red-300/15 bg-red-500/[0.05] px-4 py-4">
                     <div className="text-sm font-medium text-red-100/80">¿Eliminar el registro Guardian de este evento?</div>
                     <div className="mt-1 text-xs leading-relaxed text-white/40">
-                      Se eliminarán las fechas locales asociadas. Esta acción no modifica el evento público.
+                      Se eliminarán las fechas y observaciones privadas asociadas. Esta acción no modifica el evento público.
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
@@ -2338,6 +2471,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           try {
                             setGuardianStore(removeGuardianEvent(event.id));
                             setGuardianDeletePending(false);
+                            setGuardianObservationDeleteId(null);
                             setGuardianVisualConsent(false);
                             setGuardianStorageErr(null);
                           } catch {
