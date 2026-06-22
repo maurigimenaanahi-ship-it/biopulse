@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ClipboardList, MapPin, ShieldCheck, X } from "lucide-react";
+import { GuardianBackupControls } from "@/app/components/GuardianBackupControls";
 import type { EnvironmentalEvent } from "@/data/events";
 import {
   readGuardianLocalStore,
@@ -220,6 +221,8 @@ export function GuardianActivityPanel({
             </div>
           )}
         </div>
+
+        <GuardianBackupControls onRestore={setStore} />
 
         <div className="border-t border-white/10 px-5 py-3 text-[11px] leading-relaxed text-white/35 md:px-6">
           Esta actividad no está sincronizada ni publicada. Borrar los datos del navegador puede eliminarla.

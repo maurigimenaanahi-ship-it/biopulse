@@ -336,6 +336,16 @@ function optionalText(value: unknown, maxLength: number) {
   return text ? text.slice(0, maxLength) : null;
 }
 
+function isSafeRecordId(value: string) {
+  return (
+    value.length > 0 &&
+    value.length <= 200 &&
+    value !== "__proto__" &&
+    value !== "prototype" &&
+    value !== "constructor"
+  );
+}
+
 function normalizeObservationIntegrity(value: unknown): GuardianObservationIntegrity | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Partial<GuardianObservationIntegrity>;
@@ -417,59 +427,67 @@ function normalizeMission(id: string, value: unknown): GuardianMission | null {
   };
 }
 
+export function normalizeGuardianLocalStore(value: unknown): GuardianLocalStore | null {
+  if (!value || typeof value !== "object") return null;
+  const parsed = value as Partial<GuardianLocalStore>;
+  if (parsed.schema !== "biopulse.guardian.local.v1") return null;
+
+  const missions: Record<string, GuardianMission> = {};
+  if (parsed.missions && typeof parsed.missions === "object") {
+    for (const [id, value] of Object.entries(parsed.missions)) {
+      if (!isSafeRecordId(id)) continue;
+      const normalized = normalizeMission(id, value);
+      if (normalized) missions[id] = normalized;
+    }
+  }
+
+  const observations: Record<string, GuardianObservation> = {};
+  if (parsed.observations && typeof parsed.observations === "object") {
+    for (const [id, value] of Object.entries(parsed.observations)) {
+      if (!isSafeRecordId(id)) continue;
+      const normalized = normalizeObservation(id, value);
+      if (normalized) observations[id] = normalized;
+    }
+  }
+
+  const events: Record<string, GuardianEventMemory> = {};
+  if (parsed.events && typeof parsed.events === "object") {
+    for (const [eventId, value] of Object.entries(parsed.events)) {
+      if (!isSafeRecordId(eventId)) continue;
+      const normalized = normalizeEventMemory(eventId, value);
+      if (normalized) events[eventId] = normalized;
+    }
+  }
+
+  return {
+    schema: "biopulse.guardian.local.v1",
+    preferences: {
+      exposure: isExposurePreference(parsed.preferences?.exposure)
+        ? parsed.preferences.exposure
+        : DEFAULT_EXPOSURE,
+      preparationVersion:
+        parsed.preferences?.preparationVersion === GUARDIAN_PREPARATION_VERSION
+          ? GUARDIAN_PREPARATION_VERSION
+          : null,
+      preparedAt:
+        typeof parsed.preferences?.preparedAt === "string" &&
+        Number.isFinite(new Date(parsed.preferences.preparedAt).getTime())
+          ? parsed.preferences.preparedAt
+          : null,
+    },
+    events,
+    observations,
+    missions,
+  };
+}
+
 export function readGuardianLocalStore(): GuardianLocalStore {
   if (typeof window === "undefined") return emptyStore();
 
   try {
     const raw = localStorage.getItem(GUARDIAN_STORAGE_KEY);
     if (!raw) return emptyStore();
-    const parsed = JSON.parse(raw) as Partial<GuardianLocalStore>;
-    if (parsed?.schema !== "biopulse.guardian.local.v1") return emptyStore();
-
-    const missions: Record<string, GuardianMission> = {};
-    if (parsed.missions && typeof parsed.missions === "object") {
-      for (const [id, value] of Object.entries(parsed.missions)) {
-        const normalized = normalizeMission(id, value);
-        if (normalized) missions[id] = normalized;
-      }
-    }
-
-    const observations: Record<string, GuardianObservation> = {};
-    if (parsed.observations && typeof parsed.observations === "object") {
-      for (const [id, value] of Object.entries(parsed.observations)) {
-        const normalized = normalizeObservation(id, value);
-        if (normalized) observations[id] = normalized;
-      }
-    }
-
-    const events: Record<string, GuardianEventMemory> = {};
-    if (parsed.events && typeof parsed.events === "object") {
-      for (const [eventId, value] of Object.entries(parsed.events)) {
-        const normalized = normalizeEventMemory(eventId, value);
-        if (normalized) events[eventId] = normalized;
-      }
-    }
-
-    return {
-      schema: "biopulse.guardian.local.v1",
-      preferences: {
-        exposure: isExposurePreference(parsed.preferences?.exposure)
-          ? parsed.preferences.exposure
-          : DEFAULT_EXPOSURE,
-        preparationVersion:
-          parsed.preferences?.preparationVersion === GUARDIAN_PREPARATION_VERSION
-            ? GUARDIAN_PREPARATION_VERSION
-            : null,
-        preparedAt:
-          typeof parsed.preferences?.preparedAt === "string" &&
-          Number.isFinite(new Date(parsed.preferences.preparedAt).getTime())
-            ? parsed.preferences.preparedAt
-            : null,
-      },
-      events,
-      observations,
-      missions,
-    };
+    return normalizeGuardianLocalStore(JSON.parse(raw)) ?? emptyStore();
   } catch {
     return emptyStore();
   }
@@ -478,6 +496,13 @@ export function readGuardianLocalStore(): GuardianLocalStore {
 function writeGuardianLocalStore(store: GuardianLocalStore) {
   if (typeof window === "undefined") throw new Error("El almacenamiento local no está disponible.");
   localStorage.setItem(GUARDIAN_STORAGE_KEY, JSON.stringify(store));
+}
+
+export function replaceGuardianLocalStore(value: unknown): GuardianLocalStore {
+  const store = normalizeGuardianLocalStore(value);
+  if (!store) throw new Error("El respaldo no contiene una memoria Guardian compatible.");
+  writeGuardianLocalStore(store);
+  return store;
 }
 
 export function prepareGuardianEvent(eventOrId: EnvironmentalEvent | string, now = new Date()): GuardianLocalStore {
