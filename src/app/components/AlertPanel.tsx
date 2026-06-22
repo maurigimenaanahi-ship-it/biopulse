@@ -4,6 +4,14 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
 import {
+  prepareGuardianEvent,
+  readGuardianLocalStore,
+  removeGuardianEvent,
+  setGuardianExposurePreference,
+  type GuardianExposurePreference,
+  type GuardianLocalStore,
+} from "@/app/lib/guardianStore";
+import {
   X,
   CornerUpLeft,
   AlertTriangle,
@@ -37,6 +45,7 @@ import {
   School,
   Route,
   History,
+  Trash2,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -411,7 +420,15 @@ function cn(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
 }
 
-type SourceCoverageState = "available" | "partial" | "loading" | "limited" | "empty" | "stale" | "not_connected";
+type SourceCoverageState =
+  | "available"
+  | "partial"
+  | "local"
+  | "loading"
+  | "limited"
+  | "empty"
+  | "stale"
+  | "not_connected";
 
 const sourceCoverageMeta: Record<SourceCoverageState, { label: string; className: string; dot: string }> = {
   available: {
@@ -423,6 +440,11 @@ const sourceCoverageMeta: Record<SourceCoverageState, { label: string; className
     label: "Parcial",
     className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/85",
     dot: "bg-cyan-300",
+  },
+  local: {
+    label: "Local",
+    className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85",
+    dot: "bg-emerald-300",
   },
   loading: {
     label: "Consultando",
@@ -928,6 +950,38 @@ function CameraSnapshotPreview({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function VisualExposureGate({
+  preference,
+  onReveal,
+}: {
+  preference: GuardianExposurePreference;
+  onReveal: () => void;
+}) {
+  const message =
+    preference === "data_only"
+      ? "Contenido visual oculto por tu preferencia Solo datos."
+      : preference === "hide_sensitive"
+      ? "Contenido visual sin clasificación de sensibilidad. Se mantiene oculto."
+      : "Contenido visual oculto hasta que decidas verlo en esta sesión.";
+
+  return (
+    <div className="rounded-xl border border-emerald-300/15 bg-emerald-400/[0.04] px-4 py-4 text-center">
+      <ShieldCheck className="mx-auto h-5 w-5 text-emerald-200/65" />
+      <div className="mt-2 text-sm text-white/65">{message}</div>
+      {preference === "ask_first" ? (
+        <button
+          type="button"
+          onClick={onReveal}
+          className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/15"
+        >
+          <ImageIcon className="h-4 w-4" />
+          Mostrar imágenes en esta sesión
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function Dial({ value, label }: { value: number | null; label: string }) {
   const v = value == null ? 0 : clamp(value, 0, 100);
   const deg = 240 * (v / 100);
@@ -1188,6 +1242,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
   const waterContextAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
+  const [guardianStore, setGuardianStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
+  const [guardianStorageErr, setGuardianStorageErr] = useState<string | null>(null);
+  const [guardianVisualConsent, setGuardianVisualConsent] = useState(false);
+  const [guardianDeletePending, setGuardianDeletePending] = useState(false);
 
   useEffect(() => {
     if (!event) return;
@@ -1199,6 +1257,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   useEffect(() => {
     if (!event) return;
     setFollowedIds(readFollowedIds());
+    setGuardianStore(readGuardianLocalStore());
+    setGuardianStorageErr(null);
+    setGuardianVisualConsent(false);
+    setGuardianDeletePending(false);
   }, [event?.id]);
 
   useEffect(() => {
@@ -1768,6 +1830,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : trend.toLowerCase().includes("stable")
       ? "Estable"
       : "No disponible";
+  const guardianEventMemory = guardianStore.events[event.id] ?? null;
+  const guardianExposureOptions: Array<{ value: GuardianExposurePreference; label: string }> = [
+    { value: "data_only", label: "Solo datos" },
+    { value: "general_images", label: "Imágenes generales" },
+    { value: "ask_first", label: "Preguntar antes" },
+    { value: "hide_sensitive", label: "Ocultar sensibles" },
+  ];
+  const guardianExposure = guardianStore.preferences.exposure;
+  const visualMediaAllowed =
+    guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent);
   const hasInstrumentalFireData =
     satelliteDetections != null || satelliteFrpMax != null || satelliteFrpSum != null || Boolean(event.liveFeedUrl);
   const sourceCoverageItems: Array<{
@@ -1843,8 +1915,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       id: "guardians",
       label: "Guardianes",
       icon: <Users className="h-4 w-4 text-emerald-200/65" />,
-      state: "not_connected",
-      detail: "Observaciones de Guardianes todavía no conectadas.",
+      state: guardianEventMemory ? "local" : "not_connected",
+      detail: guardianEventMemory
+        ? "Espacio privado preparado en este dispositivo; sin sincronización externa."
+        : "Observaciones de Guardianes todavía no conectadas.",
     },
   ];
   const currentTimelineMetrics = [
@@ -2133,6 +2207,160 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
+            {/* Guardian local */}
+            <SectionShell
+              icon={<Users className="h-5 w-5 text-emerald-200" />}
+              title="Guardian local"
+              subtitle="Entrada privada para observar este evento con propósito y conservar continuidad en este dispositivo."
+              right={
+                <div className="hidden sm:inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-emerald-100/85">
+                  <span className="text-xs font-semibold">Privado · local</span>
+                </div>
+              }
+            >
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <div className="px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-200/75" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-white/85">
+                        {guardianEventMemory ? "Espacio Guardian preparado" : "Prepará tu espacio de observación"}
+                      </div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        {guardianEventMemory
+                          ? "BioPulse conserva en este navegador cuándo preparaste este espacio y tu preferencia de exposición."
+                          : "Este paso crea un registro privado vinculado al evento. No publica información ni inicia colaboración externa."}
+                      </div>
+                    </div>
+                  </div>
+
+                  {guardianEventMemory ? (
+                    <div className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+                      <div className="border-l-2 border-emerald-300/25 pl-3">
+                        <div className="text-white/35">Primer ingreso Guardian</div>
+                        <div className="mt-1 font-medium text-white/70">
+                          {fmtDateTimeUTC(new Date(guardianEventMemory.firstEnteredAt))}
+                        </div>
+                      </div>
+                      <div className="border-l-2 border-cyan-300/20 pl-3">
+                        <div className="text-white/35">Última apertura</div>
+                        <div className="mt-1 font-medium text-white/70">
+                          {fmtDateTimeUTC(new Date(guardianEventMemory.lastOpenedAt))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="border-t border-white/10 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-wide text-white/40">Preferencia de exposición</div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
+                    {guardianExposureOptions.map((option) => {
+                      const selected = guardianStore.preferences.exposure === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            try {
+                              setGuardianStore(setGuardianExposurePreference(option.value));
+                              if (option.value !== "general_images") setGuardianVisualConsent(false);
+                              setGuardianStorageErr(null);
+                            } catch {
+                              setGuardianStorageErr("No se pudo guardar la preferencia en este dispositivo.");
+                            }
+                          }}
+                          aria-pressed={selected}
+                          className={cn(
+                            "min-h-10 rounded-xl border px-3 py-2 text-xs font-medium transition-colors",
+                            selected
+                              ? "border-emerald-300/30 bg-emerald-400/12 text-emerald-100"
+                              : "border-white/10 bg-white/[0.03] text-white/55 hover:bg-white/[0.06] hover:text-white/75"
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 border-t border-white/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-[11px] leading-relaxed text-white/35">
+                    Trabajo privado guardado en este dispositivo. BioPulse no lo transmite ni lo publica.
+                  </div>
+                  <div className="flex flex-col gap-2 sm:items-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          setGuardianStore(prepareGuardianEvent(event.id));
+                          setGuardianStorageErr(null);
+                        } catch {
+                          setGuardianStorageErr("No se pudo preparar el espacio Guardian en este dispositivo.");
+                        }
+                      }}
+                      className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/15"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      {guardianEventMemory ? "Registrar apertura" : "Preparar espacio privado"}
+                    </button>
+                    {guardianEventMemory ? (
+                      <button
+                        type="button"
+                        onClick={() => setGuardianDeletePending(true)}
+                        className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-xs text-white/40 hover:bg-white/5 hover:text-white/65"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Eliminar registro local
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                {guardianDeletePending && guardianEventMemory ? (
+                  <div className="border-t border-red-300/15 bg-red-500/[0.05] px-4 py-4">
+                    <div className="text-sm font-medium text-red-100/80">¿Eliminar el registro Guardian de este evento?</div>
+                    <div className="mt-1 text-xs leading-relaxed text-white/40">
+                      Se eliminarán las fechas locales asociadas. Esta acción no modifica el evento público.
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setGuardianDeletePending(false)}
+                        className="min-h-9 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/65 hover:bg-white/10"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          try {
+                            setGuardianStore(removeGuardianEvent(event.id));
+                            setGuardianDeletePending(false);
+                            setGuardianVisualConsent(false);
+                            setGuardianStorageErr(null);
+                          } catch {
+                            setGuardianStorageErr("No se pudo eliminar el registro Guardian de este dispositivo.");
+                          }
+                        }}
+                        className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-red-300/20 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-100/80 hover:bg-red-500/15"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Confirmar eliminación
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {guardianStorageErr ? (
+                  <div className="border-t border-red-300/15 bg-red-500/[0.06] px-4 py-3 text-xs text-red-100/75">
+                    {guardianStorageErr}
+                  </div>
+                ) : null}
+              </div>
+            </SectionShell>
+
             {/* Estado operativo */}
             <SectionShell
               icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
@@ -2288,7 +2516,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)] gap-4">
                   <div>
-                    {event.satelliteImageUrl ? (
+                    {event.satelliteImageUrl && visualMediaAllowed ? (
                       <div>
                         <div className="mb-2 text-[11px] uppercase tracking-wide text-white/45">
                           Imagen asociada al evento
@@ -2305,6 +2533,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           La imagen se presenta como referencia asociada. Su procedencia no se atribuye a NASA salvo que la fuente lo indique expresamente.
                         </div>
                       </div>
+                    ) : event.satelliteImageUrl ? (
+                      <VisualExposureGate
+                        preference={guardianExposure}
+                        onReveal={() => setGuardianVisualConsent(true)}
+                      />
                     ) : (
                       <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
                         <div>
@@ -2971,6 +3204,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 ) : null}
 
+                {!visualMediaAllowed && newsItems.some((item) => Boolean(item.image)) ? (
+                  <div className="mb-3">
+                    <VisualExposureGate
+                      preference={guardianExposure}
+                      onReveal={() => setGuardianVisualConsent(true)}
+                    />
+                  </div>
+                ) : null}
+
                 {newsLoading ? (
                   <div className="mt-2 space-y-3">
                     {Array.from({ length: 3 }).map((_, i) => (
@@ -3167,7 +3409,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="flex items-start gap-3 min-w-0">
-                                    <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    {visualMediaAllowed ? (
+                                      <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    ) : null}
                                     <div className="min-w-0">
                                       <div className="flex items-center gap-2">
                                         <div className="text-sm font-semibold text-white/90 line-clamp-2">
@@ -3236,7 +3480,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="flex items-start gap-3 min-w-0">
-                                    <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    {visualMediaAllowed ? (
+                                      <NewsThumb src={it.image ?? ""} alt={it.title ?? "Imagen"} />
+                                    ) : null}
                                     <div className="min-w-0">
                                       <div className="text-sm font-semibold text-white/90 line-clamp-2">
                                         {it.title ?? "Artículo"}
@@ -3533,6 +3779,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
+                {nearbyCameras.length > 0 && !visualMediaAllowed ? (
+                  <div className="mt-4">
+                    <VisualExposureGate
+                      preference={guardianExposure}
+                      onReveal={() => setGuardianVisualConsent(true)}
+                    />
+                  </div>
+                ) : null}
+
                 <div className="mt-4 space-y-3">
                   {camLoading ? (
                     <div className="space-y-3">
@@ -3585,7 +3840,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-3 min-w-0">
-                              <CameraThumb src={snapUrl ?? ""} alt={title} />
+                              {visualMediaAllowed ? (
+                                <CameraThumb src={snapUrl ?? ""} alt={title} />
+                              ) : (
+                                <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 px-1 text-center">
+                                  <ShieldCheck className="h-4 w-4 text-emerald-200/55" />
+                                  <span className="text-[9px] leading-tight text-white/40">Vista oculta</span>
+                                </div>
+                              )}
 
                               <div className="min-w-0">
                                 <div className="text-sm font-semibold text-white/90 line-clamp-2">{title}</div>
@@ -3641,7 +3903,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             </div>
                           </div>
 
-                          {isSnapshot || isWindyProvider ? <CameraSnapshotPreview src={snapUrl ?? ""} alt={title} /> : null}
+                          {visualMediaAllowed && (isSnapshot || isWindyProvider) ? (
+                            <CameraSnapshotPreview src={snapUrl ?? ""} alt={title} />
+                          ) : null}
                         </div>
                       );
                     })
