@@ -6,6 +6,7 @@ import type { EnvironmentalEvent } from "@/data/events";
 import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/components/GuardianMissionPanel";
 import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
 import { GuardianObservationReview } from "@/app/components/GuardianObservationReview";
+import { GuardianObservationIntegrity } from "@/app/components/GuardianObservationIntegrity";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import {
   prepareGuardianEvent,
@@ -1052,17 +1053,17 @@ function SectionShell({
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-      <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 h-9 w-9 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
+      <div className="flex flex-col items-stretch justify-between gap-3 px-5 pb-3 pt-4 sm:flex-row sm:items-start">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/20">
             {icon}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-white/90 font-semibold">{title}</div>
             {subtitle ? <div className="text-xs text-white/45 mt-0.5">{subtitle}</div> : null}
           </div>
         </div>
-        {right ? <div className="shrink-0">{right}</div> : null}
+        {right ? <div className="self-start sm:shrink-0">{right}</div> : null}
       </div>
       <div className="px-5 pb-5">{children}</div>
     </div>
@@ -2460,6 +2461,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <GuardianObservationReview
                                 observation={observation}
                                 onSaved={(store) => {
+                                  setGuardianStore(store);
+                                  setGuardianStorageErr(null);
+                                }}
+                              />
+
+                              <GuardianObservationIntegrity
+                                observation={observation}
+                                onStoreChange={(store) => {
                                   setGuardianStore(store);
                                   setGuardianStorageErr(null);
                                 }}

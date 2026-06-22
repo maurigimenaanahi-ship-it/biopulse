@@ -146,6 +146,10 @@ export function buildGuardianReport({
         `- Fuente de contraste: ${observation.reviewSourceReference ? singleLine(observation.reviewSourceReference) : "No informada"}`,
         `- Notas de revisión: ${observation.reviewNote ? singleLine(observation.reviewNote) : "No informadas"}`,
         `- Momento de revisión: ${utc(observation.reviewedAt)}`,
+        `- Integridad local: ${observation.integrity ? "Huella disponible" : "Sin huella"}`,
+        `- Algoritmo: ${observation.integrity?.algorithm ?? "No disponible"}`,
+        `- Huella: ${observation.integrity?.digest ?? "No disponible"}`,
+        `- Huella generada: ${utc(observation.integrity?.generatedAt)}`,
         `- Interpretación Guardian: ${observation.interpretation ? singleLine(observation.interpretation) : "No informada"}`,
         `- Limitaciones: ${observation.limitations ? singleLine(observation.limitations) : "No informadas"}`,
         ""

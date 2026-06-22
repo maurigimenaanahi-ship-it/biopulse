@@ -25,6 +25,13 @@ export type GuardianReviewStatus =
   | "source_agreement"
   | "source_conflict"
   | "inconclusive";
+
+export type GuardianObservationIntegrity = {
+  algorithm: "SHA-256";
+  canonicalVersion: "biopulse.guardian.observation.v1";
+  digest: string;
+  generatedAt: string;
+};
 export type GuardianMissionKind =
   | "review_satellite"
   | "review_cameras"
@@ -83,6 +90,7 @@ export type GuardianObservation = {
   reviewNote: string | null;
   reviewSourceReference: string | null;
   reviewedAt: string | null;
+  integrity: GuardianObservationIntegrity | null;
   visibility: "private";
   status: "recorded";
 };
@@ -325,6 +333,27 @@ function optionalText(value: unknown, maxLength: number) {
   return text ? text.slice(0, maxLength) : null;
 }
 
+function normalizeObservationIntegrity(value: unknown): GuardianObservationIntegrity | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Partial<GuardianObservationIntegrity>;
+  if (
+    record.algorithm !== "SHA-256" ||
+    record.canonicalVersion !== "biopulse.guardian.observation.v1" ||
+    typeof record.digest !== "string" ||
+    !/^[a-f0-9]{64}$/.test(record.digest) ||
+    typeof record.generatedAt !== "string" ||
+    !Number.isFinite(new Date(record.generatedAt).getTime())
+  ) {
+    return null;
+  }
+  return {
+    algorithm: "SHA-256",
+    canonicalVersion: "biopulse.guardian.observation.v1",
+    digest: record.digest,
+    generatedAt: record.generatedAt,
+  };
+}
+
 function normalizeObservation(id: string, value: unknown): GuardianObservation | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Partial<GuardianObservation>;
@@ -355,6 +384,7 @@ function normalizeObservation(id: string, value: unknown): GuardianObservation |
       typeof record.reviewedAt === "string" && Number.isFinite(new Date(record.reviewedAt).getTime())
         ? record.reviewedAt
         : null,
+    integrity: normalizeObservationIntegrity(record.integrity),
     visibility: "private",
     status: "recorded",
   };
@@ -512,10 +542,61 @@ function createLocalId() {
   return `guardian-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function createGuardianObservation(
+function canonicalObservationContent(observation: GuardianObservation) {
+  return JSON.stringify([
+    "biopulse.guardian.observation.v1",
+    observation.id,
+    observation.eventId,
+    observation.observedText,
+    observation.interpretation,
+    observation.sourceType,
+    observation.sourceReference,
+    observation.observedAt,
+    observation.recordedAt,
+    observation.limitations,
+    observation.locationPrecision,
+    observation.sensitivity,
+    observation.missionId,
+    observation.visibility,
+    observation.status,
+  ]);
+}
+
+async function sha256Hex(value: string) {
+  if (typeof crypto === "undefined" || !crypto.subtle) {
+    throw new Error("SHA-256 no está disponible en este navegador.");
+  }
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function createObservationIntegrity(observation: GuardianObservation, generatedAt = new Date()) {
+  return {
+    algorithm: "SHA-256",
+    canonicalVersion: "biopulse.guardian.observation.v1",
+    digest: await sha256Hex(canonicalObservationContent(observation)),
+    generatedAt: generatedAt.toISOString(),
+  } satisfies GuardianObservationIntegrity;
+}
+
+export type GuardianIntegrityCheck = "valid" | "changed" | "unavailable" | "unsupported";
+
+export async function verifyGuardianObservationIntegrity(
+  observation: GuardianObservation
+): Promise<GuardianIntegrityCheck> {
+  if (!observation.integrity) return "unavailable";
+  try {
+    const digest = await sha256Hex(canonicalObservationContent(observation));
+    return digest === observation.integrity.digest ? "valid" : "changed";
+  } catch {
+    return "unsupported";
+  }
+}
+
+export async function createGuardianObservation(
   input: CreateGuardianObservationInput,
   now = new Date()
-): { store: GuardianLocalStore; observation: GuardianObservation } {
+): Promise<{ store: GuardianLocalStore; observation: GuardianObservation }> {
   const eventId = optionalText(input.eventId, 200);
   const observedText = optionalText(input.observedText, 4000);
   const observedAtDate = new Date(input.observedAt);
@@ -550,24 +631,62 @@ export function createGuardianObservation(
     reviewNote: null,
     reviewSourceReference: null,
     reviewedAt: null,
+    integrity: null,
     visibility: "private",
     status: "recorded",
   };
 
+  try {
+    observation.integrity = await createObservationIntegrity(observation, now);
+  } catch {
+    observation.integrity = null;
+  }
+
+  const latestStore = readGuardianLocalStore();
+  const latestPrepared = latestStore.events[eventId];
+  if (!latestPrepared) throw new Error("El espacio Guardian dejó de estar disponible antes de guardar.");
+
   const next: GuardianLocalStore = {
-    ...store,
+    ...latestStore,
     events: {
-      ...store.events,
+      ...latestStore.events,
       [eventId]: {
-        ...prepared,
+        ...latestPrepared,
         lastOpenedAt: now.toISOString(),
-        observationIds: [...prepared.observationIds, id],
+        observationIds: [...latestPrepared.observationIds, id],
       },
     },
-    observations: { ...store.observations, [id]: observation },
+    observations: { ...latestStore.observations, [id]: observation },
   };
   writeGuardianLocalStore(next);
   return { store: next, observation };
+}
+
+export async function sealGuardianObservation(
+  observationId: string,
+  now = new Date()
+): Promise<GuardianLocalStore> {
+  const store = readGuardianLocalStore();
+  const observation = store.observations[observationId];
+  if (!observation) throw new Error("La observación ya no está disponible.");
+  if (observation.integrity) return store;
+  const canonicalBefore = canonicalObservationContent(observation);
+  const integrity = await createObservationIntegrity(observation, now);
+  const latestStore = readGuardianLocalStore();
+  const latestObservation = latestStore.observations[observationId];
+  if (!latestObservation) throw new Error("La observación fue eliminada antes de generar la huella.");
+  if (canonicalObservationContent(latestObservation) !== canonicalBefore) {
+    throw new Error("La observación cambió durante el proceso. Intentá nuevamente.");
+  }
+  const next: GuardianLocalStore = {
+    ...latestStore,
+    observations: {
+      ...latestStore.observations,
+      [observationId]: { ...latestObservation, integrity },
+    },
+  };
+  writeGuardianLocalStore(next);
+  return next;
 }
 
 export function removeGuardianObservation(observationId: string): GuardianLocalStore {

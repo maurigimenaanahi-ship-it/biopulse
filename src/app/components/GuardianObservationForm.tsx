@@ -39,10 +39,12 @@ export function GuardianObservationForm({
   const [locationPrecision, setLocationPrecision] = useState<GuardianLocationPrecision>("event_area");
   const [sensitivity, setSensitivity] = useState<GuardianSensitivity>("unknown");
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
+    setSaving(true);
     try {
-      const result = createGuardianObservation({
+      const result = await createGuardianObservation({
         eventId,
         observedText,
         interpretation,
@@ -57,12 +59,15 @@ export function GuardianObservationForm({
       onSaved(result.store);
       setObservedText("");
       setInterpretation("");
+      setSourceType("none");
       setSourceReference("");
       setLimitations("");
       setObservedAt(localDateTimeValue());
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar la observación.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -203,11 +208,11 @@ export function GuardianObservationForm({
         <button
           type="button"
           onClick={submit}
-          disabled={!observedText.trim()}
+          disabled={!observedText.trim() || saving}
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/15 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Save className="h-4 w-4" />
-          Guardar observación privada
+          {saving ? "Generando huella local…" : "Guardar observación privada"}
         </button>
       </div>
     </div>
