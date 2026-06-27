@@ -70,6 +70,20 @@ type AlertPanelProps = {
   onClose: () => void;
 };
 
+type AlertPanelSection =
+  | "main"
+  | "satellite"
+  | "weather"
+  | "cameras"
+  | "news"
+  | "official"
+  | "guardians"
+  | "protected"
+  | "human"
+  | "insight"
+  | "timeline"
+  | "operations";
+
 const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const FAV_KEY = "biopulse:followed-alerts";
 
@@ -1300,6 +1314,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [guardianObservationDeleteId, setGuardianObservationDeleteId] = useState<string | null>(null);
   const [guardianPreparationOpen, setGuardianPreparationOpen] = useState(false);
   const [guardianObservationDraft, setGuardianObservationDraft] = useState<GuardianObservationDraft | null>(null);
+  const [activeSection, setActiveSection] = useState<AlertPanelSection>("main");
 
   useEffect(() => {
     if (!event) return;
@@ -1318,6 +1333,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setGuardianObservationDeleteId(null);
     setGuardianPreparationOpen(false);
     setGuardianObservationDraft(null);
+    setActiveSection("main");
   }, [event?.id]);
 
   useEffect(() => {
@@ -1993,6 +2009,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     icon: ReactNode;
     state: SourceCoverageState;
     detail: string;
+    actionLabel?: string;
+    onOpen?: () => void;
   }> = [
     {
       id: "firms",
@@ -2004,6 +2022,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : hasInstrumentalFireData
         ? `${satelliteDetections ?? "Sin conteo"} ${satelliteDetections === 1 ? "detección" : "detecciones"} · ${observationFreshness}`
         : "Evento disponible sin métricas instrumentales completas.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("satellite"),
+    },
+    {
+      id: "operations",
+      label: "Estado operativo",
+      icon: <Activity className="h-4 w-4 text-yellow-200/75" />,
+      state: hasInstrumentalFireData ? "partial" : "empty",
+      detail: `${trend} · ${statusLabel(event.status)} · ${observationFreshness}`,
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("operations"),
     },
     {
       id: "weather",
@@ -2017,6 +2046,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : weather
         ? `Open-Meteo · ${weather.time ? fmtNowishUTC(weather.time) : "hora no informada"}`
         : "No hay condiciones disponibles.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("weather"),
     },
     {
       id: "cameras",
@@ -2030,6 +2061,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : camRegistry.length > 0
         ? `${camRegistry.length} registradas · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
         : "Registro cargado sin cámaras válidas.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("cameras"),
     },
     {
       id: "news",
@@ -2043,6 +2076,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : newsItems.length > 0
         ? `${newsItems.length} referencias regionales recuperadas.`
         : "La consulta terminó sin resultados útiles.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => {
+        setNewsView("main");
+        setActiveSection("news");
+      },
     },
     {
       id: "official-alerts",
@@ -2055,6 +2093,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           : splitNews.official.length > 0
           ? `${splitNews.official.length} referencias clasificadas desde noticias; falta un canal oficial estructurado.`
           : "Fuente oficial estructurada todavía no conectada.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => {
+        setNewsView("official");
+        setActiveSection("official");
+      },
     },
     {
       id: "guardians",
@@ -2064,8 +2107,122 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       detail: guardianEventMemory
         ? "Espacio privado preparado en este dispositivo; sin sincronización externa."
         : "Observaciones de Guardianes todavía no conectadas.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("guardians"),
+    },
+    {
+      id: "protected-context",
+      label: "Qu\u00e9 protegemos",
+      icon: <Leaf className="h-4 w-4 text-emerald-200/65" />,
+      state: protectedContextLoading ? "loading" : protectedContextErr ? "limited" : protectedContext ? "partial" : "not_connected",
+      detail: protectedContextLoading
+        ? "Consultando contexto ambiental."
+        : protectedContextErr
+        ? "Contexto ambiental temporalmente limitado."
+        : protectedContext
+        ? "Contexto ambiental disponible con datos conectados y vac\u00edos expl\u00edcitos."
+        : "Contexto ambiental todav\u00eda no conectado.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("protected"),
+    },
+    {
+      id: "human-impact",
+      label: "Impacto humano",
+      icon: <Hospital className="h-4 w-4 text-rose-200/65" />,
+      state:
+        criticalInfrastructureLoading || nearbyCommunitiesLoading
+          ? "loading"
+          : criticalInfrastructureErr || nearbyCommunitiesErr
+          ? "limited"
+          : criticalInfrastructure || nearbyCommunitiesContext
+          ? "partial"
+          : "not_connected",
+      detail:
+        criticalInfrastructureLoading || nearbyCommunitiesLoading
+          ? "Consultando infraestructura y comunidades."
+          : criticalInfrastructureErr || nearbyCommunitiesErr
+          ? "Parte del contexto humano est\u00e1 temporalmente limitado."
+          : criticalInfrastructure || nearbyCommunitiesContext
+          ? "Infraestructura y comunidades cercanas disponibles cuando hay fuente conectada."
+          : "Impacto humano estructurado todav\u00eda no conectado.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("human"),
+    },
+    {
+      id: "insight",
+      label: "BioPulse Insight",
+      icon: <Brain className="h-4 w-4 text-fuchsia-200/65" />,
+      state: event.aiInsight ? "partial" : "empty",
+      detail: event.aiInsight
+        ? "Lectura heur\u00edstica disponible; no constituye confirmaci\u00f3n oficial."
+        : "Sin inferencias BioPulse disponibles para este evento.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("insight"),
+    },
+    {
+      id: "timeline",
+      label: "Historial",
+      icon: <History className="h-4 w-4 text-cyan-200/65" />,
+      state: firstSeenDate || observationDate || eventHistory.length > 0 ? "available" : "empty",
+      detail:
+        firstSeenDate || observationDate || eventHistory.length > 0
+          ? "Cronolog\u00eda disponible con los puntos conservados por BioPulse."
+          : "Sin puntos temporales v\u00e1lidos para este evento.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("timeline"),
     },
   ];
+  const activeSectionMeta: Record<Exclude<AlertPanelSection, "main">, { title: string; subtitle: string }> = {
+    satellite: {
+      title: "Observaci\u00f3n satelital",
+      subtitle: `${event.location} · ${observationFreshness}`,
+    },
+    weather: {
+      title: "Clima del evento",
+      subtitle: weather?.time ? `Open-Meteo · ${fmtNowishUTC(weather.time)}` : "Condiciones actuales estimadas.",
+    },
+    cameras: {
+      title: "C\u00e1maras cercanas",
+      subtitle: `${event.location} · ${nearbyCameras.length} dentro de ${camRadiusKm} km · ${camRegistry.length} registradas`,
+    },
+    news: {
+      title: "Noticias relacionadas",
+      subtitle: newsItems.length > 0 ? `${newsItems.length} referencias recuperadas.` : "Seguimiento period\u00edstico regional.",
+    },
+    official: {
+      title: "Alertas oficiales",
+      subtitle:
+        splitNews.official.length > 0
+          ? `${splitNews.official.length} referencias clasificadas desde noticias.`
+          : "Canal oficial estructurado todav\u00eda no conectado.",
+    },
+    guardians: {
+      title: "Guardianes",
+      subtitle: guardianEventMemory
+        ? "Espacio local privado preparado en este dispositivo."
+        : "Observaci\u00f3n local sin sincronizaci\u00f3n externa.",
+    },
+    protected: {
+      title: "Qu\u00e9 protegemos aqu\u00ed",
+      subtitle: "Ecosistemas, especies, agua y \u00e1reas sensibles cuando haya fuente conectada.",
+    },
+    human: {
+      title: "Impacto humano",
+      subtitle: "Comunidades, infraestructura, escuelas, hospitales y evacuaci\u00f3n.",
+    },
+    insight: {
+      title: "BioPulse Insight",
+      subtitle: "Dato observado separado de inferencia heur\u00edstica.",
+    },
+    timeline: {
+      title: "Historial del evento",
+      subtitle: "Cronolog\u00eda de se\u00f1ales y observaciones conservadas.",
+    },
+    operations: {
+      title: "Estado operativo",
+      subtitle: `${trend} · ${statusLabel(event.status)}`,
+    },
+  };
   const currentTimelineMetrics = [
     satelliteDetections != null
       ? `${satelliteDetections} ${satelliteDetections === 1 ? "detección" : "detecciones"}`
@@ -2176,7 +2333,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <button
               onClick={() => {
-                if (newsView !== "main") setNewsView("main");
+                if (activeSection !== "main") {
+                  setActiveSection("main");
+                  setNewsView("main");
+                }
+                else if (newsView !== "main") setNewsView("main");
                 else onClose();
               }}
               className={cn(
@@ -2287,6 +2448,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         {/* Body */}
         <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
           <div className="space-y-4">
+            {activeSection !== "main" ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                <div className="text-[11px] uppercase tracking-wide text-white/45">Vista dedicada</div>
+                <div className="mt-1 text-lg font-semibold text-white/90">{activeSectionMeta[activeSection].title}</div>
+                <div className="mt-1 text-sm leading-relaxed text-white/55">{activeSectionMeta[activeSection].subtitle}</div>
+              </div>
+            ) : null}
+
+            {activeSection === "main" ? (
+              <>
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
               <div className="text-[11px] uppercase tracking-wide text-white/45">Qué está pasando</div>
               <div className="mt-2 text-sm leading-relaxed text-white/80">
@@ -2343,6 +2514,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           </div>
                         </div>
                         <div className="mt-2 text-xs leading-relaxed text-white/40">{source.detail}</div>
+                        {source.onOpen ? (
+                          <button
+                            type="button"
+                            onClick={source.onOpen}
+                            className={cn(
+                              "mt-3 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04]",
+                              "px-3 py-1.5 text-xs font-semibold text-white/65 transition-colors hover:bg-white/10 hover:text-white"
+                            )}
+                          >
+                            {source.actionLabel ?? "Abrir"}
+                          </button>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -2353,7 +2536,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
+              </>
+            ) : null}
+
             {/* Guardian local */}
+            {activeSection === "guardians" ? (
+              <>
             <SectionShell
               icon={<Users className="h-5 w-5 text-emerald-200" />}
               title="Guardian local"
@@ -2715,8 +2903,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 }
               }}
             />
+              </>
+            ) : null}
 
             {/* Estado operativo */}
+            {activeSection === "operations" ? (
+              <>
             <SectionShell
               icon={<AlertTriangle className="h-5 w-5 text-yellow-200" />}
               title="Estado operativo"
@@ -2849,6 +3041,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             </SectionShell>
 
             {/* Observación satelital */}
+              </>
+            ) : null}
+
+            {activeSection === "satellite" ? (
             <SectionShell
               icon={<Satellite className="h-5 w-5 text-cyan-200" />}
               title="Observación satelital"
@@ -2989,7 +3185,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
+            ) : null}
             {/* Qué protegemos aquí */}
+
+            {activeSection === "protected" ? (
             <SectionShell
               icon={<Leaf className="h-5 w-5 text-emerald-200" />}
               title="Qué protegemos aquí"
@@ -3194,7 +3393,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
+            ) : null}
             {/* Impacto humano */}
+
+            {activeSection === "human" ? (
             <SectionShell
               icon={<Users className="h-5 w-5 text-sky-200" />}
               title="Impacto humano"
@@ -3421,7 +3623,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
+            ) : null}
             {/* BioPulse Insight */}
+
+            {activeSection === "insight" ? (
             <SectionShell
               icon={<Brain className="h-5 w-5 text-violet-200" />}
               title="BioPulse Insight"
@@ -3525,7 +3730,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               </div>
             </SectionShell>
 
+            ) : null}
             {/* ✅ Noticias (ARREGLADO / INCLUIDO) */}
+
+            {(activeSection === "news" || activeSection === "official") ? (
             <SectionShell
               icon={<Newspaper className="h-5 w-5 text-white/80" />}
               title="Noticias"
@@ -3927,8 +4135,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 ) : null}
               </div>
             </SectionShell>
+            ) : null}
 
             {/* Indicadores operativos */}
+            {activeSection === "weather" ? (
+              <>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
               <div className="px-5 pt-4 pb-3">
                 <div className="text-white/90 font-semibold">Indicadores operativos</div>
@@ -4088,6 +4299,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             </div>
 
             {/* Cámaras en vivo */}
+              </>
+            ) : null}
+
+            {activeSection === "cameras" ? (
             <SectionShell
               icon={<Camera className="h-5 w-5 text-white/80" />}
               title="Cámaras en vivo"
@@ -4326,8 +4541,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
               </div>
             </SectionShell>
+            ) : null}
 
             {/* Historial del evento */}
+            {activeSection === "timeline" ? (
             <SectionShell
               icon={<History className="h-5 w-5 text-cyan-200" />}
               title="Historial del evento"
@@ -4390,6 +4607,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
               </div>
             </SectionShell>
+            ) : null}
           </div>
 
           <div className="h-6" />
