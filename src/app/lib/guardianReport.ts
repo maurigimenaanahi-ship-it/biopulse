@@ -47,6 +47,24 @@ const REVIEW_LABELS: Record<GuardianObservation["reviewStatus"], string> = {
   inconclusive: "No concluyente",
 };
 
+const SOURCE_ORDER: GuardianObservation["sourceType"][] = [
+  "satellite",
+  "camera",
+  "news",
+  "official_document",
+  "physical_observation",
+  "other",
+  "none",
+];
+
+const REVIEW_ORDER: GuardianObservation["reviewStatus"][] = [
+  "unreviewed",
+  "source_reviewed",
+  "source_agreement",
+  "source_conflict",
+  "inconclusive",
+];
+
 function utc(value: string | Date | null | undefined) {
   if (!value) return "No disponible";
   const date = value instanceof Date ? value : new Date(value);
@@ -68,6 +86,51 @@ export function guardianReportFileName(event: EnvironmentalEvent) {
   return `biopulse-guardian-${slug || "evento"}.md`;
 }
 
+export type GuardianReportSummary = {
+  totalObservations: number;
+  totalMissions: number;
+  closedMissions: number;
+  activeMissions: number;
+  bySource: Array<{ sourceType: GuardianObservation["sourceType"]; label: string; count: number }>;
+  byReview: Array<{ status: GuardianObservation["reviewStatus"]; label: string; count: number }>;
+  integrityCount: number;
+  reviewedCount: number;
+  sensitiveCount: number;
+  sourceReferenceCount: number;
+};
+
+export function buildGuardianReportSummary({
+  missions,
+  observations,
+}: {
+  missions: GuardianMission[];
+  observations: GuardianObservation[];
+}): GuardianReportSummary {
+  const bySource = SOURCE_ORDER.map((sourceType) => ({
+    sourceType,
+    label: SOURCE_LABELS[sourceType],
+    count: observations.filter((observation) => observation.sourceType === sourceType).length,
+  }));
+  const byReview = REVIEW_ORDER.map((status) => ({
+    status,
+    label: REVIEW_LABELS[status],
+    count: observations.filter((observation) => observation.reviewStatus === status).length,
+  }));
+
+  return {
+    totalObservations: observations.length,
+    totalMissions: missions.length,
+    closedMissions: missions.filter((mission) => mission.status !== "active").length,
+    activeMissions: missions.filter((mission) => mission.status === "active").length,
+    bySource,
+    byReview,
+    integrityCount: observations.filter((observation) => Boolean(observation.integrity)).length,
+    reviewedCount: observations.filter((observation) => observation.reviewStatus !== "unreviewed").length,
+    sensitiveCount: observations.filter((observation) => observation.sensitivity === "sensitive").length,
+    sourceReferenceCount: observations.filter((observation) => Boolean(observation.sourceReference)).length,
+  };
+}
+
 export function buildGuardianReport({
   event,
   missions,
@@ -85,6 +148,7 @@ export function buildGuardianReport({
   const orderedObservations = [...observations].sort(
     (a, b) => new Date(a.observedAt).getTime() - new Date(b.observedAt).getTime()
   );
+  const summary = buildGuardianReportSummary({ missions, observations });
 
   const lines = [
     "# Informe Guardian local de BioPulse",
@@ -100,6 +164,25 @@ export function buildGuardianReport({
     `- Coordenadas: ${event.latitude.toFixed(4)}, ${event.longitude.toFixed(4)}`,
     `- Observación del evento: ${utc(event.lastSeen ?? event.timestamp)}`,
     `- Informe generado: ${utc(generatedAt)}`,
+    "",
+    "## Resumen de procedencia",
+    "",
+    `- Misiones registradas: ${summary.totalMissions}`,
+    `- Misiones cerradas: ${summary.closedMissions}`,
+    `- Misiones activas: ${summary.activeMissions}`,
+    `- Observaciones preservadas: ${summary.totalObservations}`,
+    `- Observaciones con fuente declarada: ${summary.sourceReferenceCount}`,
+    `- Observaciones revisadas: ${summary.reviewedCount}`,
+    `- Observaciones con huella local SHA-256: ${summary.integrityCount}`,
+    `- Observaciones marcadas como sensibles: ${summary.sensitiveCount}`,
+    "",
+    "### Fuentes declaradas",
+    "",
+    ...summary.bySource.map((item) => `- ${item.label}: ${item.count}`),
+    "",
+    "### Revisión de procedencia",
+    "",
+    ...summary.byReview.map((item) => `- ${item.label}: ${item.count}`),
     "",
     "## Misiones Guardian",
     "",

@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Check, Copy, Download, FileText } from "lucide-react";
+import { Check, Copy, Download, FileText, ShieldCheck } from "lucide-react";
 import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianMission, GuardianObservation } from "@/app/lib/guardianStore";
-import { buildGuardianReport, guardianReportFileName } from "@/app/lib/guardianReport";
+import {
+  buildGuardianReport,
+  buildGuardianReportSummary,
+  guardianReportFileName,
+} from "@/app/lib/guardianReport";
 
 async function writeLocalClipboard(text: string) {
   try {
@@ -34,8 +38,10 @@ export function GuardianReportPanel({
   observations: GuardianObservation[];
 }) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const closedMissionCount = missions.filter((mission) => mission.status !== "active").length;
-  const hasGuardianWork = observations.length > 0 || closedMissionCount > 0;
+  const summary = buildGuardianReportSummary({ missions, observations });
+  const hasGuardianWork = observations.length > 0 || summary.closedMissions > 0;
+  const visibleSources = summary.bySource.filter((item) => item.count > 0);
+  const visibleReviewStates = summary.byReview.filter((item) => item.count > 0);
 
   const copyReport = async () => {
     try {
@@ -77,13 +83,68 @@ export function GuardianReportPanel({
       <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
         <div className="border-l-2 border-violet-300/20 pl-3">
           <div className="text-white/35">Misiones cerradas</div>
-          <div className="mt-1 font-semibold text-white/70">{closedMissionCount}</div>
+          <div className="mt-1 font-semibold text-white/70">{summary.closedMissions}</div>
         </div>
         <div className="border-l-2 border-emerald-300/20 pl-3">
           <div className="text-white/35">Observaciones</div>
           <div className="mt-1 font-semibold text-white/70">{observations.length}</div>
         </div>
+        <div className="border-l-2 border-cyan-300/20 pl-3">
+          <div className="text-white/35">Revisadas</div>
+          <div className="mt-1 font-semibold text-white/70">{summary.reviewedCount}</div>
+        </div>
+        <div className="border-l-2 border-emerald-300/20 pl-3">
+          <div className="text-white/35">Con huella local</div>
+          <div className="mt-1 font-semibold text-white/70">{summary.integrityCount}</div>
+        </div>
       </div>
+
+      {hasGuardianWork ? (
+        <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-white/70">
+            <ShieldCheck className="h-4 w-4 text-emerald-200/70" />
+            Resumen de procedencia
+          </div>
+          <div className="mt-3 grid gap-3 text-[11px] leading-relaxed text-white/45 sm:grid-cols-2">
+            <div>
+              <div className="font-medium text-white/55">Fuentes declaradas</div>
+              <div className="mt-1 space-y-1">
+                {visibleSources.length > 0 ? (
+                  visibleSources.map((item) => (
+                    <div key={item.sourceType} className="flex justify-between gap-3">
+                      <span>{item.label}</span>
+                      <span className="font-semibold text-white/65">{item.count}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div>No hay fuentes declaradas todavía.</div>
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="font-medium text-white/55">Revisión Guardian</div>
+              <div className="mt-1 space-y-1">
+                {visibleReviewStates.length > 0 ? (
+                  visibleReviewStates.map((item) => (
+                    <div key={item.status} className="flex justify-between gap-3">
+                      <span>{item.label}</span>
+                      <span className="font-semibold text-white/65">{item.count}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div>No hay revisiones registradas todavía.</div>
+                )}
+              </div>
+            </div>
+          </div>
+          {summary.sensitiveCount > 0 ? (
+            <div className="mt-3 text-[11px] leading-relaxed text-amber-100/60">
+              {summary.sensitiveCount} observación{summary.sensitiveCount === 1 ? "" : "es"} marcada
+              {summary.sensitiveCount === 1 ? "" : "s"} como sensible. Revisá exposición y contexto antes de compartir.
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-3 text-[11px] leading-relaxed text-white/35">
         La exportación no certifica autenticidad ni constituye una cadena de custodia o confirmación oficial.
