@@ -8,6 +8,12 @@ export type FirePoint = {
   confidence?: string; // "h" | "n" | "l" (depende del feed)
   acq_date?: string; // "YYYY-MM-DD"
   acq_time?: string; // "HHMM" (a veces viene "HMM")
+  bright_ti4?: number;
+  bright_ti5?: number;
+  daynight?: string;
+  satellite?: string;
+  instrument?: string;
+  version?: string;
 };
 
 function toRad(v: number) {

@@ -71,6 +71,13 @@ function dateYYYYMMDD(d: Date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function firePointSortValue(p: FirePoint) {
+  const time = String(p.acq_time ?? "").padStart(4, "0");
+  const observedAt = p.acq_date ? Date.parse(`${p.acq_date}T${time.slice(0, 2)}:${time.slice(2, 4)}:00Z`) : NaN;
+  const frp = Number.isFinite(p.frp as any) ? Number(p.frp) : 0;
+  return (Number.isFinite(observedAt) ? observedAt : 0) + frp;
+}
+
 /** ===== Paso A: tendencia del incendio (interpretación) ===== */
 type FireTrend = "intensifying" | "stable" | "weakening";
 
@@ -191,6 +198,13 @@ export default function App() {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`FIRMS proxy error: ${res.status}`);
         const data = await res.json();
+        const satelliteSource = {
+          provider: "NASA FIRMS",
+          product: typeof data?.source === "string" ? data.source : "VIIRS_SNPP_NRT",
+          days: Number.isFinite(Number(data?.days)) ? Number(data.days) : 2,
+          bbox: typeof data?.bbox === "string" ? data.bbox : args.region.bbox,
+          fetchedAt: typeof data?.fetched_at === "string" ? data.fetched_at : new Date().toISOString(),
+        };
 
         const points: FirePoint[] = (data.features ?? [])
           .map((f: any, i: number) => ({
@@ -201,6 +215,12 @@ export default function App() {
             confidence: f.confidence,
             acq_date: f.acq_date,
             acq_time: f.acq_time,
+            bright_ti4: Number.isFinite(Number(f.bright_ti4)) ? Number(f.bright_ti4) : undefined,
+            bright_ti5: Number.isFinite(Number(f.bright_ti5)) ? Number(f.bright_ti5) : undefined,
+            daynight: typeof f.daynight === "string" ? f.daynight : undefined,
+            satellite: typeof f.satellite === "string" ? f.satellite : undefined,
+            instrument: typeof f.instrument === "string" ? f.instrument : undefined,
+            version: typeof f.version === "string" ? f.version : undefined,
           }))
           .filter((p: any) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
@@ -271,6 +291,25 @@ export default function App() {
 
               liveFeedUrl: firmsViewerUrl(lat, lon),
               status: statusFromLastSeen(lastSeen, sev),
+              satelliteSource,
+              satelliteObservations: [...c.members]
+                .sort((a, b) => firePointSortValue(b) - firePointSortValue(a))
+                .slice(0, 8)
+                .map((m) => ({
+                  id: m.id,
+                  latitude: m.latitude,
+                  longitude: m.longitude,
+                  frp: m.frp,
+                  confidence: m.confidence,
+                  acq_date: m.acq_date,
+                  acq_time: m.acq_time,
+                  bright_ti4: m.bright_ti4,
+                  bright_ti5: m.bright_ti5,
+                  daynight: m.daynight,
+                  satellite: m.satellite,
+                  instrument: m.instrument,
+                  version: m.version,
+                })),
 
               evacuationLevel: undefined,
               nearbyInfrastructure: undefined,

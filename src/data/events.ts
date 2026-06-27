@@ -27,6 +27,30 @@ export interface EventHistoryPoint {
   severity?: EnvironmentalEvent["severity"];
 }
 
+export interface FireSatelliteObservation {
+  id: string;
+  latitude: number;
+  longitude: number;
+  frp?: number;
+  confidence?: string;
+  acq_date?: string;
+  acq_time?: string;
+  bright_ti4?: number;
+  bright_ti5?: number;
+  daynight?: string;
+  satellite?: string;
+  instrument?: string;
+  version?: string;
+}
+
+export interface SatelliteSourceMetadata {
+  provider: string;
+  product?: string;
+  days?: number;
+  bbox?: string;
+  fetchedAt?: string;
+}
+
 export interface EnvironmentalEvent {
   id: string;
   category: EventCategory;
@@ -98,6 +122,8 @@ export interface EnvironmentalEvent {
   focusCount?: number;
   frpSum?: number;
   frpMax?: number;
+  satelliteObservations?: FireSatelliteObservation[];
+  satelliteSource?: SatelliteSourceMetadata;
 }
 
 export const categoryColors: Record<EventCategory, string> = {

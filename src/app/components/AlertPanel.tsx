@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
-import type { EnvironmentalEvent } from "@/data/events";
+import type { EnvironmentalEvent, FireSatelliteObservation } from "@/data/events";
 import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/components/GuardianMissionPanel";
 import {
   GuardianObservationForm,
@@ -13,6 +13,7 @@ import { GuardianObservationIntegrity } from "@/app/components/GuardianObservati
 import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationDialog";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
+import { SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -678,6 +679,29 @@ function parseDetections(title?: string, description?: string) {
   const descriptionMatch = String(description ?? "").match(/detected\s+(\d+)\s+fire\s+signals?/i);
   const n = Number(titleMatch?.[1] ?? descriptionMatch?.[1] ?? Number.NaN);
   return Number.isFinite(n as any) ? (n as number) : null;
+}
+
+function formatFirmsAcquisitionTime(obs: FireSatelliteObservation) {
+  if (!obs.acq_date) return "Fecha no disponible";
+  const raw = String(obs.acq_time ?? "").trim();
+  if (!raw) return `${obs.acq_date} UTC`;
+  const padded = raw.padStart(4, "0");
+  return `${obs.acq_date} ${padded.slice(0, 2)}:${padded.slice(2, 4)} UTC`;
+}
+
+function confidenceLabel(confidence?: string) {
+  const c = String(confidence ?? "").toLowerCase();
+  if (c === "h") return "Alta";
+  if (c === "n") return "Nominal";
+  if (c === "l") return "Baja";
+  return confidence || "No indicada";
+}
+
+function dayNightLabel(daynight?: string) {
+  const d = String(daynight ?? "").toUpperCase();
+  if (d === "D") return "Día";
+  if (d === "N") return "Noche";
+  return daynight || "No indicado";
 }
 
 function guessTrendLabel(ev: EnvironmentalEvent) {
@@ -1752,6 +1776,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const satelliteDetections = Number.isFinite(event.focusCount) ? event.focusCount! : detections;
   const satelliteFrpMax = Number.isFinite(event.frpMax) ? event.frpMax! : frpMax;
   const satelliteFrpSum = Number.isFinite(event.frpSum) ? event.frpSum! : frpSum;
+  const satelliteFireObservations = Array.isArray(event.satelliteObservations)
+    ? event.satelliteObservations.filter(
+        (obs) => Number.isFinite(obs.latitude) && Number.isFinite(obs.longitude)
+      )
+    : [];
+  const satelliteObservedInstruments = Array.from(
+    new Set(satelliteFireObservations.map((obs) => obs.instrument).filter((item): item is string => Boolean(item)))
+  );
+  const satelliteSource = event.satelliteSource ?? null;
   const insightProbability =
     Number.isFinite(event.aiInsight?.probabilityNext12h) &&
     event.aiInsight!.probabilityNext12h! >= 0 &&
@@ -1961,7 +1994,45 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     guardianPreparationComplete &&
     (guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent));
   const hasInstrumentalFireData =
-    satelliteDetections != null || satelliteFrpMax != null || satelliteFrpSum != null || Boolean(event.liveFeedUrl);
+    satelliteDetections != null ||
+    satelliteFrpMax != null ||
+    satelliteFrpSum != null ||
+    satelliteFireObservations.length > 0 ||
+    Boolean(event.liveFeedUrl);
+  const satelliteInstrumentLabel =
+    event.category === "fire" && hasInstrumentalFireData
+      ? `NASA FIRMS${satelliteObservedInstruments.length ? ` / ${satelliteObservedInstruments.join(" / ")}` : " / VIIRS"}`
+      : "Fuente no conectada";
+  const satelliteMetricExplanations = [
+    {
+      label: "Detecciones",
+      value: satelliteDetections != null ? `${satelliteDetections}` : "No disponible",
+      meaning:
+        "Puntos térmicos detectados por sensores satelitales. No equivalen a perímetro, daño confirmado ni cantidad de incendios.",
+      available: satelliteDetections != null,
+    },
+    {
+      label: "FRP máximo",
+      value: satelliteFrpMax != null ? `${satelliteFrpMax.toFixed(2)} MW` : "No disponible",
+      meaning:
+        "Fire Radiative Power del punto más intenso. Ayuda a estimar intensidad térmica, pero puede variar por humo, nubes o ángulo de observación.",
+      available: satelliteFrpMax != null,
+    },
+    {
+      label: "FRP acumulado",
+      value: satelliteFrpSum != null ? `${satelliteFrpSum.toFixed(2)} MW` : "No disponible",
+      meaning:
+        "Suma operativa de energía radiativa de las detecciones agrupadas por BioPulse para este evento.",
+      available: satelliteFrpSum != null,
+    },
+  ];
+  const satelliteFutureLayers = [
+    "Humo y aerosoles",
+    "Calidad atmosférica",
+    "Agua superficial / inundación",
+    "Vegetación y sequedad",
+    "Nubes, tormentas y rayos",
+  ];
   const guardianMissionTemplates: GuardianMissionTemplate[] = [
     {
       kind: "review_satellite",
@@ -3090,15 +3161,31 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         onReveal={() => setGuardianVisualConsent(true)}
                       />
                     ) : (
-                      <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
-                        <div>
-                          <ImageIcon className="mx-auto h-7 w-7 text-white/30" />
-                          <div className="mt-3 text-sm font-medium text-white/70">
-                            Sin imagen satelital disponible en BioPulse para este evento
+                      <div>
+                        <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                          <div>
+                            <div className="text-[11px] uppercase tracking-wide text-white/45">
+                              Vista satelital consultable
+                            </div>
+                            <div className="mt-1 text-xs text-white/40">
+                              NASA GIBS / VIIRS True Color por coordenadas y fecha del evento.
+                            </div>
                           </div>
-                          <div className="mt-1 text-xs text-white/40">
-                            Las métricas y el acceso a la fuente permanecen disponibles.
-                          </div>
+                          <span className="self-start rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
+                            No es video en vivo
+                          </span>
+                        </div>
+                        <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+                          <SatelliteMiniMap
+                            lat={event.latitude}
+                            lon={event.longitude}
+                            date={observationDate ?? undefined}
+                            zoom={6}
+                            height={260}
+                          />
+                        </div>
+                        <div className="mt-2 text-[11px] leading-relaxed text-white/35">
+                          Esta vista usa teselas satelitales de referencia. Puede tener nubes, retraso temporal o no mostrar humo/fuego aunque existan detecciones térmicas FIRMS.
                         </div>
                       </div>
                     )}
@@ -3179,8 +3266,183 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
+                <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                  {satelliteMetricExplanations.map((metric) => (
+                    <div
+                      key={metric.label}
+                      className={cn(
+                        "rounded-xl border p-3",
+                        metric.available
+                          ? "border-cyan-300/15 bg-cyan-400/[0.06]"
+                          : "border-white/10 bg-white/[0.03]"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-[11px] uppercase tracking-wide text-white/40">{metric.label}</div>
+                          <div className="mt-1 text-sm font-semibold text-white/85">{metric.value}</div>
+                        </div>
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                            metric.available
+                              ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/80"
+                              : "border-white/10 bg-white/5 text-white/45"
+                          )}
+                        >
+                          {metric.available ? "Dato observado" : "No conectado"}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-xs leading-relaxed text-white/45">{metric.meaning}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-white/85">Señales FIRMS conservadas</div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/40">
+                        Muestra operativa de detecciones reales usadas para construir este evento. No representa todas las señales globales.
+                      </div>
+                    </div>
+                    <span className="self-start rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
+                      {satelliteFireObservations.length
+                        ? `${satelliteFireObservations.length} de ${satelliteDetections ?? satelliteFireObservations.length}`
+                        : "Sin muestra"}
+                    </span>
+                  </div>
+
+                  {satelliteFireObservations.length > 0 ? (
+                    <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
+                      {satelliteFireObservations.slice(0, 6).map((obs) => (
+                        <div
+                          key={obs.id}
+                          className="grid grid-cols-1 gap-2 border-b border-white/10 bg-black/15 p-3 last:border-b-0 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]"
+                        >
+                          <div>
+                            <div className="text-xs font-semibold text-white/80">
+                              {formatFirmsAcquisitionTime(obs)}
+                            </div>
+                            <div className="mt-1 text-[11px] text-white/40">
+                              {obs.latitude.toFixed(4)}, {obs.longitude.toFixed(4)}
+                            </div>
+                          </div>
+                          <div className="text-xs text-white/55">
+                            <div>
+                              FRP:{" "}
+                              <span className="font-semibold text-white/80">
+                                {Number.isFinite(obs.frp as any) ? `${Number(obs.frp).toFixed(2)} MW` : "No disponible"}
+                              </span>
+                            </div>
+                            <div className="mt-1">
+                              Confianza: <span className="text-white/70">{confidenceLabel(obs.confidence)}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-white/55">
+                            <div>
+                              Instrumento:{" "}
+                              <span className="text-white/70">{obs.instrument || "No indicado"}</span>
+                            </div>
+                            <div className="mt-1">
+                              Satélite: <span className="text-white/70">{obs.satellite || "No indicado"}</span> ·{" "}
+                              {dayNightLabel(obs.daynight)}
+                            </div>
+                            <div className="mt-1 text-[11px] text-white/35">
+                              Brillo T4/T5:{" "}
+                              {Number.isFinite(obs.bright_ti4 as any) ? Number(obs.bright_ti4).toFixed(1) : "—"} /{" "}
+                              {Number.isFinite(obs.bright_ti5 as any) ? Number(obs.bright_ti5).toFixed(1) : "—"}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-xl border border-dashed border-white/10 bg-black/15 p-4 text-sm text-white/45">
+                      Este evento todavía no conserva una muestra de señales FIRMS crudas. Las métricas agregadas y el enlace externo siguen disponibles si existen.
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.05] p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-cyan-100/90">Procedencia de la consulta</div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        Metadatos de la consulta usada por BioPulse para construir este evento.
+                      </div>
+                    </div>
+                    <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
+                      {satelliteSource?.provider ?? "Fuente no conectada"}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-lg border border-white/10 bg-black/15 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-white/35">Producto</div>
+                      <div className="mt-1 text-xs font-semibold text-white/75">
+                        {satelliteSource?.product ?? "No disponible"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/15 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-white/35">Ventana</div>
+                      <div className="mt-1 text-xs font-semibold text-white/75">
+                        {satelliteSource?.days != null ? `${satelliteSource.days} días` : "No disponible"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/15 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-white/35">Área consultada</div>
+                      <div className="mt-1 break-all text-xs font-semibold text-white/75">
+                        {satelliteSource?.bbox ?? "No disponible"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/15 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-white/35">Consulta</div>
+                      <div className="mt-1 text-xs font-semibold text-white/75">
+                        {satelliteSource?.fetchedAt ? fmtNowishUTC(satelliteSource.fetchedAt) : "No disponible"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
+                  <div className="rounded-xl border border-amber-300/15 bg-amber-400/[0.06] p-4">
+                    <div className="text-sm font-semibold text-amber-100/90">Límites de lectura satelital</div>
+                    <div className="mt-2 grid grid-cols-1 gap-2 text-xs leading-relaxed text-white/50 sm:grid-cols-2">
+                      <div>Puede haber demoras entre observación, procesamiento y visualización.</div>
+                      <div>Nubes, humo denso, resolución y ángulo orbital pueden ocultar o distorsionar señales.</div>
+                      <div>Una detección térmica no confirma evacuación, personas afectadas ni daño en superficie.</div>
+                      <div>BioPulse agrupa señales para comprensión operativa; la fuente oficial debe revisarse en FIRMS.</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-white/85">Capas satelitales futuras</div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/40">
+                          Pertinentes para BioPulse, pero todavía no conectadas a este evento.
+                        </div>
+                      </div>
+                      <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/45">
+                        Roadmap
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {satelliteFutureLayers.map((layer) => (
+                        <span
+                          key={layer}
+                          className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[11px] text-white/50"
+                        >
+                          {layer}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-white/40">
-                  Datos instrumentales: NASA FIRMS / VIIRS cuando estén disponibles. Estas señales pueden tener demoras, cobertura parcial o falsos positivos.
+                  Datos instrumentales: {satelliteInstrumentLabel} cuando estén disponibles. Estas señales pueden tener demoras, cobertura parcial o falsos positivos.
                 </div>
               </div>
             </SectionShell>
