@@ -179,6 +179,30 @@ export function GuardianActivityPanel({
   const liveRows = rows.filter((row) => row.isLive).length;
   const attentionRows = rows.filter((row) => row.attentionPriority > 1).length;
   const visibleRows = activityFilter === "attention" ? rows.filter((row) => row.attentionPriority > 1) : rows;
+  const operationalState =
+    activeMissions > 0
+      ? {
+          label: "Atención activa",
+          detail: "Hay misiones Guardian abiertas que conviene continuar o cerrar.",
+          className: "border-amber-300/20 bg-amber-400/[0.06] text-amber-100/70",
+        }
+      : attentionRows > 0
+      ? {
+          label: "Revisión pendiente",
+          detail: "Existen eventos con observaciones por revisar, completar o preservar.",
+          className: "border-cyan-300/15 bg-cyan-400/[0.06] text-cyan-100/70",
+        }
+      : rows.length > 0
+      ? {
+          label: "Memoria lista",
+          detail: "No hay pendientes críticos detectados en la memoria local.",
+          className: "border-emerald-300/15 bg-emerald-400/[0.06] text-emerald-100/70",
+        }
+      : {
+          label: "Sin memoria local",
+          detail: "Todavía no hay eventos preparados en este dispositivo.",
+          className: "border-white/10 bg-white/[0.03] text-white/45",
+        };
 
   return (
     <div className="fixed inset-0 z-[99998] pointer-events-auto">
@@ -284,6 +308,10 @@ export function GuardianActivityPanel({
                   <div>{reviewedObservations} {reviewedObservations === 1 ? "observación" : "observaciones"} con revisión de procedencia.</div>
                   <div>{integrityObservations} {integrityObservations === 1 ? "observación" : "observaciones"} con huella local.</div>
                   <div>La memoria sigue siendo privada y local en este dispositivo.</div>
+                </div>
+                <div className={`mt-3 rounded-xl border px-3 py-2 text-xs leading-relaxed ${operationalState.className}`}>
+                  <span className="font-semibold">{operationalState.label}: </span>
+                  {operationalState.detail}
                 </div>
               </div>
 
