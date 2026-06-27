@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ClipboardList, MapPin, ShieldCheck, X } from "lucide-react";
+import { ClipboardList, Fingerprint, MapPin, SearchCheck, ShieldCheck, X } from "lucide-react";
 import { GuardianBackupControls } from "@/app/components/GuardianBackupControls";
 import type { EnvironmentalEvent } from "@/data/events";
 import {
@@ -98,7 +98,17 @@ export function GuardianActivityPanel({
           isLive: Boolean(liveEvent),
           missionCount: missions.length,
           activeMissionCount: missions.filter((mission) => mission.status === "active").length,
+          closedMissionCount: missions.filter((mission) => mission.status !== "active").length,
           observationCount: observations.length,
+          reviewedObservationCount: observations.filter((observation) => observation.reviewStatus !== "unreviewed").length,
+          integrityCount: observations.filter((observation) => Boolean(observation.integrity)).length,
+          sensitiveCount: observations.filter((observation) => observation.sensitivity === "sensitive").length,
+          sourceReferenceCount: observations.filter((observation) => Boolean(observation.sourceReference)).length,
+          latestObservationAt:
+            observations
+              .map((observation) => observation.recordedAt)
+              .filter((value) => Number.isFinite(new Date(value).getTime()))
+              .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null,
         };
       })
       .sort((a, b) => new Date(b.memory.lastOpenedAt).getTime() - new Date(a.memory.lastOpenedAt).getTime());
@@ -108,6 +118,10 @@ export function GuardianActivityPanel({
 
   const totalObservations = rows.reduce((sum, row) => sum + row.observationCount, 0);
   const totalMissions = rows.reduce((sum, row) => sum + row.missionCount, 0);
+  const activeMissions = rows.reduce((sum, row) => sum + row.activeMissionCount, 0);
+  const reviewedObservations = rows.reduce((sum, row) => sum + row.reviewedObservationCount, 0);
+  const integrityObservations = rows.reduce((sum, row) => sum + row.integrityCount, 0);
+  const liveRows = rows.filter((row) => row.isLive).length;
 
   return (
     <div className="fixed inset-0 z-[99998] pointer-events-auto">
@@ -143,7 +157,7 @@ export function GuardianActivityPanel({
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-px border-b border-white/10 bg-white/10 text-center">
+        <div className="grid grid-cols-3 gap-px border-b border-white/10 bg-white/10 text-center md:grid-cols-6">
           <div className="bg-[#09111b] px-3 py-3">
             <div className="text-lg font-semibold text-white/80">{rows.length}</div>
             <div className="text-[10px] uppercase tracking-wide text-white/35">Eventos</div>
@@ -156,6 +170,18 @@ export function GuardianActivityPanel({
             <div className="text-lg font-semibold text-white/80">{totalObservations}</div>
             <div className="text-[10px] uppercase tracking-wide text-white/35">Observaciones</div>
           </div>
+          <div className="bg-[#09111b] px-3 py-3">
+            <div className="text-lg font-semibold text-white/80">{activeMissions}</div>
+            <div className="text-[10px] uppercase tracking-wide text-white/35">Activas</div>
+          </div>
+          <div className="bg-[#09111b] px-3 py-3">
+            <div className="text-lg font-semibold text-white/80">{reviewedObservations}</div>
+            <div className="text-[10px] uppercase tracking-wide text-white/35">Revisadas</div>
+          </div>
+          <div className="bg-[#09111b] px-3 py-3">
+            <div className="text-lg font-semibold text-white/80">{integrityObservations}</div>
+            <div className="text-[10px] uppercase tracking-wide text-white/35">Huellas</div>
+          </div>
         </div>
 
         <div className="overflow-y-auto p-4 md:p-6">
@@ -167,7 +193,21 @@ export function GuardianActivityPanel({
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-white/10 border-y border-white/10">
+            <>
+              <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/70">
+                  <ShieldCheck className="h-4 w-4 text-emerald-200/75" />
+                  Tablero local
+                </div>
+                <div className="mt-2 grid gap-2 text-[11px] leading-relaxed text-white/40 sm:grid-cols-2">
+                  <div>{liveRows} evento{liveRows === 1 ? "" : "s"} vinculado{liveRows === 1 ? "" : "s"} al escaneo actual.</div>
+                  <div>{reviewedObservations} {reviewedObservations === 1 ? "observación" : "observaciones"} con revisión de procedencia.</div>
+                  <div>{integrityObservations} {integrityObservations === 1 ? "observación" : "observaciones"} con huella local.</div>
+                  <div>La memoria sigue siendo privada y local en este dispositivo.</div>
+                </div>
+              </div>
+
+              <div className="divide-y divide-white/10 border-y border-white/10">
               {rows.map((row) => (
                 <div key={row.memory.eventId} className="py-4">
                   <div className="flex items-start justify-between gap-3">
@@ -178,6 +218,18 @@ export function GuardianActivityPanel({
                         </span>
                         {row.activeMissionCount > 0 ? (
                           <span className="text-[10px] font-medium text-cyan-100/65">Misión activa</span>
+                        ) : null}
+                        {row.reviewedObservationCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2 py-0.5 text-[10px] font-medium text-cyan-100/65">
+                            <SearchCheck className="h-3 w-3" />
+                            Revisada
+                          </span>
+                        ) : null}
+                        {row.integrityCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/15 bg-emerald-400/[0.06] px-2 py-0.5 text-[10px] font-medium text-emerald-100/65">
+                            <Fingerprint className="h-3 w-3" />
+                            Huella local
+                          </span>
                         ) : null}
                       </div>
                       <div className="mt-2 text-sm font-semibold text-white/85">
@@ -211,6 +263,24 @@ export function GuardianActivityPanel({
                     <span>Última apertura: {localDate(row.memory.lastOpenedAt)}</span>
                   </div>
 
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-white/35">
+                    <span>{row.sourceReferenceCount} con fuente declarada</span>
+                    <span>{row.closedMissionCount} cerradas</span>
+                    {row.latestObservationAt ? <span>Última observación: {localDate(row.latestObservationAt)}</span> : null}
+                  </div>
+
+                  {row.observationCount > 0 && row.integrityCount < row.observationCount ? (
+                    <div className="mt-2 text-[11px] leading-relaxed text-amber-100/55">
+                      {row.observationCount - row.integrityCount} observación{row.observationCount - row.integrityCount === 1 ? "" : "es"} sin huella local.
+                    </div>
+                  ) : null}
+
+                  {row.sensitiveCount > 0 ? (
+                    <div className="mt-2 text-[11px] leading-relaxed text-amber-100/55">
+                      {row.sensitiveCount} observación{row.sensitiveCount === 1 ? "" : "es"} marcada{row.sensitiveCount === 1 ? "" : "s"} como sensible.
+                    </div>
+                  ) : null}
+
                   {!row.event ? (
                     <div className="mt-2 text-[11px] leading-relaxed text-amber-100/55">
                       Este registro fue creado antes del resumen recuperable. Abrí el evento desde el mapa y tocá Registrar apertura para actualizarlo.
@@ -218,7 +288,8 @@ export function GuardianActivityPanel({
                   ) : null}
                 </div>
               ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
 
