@@ -1911,6 +1911,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     .map((id) => guardianStore.observations[id])
     .filter((observation): observation is GuardianObservation => Boolean(observation))
     .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+  const cameraGuardianObservations = guardianObservations.filter(
+    (observation) => observation.sourceType === "camera"
+  );
   const guardianMissions = (guardianEventMemory?.missionIds ?? [])
     .map((id) => guardianStore.missions[id])
     .filter((mission): mission is GuardianMission => Boolean(mission))
@@ -4303,7 +4306,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             <SectionShell
               icon={<Camera className="h-5 w-5 text-white/80" />}
               title="Cámaras en vivo"
-              subtitle="Puntos cercanos para verificar visualmente la situación."
+              subtitle="Observación visual cercana al evento. Las imágenes externas pueden actualizarse, fallar o quedar fuera de servicio."
               right={
                 <div className="flex items-center gap-2">
                   <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/75">
@@ -4340,7 +4343,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 ) : null}
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Cámaras cercanas</div>
+                    <div className="mt-2 text-2xl font-semibold text-white/90">{nearbyCameras.length}</div>
+                    <div className="mt-1 text-xs text-white/35">Dentro del radio actual.</div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Registro</div>
+                    <div className="mt-2 text-2xl font-semibold text-white/90">{camRegistry.length}</div>
+                    <div className="mt-1 text-xs text-white/35">Cámaras cargadas en BioPulse.</div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Reportes Guardian</div>
+                    <div className="mt-2 text-2xl font-semibold text-white/90">{cameraGuardianObservations.length}</div>
+                    <div className="mt-1 text-xs text-white/35">Observaciones locales vinculadas a cámaras.</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div className="text-[11px] uppercase tracking-wide text-white/45 flex items-center gap-2">
                     <MapPin className="h-4 w-4 opacity-70" />
                     Centro:{" "}
@@ -4391,6 +4412,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 ) : null}
 
+                <div className="mt-4 rounded-2xl border border-cyan-300/15 bg-cyan-400/[0.045] p-4">
+                  <div className="text-sm font-semibold text-cyan-100/85">Lectura visual responsable</div>
+                  <div className="mt-1 text-xs leading-relaxed text-cyan-100/55">
+                    Una cámara puede ayudar a observar humo, visibilidad o condiciones locales, pero no confirma por sí sola
+                    el impacto del evento. Preservá contexto: hora, fuente, ubicación aproximada y limitaciones visibles.
+                  </div>
+                </div>
+
                 <div className="mt-4 space-y-3">
                   {camLoading ? (
                     <div className="space-y-3">
@@ -4407,10 +4436,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       No hay cámaras dentro del radio actual. Probá ampliar a 100 km o registrar nuevas cámaras.
                     </div>
                   ) : (
-                    nearbyCameras.map((cam) => {
+                    nearbyCameras.map((cam, index) => {
                       const title = cam.title ?? cam.id;
                       const locality = cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
                       const dist = `${cam.distanceKm.toFixed(1)} km`;
+                      const isNearest = index === 0;
 
                       const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
                       const isWindyProvider =
@@ -4438,9 +4468,32 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           : null;
 
                       const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
+                      const snapshotState =
+                        snapUrl
+                          ? "Snapshot disponible"
+                          : isWindyProvider && providerSnapshot?.status === "loading"
+                          ? "Consultando provider"
+                          : openUrl
+                          ? "Fuente externa"
+                          : "Sin snapshot";
+                      const snapshotStateClass = snapUrl
+                        ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
+                        : isWindyProvider && providerSnapshot?.status === "loading"
+                        ? "border-white/10 bg-white/5 text-white/60"
+                        : openUrl
+                        ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75"
+                        : "border-amber-300/20 bg-amber-400/10 text-amber-100/75";
 
                       return (
-                        <div key={cam.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div
+                          key={cam.id}
+                          className={cn(
+                            "rounded-2xl border p-3 transition-colors",
+                            isNearest
+                              ? "border-cyan-300/25 bg-cyan-400/[0.055]"
+                              : "border-white/10 bg-white/5"
+                          )}
+                        >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-3 min-w-0">
                               {visualMediaAllowed ? (
@@ -4453,7 +4506,26 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               )}
 
                               <div className="min-w-0">
+                                {isNearest ? (
+                                  <div className="mb-1 inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-100/80">
+                                    Cámara más cercana
+                                  </div>
+                                ) : null}
                                 <div className="text-sm font-semibold text-white/90 line-clamp-2">{title}</div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold", snapshotStateClass)}>
+                                    {snapshotState}
+                                  </span>
+                                  {isWindyProvider ? (
+                                    <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
+                                      Windy API
+                                    </span>
+                                  ) : isSnapshot ? (
+                                    <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
+                                      Imagen directa
+                                    </span>
+                                  ) : null}
+                                </div>
                                 <div className="mt-1 text-[11px] text-white/45">
                                   <span className="text-white/55">{dist}</span>
                                   {locality ? (
@@ -4530,6 +4602,40 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       );
                     })
                   )}
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-white/85">Últimos reportes Guardian</div>
+                      <div className="text-xs text-white/40">Observaciones locales vinculadas a cámaras de este evento.</div>
+                    </div>
+                    <div className="inline-flex w-fit rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/55">
+                      {cameraGuardianObservations.length} locales
+                    </div>
+                  </div>
+
+                  <div className="mt-3 space-y-2">
+                    {cameraGuardianObservations.length > 0 ? (
+                      cameraGuardianObservations.slice(0, 3).map((observation) => (
+                        <div key={observation.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="text-sm text-white/75 line-clamp-2">{observation.observedText}</div>
+                            <div className="shrink-0 text-[11px] text-white/35">
+                              {fmtDateTimeUTC(new Date(observation.recordedAt))}
+                            </div>
+                          </div>
+                          {observation.sourceReference ? (
+                            <div className="mt-1 text-[11px] text-white/35 line-clamp-1">{observation.sourceReference}</div>
+                          ) : null}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-white/15 bg-black/20 p-3 text-sm text-white/45">
+                        Todavía no hay reportes locales sobre cámaras para este evento.
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-4 text-[11px] text-white/30">
