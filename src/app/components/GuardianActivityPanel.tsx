@@ -92,18 +92,41 @@ export function GuardianActivityPanel({
         const observations = memory.observationIds
           .map((id) => store.observations[id])
           .filter((observation): observation is GuardianObservation => Boolean(observation));
+        const activeMissionCount = missions.filter((mission) => mission.status === "active").length;
+        const closedMissionCount = missions.filter((mission) => mission.status !== "active").length;
+        const reviewedObservationCount = observations.filter((observation) => observation.reviewStatus !== "unreviewed").length;
+        const unreviewedObservationCount = observations.length - reviewedObservationCount;
+        const integrityCount = observations.filter((observation) => Boolean(observation.integrity)).length;
+        const missingIntegrityCount = observations.length - integrityCount;
+        const sensitiveCount = observations.filter((observation) => observation.sensitivity === "sensitive").length;
+        const sourceReferenceCount = observations.filter((observation) => Boolean(observation.sourceReference)).length;
+        const nextAction =
+          activeMissionCount > 0
+            ? "Continuar o cerrar la misión activa del evento."
+            : observations.length === 0
+            ? "Registrar una primera observación privada."
+            : unreviewedObservationCount > 0
+            ? "Revisar procedencia de observaciones sin contraste."
+            : missingIntegrityCount > 0
+            ? "Generar huella local para observaciones pendientes."
+            : sensitiveCount > 0
+            ? "Revisar exposición antes de compartir o exportar."
+            : "Memoria lista para exportar o continuar observando.";
         return {
           memory,
           event,
           isLive: Boolean(liveEvent),
           missionCount: missions.length,
-          activeMissionCount: missions.filter((mission) => mission.status === "active").length,
-          closedMissionCount: missions.filter((mission) => mission.status !== "active").length,
+          activeMissionCount,
+          closedMissionCount,
           observationCount: observations.length,
-          reviewedObservationCount: observations.filter((observation) => observation.reviewStatus !== "unreviewed").length,
-          integrityCount: observations.filter((observation) => Boolean(observation.integrity)).length,
-          sensitiveCount: observations.filter((observation) => observation.sensitivity === "sensitive").length,
-          sourceReferenceCount: observations.filter((observation) => Boolean(observation.sourceReference)).length,
+          reviewedObservationCount,
+          unreviewedObservationCount,
+          integrityCount,
+          missingIntegrityCount,
+          sensitiveCount,
+          sourceReferenceCount,
+          nextAction,
           latestObservationAt:
             observations
               .map((observation) => observation.recordedAt)
@@ -267,6 +290,11 @@ export function GuardianActivityPanel({
                     <span>{row.sourceReferenceCount} con fuente declarada</span>
                     <span>{row.closedMissionCount} cerradas</span>
                     {row.latestObservationAt ? <span>Última observación: {localDate(row.latestObservationAt)}</span> : null}
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-cyan-300/10 bg-cyan-400/[0.03] px-3 py-2 text-[11px] leading-relaxed text-cyan-100/65">
+                    <span className="font-semibold text-cyan-100/80">Próximo paso sugerido: </span>
+                    {row.nextAction}
                   </div>
 
                   {row.observationCount > 0 && row.integrityCount < row.observationCount ? (
