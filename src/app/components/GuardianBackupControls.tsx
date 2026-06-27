@@ -21,6 +21,10 @@ function localDate(value: string) {
   });
 }
 
+function backupFilename(date: Date) {
+  return `biopulse-guardian-${date.toISOString().replace(/[:.]/g, "-")}.json`;
+}
+
 export function GuardianBackupControls({
   onRestore,
   currentCounts,
@@ -36,16 +40,20 @@ export function GuardianBackupControls({
   const [preview, setPreview] = useState<GuardianBackupPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [restored, setRestored] = useState(false);
+  const [exportedAt, setExportedAt] = useState<string | null>(null);
 
   const downloadBackup = () => {
-    const content = createGuardianBackup();
+    const now = new Date();
+    const content = createGuardianBackup(now);
     const blob = new Blob([content], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `biopulse-guardian-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = backupFilename(now);
     link.click();
     URL.revokeObjectURL(url);
+    setExportedAt(now.toISOString());
+    setRestored(false);
     setError(null);
   };
 
@@ -172,6 +180,12 @@ export function GuardianBackupControls({
         <div className="mt-3 flex items-center gap-2 text-xs text-emerald-100/65">
           <CheckCircle2 className="h-4 w-4" />
           Memoria Guardian restaurada en este dispositivo.
+        </div>
+      ) : null}
+      {exportedAt ? (
+        <div className="mt-3 flex items-center gap-2 text-xs text-emerald-100/65">
+          <CheckCircle2 className="h-4 w-4" />
+          Respaldo generado: {localDate(exportedAt)}.
         </div>
       ) : null}
       {error ? <div className="mt-3 text-xs leading-relaxed text-red-100/70">{error}</div> : null}
