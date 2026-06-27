@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Check, Copy, Download, FileText, ShieldCheck } from "lucide-react";
+import { Check, Copy, Download, FileText, History, ShieldCheck } from "lucide-react";
 import type { EnvironmentalEvent } from "@/data/events";
-import type { GuardianMission, GuardianObservation } from "@/app/lib/guardianStore";
+import type { GuardianEventMemory, GuardianMission, GuardianObservation } from "@/app/lib/guardianStore";
+import { buildGuardianTimeline } from "@/app/lib/guardianTimeline";
 import {
   buildGuardianReport,
   buildGuardianReportSummary,
@@ -30,10 +31,12 @@ async function writeLocalClipboard(text: string) {
 
 export function GuardianReportPanel({
   event,
+  memory,
   missions,
   observations,
 }: {
   event: EnvironmentalEvent;
+  memory: GuardianEventMemory;
   missions: GuardianMission[];
   observations: GuardianObservation[];
 }) {
@@ -42,10 +45,11 @@ export function GuardianReportPanel({
   const hasGuardianWork = observations.length > 0 || summary.closedMissions > 0;
   const visibleSources = summary.bySource.filter((item) => item.count > 0);
   const visibleReviewStates = summary.byReview.filter((item) => item.count > 0);
+  const timelineEntryCount = buildGuardianTimeline(memory, missions, observations).length;
 
   const copyReport = async () => {
     try {
-      await writeLocalClipboard(buildGuardianReport({ event, missions, observations }));
+      await writeLocalClipboard(buildGuardianReport({ event, memory, missions, observations }));
       setCopyState("copied");
       window.setTimeout(() => setCopyState("idle"), 2200);
     } catch {
@@ -54,7 +58,7 @@ export function GuardianReportPanel({
   };
 
   const downloadReport = () => {
-    const blob = new Blob([buildGuardianReport({ event, missions, observations })], {
+    const blob = new Blob([buildGuardianReport({ event, memory, missions, observations })], {
       type: "text/markdown;charset=utf-8",
     });
     const url = URL.createObjectURL(blob);
@@ -96,6 +100,10 @@ export function GuardianReportPanel({
         <div className="border-l-2 border-emerald-300/20 pl-3">
           <div className="text-white/35">Con huella local</div>
           <div className="mt-1 font-semibold text-white/70">{summary.integrityCount}</div>
+        </div>
+        <div className="border-l-2 border-sky-300/20 pl-3">
+          <div className="text-white/35">Cronología</div>
+          <div className="mt-1 font-semibold text-white/70">{timelineEntryCount}</div>
         </div>
       </div>
 
@@ -143,6 +151,13 @@ export function GuardianReportPanel({
               {summary.sensitiveCount === 1 ? "" : "s"} como sensible. Revisá exposición y contexto antes de compartir.
             </div>
           ) : null}
+          <div className="mt-3 flex items-start gap-2 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-white/40">
+            <History className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-100/55" />
+            <span>
+              El informe incluye la cronología local del evento: preparación, misiones, observaciones,
+              revisiones y huellas disponibles.
+            </span>
+          </div>
         </div>
       ) : null}
 

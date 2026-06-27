@@ -1,5 +1,6 @@
 import type { EnvironmentalEvent } from "@/data/events";
-import type { GuardianMission, GuardianObservation } from "@/app/lib/guardianStore";
+import type { GuardianEventMemory, GuardianMission, GuardianObservation } from "@/app/lib/guardianStore";
+import { buildGuardianTimeline } from "@/app/lib/guardianTimeline";
 
 const CATEGORY_LABELS: Record<EnvironmentalEvent["category"], string> = {
   fire: "Incendio",
@@ -133,11 +134,13 @@ export function buildGuardianReportSummary({
 
 export function buildGuardianReport({
   event,
+  memory,
   missions,
   observations,
   generatedAt = new Date(),
 }: {
   event: EnvironmentalEvent;
+  memory?: GuardianEventMemory | null;
   missions: GuardianMission[];
   observations: GuardianObservation[];
   generatedAt?: Date;
@@ -149,6 +152,7 @@ export function buildGuardianReport({
     (a, b) => new Date(a.observedAt).getTime() - new Date(b.observedAt).getTime()
   );
   const summary = buildGuardianReportSummary({ missions, observations });
+  const timelineEntries = memory ? buildGuardianTimeline(memory, orderedMissions, orderedObservations) : [];
 
   const lines = [
     "# Informe Guardian local de BioPulse",
@@ -184,9 +188,30 @@ export function buildGuardianReport({
     "",
     ...summary.byReview.map((item) => `- ${item.label}: ${item.count}`),
     "",
-    "## Misiones Guardian",
+    "## Cronología Guardian",
     "",
   ];
+
+  if (timelineEntries.length === 0) {
+    lines.push("No hay una cronología Guardian disponible para este informe.", "");
+  } else {
+    lines.push("Entradas ordenadas desde la más reciente hasta la más antigua.", "");
+    timelineEntries.forEach((entry, index) => {
+      lines.push(
+        `### ${index + 1}. ${entry.title}`,
+        "",
+        `- Momento: ${utc(entry.at)}`,
+        `- Tipo: ${entry.kind}`,
+        `- Detalle: ${entry.detail ? singleLine(entry.detail) : "No informado"}`,
+        ""
+      );
+    });
+  }
+
+  lines.push(
+    "## Misiones Guardian",
+    "",
+  );
 
   if (orderedMissions.length === 0) {
     lines.push("No se registraron misiones Guardian para este evento.", "");

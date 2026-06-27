@@ -2597,6 +2597,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                     <GuardianReportPanel
                       event={event}
+                      memory={guardianEventMemory}
                       missions={guardianMissions}
                       observations={guardianObservations}
                     />
