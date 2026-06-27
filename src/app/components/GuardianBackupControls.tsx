@@ -152,6 +152,22 @@ export function GuardianBackupControls({
               <div className="mt-1 text-[11px] leading-relaxed text-white/35">
                 Formato verificado: <span className="font-mono text-white/45">{GUARDIAN_BACKUP_FORMAT}</span>
               </div>
+              {currentCounts ? (
+                <div className="mt-2 grid gap-2 text-[11px] leading-relaxed text-white/40 sm:grid-cols-2">
+                  <div className="rounded-lg border border-white/10 bg-black/15 px-3 py-2">
+                    <div className="font-semibold text-white/55">Actual en este navegador</div>
+                    <div className="mt-1">
+                      {currentCounts.events} evento{currentCounts.events === 1 ? "" : "s"} · {currentCounts.missions} misión{currentCounts.missions === 1 ? "" : "es"} · {currentCounts.observations} observación{currentCounts.observations === 1 ? "" : "es"}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-amber-300/15 bg-amber-400/[0.04] px-3 py-2">
+                    <div className="font-semibold text-amber-100/65">Respaldo seleccionado</div>
+                    <div className="mt-1">
+                      {preview.counts.events} evento{preview.counts.events === 1 ? "" : "s"} · {preview.counts.missions} misión{preview.counts.missions === 1 ? "" : "es"} · {preview.counts.observations} observación{preview.counts.observations === 1 ? "" : "es"}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               <div className="mt-1 text-[11px] leading-relaxed text-amber-100/50">
                 Reemplazará toda la memoria Guardian actual de este navegador.
               </div>
