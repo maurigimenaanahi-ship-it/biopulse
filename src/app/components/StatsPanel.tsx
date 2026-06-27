@@ -78,11 +78,11 @@ export function StatsPanel({
     );
   };
 
-  const Pict = (p: { key: "total" | "critical" | "regions"; value: number; icon: any; color: string }) => {
+  const Pict = (p: { itemKey: "total" | "critical" | "regions"; value: number; icon: any; color: string }) => {
     const Icon = p.icon;
     return (
       <button
-        onClick={() => setManualOpen(p.key)}
+        onClick={() => setManualOpen(p.itemKey)}
         className={[
           "w-[54px] rounded-2xl border border-white/10",
           "bg-black/40 backdrop-blur-md shadow-lg",
@@ -90,7 +90,7 @@ export function StatsPanel({
           "hover:bg-black/55 transition-colors",
           "flex flex-col items-center justify-center gap-1",
         ].join(" ")}
-        aria-label={`Open ${p.key} panel`}
+        aria-label={`Open ${p.itemKey} panel`}
         title="Ver detalle"
       >
         <Icon className={["h-5 w-5", p.color].join(" ")} />
@@ -138,7 +138,7 @@ export function StatsPanel({
         ) : (
           <div className="flex flex-col gap-3 items-end">
             {items.map((it) => (
-              <Pict key={it.key} value={it.value} icon={it.icon} color={it.color} />
+              <Pict key={it.key} itemKey={it.key} value={it.value} icon={it.icon} color={it.color} />
             ))}
           </div>
         )}
@@ -151,7 +151,7 @@ export function StatsPanel({
         {isCollapsedDesktop ? (
           <div className="flex flex-col gap-3 items-end">
             {items.map((it) => (
-              <Pict key={it.key} value={it.value} icon={it.icon} color={it.color} />
+              <Pict key={it.key} itemKey={it.key} value={it.value} icon={it.icon} color={it.color} />
             ))}
           </div>
         ) : (
