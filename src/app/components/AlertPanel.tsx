@@ -4,7 +4,10 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { EnvironmentalEvent } from "@/data/events";
 import { GuardianMissionPanel, type GuardianMissionTemplate } from "@/app/components/GuardianMissionPanel";
-import { GuardianObservationForm } from "@/app/components/GuardianObservationForm";
+import {
+  GuardianObservationForm,
+  type GuardianObservationDraft,
+} from "@/app/components/GuardianObservationForm";
 import { GuardianObservationReview } from "@/app/components/GuardianObservationReview";
 import { GuardianObservationIntegrity } from "@/app/components/GuardianObservationIntegrity";
 import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationDialog";
@@ -59,6 +62,7 @@ import {
   Route,
   History,
   Trash2,
+  ClipboardPlus,
 } from "lucide-react";
 
 type AlertPanelProps = {
@@ -252,6 +256,20 @@ type ProviderCameraSnapshot = {
   attributionText?: string | null;
   message?: string;
 };
+
+function GuardianSourceButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-emerald-300/15 bg-emerald-400/[0.06] px-3 py-1.5 text-xs font-semibold text-emerald-100/70 hover:bg-emerald-400/10"
+      title="Precargar esta fuente en una observación Guardian"
+    >
+      <ClipboardPlus className="h-3.5 w-3.5" />
+      Registrar fuente
+    </button>
+  );
+}
 
 // ---------- Worker clients ----------
 async function fetchNewsFromWorker(params: { query: string; days: number; max: number; signal?: AbortSignal }) {
@@ -1266,6 +1284,7 @@ function WaterResourceSummary({
 
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const guardianObservationRef = useRef<HTMLDivElement | null>(null);
   const newsAbortRef = useRef<AbortController | null>(null);
   const weatherAbortRef = useRef<AbortController | null>(null);
   const cameraAbortRef = useRef<AbortController | null>(null);
@@ -1280,6 +1299,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [guardianDeletePending, setGuardianDeletePending] = useState(false);
   const [guardianObservationDeleteId, setGuardianObservationDeleteId] = useState<string | null>(null);
   const [guardianPreparationOpen, setGuardianPreparationOpen] = useState(false);
+  const [guardianObservationDraft, setGuardianObservationDraft] = useState<GuardianObservationDraft | null>(null);
 
   useEffect(() => {
     if (!event) return;
@@ -1297,6 +1317,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setGuardianDeletePending(false);
     setGuardianObservationDeleteId(null);
     setGuardianPreparationOpen(false);
+    setGuardianObservationDraft(null);
   }, [event?.id]);
 
   useEffect(() => {
@@ -1893,6 +1914,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const guardianExposure = guardianStore.preferences.exposure;
   const guardianPreparationComplete =
     guardianStore.preferences.preparationVersion === GUARDIAN_PREPARATION_VERSION;
+  const guardianCanCaptureSource = Boolean(
+    guardianEventMemory && guardianEventRecordId && guardianPreparationComplete
+  );
+  const beginGuardianSourceObservation = (draft: Omit<GuardianObservationDraft, "id">) => {
+    if (!guardianCanCaptureSource) return;
+    setGuardianObservationDraft({ ...draft, id: `${Date.now()}-${Math.random()}` });
+    requestAnimationFrame(() => {
+      guardianObservationRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+  const beginNewsObservation = (item: NewsItem, classification: "official" | "regional") => {
+    const publishedAt = item.publishedAt ? new Date(item.publishedAt) : new Date();
+    beginGuardianSourceObservation({
+      label: item.title ?? item.domain ?? "Referencia periodística",
+      sourceType: "news",
+      sourceReference: item.url ?? item.domain ?? "",
+      observedAt: Number.isFinite(publishedAt.getTime()) ? publishedAt.toISOString() : new Date().toISOString(),
+      limitations:
+        classification === "official"
+          ? "La clasificación como comunicado oficial es operativa. Revisar autoría, fecha y contenido en la fuente original."
+          : "Una publicación periodística puede contener información incompleta, desactualizada o no verificada. Contrastar con fuentes independientes.",
+    });
+  };
   const visualMediaAllowed =
     guardianPreparationComplete &&
     (guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent));
@@ -2419,16 +2463,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       }}
                     />
 
-                    <GuardianObservationForm
-                      eventId={guardianEventRecordId!}
-                      exposure={guardianExposure}
-                      missionId={activeGuardianMission?.id}
-                      missionTitle={activeGuardianMission?.title}
-                      onSaved={(store) => {
-                        setGuardianStore(store);
-                        setGuardianStorageErr(null);
-                      }}
-                    />
+                    <div ref={guardianObservationRef}>
+                      <GuardianObservationForm
+                        eventId={guardianEventRecordId!}
+                        exposure={guardianExposure}
+                        missionId={activeGuardianMission?.id}
+                        missionTitle={activeGuardianMission?.title}
+                        draft={guardianObservationDraft}
+                        onDraftConsumed={() => setGuardianObservationDraft(null)}
+                        onSaved={(store) => {
+                          setGuardianStore(store);
+                          setGuardianStorageErr(null);
+                        }}
+                      />
+                    </div>
 
                     <div className="border-t border-white/10">
                       <div className="flex items-center justify-between gap-3 px-4 py-3">
@@ -2915,6 +2963,22 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         No hay un enlace externo de observación asociado.
                       </div>
                     )}
+
+                    {guardianCanCaptureSource ? (
+                      <GuardianSourceButton
+                        onClick={() =>
+                          beginGuardianSourceObservation({
+                            label: "Observación satelital del evento",
+                            sourceType: "satellite",
+                            sourceReference: event.liveFeedUrl ?? `Evento BioPulse ${event.id}`,
+                            observedAt: (observationDate ?? new Date()).toISOString(),
+                            limitations: event.stale
+                              ? "La señal está marcada como desactualizada. Puede tener cobertura parcial, demoras o falsos positivos y no confirma impacto en superficie."
+                              : "La señal instrumental puede tener cobertura parcial, demoras o falsos positivos y no confirma impacto en superficie.",
+                          })
+                        }
+                      />
+                    ) : null}
                   </div>
                 </div>
 
@@ -3610,6 +3674,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                         {it.summary}
                                       </div>
                                     ) : null}
+                                    {guardianCanCaptureSource ? (
+                                      <div className="mt-3">
+                                        <GuardianSourceButton onClick={() => beginNewsObservation(it, "official")} />
+                                      </div>
+                                    ) : null}
                                   </div>
                                 );
                               })
@@ -3688,6 +3757,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                         {it.summary}
                                       </div>
                                     ) : null}
+                                    {guardianCanCaptureSource ? (
+                                      <div className="mt-3">
+                                        <GuardianSourceButton onClick={() => beginNewsObservation(it, "regional")} />
+                                      </div>
+                                    ) : null}
                                   </div>
                                 );
                               })
@@ -3762,6 +3836,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 {it.summary ? (
                                   <div className="mt-2 text-sm text-white/60 leading-relaxed">{it.summary}</div>
                                 ) : null}
+                                {guardianCanCaptureSource ? (
+                                  <div className="mt-3">
+                                    <GuardianSourceButton onClick={() => beginNewsObservation(it, "official")} />
+                                  </div>
+                                ) : null}
                               </div>
                             );
                           })
@@ -3825,6 +3904,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                                 {it.summary ? (
                                   <div className="mt-2 text-sm text-white/60 leading-relaxed">{it.summary}</div>
+                                ) : null}
+                                {guardianCanCaptureSource ? (
+                                  <div className="mt-3">
+                                    <GuardianSourceButton onClick={() => beginNewsObservation(it, "regional")} />
+                                  </div>
                                 ) : null}
                               </div>
                             );
@@ -4208,6 +4292,23 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               )}
                             </div>
                           </div>
+
+                          {guardianCanCaptureSource ? (
+                            <div className="mt-3">
+                              <GuardianSourceButton
+                                onClick={() =>
+                                  beginGuardianSourceObservation({
+                                    label: title,
+                                    sourceType: "camera",
+                                    sourceReference: openUrl ?? `Cámara ${cam.id}`,
+                                    observedAt: new Date().toISOString(),
+                                    limitations:
+                                      "La referencia apunta a una cámara externa que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
+                                  })
+                                }
+                              />
+                            </div>
+                          ) : null}
 
                           {visualMediaAllowed && (isSnapshot || isWindyProvider) ? (
                             <CameraSnapshotPreview src={snapUrl ?? ""} alt={title} />

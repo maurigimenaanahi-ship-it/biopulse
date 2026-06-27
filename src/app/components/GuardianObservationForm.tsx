@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Save } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link2, Save } from "lucide-react";
 import {
   createGuardianObservation,
   type GuardianExposurePreference,
@@ -17,18 +17,31 @@ function localDateTimeValue(date = new Date()) {
 const fieldClass =
   "mt-1.5 w-full rounded-xl border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-emerald-300/30";
 
+export type GuardianObservationDraft = {
+  id: string;
+  label: string;
+  sourceType: GuardianObservationSource;
+  sourceReference: string;
+  observedAt: string;
+  limitations: string;
+};
+
 export function GuardianObservationForm({
   eventId,
   exposure,
   missionId,
   missionTitle,
+  draft,
   onSaved,
+  onDraftConsumed,
 }: {
   eventId: string;
   exposure: GuardianExposurePreference;
   missionId?: string | null;
   missionTitle?: string | null;
+  draft?: GuardianObservationDraft | null;
   onSaved: (store: GuardianLocalStore) => void;
+  onDraftConsumed?: () => void;
 }) {
   const [observedText, setObservedText] = useState("");
   const [interpretation, setInterpretation] = useState("");
@@ -40,6 +53,16 @@ export function GuardianObservationForm({
   const [sensitivity, setSensitivity] = useState<GuardianSensitivity>("unknown");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!draft) return;
+    const date = new Date(draft.observedAt);
+    setSourceType(draft.sourceType);
+    setSourceReference(draft.sourceReference);
+    setObservedAt(Number.isFinite(date.getTime()) ? localDateTimeValue(date) : localDateTimeValue());
+    setLimitations(draft.limitations);
+    setError(null);
+  }, [draft]);
 
   const submit = async () => {
     setSaving(true);
@@ -64,6 +87,7 @@ export function GuardianObservationForm({
       setLimitations("");
       setObservedAt(localDateTimeValue());
       setError(null);
+      onDraftConsumed?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar la observación.");
     } finally {
@@ -80,6 +104,14 @@ export function GuardianObservationForm({
       {missionId && missionTitle ? (
         <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.04] px-3 py-2 text-xs text-cyan-100/65">
           Misión activa: {missionTitle}
+        </div>
+      ) : null}
+      {draft ? (
+        <div className="mt-3 flex items-start gap-2 border-l-2 border-emerald-300/25 bg-emerald-400/[0.03] py-2 pl-3 pr-2 text-xs text-emerald-100/65">
+          <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Fuente precargada: {draft.label}. Describí únicamente lo que observaste antes de guardar.
+          </span>
         </div>
       ) : null}
 
