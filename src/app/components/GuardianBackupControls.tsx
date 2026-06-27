@@ -63,6 +63,7 @@ export function GuardianBackupControls({
     if (!file) return;
     setPreview(null);
     setRestored(false);
+    setExportedAt(null);
     if (file.size > MAX_BACKUP_BYTES) {
       setError("El archivo supera el límite local de 5 MB.");
       return;
@@ -82,6 +83,7 @@ export function GuardianBackupControls({
       onRestore(store);
       setPreview(null);
       setRestored(true);
+      setExportedAt(null);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo restaurar la memoria Guardian.");
