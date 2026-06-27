@@ -552,6 +552,12 @@ function guardianSourceLabel(source: GuardianObservation["sourceType"]) {
   }
 }
 
+function shortTimelineText(value: string | null | undefined, limit = 130) {
+  const text = String(value ?? "").trim().replace(/\s+/g, " ");
+  if (!text) return "";
+  return text.length > limit ? `${text.slice(0, limit - 1).trimEnd()}...` : text;
+}
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -2404,6 +2410,27 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       }
     }
   }
+
+  guardianObservations.forEach((observation) => {
+    const date = toValidDate(observation.observedAt) ?? toValidDate(observation.recordedAt);
+    if (!date) return;
+
+    const source = guardianSourceLabel(observation.sourceType);
+    const observed = shortTimelineText(observation.observedText);
+    const interpretation = shortTimelineText(observation.interpretation, 90);
+    const detailParts = [
+      `Memoria local Guardian · ${source}`,
+      observed ? `Observado: ${observed}` : null,
+      interpretation ? `Inferencia: ${interpretation}` : null,
+    ].filter((item): item is string => Boolean(item));
+
+    timelineEntries.push({
+      id: `guardian-${observation.id}`,
+      date,
+      title: "Evidencia Guardian registrada",
+      detail: detailParts.join(" · "),
+    });
+  });
 
   timelineEntries.sort((a, b) => a.date.getTime() - b.date.getTime());
   const visibleTimelineEntries =
@@ -5055,7 +5082,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   )}
                 >
                   {hasComparableHistory
-                    ? "BioPulse conserva más de un momento comparable para este evento."
+                    ? guardianObservations.length > 0
+                      ? "BioPulse muestra señales del evento junto con memoria Guardian local conservada en este dispositivo."
+                      : "BioPulse conserva más de un momento comparable para este evento."
+                    : guardianObservations.length > 0
+                    ? "La cronología incluye memoria Guardian local, pero todavía conserva pocas señales instrumentales comparables."
                     : "Este evento solo conserva una observación comparable. Todavía no puede mostrarse una evolución temporal."}
                 </div>
 
@@ -5087,6 +5118,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     No hay puntos temporales válidos disponibles para este evento.
                   </div>
                 )}
+
+                {guardianObservations.length > 0 ? (
+                  <div className="border-t border-emerald-300/10 bg-emerald-400/[0.035] px-4 py-3 text-[11px] leading-relaxed text-emerald-50/55">
+                    Memoria Guardian local: {guardianObservations.length}{" "}
+                    {guardianObservations.length === 1 ? "observación privada" : "observaciones privadas"} vinculadas
+                    a este evento en este dispositivo. No constituyen confirmación oficial.
+                  </div>
+                ) : null}
 
                 <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
                   {event.stale
