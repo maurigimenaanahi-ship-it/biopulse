@@ -60,6 +60,7 @@ export function GuardianActivityPanel({
   onSelect: (event: EnvironmentalEvent) => void;
 }) {
   const [store, setStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
+  const [activityFilter, setActivityFilter] = useState<"all" | "attention">("all");
 
   useEffect(() => {
     if (!open) return;
@@ -165,6 +166,7 @@ export function GuardianActivityPanel({
   const integrityObservations = rows.reduce((sum, row) => sum + row.integrityCount, 0);
   const liveRows = rows.filter((row) => row.isLive).length;
   const attentionRows = rows.filter((row) => row.attentionPriority > 1).length;
+  const visibleRows = activityFilter === "attention" ? rows.filter((row) => row.attentionPriority > 1) : rows;
 
   return (
     <div className="fixed inset-0 z-[99998] pointer-events-auto">
@@ -238,9 +240,31 @@ export function GuardianActivityPanel({
           ) : (
             <>
               <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white/70">
-                  <ShieldCheck className="h-4 w-4 text-emerald-200/75" />
-                  Tablero local
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-white/70">
+                    <ShieldCheck className="h-4 w-4 text-emerald-200/75" />
+                    Tablero local
+                  </div>
+                  <div className="flex rounded-full border border-white/10 bg-black/20 p-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+                    <button
+                      type="button"
+                      onClick={() => setActivityFilter("all")}
+                      className={`rounded-full px-2.5 py-1 transition ${
+                        activityFilter === "all" ? "bg-white/10 text-white/75" : "hover:text-white/65"
+                      }`}
+                    >
+                      Todos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActivityFilter("attention")}
+                      className={`rounded-full px-2.5 py-1 transition ${
+                        activityFilter === "attention" ? "bg-amber-400/10 text-amber-100/75" : "hover:text-white/65"
+                      }`}
+                    >
+                      Requieren atención
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-2 grid gap-2 text-[11px] leading-relaxed text-white/40 sm:grid-cols-2">
                   <div>{attentionRows} evento{attentionRows === 1 ? "" : "s"} con atención pendiente.</div>
@@ -252,7 +276,12 @@ export function GuardianActivityPanel({
               </div>
 
               <div className="divide-y divide-white/10 border-y border-white/10">
-              {rows.map((row) => (
+              {visibleRows.length === 0 ? (
+                <div className="py-6 text-sm leading-relaxed text-white/45">
+                  No hay eventos con atención pendiente en la memoria Guardian local.
+                </div>
+              ) : null}
+              {visibleRows.map((row) => (
                 <div key={row.memory.eventId} className="py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
