@@ -13,7 +13,7 @@ import { GuardianObservationIntegrity } from "@/app/components/GuardianObservati
 import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationDialog";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
-import { SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
+import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -1340,6 +1340,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [guardianPreparationOpen, setGuardianPreparationOpen] = useState(false);
   const [guardianObservationDraft, setGuardianObservationDraft] = useState<GuardianObservationDraft | null>(null);
   const [activeSection, setActiveSection] = useState<AlertPanelSection>("main");
+  const [activeSatelliteLayerId, setActiveSatelliteLayerId] = useState(SATELLITE_RASTER_LAYERS[0].id);
 
   useEffect(() => {
     if (!event) return;
@@ -1785,6 +1786,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     new Set(satelliteFireObservations.map((obs) => obs.instrument).filter((item): item is string => Boolean(item)))
   );
   const satelliteSource = event.satelliteSource ?? null;
+  const activeSatelliteLayer =
+    SATELLITE_RASTER_LAYERS.find((layer) => layer.id === activeSatelliteLayerId) ?? SATELLITE_RASTER_LAYERS[0];
   const insightProbability =
     Number.isFinite(event.aiInsight?.probabilityNext12h) &&
     event.aiInsight!.probabilityNext12h! >= 0 &&
@@ -3168,12 +3171,37 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               Vista satelital consultable
                             </div>
                             <div className="mt-1 text-xs text-white/40">
-                              NASA GIBS / VIIRS True Color por coordenadas y fecha del evento.
+                              NASA GIBS / VIIRS por coordenadas y fecha del evento.
                             </div>
                           </div>
                           <span className="self-start rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
                             No es video en vivo
                           </span>
+                        </div>
+                        <div className="mb-3 grid grid-cols-2 gap-2">
+                          {SATELLITE_RASTER_LAYERS.map((layer) => {
+                            const selected = layer.id === activeSatelliteLayer.id;
+                            return (
+                              <button
+                                key={layer.id}
+                                type="button"
+                                onClick={() => setActiveSatelliteLayerId(layer.id)}
+                                className={cn(
+                                  "rounded-lg border px-2.5 py-2 text-left transition-colors",
+                                  selected
+                                    ? "border-cyan-300/30 bg-cyan-400/10 text-cyan-50"
+                                    : "border-white/10 bg-white/[0.03] text-white/55 hover:bg-white/[0.06]"
+                                )}
+                                title={layer.description}
+                              >
+                                <div className="text-xs font-semibold">{layer.label}</div>
+                                <div className="mt-0.5 text-[10px] font-medium text-white/55">{layer.plainLabel}</div>
+                                <div className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-white/40">
+                                  {layer.description}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                         <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
                           <SatelliteMiniMap
@@ -3182,10 +3210,43 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             date={observationDate ?? undefined}
                             zoom={6}
                             height={260}
+                            layer={activeSatelliteLayer}
                           />
                         </div>
                         <div className="mt-2 text-[11px] leading-relaxed text-white/35">
                           Esta vista usa teselas satelitales de referencia. Puede tener nubes, retraso temporal o no mostrar humo/fuego aunque existan detecciones térmicas FIRMS.
+                        </div>
+                        <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.06] p-3">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div className="text-sm font-semibold text-cyan-100/90">Cómo leer esta capa</div>
+                              <div className="mt-0.5 text-xs text-white/45">{activeSatelliteLayer.plainLabel}</div>
+                            </div>
+                            <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-100/70">
+                              Guía BioPulse
+                            </span>
+                          </div>
+                          <div className="mt-3 grid grid-cols-1 gap-2 text-xs leading-relaxed text-white/55">
+                            <div>
+                              <span className="font-semibold text-white/75">Qué estás viendo: </span>
+                              {activeSatelliteLayer.whatYouSee}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-white/75">Por qué importa: </span>
+                              {activeSatelliteLayer.whyItMatters}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-white/75">Qué no confirma: </span>
+                              {activeSatelliteLayer.limitations}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-white/75">Como Guardián: </span>
+                              {activeSatelliteLayer.guardianHint}
+                            </div>
+                          </div>
+                          <div className="mt-3 border-t border-white/10 pt-2 text-[11px] leading-relaxed text-white/35">
+                            BioPulse traduce esta capa como apoyo de observación. No constituye confirmación oficial ni reemplaza la lectura de especialistas.
+                          </div>
                         </div>
                       </div>
                     )}

@@ -1,5 +1,74 @@
 import { useState, useEffect } from 'react';
 
+export type SatelliteRasterLayer = {
+  id: string;
+  label: string;
+  plainLabel: string;
+  description: string;
+  whatYouSee: string;
+  whyItMatters: string;
+  limitations: string;
+  guardianHint: string;
+  matrixSet: string;
+  format: 'jpg' | 'png';
+  maxZoom: number;
+};
+
+export const SATELLITE_RASTER_LAYERS: SatelliteRasterLayer[] = [
+  {
+    id: 'VIIRS_SNPP_CorrectedReflectance_TrueColor',
+    label: 'Color real',
+    plainLabel: 'Vista parecida al ojo humano',
+    description: 'Vista visible aproximada. Puede quedar cubierta por nubes o humo.',
+    whatYouSee: 'Una imagen similar a una fotografía tomada desde el satélite.',
+    whyItMatters: 'Ayuda a ubicar nubes, humo visible, ríos, vegetación, ciudades y cambios grandes en el terreno.',
+    limitations: 'No muestra focos térmicos invisibles ni confirma daño en superficie. Las nubes pueden tapar la zona.',
+    guardianHint: 'Usala para orientarte visualmente y comparar si la zona del evento coincide con señales visibles.',
+    matrixSet: 'GoogleMapsCompatible_Level9',
+    format: 'jpg',
+    maxZoom: 9,
+  },
+  {
+    id: 'VIIRS_SNPP_CorrectedReflectance_BandsM11-I2-I1',
+    label: 'Falso color',
+    plainLabel: 'Colores para revelar diferencias',
+    description: 'Combinación útil para distinguir humo, agua, vegetación y zonas quemadas.',
+    whatYouSee: 'Una imagen con colores no naturales que resalta diferencias entre agua, vegetación, suelo, humo y áreas quemadas.',
+    whyItMatters: 'Puede revelar detalles que en color real pasan desapercibidos, especialmente cicatrices de fuego o contrastes de humedad.',
+    limitations: 'Los colores no son reales. Requiere comparación con otras capas para evitar interpretar de más.',
+    guardianHint: 'Buscá cambios de textura o contraste cerca del foco, pero registralos como indicios, no como confirmación.',
+    matrixSet: 'GoogleMapsCompatible_Level9',
+    format: 'jpg',
+    maxZoom: 9,
+  },
+  {
+    id: 'VIIRS_SNPP_Brightness_Temp_BandI5_Day',
+    label: 'Temperatura brillo',
+    plainLabel: 'Señal térmica del satélite',
+    description: 'Señal térmica diurna de banda I5. No equivale a temperatura ambiente.',
+    whatYouSee: 'Una lectura térmica captada por el sensor satelital en una banda infrarroja.',
+    whyItMatters: 'Ayuda a interpretar zonas relativamente calientes y a complementar las detecciones FIRMS.',
+    limitations: 'No es temperatura del aire, no mide oxígeno y no confirma por sí sola que haya fuego activo.',
+    guardianHint: 'Comparala con FRP, hora de observación y detecciones FIRMS antes de sacar conclusiones.',
+    matrixSet: 'GoogleMapsCompatible_Level9',
+    format: 'png',
+    maxZoom: 9,
+  },
+  {
+    id: 'VIIRS_SNPP_AOD_Dark_Target_Land_Ocean',
+    label: 'Aerosoles',
+    plainLabel: 'Partículas en el aire',
+    description: 'Espesor óptico de aerosoles. Puede ayudar a leer humo o partículas, con cobertura parcial.',
+    whatYouSee: 'Una estimación de partículas suspendidas en la atmósfera, como humo, polvo o contaminación.',
+    whyItMatters: 'En incendios puede ayudar a seguir plumas de humo o aire cargado de partículas.',
+    limitations: 'No distingue automáticamente humo de polvo o contaminación. Puede faltar cobertura por nubes o condiciones del sensor.',
+    guardianHint: 'Usala junto con viento, cámaras, noticias y focos térmicos para documentar una posible pluma de humo.',
+    matrixSet: 'GoogleMapsCompatible_Level6',
+    format: 'png',
+    maxZoom: 6,
+  },
+];
+
 function pad2(n: number) {
   return String(n).padStart(2, '0');
 }
@@ -26,14 +95,13 @@ export function SatelliteMiniMap(props: {
   date?: Date;
   zoom?: number;
   height?: number;
+  layer?: SatelliteRasterLayer;
 }) {
   const date = props.date ?? new Date();
   const ymd = toGibsDate(date);
-  const zoom = props.zoom ?? 5; // Lower zoom for static image
+  const layer = props.layer ?? SATELLITE_RASTER_LAYERS[0];
+  const zoom = Math.min(props.zoom ?? 5, layer.maxZoom); // Lower zoom for static image
   const height = props.height ?? 260;
-
-  // NASA GIBS True Color layer (VIIRS)
-  const layer = 'VIIRS_SNPP_CorrectedReflectance_TrueColor';
 
   // Calculate center tile
   const centerTile = latLonToTile(props.lat, props.lon, zoom);
@@ -86,7 +154,7 @@ export function SatelliteMiniMap(props: {
         }}
       >
         {tiles.map((tile, index) => {
-          const url = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/${ymd}/GoogleMapsCompatible_Level9/${tile.z}/${tile.y}/${tile.x}.jpg`;
+          const url = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer.id}/default/${ymd}/${layer.matrixSet}/${tile.z}/${tile.y}/${tile.x}.${layer.format}`;
           return (
             <img
               key={index}
