@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent } from "react";
 import { AlertTriangle, CheckCircle2, Download, Upload, X } from "lucide-react";
 import {
   createGuardianBackup,
+  GUARDIAN_BACKUP_FORMAT,
   parseGuardianBackup,
   restoreGuardianBackup,
   type GuardianBackupPreview,
@@ -89,6 +90,9 @@ export function GuardianBackupControls({
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/40">
             Conservá una copia fuera del navegador o restaurá una anterior. El archivo no se envía a BioPulse.
           </p>
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/35">
+            Formato recuperable: <span className="font-mono text-white/45">{GUARDIAN_BACKUP_FORMAT}</span>
+          </p>
           {currentCounts ? (
             <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/35">
               Incluye actualmente: {currentCounts.events} evento{currentCounts.events === 1 ? "" : "s"} · {currentCounts.missions} misión{currentCounts.missions === 1 ? "" : "es"} · {currentCounts.observations} observación{currentCounts.observations === 1 ? "" : "es"}.
@@ -136,6 +140,9 @@ export function GuardianBackupControls({
               </div>
               <div className="mt-2 text-xs leading-relaxed text-white/45">
                 Exportado: {localDate(preview.exportedAt)} · {preview.counts.events} eventos · {preview.counts.missions} misiones · {preview.counts.observations} observaciones
+              </div>
+              <div className="mt-1 text-[11px] leading-relaxed text-white/35">
+                Formato verificado: <span className="font-mono text-white/45">{GUARDIAN_BACKUP_FORMAT}</span>
               </div>
               <div className="mt-1 text-[11px] leading-relaxed text-amber-100/50">
                 Reemplazará toda la memoria Guardian actual de este navegador.
