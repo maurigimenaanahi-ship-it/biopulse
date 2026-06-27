@@ -114,6 +114,17 @@ export function GuardianActivityPanel({
             : attentionPriority === 2
             ? "border-cyan-300/15 bg-cyan-400/[0.06] text-cyan-100/65"
             : "border-emerald-300/15 bg-emerald-400/[0.06] text-emerald-100/65";
+        const attentionReasons = [
+          activeMissionCount > 0 ? `${activeMissionCount} misión${activeMissionCount === 1 ? "" : "es"} activa${activeMissionCount === 1 ? "" : "s"}` : null,
+          sensitiveCount > 0 ? `${sensitiveCount} observación${sensitiveCount === 1 ? "" : "es"} sensible${sensitiveCount === 1 ? "" : "s"}` : null,
+          observations.length === 0 ? "sin observaciones registradas" : null,
+          unreviewedObservationCount > 0
+            ? `${unreviewedObservationCount} observación${unreviewedObservationCount === 1 ? "" : "es"} sin revisión`
+            : null,
+          missingIntegrityCount > 0
+            ? `${missingIntegrityCount} observación${missingIntegrityCount === 1 ? "" : "es"} sin huella local`
+            : null,
+        ].filter((reason): reason is string => Boolean(reason));
         const nextAction =
           activeMissionCount > 0
             ? "Continuar o cerrar la misión activa del evento."
@@ -143,6 +154,7 @@ export function GuardianActivityPanel({
           attentionPriority,
           attentionLabel,
           attentionClass,
+          attentionReasons,
           nextAction,
           latestObservationAt:
             observations
@@ -349,6 +361,17 @@ export function GuardianActivityPanel({
                     <span className="font-semibold text-cyan-100/80">Próximo paso sugerido: </span>
                     {row.nextAction}
                   </div>
+
+                  {row.attentionReasons.length > 0 ? (
+                    <div className="mt-2 text-[11px] leading-relaxed text-white/40">
+                      <span className="font-medium text-white/55">Motivo de atención: </span>
+                      {row.attentionReasons.join(" · ")}.
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-[11px] leading-relaxed text-emerald-100/45">
+                      Sin pendientes críticos en la memoria local de este evento.
+                    </div>
+                  )}
 
                   {row.observationCount > 0 && row.integrityCount < row.observationCount ? (
                     <div className="mt-2 text-[11px] leading-relaxed text-amber-100/55">
