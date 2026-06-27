@@ -273,16 +273,29 @@ type ProviderCameraSnapshot = {
   message?: string;
 };
 
-function GuardianSourceButton({ onClick }: { onClick: () => void }) {
+function GuardianSourceButton({
+  onClick,
+  label = "Registrar fuente",
+  variant = "compact",
+}: {
+  onClick: () => void;
+  label?: string;
+  variant?: "compact" | "prominent";
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-emerald-300/15 bg-emerald-400/[0.06] px-3 py-1.5 text-xs font-semibold text-emerald-100/70 hover:bg-emerald-400/10"
+      className={cn(
+        "inline-flex items-center justify-center gap-2 border border-emerald-300/20 bg-emerald-400/[0.08] font-semibold text-emerald-100/80 transition-colors hover:bg-emerald-400/15",
+        variant === "prominent"
+          ? "min-h-11 w-full rounded-xl px-4 py-2.5 text-sm"
+          : "min-h-9 rounded-lg px-3 py-1.5 text-xs"
+      )}
       title="Precargar esta fuente en una observación Guardian"
     >
       <ClipboardPlus className="h-3.5 w-3.5" />
-      Registrar fuente
+      {label}
     </button>
   );
 }
@@ -1788,6 +1801,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const satelliteSource = event.satelliteSource ?? null;
   const activeSatelliteLayer =
     SATELLITE_RASTER_LAYERS.find((layer) => layer.id === activeSatelliteLayerId) ?? SATELLITE_RASTER_LAYERS[0];
+  const satelliteLayerObservedAt = (observationDate ?? new Date()).toISOString();
+  const satelliteLayerSourceReference = [
+    `NASA GIBS layer: ${activeSatelliteLayer.label} (${activeSatelliteLayer.id})`,
+    `human label: ${activeSatelliteLayer.plainLabel}`,
+    `date: ${observationDate ? fmtDateTimeUTC(observationDate) : "no disponible"}`,
+    `coordinates: ${event.latitude.toFixed(4)}, ${event.longitude.toFixed(4)}`,
+    satelliteSource?.product ? `FIRMS product: ${satelliteSource.product}` : null,
+    event.liveFeedUrl ? `FIRMS viewer: ${event.liveFeedUrl}` : null,
+  ]
+    .filter((item): item is string => Boolean(item))
+    .join(" | ");
+  const satelliteLayerObservationLimitations = [
+    activeSatelliteLayer.limitations,
+    "La vista GIBS puede tener nubes, retraso temporal, huecos de cobertura o no mostrar humo/fuego aunque existan detecciones térmicas FIRMS.",
+    event.stale ? "El evento está marcado como desactualizado; revisar fecha y fuente original antes de interpretar." : null,
+    "La observación Guardian debe describir únicamente lo visible y separar cualquier inferencia.",
+  ]
+    .filter((item): item is string => Boolean(item))
+    .join(" ");
   const insightProbability =
     Number.isFinite(event.aiInsight?.probabilityNext12h) &&
     event.aiInsight!.probabilityNext12h! >= 0 &&
@@ -1976,9 +2008,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const beginGuardianSourceObservation = (draft: Omit<GuardianObservationDraft, "id">) => {
     if (!guardianCanCaptureSource) return;
     setGuardianObservationDraft({ ...draft, id: `${Date.now()}-${Math.random()}` });
-    requestAnimationFrame(() => {
+    setActiveSection("guardians");
+    window.setTimeout(() => {
       guardianObservationRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    }, 0);
   };
   const beginNewsObservation = (item: NewsItem, classification: "official" | "regional") => {
     const publishedAt = item.publishedAt ? new Date(item.publishedAt) : new Date();
@@ -3310,20 +3343,49 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     )}
 
                     {guardianCanCaptureSource ? (
-                      <GuardianSourceButton
-                        onClick={() =>
-                          beginGuardianSourceObservation({
-                            label: "Observación satelital del evento",
-                            sourceType: "satellite",
-                            sourceReference: event.liveFeedUrl ?? `Evento BioPulse ${event.id}`,
-                            observedAt: (observationDate ?? new Date()).toISOString(),
-                            limitations: event.stale
-                              ? "La señal está marcada como desactualizada. Puede tener cobertura parcial, demoras o falsos positivos y no confirma impacto en superficie."
-                              : "La señal instrumental puede tener cobertura parcial, demoras o falsos positivos y no confirma impacto en superficie.",
-                          })
-                        }
-                      />
-                    ) : null}
+                      <div className="rounded-xl border border-emerald-300/20 bg-emerald-400/[0.05] p-4">
+                        <div className="text-sm font-semibold text-emerald-100/90">Registrar evidencia Guardian</div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/45">
+                          Guarda esta capa satelital como fuente local para documentar lo que observes.
+                        </div>
+                        <div className="mt-3">
+                          <GuardianSourceButton
+                            label="Registrar esta capa como evidencia"
+                            variant="prominent"
+                            onClick={() =>
+                              beginGuardianSourceObservation({
+                                label: `Capa satelital: ${activeSatelliteLayer.label}`,
+                                sourceType: "satellite",
+                                sourceReference: satelliteLayerSourceReference,
+                                observedAt: satelliteLayerObservedAt,
+                                limitations: satelliteLayerObservationLimitations,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-emerald-300/20 bg-emerald-400/[0.05] p-4">
+                        <div className="text-sm font-semibold text-emerald-100/90">Registrar evidencia Guardian</div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/45">
+                          Antes de guardar evidencia, BioPulse te prepara para observar con cuidado y separar datos de inferencias.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveSection("guardians");
+                            setGuardianPreparationOpen(true);
+                          }}
+                          className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-400/[0.08] px-4 py-2.5 text-sm font-semibold text-emerald-100/80 transition-colors hover:bg-emerald-400/15"
+                        >
+                          <ShieldCheck className="h-4 w-4" />
+                          Prepararme para registrar
+                        </button>
+                        <div className="mt-2 text-[11px] leading-relaxed text-white/35">
+                          Para guardar esta capa como evidencia local, primero completá la preparación Guardian del evento.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
