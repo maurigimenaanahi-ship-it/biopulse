@@ -100,6 +100,19 @@ export function GuardianActivityPanel({
         const missingIntegrityCount = observations.length - integrityCount;
         const sensitiveCount = observations.filter((observation) => observation.sensitivity === "sensitive").length;
         const sourceReferenceCount = observations.filter((observation) => Boolean(observation.sourceReference)).length;
+        const attentionPriority =
+          activeMissionCount > 0 || sensitiveCount > 0
+            ? 3
+            : unreviewedObservationCount > 0 || missingIntegrityCount > 0 || observations.length === 0
+            ? 2
+            : 1;
+        const attentionLabel = attentionPriority === 3 ? "Alta" : attentionPriority === 2 ? "Media" : "Lista";
+        const attentionClass =
+          attentionPriority === 3
+            ? "border-amber-300/20 bg-amber-400/10 text-amber-100/70"
+            : attentionPriority === 2
+            ? "border-cyan-300/15 bg-cyan-400/[0.06] text-cyan-100/65"
+            : "border-emerald-300/15 bg-emerald-400/[0.06] text-emerald-100/65";
         const nextAction =
           activeMissionCount > 0
             ? "Continuar o cerrar la misión activa del evento."
@@ -126,6 +139,9 @@ export function GuardianActivityPanel({
           missingIntegrityCount,
           sensitiveCount,
           sourceReferenceCount,
+          attentionPriority,
+          attentionLabel,
+          attentionClass,
           nextAction,
           latestObservationAt:
             observations
@@ -134,7 +150,10 @@ export function GuardianActivityPanel({
               .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null,
         };
       })
-      .sort((a, b) => new Date(b.memory.lastOpenedAt).getTime() - new Date(a.memory.lastOpenedAt).getTime());
+      .sort((a, b) => {
+        if (b.attentionPriority !== a.attentionPriority) return b.attentionPriority - a.attentionPriority;
+        return new Date(b.memory.lastOpenedAt).getTime() - new Date(a.memory.lastOpenedAt).getTime();
+      });
   }, [events, store]);
 
   if (!open) return null;
@@ -145,6 +164,7 @@ export function GuardianActivityPanel({
   const reviewedObservations = rows.reduce((sum, row) => sum + row.reviewedObservationCount, 0);
   const integrityObservations = rows.reduce((sum, row) => sum + row.integrityCount, 0);
   const liveRows = rows.filter((row) => row.isLive).length;
+  const attentionRows = rows.filter((row) => row.attentionPriority > 1).length;
 
   return (
     <div className="fixed inset-0 z-[99998] pointer-events-auto">
@@ -223,6 +243,7 @@ export function GuardianActivityPanel({
                   Tablero local
                 </div>
                 <div className="mt-2 grid gap-2 text-[11px] leading-relaxed text-white/40 sm:grid-cols-2">
+                  <div>{attentionRows} evento{attentionRows === 1 ? "" : "s"} con atención pendiente.</div>
                   <div>{liveRows} evento{liveRows === 1 ? "" : "s"} vinculado{liveRows === 1 ? "" : "s"} al escaneo actual.</div>
                   <div>{reviewedObservations} {reviewedObservations === 1 ? "observación" : "observaciones"} con revisión de procedencia.</div>
                   <div>{integrityObservations} {integrityObservations === 1 ? "observación" : "observaciones"} con huella local.</div>
@@ -238,6 +259,9 @@ export function GuardianActivityPanel({
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-emerald-300/15 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-100/70">
                           {row.isLive ? "En escaneo" : "Memoria local"}
+                        </span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${row.attentionClass}`}>
+                          Atención {row.attentionLabel}
                         </span>
                         {row.activeMissionCount > 0 ? (
                           <span className="text-[10px] font-medium text-cyan-100/65">Misión activa</span>
