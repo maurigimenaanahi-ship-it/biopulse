@@ -22,8 +22,14 @@ function localDate(value: string) {
 
 export function GuardianBackupControls({
   onRestore,
+  currentCounts,
 }: {
   onRestore: (store: GuardianLocalStore) => void;
+  currentCounts?: {
+    events: number;
+    missions: number;
+    observations: number;
+  };
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<GuardianBackupPreview | null>(null);
@@ -83,6 +89,11 @@ export function GuardianBackupControls({
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/40">
             Conservá una copia fuera del navegador o restaurá una anterior. El archivo no se envía a BioPulse.
           </p>
+          {currentCounts ? (
+            <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/35">
+              Incluye actualmente: {currentCounts.events} evento{currentCounts.events === 1 ? "" : "s"} · {currentCounts.missions} misión{currentCounts.missions === 1 ? "" : "es"} · {currentCounts.observations} observación{currentCounts.observations === 1 ? "" : "es"}.
+            </p>
+          ) : null}
           <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-amber-100/45">
             Puede contener observaciones sensibles y ubicaciones. Guardalo como información privada.
           </p>
