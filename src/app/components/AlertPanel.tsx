@@ -2014,17 +2014,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "BioPulse descartó 1 resultado débil porque no mencionaba claramente el lugar del evento o no tenía relación suficiente con la catástrofe."
       : `BioPulse descartó ${newsDiscardedCount} resultados débiles porque no mencionaban claramente el lugar del evento o no tenían relación suficiente con la catástrofe.`;
   const showHistoricalNewsContext =
-    (Boolean(newsMeta) && !newsLoading && !newsErr && !newsLimited) || event.category === "fire";
+    (Boolean(newsMeta) && !newsLoading && !newsErr && !newsLimited) || event?.category === "fire";
   const historicalNewsTopic =
-    event.category === "fire"
+    event?.category === "fire"
       ? "incendios y focos térmicos"
-      : event.category === "flood"
+      : event?.category === "flood"
       ? "inundaciones y crecidas"
-      : event.category === "storm"
+      : event?.category === "storm"
       ? "tormentas y alertas meteorológicas"
-      : event.category === "heatwave"
+      : event?.category === "heatwave"
       ? "olas de calor"
-      : event.category === "air-pollution"
+      : event?.category === "air-pollution"
       ? "episodios de contaminación del aire"
       : "eventos ambientales similares";
   const sirenActive = useMemo(() => {
@@ -2254,21 +2254,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     .sort((a, b) => a.date.getTime() - b.date.getTime());
   const comparisonCurrent = comparableHistory[comparableHistory.length - 1] ?? null;
   const comparisonPrevious = comparableHistory[comparableHistory.length - 2] ?? null;
-  const recentHistoricalSignals = [
-    firstSeenDate ? `Primera señal conservada: ${fmtDateTimeUTC(firstSeenDate)}` : null,
-    observationDate ? `Última señal conservada: ${fmtDateTimeUTC(observationDate)}` : null,
-    Number.isFinite(event.scanCount)
-      ? `${event.scanCount} ${event.scanCount === 1 ? "escaneo conservado" : "escaneos conservados"}`
-      : null,
-    comparableHistory.length > 1
-      ? `${comparableHistory.length} puntos comparables en la memoria reciente del evento`
-      : null,
-    satelliteFireObservations.length > 0
-      ? `${satelliteFireObservations.length} señales FIRMS crudas conservadas del escaneo actual`
-      : null,
-    satelliteSource?.days ? `Ventana FIRMS actual consultada: últimos ${satelliteSource.days} días` : null,
-  ].filter((item): item is string => Boolean(item));
-  const hasRecentHistoricalSignals = recentHistoricalSignals.length > 0;
   const metricChanges: Array<{
     label: string;
     previous: string;
@@ -3987,6 +3972,88 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
 
                 <div className="mt-4 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.05] p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-cyan-100/90">Historial FIRMS multianual</div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        Antecedentes satelitales de detecciones térmicas cerca de este evento. Es contexto instrumental,
+                        no archivo periodístico ni confirmación oficial de causa.
+                      </div>
+                    </div>
+                    <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
+                      NASA FIRMS
+                    </span>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                    {fireHistoryLoading ? (
+                      <div className="flex items-center gap-2 text-xs text-white/55">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Consultando antecedentes satelitales...
+                      </div>
+                    ) : fireHistory ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                            <div className="text-[10px] uppercase tracking-wide text-white/35">Detecciones</div>
+                            <div className="mt-1 text-sm font-semibold text-white/80">
+                              {fireHistory.summary.totalDetections}
+                            </div>
+                          </div>
+                          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                            <div className="text-[10px] uppercase tracking-wide text-white/35">Años con señales</div>
+                            <div className="mt-1 text-sm font-semibold text-white/80">
+                              {fireHistory.summary.yearsWithDetections} de {fireHistory.query.years}
+                            </div>
+                          </div>
+                          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                            <div className="text-[10px] uppercase tracking-wide text-white/35">Radio consultado</div>
+                            <div className="mt-1 text-sm font-semibold text-white/80">
+                              {fireHistory.query.radiusKm} km
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 text-xs leading-relaxed text-white/55 sm:grid-cols-2">
+                          {fireHistory.summary.peakYear ? (
+                            <div>
+                              Año con más señales:{" "}
+                              <span className="font-semibold text-white/75">
+                                {fireHistory.summary.peakYear.year} ({fireHistory.summary.peakYear.detections})
+                              </span>
+                            </div>
+                          ) : (
+                            <div>No se detectaron antecedentes en los años muestreados.</div>
+                          )}
+                          {fireHistory.summary.latestDetection ? (
+                            <div>
+                              Última señal histórica:{" "}
+                              <span className="font-semibold text-white/75">
+                                {fmtDateTimeUTC(new Date(fireHistory.summary.latestDetection))}
+                              </span>
+                            </div>
+                          ) : (
+                            <div>Sin fecha histórica disponible.</div>
+                          )}
+                        </div>
+
+                        <div className="rounded-lg border border-amber-300/15 bg-amber-400/[0.055] p-3 text-xs leading-relaxed text-amber-50/65">
+                          Fuente: {fireHistory.attributionText} / {fireHistory.source}. {fireHistory.limitations[0]}
+                        </div>
+                      </div>
+                    ) : fireHistoryErr ? (
+                      <div className="text-xs leading-relaxed text-amber-50/65">
+                        Historial FIRMS no disponible: {fireHistoryErr}
+                      </div>
+                    ) : (
+                      <div className="text-xs leading-relaxed text-white/50">
+                        Sin historial FIRMS multianual disponible para este evento.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.05] p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="text-sm font-semibold text-cyan-100/90">Procedencia de la consulta</div>
@@ -4876,90 +4943,51 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2 text-sm font-semibold text-cyan-100/90">
                                   <History className="h-4 w-4" />
-                                  Investigación histórica BioPulse
+                                  Archivo periodístico BioPulse
                                 </div>
                                 <div className="mt-1 text-xs leading-relaxed text-cyan-50/55">
-                                  Además de la actualidad, este espacio separa memoria reciente conectada y archivo
-                                  histórico pendiente sobre {historicalNewsTopic} cerca de {event.location}.
+                                  En Noticias, BioPulse conserva solo fuentes periodísticas y comunicados relacionados
+                                  con {historicalNewsTopic} cerca de {event.location}.
                                 </div>
                               </div>
                               <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
-                                {hasRecentHistoricalSignals ? "Memoria reciente" : "Próxima fuente"}
+                                {newsItems.length > 0 ? "Contexto actual" : "Próxima fuente"}
                               </span>
                             </div>
 
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                <div className="text-[11px] uppercase tracking-wide text-white/35">Memoria reciente</div>
-                                {hasRecentHistoricalSignals ? (
-                                  <div className="mt-2 space-y-1.5">
-                                    {recentHistoricalSignals.slice(0, 4).map((signal) => (
-                                      <div key={signal} className="flex gap-2 text-xs leading-relaxed text-white/58">
-                                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300/70" />
-                                        <span>{signal}</span>
-                                      </div>
-                                    ))}
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Noticias actuales</div>
+                                <div className="mt-2 space-y-1.5 text-xs leading-relaxed text-white/58">
+                                  <div>{newsItems.length} fuentes vinculadas al evento actual.</div>
+                                  <div>
+                                    {splitNews.official.length} oficiales / {splitNews.regional.length} regionales.
                                   </div>
-                                ) : (
-                                  <div className="mt-1 text-xs leading-relaxed text-white/58">
-                                    BioPulse todavía no conserva suficientes señales comparables para esta zona.
-                                  </div>
-                                )}
+                                  {newsDiscardedCount > 0 ? (
+                                    <div>{newsDiscardedCount} resultados descartados por baja relación contextual.</div>
+                                  ) : null}
+                                </div>
                               </div>
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                <div className="text-[11px] uppercase tracking-wide text-white/35">Archivo FIRMS</div>
-                                {fireHistoryLoading ? (
-                                  <div className="mt-2 flex items-center gap-2 text-xs text-white/55">
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    Consultando antecedentes satelitales...
-                                  </div>
-                                ) : fireHistory ? (
-                                  <div className="mt-2 space-y-1.5 text-xs leading-relaxed text-white/58">
-                                    <div>
-                                      {fireHistory.summary.totalDetections} detecciones en{" "}
-                                      {fireHistory.summary.yearsWithDetections} de {fireHistory.query.years} años
-                                      muestreados.
-                                    </div>
-                                    {fireHistory.summary.peakYear ? (
-                                      <div>
-                                        Año con más señales: {fireHistory.summary.peakYear.year} (
-                                        {fireHistory.summary.peakYear.detections}).
-                                      </div>
-                                    ) : null}
-                                    {fireHistory.summary.latestDetection ? (
-                                      <div>
-                                        Última señal histórica:{" "}
-                                        {fmtDateTimeUTC(new Date(fireHistory.summary.latestDetection))}.
-                                      </div>
-                                    ) : null}
-                                  </div>
-                                ) : fireHistoryErr ? (
-                                  <div className="mt-1 text-xs leading-relaxed text-amber-50/65">
-                                    Historial FIRMS no disponible: {fireHistoryErr}
-                                  </div>
-                                ) : (
-                                  <div className="mt-1 text-xs leading-relaxed text-white/58">
-                                    FIRMS multianual todavía no devolvió antecedentes para este evento.
-                                  </div>
-                                )}
-                              </div>
-                              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                <div className="text-[11px] uppercase tracking-wide text-white/35">Cómo se usaría</div>
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Archivo histórico</div>
                                 <div className="mt-1 text-xs leading-relaxed text-white/58">
-                                  Como contexto histórico, separado de noticias actuales y de confirmaciones oficiales.
+                                  Todavía no hay una fuente periodística histórica conectada. Cuando exista, este bloque
+                                  mostrará antecedentes de medios, comunicados y registros públicos citables.
+                                </div>
+                              </div>
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Criterio</div>
+                                <div className="mt-1 text-xs leading-relaxed text-white/58">
+                                  Esta sección no mezcla satélites, clima ni cámaras: solo contexto periodístico y
+                                  comunicados asociados al evento.
                                 </div>
                               </div>
                             </div>
 
                             <div className="mt-3 rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-xs leading-relaxed text-amber-50/65">
-                              Un antecedente histórico no confirma relación causal con el evento actual. BioPulse debe
-                              mostrar evidencia, fuente y fecha antes de convertirlo en memoria del evento.
-                              {fireHistory ? (
-                                <div className="mt-2 text-amber-50/55">
-                                  Fuente: {fireHistory.attributionText} / {fireHistory.source}.{" "}
-                                  {fireHistory.limitations[0]}
-                                </div>
-                              ) : null}
+                              Una noticia histórica no confirma relación causal con el evento actual. BioPulse debe
+                              mostrar fuente, fecha, ubicación y relación contextual antes de convertirla en memoria del
+                              evento.
                             </div>
                           </div>
                         ) : null}
