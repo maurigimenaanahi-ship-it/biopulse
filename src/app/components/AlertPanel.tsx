@@ -2145,6 +2145,21 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     .sort((a, b) => a.date.getTime() - b.date.getTime());
   const comparisonCurrent = comparableHistory[comparableHistory.length - 1] ?? null;
   const comparisonPrevious = comparableHistory[comparableHistory.length - 2] ?? null;
+  const recentHistoricalSignals = [
+    firstSeenDate ? `Primera señal conservada: ${fmtDateTimeUTC(firstSeenDate)}` : null,
+    observationDate ? `Última señal conservada: ${fmtDateTimeUTC(observationDate)}` : null,
+    Number.isFinite(event.scanCount)
+      ? `${event.scanCount} ${event.scanCount === 1 ? "escaneo conservado" : "escaneos conservados"}`
+      : null,
+    comparableHistory.length > 1
+      ? `${comparableHistory.length} puntos comparables en la memoria reciente del evento`
+      : null,
+    satelliteFireObservations.length > 0
+      ? `${satelliteFireObservations.length} señales FIRMS crudas conservadas del escaneo actual`
+      : null,
+    satelliteSource?.days ? `Ventana FIRMS actual consultada: últimos ${satelliteSource.days} días` : null,
+  ].filter((item): item is string => Boolean(item));
+  const hasRecentHistoricalSignals = recentHistoricalSignals.length > 0;
   const metricChanges: Array<{
     label: string;
     previous: string;
@@ -4755,26 +4770,37 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                   Investigación histórica BioPulse
                                 </div>
                                 <div className="mt-1 text-xs leading-relaxed text-cyan-50/55">
-                                  Además de la actualidad, este espacio queda reservado para revisar antecedentes
-                                  históricos de {historicalNewsTopic} cerca de {event.location}.
+                                  Además de la actualidad, este espacio separa memoria reciente conectada y archivo
+                                  histórico pendiente sobre {historicalNewsTopic} cerca de {event.location}.
                                 </div>
                               </div>
                               <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
-                                Próxima fuente
+                                {hasRecentHistoricalSignals ? "Memoria reciente" : "Próxima fuente"}
                               </span>
                             </div>
 
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                <div className="text-[11px] uppercase tracking-wide text-white/35">Qué buscaría</div>
-                                <div className="mt-1 text-xs leading-relaxed text-white/58">
-                                  Antecedentes, años previos, focos repetidos, reportes oficiales y patrones de impacto.
-                                </div>
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Memoria reciente</div>
+                                {hasRecentHistoricalSignals ? (
+                                  <div className="mt-2 space-y-1.5">
+                                    {recentHistoricalSignals.slice(0, 4).map((signal) => (
+                                      <div key={signal} className="flex gap-2 text-xs leading-relaxed text-white/58">
+                                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300/70" />
+                                        <span>{signal}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="mt-1 text-xs leading-relaxed text-white/58">
+                                    BioPulse todavía no conserva suficientes señales comparables para esta zona.
+                                  </div>
+                                )}
                               </div>
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                <div className="text-[11px] uppercase tracking-wide text-white/35">Fuentes futuras</div>
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Archivo pendiente</div>
                                 <div className="mt-1 text-xs leading-relaxed text-white/58">
-                                  Archivo FIRMS, organismos públicos, medios históricos y registros locales citables.
+                                  FIRMS multianual, organismos públicos, medios históricos y registros locales citables.
                                 </div>
                               </div>
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
