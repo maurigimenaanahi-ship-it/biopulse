@@ -200,6 +200,38 @@ type WaterContextResponse = {
   interpretation: string;
 };
 
+type FireHistoryYearSummary = {
+  year: number;
+  detections: number;
+  frpSum: number | null;
+  frpMax: number | null;
+  latestDetection: string | null;
+};
+
+type FireHistoryResponse = {
+  provider: string;
+  source: string;
+  query: {
+    lat: number;
+    lon: number;
+    radiusKm: number;
+    bbox: string;
+    years: number;
+    sampledMonth: number;
+    sampledYears: number[];
+  };
+  summary: {
+    totalDetections: number;
+    yearsWithDetections: number;
+    peakYear: FireHistoryYearSummary | null;
+    latestDetection: string | null;
+  };
+  years: FireHistoryYearSummary[];
+  attributionText: string;
+  limitations: string[];
+  fetchedAt: string;
+};
+
 function GuardianSourceButton({
   onClick,
   label = "Registrar fuente",
@@ -400,6 +432,36 @@ async function fetchWaterContext(lat: number, lon: number, signal?: AbortSignal)
     ...data,
     resources: Array.isArray(data.resources) ? data.resources : [],
   };
+}
+
+async function fetchFireHistory(args: {
+  lat: number;
+  lon: number;
+  radiusKm: number;
+  years: number;
+  month: number;
+  signal?: AbortSignal;
+}): Promise<FireHistoryResponse> {
+  const url =
+    `/api/fire-history?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}` +
+    `&radiusKm=${encodeURIComponent(String(args.radiusKm))}` +
+    `&years=${encodeURIComponent(String(args.years))}` +
+    `&month=${encodeURIComponent(String(args.month))}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as FireHistoryResponse | { error?: string; message?: string } | null;
+
+  if (!res.ok) {
+    const message =
+      data && "error" in data && data.error
+        ? data.message
+          ? `${data.error}: ${data.message}`
+          : data.error
+        : `Historial FIRMS no disponible (${res.status}).`;
+    throw new Error(message);
+  }
+
+  return data as FireHistoryResponse;
 }
 
 // ---------- UI helpers ----------
@@ -1568,6 +1630,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
   const waterContextAbortRef = useRef<AbortController | null>(null);
+  const fireHistoryAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [guardianStore, setGuardianStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
   const [guardianStorageErr, setGuardianStorageErr] = useState<string | null>(null);
@@ -1642,6 +1705,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [waterContextLoading, setWaterContextLoading] = useState(false);
   const [waterContextErr, setWaterContextErr] = useState<string | null>(null);
   const [waterContext, setWaterContext] = useState<WaterContextResponse | null>(null);
+
+  // ====== FIRE HISTORY state ======
+  const [fireHistoryLoading, setFireHistoryLoading] = useState(false);
+  const [fireHistoryErr, setFireHistoryErr] = useState<string | null>(null);
+  const [fireHistory, setFireHistory] = useState<FireHistoryResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -1869,6 +1937,45 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadFireHistory = async () => {
+    if (!event || event.category !== "fire") {
+      fireHistoryAbortRef.current?.abort();
+      setFireHistoryLoading(false);
+      setFireHistoryErr(null);
+      setFireHistory(null);
+      return;
+    }
+
+    fireHistoryAbortRef.current?.abort();
+    const controller = new AbortController();
+    fireHistoryAbortRef.current = controller;
+
+    const historyMonth = (toValidDate(event.lastSeen) ?? toValidDate(event.timestamp) ?? new Date()).getUTCMonth() + 1;
+
+    setFireHistoryLoading(true);
+    setFireHistoryErr(null);
+    setFireHistory(null);
+
+    try {
+      const history = await fetchFireHistory({
+        lat: event.latitude,
+        lon: event.longitude,
+        radiusKm: 25,
+        years: 5,
+        month: historyMonth,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setFireHistory(history);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setFireHistory(null);
+      setFireHistoryErr(e?.message ? String(e.message) : "No se pudo consultar historial FIRMS.");
+    } finally {
+      if (!controller.signal.aborted) setFireHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -1880,6 +1987,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadCriticalInfrastructure();
     loadNearbyCommunities();
     loadWaterContext();
+    loadFireHistory();
 
     return () => {
       newsAbortRef.current?.abort();
@@ -1889,6 +1997,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       criticalInfrastructureAbortRef.current?.abort();
       nearbyCommunitiesAbortRef.current?.abort();
       waterContextAbortRef.current?.abort();
+      fireHistoryAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -1904,7 +2013,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     newsDiscardedCount === 1
       ? "BioPulse descartó 1 resultado débil porque no mencionaba claramente el lugar del evento o no tenía relación suficiente con la catástrofe."
       : `BioPulse descartó ${newsDiscardedCount} resultados débiles porque no mencionaban claramente el lugar del evento o no tenían relación suficiente con la catástrofe.`;
-  const showHistoricalNewsContext = Boolean(newsMeta) && !newsLoading && !newsErr && !newsLimited;
+  const showHistoricalNewsContext =
+    (Boolean(newsMeta) && !newsLoading && !newsErr && !newsLimited) || event.category === "fire";
   const historicalNewsTopic =
     event.category === "fire"
       ? "incendios y focos térmicos"
@@ -1917,7 +2027,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : event.category === "air-pollution"
       ? "episodios de contaminación del aire"
       : "eventos ambientales similares";
-
   const sirenActive = useMemo(() => {
     if (event?.evacuationLevel === "mandatory") return true;
     return splitNews.official.some((item) => domainIsOfficial(item.domain) && isEvacuationRelevant(item));
@@ -4798,10 +4907,41 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 )}
                               </div>
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                <div className="text-[11px] uppercase tracking-wide text-white/35">Archivo pendiente</div>
-                                <div className="mt-1 text-xs leading-relaxed text-white/58">
-                                  FIRMS multianual, organismos públicos, medios históricos y registros locales citables.
-                                </div>
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Archivo FIRMS</div>
+                                {fireHistoryLoading ? (
+                                  <div className="mt-2 flex items-center gap-2 text-xs text-white/55">
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    Consultando antecedentes satelitales...
+                                  </div>
+                                ) : fireHistory ? (
+                                  <div className="mt-2 space-y-1.5 text-xs leading-relaxed text-white/58">
+                                    <div>
+                                      {fireHistory.summary.totalDetections} detecciones en{" "}
+                                      {fireHistory.summary.yearsWithDetections} de {fireHistory.query.years} años
+                                      muestreados.
+                                    </div>
+                                    {fireHistory.summary.peakYear ? (
+                                      <div>
+                                        Año con más señales: {fireHistory.summary.peakYear.year} (
+                                        {fireHistory.summary.peakYear.detections}).
+                                      </div>
+                                    ) : null}
+                                    {fireHistory.summary.latestDetection ? (
+                                      <div>
+                                        Última señal histórica:{" "}
+                                        {fmtDateTimeUTC(new Date(fireHistory.summary.latestDetection))}.
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                ) : fireHistoryErr ? (
+                                  <div className="mt-1 text-xs leading-relaxed text-amber-50/65">
+                                    Historial FIRMS no disponible: {fireHistoryErr}
+                                  </div>
+                                ) : (
+                                  <div className="mt-1 text-xs leading-relaxed text-white/58">
+                                    FIRMS multianual todavía no devolvió antecedentes para este evento.
+                                  </div>
+                                )}
                               </div>
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                                 <div className="text-[11px] uppercase tracking-wide text-white/35">Cómo se usaría</div>
@@ -4814,6 +4954,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             <div className="mt-3 rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-xs leading-relaxed text-amber-50/65">
                               Un antecedente histórico no confirma relación causal con el evento actual. BioPulse debe
                               mostrar evidencia, fuente y fecha antes de convertirlo en memoria del evento.
+                              {fireHistory ? (
+                                <div className="mt-2 text-amber-50/55">
+                                  Fuente: {fireHistory.attributionText} / {fireHistory.source}.{" "}
+                                  {fireHistory.limitations[0]}
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                         ) : null}
