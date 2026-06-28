@@ -16,6 +16,7 @@ import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline"
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
 import { buildEventObservations } from "@/app/lib/eventObservations";
+import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
 import type { WeatherCurrent, WeatherResponse } from "@/app/lib/weatherTypes";
 import {
@@ -32,7 +33,7 @@ import {
   type GuardianObservation,
   GUARDIAN_PREPARATION_VERSION,
 } from "@/app/lib/guardianStore";
-import type { Observation } from "@/app/lib/observations";
+import type { NarrativeFragment, Observation } from "@/app/lib/observations";
 import {
   X,
   CornerUpLeft,
@@ -198,38 +199,6 @@ type WaterContextResponse = {
   resources: WaterResource[];
   source: { name: string; attribution: string; attributionUrl: string };
   interpretation: string;
-};
-
-type FireHistoryYearSummary = {
-  year: number;
-  detections: number;
-  frpSum: number | null;
-  frpMax: number | null;
-  latestDetection: string | null;
-};
-
-type FireHistoryResponse = {
-  provider: string;
-  source: string;
-  query: {
-    lat: number;
-    lon: number;
-    radiusKm: number;
-    bbox: string;
-    years: number;
-    sampledMonth: number;
-    sampledYears: number[];
-  };
-  summary: {
-    totalDetections: number;
-    yearsWithDetections: number;
-    peakYear: FireHistoryYearSummary | null;
-    latestDetection: string | null;
-  };
-  years: FireHistoryYearSummary[];
-  attributionText: string;
-  limitations: string[];
-  fetchedAt: string;
 };
 
 function GuardianSourceButton({
@@ -675,6 +644,29 @@ const observationVerificationLabel: Record<Observation["verification"]["status"]
   official_confirmed: "Confirmada oficialmente",
   inconclusive: "Inconclusa",
 };
+
+function narrativeRoleLabel(role: NarrativeFragment["role"]) {
+  switch (role) {
+    case "first_detection":
+      return "Inicio";
+    case "escalation":
+      return "Evolución";
+    case "impact":
+      return "Impacto";
+    case "response":
+      return "Respuesta";
+    case "context":
+      return "Contexto";
+    case "human_memory":
+      return "Memoria humana";
+    case "closure":
+      return "Cierre";
+    case "uncertainty":
+      return "Incertidumbre";
+    default:
+      return "Relato";
+  }
+}
 
 function observationLocationLabel(observation: Observation) {
   if (observation.type === "news_report" || observation.type === "official_reference") {
@@ -2347,6 +2339,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     ],
     weather,
     cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
+    fireHistory,
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
@@ -2846,7 +2839,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const visibleTimelineEntries =
     timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
   const hasComparableHistory = visibleTimelineEntries.length > 1;
-  const eventStoryEvidence = [
+  const eventStoryFragments = eventObservationBundle.narrativeFragments;
+  const fallbackEventStoryEvidence = [
     firstSeenDate ? `Comenzó a registrarse el ${fmtDateTimeUTC(firstSeenDate)}.` : null,
     observationDate ? `La señal más reciente conservada corresponde a ${fmtDateTimeUTC(observationDate)}.` : null,
     normalizedObservationCount > 0
@@ -2887,6 +2881,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : null,
     event.liveFeedUrl ? "Existe un enlace externo para revisar la observación FIRMS/NASA original." : null,
   ].filter((item): item is string => Boolean(item));
+  const eventStoryEvidence =
+    eventStoryFragments.length > 0 ? eventStoryFragments.map((fragment) => fragment.text) : fallbackEventStoryEvidence;
   const eventStoryUnknowns = [
     event.evacuationLevel == null ? "estado de evacuación oficial" : null,
     !eventPopulation ? "población afectada verificada" : null,
@@ -5691,7 +5687,37 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </span>
                   </div>
 
-                  {eventStoryEvidence.length > 0 ? (
+                  {eventStoryFragments.length > 0 ? (
+                    <div className="mt-3 space-y-2">
+                      {eventStoryFragments.map((fragment) => (
+                        <div
+                          key={fragment.id}
+                          className="rounded-xl border border-cyan-300/10 bg-black/20 px-3 py-2.5 text-xs leading-relaxed text-white/60"
+                        >
+                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                            <span className="rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-100/70">
+                              {narrativeRoleLabel(fragment.role)}
+                            </span>
+                            <span className="text-[11px] text-white/35">
+                              {fragment.observationIds.length}{" "}
+                              {fragment.observationIds.length === 1 ? "observación" : "observaciones"}
+                              {fragment.inferenceIds?.length
+                                ? ` · ${fragment.inferenceIds.length} ${
+                                    fragment.inferenceIds.length === 1 ? "inferencia" : "inferencias"
+                                  }`
+                                : ""}
+                            </span>
+                          </div>
+                          <div>{fragment.text}</div>
+                          {fragment.caution ? (
+                            <div className="mt-1.5 text-[11px] leading-relaxed text-amber-50/55">
+                              Cautela: {fragment.caution}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : eventStoryEvidence.length > 0 ? (
                     <div className="mt-3 space-y-2">
                       {eventStoryEvidence.map((item) => (
                         <div key={item} className="flex gap-2 text-xs leading-relaxed text-white/60">

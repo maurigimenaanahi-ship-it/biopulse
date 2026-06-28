@@ -1,13 +1,16 @@
 import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
 import { camerasToObservations, type CameraObservationInput } from "@/app/lib/cameraObservationAdapter";
+import { fireHistoryToObservation } from "@/app/lib/fireHistoryObservationAdapter";
+import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import { eventToFirmsObservations } from "@/app/lib/firmsObservationAdapter";
 import { normalizeGuardianObservation } from "@/app/lib/guardianObservationAdapter";
+import { buildNarrativeFragments } from "@/app/lib/narrativeFragments";
 import { newsItemsToObservations, type NewsObservationClassification } from "@/app/lib/newsObservationAdapter";
 import type { NewsItem } from "@/app/lib/newsTypes";
 import { weatherCurrentToObservation } from "@/app/lib/weatherObservationAdapter";
 import type { WeatherCurrent } from "@/app/lib/weatherTypes";
-import type { InferenceRecord, Observation, ObservationType } from "@/app/lib/observations";
+import type { InferenceRecord, NarrativeFragment, Observation, ObservationType } from "@/app/lib/observations";
 
 export type EventObservationSourceCounts = {
   firms: number;
@@ -28,6 +31,7 @@ export type EventObservationBundle = {
   generatedAt: string;
   observations: Observation[];
   inferences: InferenceRecord[];
+  narrativeFragments: NarrativeFragment[];
   sourceCounts: EventObservationSourceCounts;
   typeCounts: EventObservationTypeCount[];
 };
@@ -39,6 +43,7 @@ export type BuildEventObservationsInput = {
   newsItems?: Array<{ item: NewsItem; classification: NewsObservationClassification }>;
   weather?: WeatherCurrent | null;
   cameras?: CameraObservationInput[];
+  fireHistory?: FireHistoryResponse | null;
   generatedAt?: string;
 };
 
@@ -90,7 +95,14 @@ function countByType(observations: Observation[]): EventObservationTypeCount[] {
 
 export function buildEventObservations(input: BuildEventObservationsInput): EventObservationBundle {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
+  const eventId = eventIdentity(input.event);
   const firmsObservations = eventToFirmsObservations(input.event, { normalizedAt: generatedAt });
+  const fireHistoryObservation = fireHistoryToObservation({
+    event: input.event,
+    history: input.fireHistory ?? null,
+    normalizedAt: generatedAt,
+  });
+  const fireHistoryObservations = fireHistoryObservation ? [fireHistoryObservation] : [];
   const newsObservations = newsItemsToObservations({
     event: input.event,
     items: input.newsItems ?? [],
@@ -118,20 +130,28 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
 
   const observations = sortObservations([
     ...firmsObservations,
+    ...fireHistoryObservations,
     ...weatherObservations,
     ...cameraObservations,
     ...newsObservations,
     ...guardianObservations,
   ]);
   const inferences = sortInferences(guardianInferences);
+  const narrativeFragments = buildNarrativeFragments({
+    eventId,
+    observations,
+    inferences,
+    generatedAt,
+  });
 
   return {
-    eventId: eventIdentity(input.event),
+    eventId,
     generatedAt,
     observations,
     inferences,
+    narrativeFragments,
     sourceCounts: {
-      firms: firmsObservations.length,
+      firms: firmsObservations.length + fireHistoryObservations.length,
       guardian: guardianObservations.length,
       news: newsObservations.filter((observation) => observation.type === "news_report").length,
       officialReferences: newsObservations.filter((observation) => observation.type === "official_reference").length,
