@@ -6,6 +6,7 @@ import type {
   CriticalInfrastructureResponse,
   EcosystemContextResponse,
   NearbyCommunitiesResponse,
+  PopulationContextResponse,
   ProtectedContextResponse,
   WaterContextResponse,
 } from "@/app/lib/contextObservationTypes";
@@ -62,6 +63,7 @@ export type BuildEventObservationsInput = {
   criticalInfrastructure?: CriticalInfrastructureResponse | null;
   nearbyCommunities?: NearbyCommunitiesResponse | null;
   accessRoutes?: AccessRoutesResponse | null;
+  populationContext?: PopulationContextResponse | null;
   generatedAt?: string;
 };
 
@@ -149,6 +151,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     criticalInfrastructure: input.criticalInfrastructure ?? null,
     nearbyCommunities: input.nearbyCommunities ?? null,
     accessRoutes: input.accessRoutes ?? null,
+    populationContext: input.populationContext ?? null,
     normalizedAt: generatedAt,
   });
   const guardianNormalizations = (input.guardianObservations ?? [])

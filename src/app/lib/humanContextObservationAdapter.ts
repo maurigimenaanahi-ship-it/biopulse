@@ -3,6 +3,7 @@ import type {
   AccessRoutesResponse,
   CriticalInfrastructureResponse,
   NearbyCommunitiesResponse,
+  PopulationContextResponse,
 } from "@/app/lib/contextObservationTypes";
 import type { Observation, ObservationLocation } from "@/app/lib/observations";
 
@@ -326,11 +327,99 @@ export function accessRoutesToObservation(args: {
   };
 }
 
+export function populationContextToObservation(args: {
+  event: EnvironmentalEvent;
+  context: PopulationContextResponse | null;
+  normalizedAt?: string;
+}): Observation | null {
+  if (!args.context) return null;
+
+  const normalizedAt = args.normalizedAt ?? new Date().toISOString();
+  const settlements = Array.isArray(args.context.settlements) ? args.context.settlements : [];
+  const measurements: Record<string, MeasurementValue> = {};
+
+  addMeasurement(measurements, "settlementCount", settlements.length);
+  addMeasurement(measurements, "knownPopulationCount", args.context.knownPopulationCount);
+  addMeasurement(measurements, "knownPopulationSum", args.context.knownPopulationSum);
+  addMeasurement(measurements, "radiusKm", args.context.radiusKm);
+
+  return {
+    schema: "biopulse.observation.v1",
+    id: `population-context:${eventIdentity(args.event)}`,
+    relatedEvent: {
+      eventId: eventIdentity(args.event),
+      category: args.event.category,
+      relation: "impact_context",
+    },
+    type: "community_context",
+    origin: {
+      kind: "automated",
+      actorType: "provider",
+      displayName: args.context.source.name,
+    },
+    source: {
+      id: "population-context",
+      name: "Población registrada en comunidades cercanas",
+      provider: args.context.source.name,
+      url: args.context.source.attributionUrl,
+      attribution: args.context.source.attribution,
+    },
+    timestamp: {
+      observedAt: observedAtFor(args.event),
+      recordedAt: normalizedAt,
+    },
+    location: eventLocation(args.event),
+    evidence: {
+      summary:
+        settlements.length > 0
+          ? `${settlements.length} comunidad${settlements.length === 1 ? "" : "es"} cercana${
+              settlements.length === 1 ? "" : "s"
+            } consultada${settlements.length === 1 ? "" : "s"}; ${args.context.knownPopulationCount} con población registrada.`
+          : "No se detectaron comunidades cercanas con datos poblacionales en la fuente conectada.",
+      artifacts: settlements
+        .slice(0, 5)
+        .map((settlement) => ({ kind: "link" as const, url: settlement.sourceUrl, label: settlement.name }))
+        .filter((item) => Boolean(item.url)),
+      measurements,
+      limitations: [
+        "Contexto poblacional cartográfico; no confirma población expuesta, afectada, evacuada ni solicitante de ayuda.",
+        "Los valores de población dependen de etiquetas abiertas y pueden estar incompletos o desactualizados.",
+      ],
+    },
+    raw: {
+      providerPayload: args.context,
+      normalizedBy: ADAPTER_ID,
+      normalizedAt,
+    },
+    confidence: {
+      level: "low",
+      basis: "direct_measurement",
+      notes: "Población consultada desde etiquetas abiertas; útil como contexto, no como estimación oficial de exposición.",
+    },
+    provenance: {
+      chain: ["population_context", args.context.source.name, ADAPTER_ID],
+      fetchedBy: args.context.source.name,
+      transformedBy: ADAPTER_ID,
+      attributionRequired: true,
+    },
+    status: "recorded",
+    verification: {
+      status: "source_reviewed",
+    },
+    narrativeUse: {
+      eligible: true,
+      role: "impact",
+      caution: "Usar como contexto humano cercano; no presentar como población afectada.",
+    },
+  };
+}
+
 export function humanContextsToObservations(args: {
   event: EnvironmentalEvent;
   criticalInfrastructure?: CriticalInfrastructureResponse | null;
   nearbyCommunities?: NearbyCommunitiesResponse | null;
   accessRoutes?: AccessRoutesResponse | null;
+  populationContext?: PopulationContextResponse | null;
   normalizedAt?: string;
 }): Observation[] {
   return [
@@ -347,6 +436,11 @@ export function humanContextsToObservations(args: {
     accessRoutesToObservation({
       event: args.event,
       context: args.accessRoutes ?? null,
+      normalizedAt: args.normalizedAt,
+    }),
+    populationContextToObservation({
+      event: args.event,
+      context: args.populationContext ?? null,
       normalizedAt: args.normalizedAt,
     }),
   ].filter((observation): observation is Observation => Boolean(observation));

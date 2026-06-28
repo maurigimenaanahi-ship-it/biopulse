@@ -24,7 +24,9 @@ import type {
   EcosystemFeature,
   NearbyCommunitiesResponse,
   NearbyCommunity,
+  PopulationContextResponse,
   ProtectedArea,
+  SettlementPopulation,
   ProtectedContextResponse,
   WaterContextResponse,
   WaterResource,
@@ -351,6 +353,21 @@ async function fetchNearbyCommunities(
   return {
     ...data,
     communities: Array.isArray(data.communities) ? data.communities : [],
+  };
+}
+
+async function fetchPopulationContext(lat: number, lon: number, signal?: AbortSignal): Promise<PopulationContextResponse> {
+  const url =
+    `${apiUrl("/api/population-context")}?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=25`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Población cercana no disponible (${res.status}).`);
+  const data = (await res.json()) as PopulationContextResponse;
+  return {
+    ...data,
+    settlements: Array.isArray(data.settlements) ? data.settlements : [],
+    knownPopulationSum: Number.isFinite(data.knownPopulationSum) ? data.knownPopulationSum : 0,
+    knownPopulationCount: Number.isFinite(data.knownPopulationCount) ? data.knownPopulationCount : 0,
   };
 }
 
@@ -1662,6 +1679,81 @@ function NearbyCommunitySummary({
   );
 }
 
+function PopulationContextSummary({
+  items,
+  knownPopulationSum,
+  knownPopulationCount,
+  loading,
+  error,
+  loaded,
+}: {
+  items: SettlementPopulation[];
+  knownPopulationSum: number;
+  knownPopulationCount: number;
+  loading: boolean;
+  error: boolean;
+  loaded: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-2 flex items-center gap-2 text-xs text-white/45">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Consultando población registrada en comunidades cercanas...
+      </div>
+    );
+  }
+
+  if (error) return <div className="mt-2 text-xs text-amber-100/65">Fuente poblacional temporalmente limitada.</div>;
+
+  if (items.length === 0) {
+    return (
+      <div className="mt-2 text-sm leading-relaxed text-white/50">
+        {loaded
+          ? "Sin comunidades cercanas con población registrada en la fuente consultada."
+          : "Esperando consulta poblacional."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2">
+      <div className="text-xl font-semibold text-white/90">
+        {knownPopulationCount > 0
+          ? `${knownPopulationSum.toLocaleString("es-AR")} registradas`
+          : `${items.length} comunidades cercanas`}
+      </div>
+      <div className="mt-1 text-xs leading-relaxed text-white/40">
+        {knownPopulationCount > 0
+          ? `Suma de población informada por ${knownPopulationCount} de ${items.length} comunidades cercanas.`
+          : "La fuente registra comunidades cercanas, pero no informa población para ellas."}
+        {" "}No es población afectada ni expuesta.
+      </div>
+      <div className="mt-3 space-y-1.5">
+        {items.slice(0, 4).map((settlement) => (
+          <a
+            key={settlement.id}
+            href={settlement.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-w-0 items-start justify-between gap-2 text-xs text-cyan-100/65 hover:text-cyan-100/90"
+          >
+            <span className="min-w-0 truncate">
+              {settlement.name} · {settlement.label}
+            </span>
+            <span className="shrink-0 text-white/35">
+              {settlement.population != null
+                ? settlement.population.toLocaleString("es-AR")
+                : settlement.distanceKm != null
+                ? `${settlement.distanceKm.toFixed(1)} km`
+                : "población n/d"}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AccessRouteSummary({
   items,
   loading,
@@ -1799,6 +1891,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const ecosystemContextAbortRef = useRef<AbortController | null>(null);
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
+  const populationContextAbortRef = useRef<AbortController | null>(null);
   const waterContextAbortRef = useRef<AbortController | null>(null);
   const accessRoutesAbortRef = useRef<AbortController | null>(null);
   const fireHistoryAbortRef = useRef<AbortController | null>(null);
@@ -1876,6 +1969,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [nearbyCommunitiesLoading, setNearbyCommunitiesLoading] = useState(false);
   const [nearbyCommunitiesErr, setNearbyCommunitiesErr] = useState<string | null>(null);
   const [nearbyCommunitiesContext, setNearbyCommunitiesContext] = useState<NearbyCommunitiesResponse | null>(null);
+
+  // ====== POPULATION CONTEXT state ======
+  const [populationContextLoading, setPopulationContextLoading] = useState(false);
+  const [populationContextErr, setPopulationContextErr] = useState<string | null>(null);
+  const [populationContext, setPopulationContext] = useState<PopulationContextResponse | null>(null);
 
   // ====== ACCESS ROUTES state ======
   const [accessRoutesLoading, setAccessRoutesLoading] = useState(false);
@@ -2118,6 +2216,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadPopulationContext = async () => {
+    if (!event) return;
+    populationContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    populationContextAbortRef.current = controller;
+
+    setPopulationContextLoading(true);
+    setPopulationContextErr(null);
+    setPopulationContext(null);
+
+    try {
+      const context = await fetchPopulationContext(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setPopulationContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setPopulationContext(null);
+      setPopulationContextErr(e?.message ? String(e.message) : "No se pudo consultar población cercana.");
+    } finally {
+      if (!controller.signal.aborted) setPopulationContextLoading(false);
+    }
+  };
+
   const loadAccessRoutes = async () => {
     if (!event) return;
     accessRoutesAbortRef.current?.abort();
@@ -2214,6 +2335,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadEcosystemContext();
     loadCriticalInfrastructure();
     loadNearbyCommunities();
+    loadPopulationContext();
     loadAccessRoutes();
     loadWaterContext();
     loadFireHistory();
@@ -2226,6 +2348,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ecosystemContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
       nearbyCommunitiesAbortRef.current?.abort();
+      populationContextAbortRef.current?.abort();
       accessRoutesAbortRef.current?.abort();
       waterContextAbortRef.current?.abort();
       fireHistoryAbortRef.current?.abort();
@@ -2462,8 +2585,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const nearbyCommunities = Array.isArray(nearbyCommunitiesContext?.communities)
     ? nearbyCommunitiesContext.communities
     : [];
+  const nearbyPopulationSettlements = Array.isArray(populationContext?.settlements)
+    ? populationContext.settlements
+    : [];
+  const knownPopulationSum = Number.isFinite(populationContext?.knownPopulationSum)
+    ? populationContext!.knownPopulationSum
+    : 0;
+  const knownPopulationCount = Number.isFinite(populationContext?.knownPopulationCount)
+    ? populationContext!.knownPopulationCount
+    : 0;
   const nearbyAccessRoutes = Array.isArray(accessRoutes?.routes) ? accessRoutes.routes : [];
-  const humanGeoSource = criticalInfrastructure?.source ?? nearbyCommunitiesContext?.source ?? accessRoutes?.source ?? null;
+  const humanGeoSource =
+    criticalInfrastructure?.source ?? nearbyCommunitiesContext?.source ?? populationContext?.source ?? accessRoutes?.source ?? null;
   const humanEvacuationLabel =
     event.evacuationLevel === "mandatory"
       ? "Evacuación obligatoria informada en el evento"
@@ -2479,9 +2612,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     eventInfrastructure.length > 0 ||
     Boolean(criticalInfrastructure) ||
     Boolean(nearbyCommunitiesContext) ||
+    Boolean(populationContext) ||
     Boolean(accessRoutes) ||
     criticalFacilities.length > 0 ||
     nearbyCommunities.length > 0 ||
+    nearbyPopulationSettlements.length > 0 ||
     nearbyAccessRoutes.length > 0;
   const protectionConnectionItems: Array<{ label: string; detail: string; status: ContextConnectionStatus }> = [
     {
@@ -2598,6 +2733,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : "Fuente preparada, pendiente de respuesta para este evento.",
     },
     {
+      label: "Población cercana registrada",
+      status: populationContextLoading
+        ? "loading"
+        : populationContextErr
+        ? "limited"
+        : populationContext
+        ? nearbyPopulationSettlements.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: populationContext
+        ? `${nearbyPopulationSettlements.length} ${nearbyPopulationSettlements.length === 1 ? "comunidad cercana" : "comunidades cercanas"} en ${populationContext.radiusKm} km · ${knownPopulationCount} con población informada. No es población afectada.`
+        : populationContextLoading
+        ? "Consultando población registrada en comunidades cercanas."
+        : populationContextErr
+        ? "La fuente poblacional respondió con error o quedó temporalmente limitada."
+        : "Fuente poblacional preparada, pendiente de respuesta para este evento.",
+    },
+    {
       label: "Evacuación oficial",
       status: event.evacuationLevel != null ? "event" : "future",
       detail:
@@ -2625,12 +2779,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : "Fuente vial preparada, pendiente de respuesta para este evento.",
     },
     {
-      label: "Población y superficie",
-      status: eventPopulation != null || eventArea != null || eventInfrastructure.length > 0 ? "event" : "future",
+      label: "Superficie e inventario del evento",
+      status: eventArea != null || eventInfrastructure.length > 0 ? "event" : "future",
       detail:
-        eventPopulation != null || eventArea != null || eventInfrastructure.length > 0
+        eventArea != null || eventInfrastructure.length > 0
           ? "Hay campos asociados al evento, pero faltan fuente, metodología y validación de afectación real."
-          : "Capa futura: falta conectar demografía y cálculo de exposición.",
+          : "Capa futura: falta conectar cálculo de superficie afectada, exposición e inventario propio del evento.",
     },
   ];
   const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
@@ -2745,6 +2899,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     criticalInfrastructure,
     nearbyCommunities: nearbyCommunitiesContext,
     accessRoutes,
+    populationContext,
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
@@ -3033,20 +3188,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       label: "Impacto humano",
       icon: <Hospital className="h-4 w-4 text-rose-200/65" />,
       state:
-        criticalInfrastructureLoading || nearbyCommunitiesLoading || accessRoutesLoading
+        criticalInfrastructureLoading || nearbyCommunitiesLoading || populationContextLoading || accessRoutesLoading
           ? "loading"
-          : criticalInfrastructureErr || nearbyCommunitiesErr || accessRoutesErr
+          : criticalInfrastructureErr || nearbyCommunitiesErr || populationContextErr || accessRoutesErr
           ? "limited"
-          : criticalInfrastructure || nearbyCommunitiesContext || accessRoutes
+          : criticalInfrastructure || nearbyCommunitiesContext || populationContext || accessRoutes
           ? "partial"
           : "not_connected",
       detail:
-        criticalInfrastructureLoading || nearbyCommunitiesLoading || accessRoutesLoading
-          ? "Consultando infraestructura, comunidades y accesos."
-          : criticalInfrastructureErr || nearbyCommunitiesErr || accessRoutesErr
+        criticalInfrastructureLoading || nearbyCommunitiesLoading || populationContextLoading || accessRoutesLoading
+          ? "Consultando infraestructura, comunidades, población cercana y accesos."
+          : criticalInfrastructureErr || nearbyCommunitiesErr || populationContextErr || accessRoutesErr
           ? "Parte del contexto humano est\u00e1 temporalmente limitado."
-        : criticalInfrastructure || nearbyCommunitiesContext || accessRoutes
-        ? "Infraestructura, comunidades y accesos cercanos disponibles cuando hay fuente conectada."
+        : criticalInfrastructure || nearbyCommunitiesContext || populationContext || accessRoutes
+        ? "Infraestructura, comunidades, población cercana y accesos disponibles cuando hay fuente conectada."
         : "Contexto humano pendiente de respuesta.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("human"),
@@ -4867,9 +5022,27 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         </div>
                       </>
                     ) : (
-                      <div className="mt-2 text-sm text-white/50">
-                        Capa poblacional pendiente: no se consulta todavía una fuente demográfica para este evento.
-                      </div>
+                      <>
+                        <PopulationContextSummary
+                          items={nearbyPopulationSettlements}
+                          knownPopulationSum={knownPopulationSum}
+                          knownPopulationCount={knownPopulationCount}
+                          loading={populationContextLoading}
+                          error={Boolean(populationContextErr)}
+                          loaded={Boolean(populationContext)}
+                        />
+                        {populationContext?.source ? (
+                          <a
+                            href={populationContext.source.attributionUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 text-[11px] text-cyan-100/50 hover:text-cyan-100/75"
+                          >
+                            {populationContext.source.attribution}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : null}
+                      </>
                     )}
                   </div>
 
@@ -5012,7 +5185,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 {humanGeoSource ? (
                   <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
-                    Comunidades, servicios y accesos cercanos no implican población expuesta, disponibilidad, transitabilidad ni afectación.{" "}
+                    Comunidades, población registrada, servicios y accesos cercanos no implican población expuesta, disponibilidad, transitabilidad ni afectación.{" "}
                     <a
                       href={humanGeoSource.attributionUrl}
                       target="_blank"

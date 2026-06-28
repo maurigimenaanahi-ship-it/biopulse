@@ -92,6 +92,30 @@ export type AccessRoutesResponse = {
   interpretation: string;
 };
 
+export type SettlementPopulation = {
+  id: string;
+  kind: "city" | "town" | "village" | "hamlet" | "municipality" | "township" | "locality" | "isolated_dwelling";
+  label: string;
+  name: string;
+  population: number | null;
+  populationSource: string | null;
+  populationDate: string | null;
+  distanceKm: number | null;
+  lat: number;
+  lon: number;
+  sourceUrl: string;
+};
+
+export type PopulationContextResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  settlements: SettlementPopulation[];
+  knownPopulationSum: number;
+  knownPopulationCount: number;
+  source: { name: string; attribution: string; attributionUrl: string };
+  interpretation: string;
+};
+
 export type NearbyCommunity = {
   id: string;
   kind: "city" | "town" | "village" | "hamlet" | "municipality" | "township";
