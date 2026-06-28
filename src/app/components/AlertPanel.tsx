@@ -2517,12 +2517,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const satelliteSource = event.satelliteSource ?? null;
   const activeSatelliteLayer =
     SATELLITE_RASTER_LAYERS.find((layer) => layer.id === activeSatelliteLayerId) ?? SATELLITE_RASTER_LAYERS[0];
+  const satelliteGibsDate = (observationDate ?? new Date()).toISOString().slice(0, 10);
+  const satelliteVisualZoom = activeSatelliteLayer.maxZoom >= 9 ? 8 : activeSatelliteLayer.maxZoom;
   const satelliteLayerObservedAt = (observationDate ?? new Date()).toISOString();
   const satelliteLayerSourceReference = [
     `NASA GIBS layer: ${activeSatelliteLayer.label} (${activeSatelliteLayer.id})`,
     `human label: ${activeSatelliteLayer.plainLabel}`,
-    `date: ${observationDate ? fmtDateTimeUTC(observationDate) : "no disponible"}`,
+    `date: ${satelliteGibsDate}`,
     `coordinates: ${event.latitude.toFixed(4)}, ${event.longitude.toFixed(4)}`,
+    `visual zoom: ${satelliteVisualZoom}`,
     satelliteSource?.product ? `FIRMS product: ${satelliteSource.product}` : null,
     event.liveFeedUrl ? `FIRMS viewer: ${event.liveFeedUrl}` : null,
   ]
@@ -4326,13 +4329,35 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             lat={event.latitude}
                             lon={event.longitude}
                             date={observationDate ?? undefined}
-                            zoom={activeSatelliteLayer.maxZoom >= 9 ? 8 : activeSatelliteLayer.maxZoom}
+                            zoom={satelliteVisualZoom}
                             height={260}
                             layer={activeSatelliteLayer}
                           />
                         </div>
                         <div className="mt-2 text-[11px] leading-relaxed text-white/35">
                           Esta vista usa teselas satelitales de referencia. Puede tener nubes, retraso temporal o no mostrar humo/fuego aunque existan detecciones térmicas FIRMS.
+                        </div>
+                        <div className="mt-3 border-y border-white/10 bg-black/15 px-3 py-2.5">
+                          <div className="grid grid-cols-1 gap-2 text-[11px] sm:grid-cols-2 lg:grid-cols-4">
+                            <div>
+                              <div className="uppercase tracking-wide text-white/30">Fuente visual</div>
+                              <div className="mt-0.5 font-semibold text-white/70">NASA GIBS WMTS</div>
+                            </div>
+                            <div>
+                              <div className="uppercase tracking-wide text-white/30">Capa</div>
+                              <div className="mt-0.5 font-semibold text-white/70">{activeSatelliteLayer.id}</div>
+                            </div>
+                            <div>
+                              <div className="uppercase tracking-wide text-white/30">Fecha consultada</div>
+                              <div className="mt-0.5 font-semibold text-white/70">{satelliteGibsDate}</div>
+                            </div>
+                            <div>
+                              <div className="uppercase tracking-wide text-white/30">Centro</div>
+                              <div className="mt-0.5 font-semibold text-white/70">
+                                {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)} - z{satelliteVisualZoom}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.06] p-3">
                           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
