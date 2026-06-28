@@ -14,6 +14,7 @@ import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationD
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
+import { buildEventObservations } from "@/app/lib/eventObservations";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -28,6 +29,7 @@ import {
   type GuardianObservation,
   GUARDIAN_PREPARATION_VERSION,
 } from "@/app/lib/guardianStore";
+import type { Observation } from "@/app/lib/observations";
 import {
   X,
   CornerUpLeft,
@@ -556,6 +558,48 @@ function shortTimelineText(value: string | null | undefined, limit = 130) {
   const text = String(value ?? "").trim().replace(/\s+/g, " ");
   if (!text) return "";
   return text.length > limit ? `${text.slice(0, limit - 1).trimEnd()}...` : text;
+}
+
+function formatObservationMeasurements(measurements?: Observation["evidence"]["measurements"]) {
+  if (!measurements) return "";
+
+  const parts = Object.entries(measurements)
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .slice(0, 4)
+    .map(([key, value]) => `${key}: ${String(value)}`);
+
+  return parts.join(" · ");
+}
+
+function observationTimelineTitle(observation: Observation) {
+  switch (observation.type) {
+    case "guardian_report":
+      return "Evidencia Guardian normalizada";
+    case "satellite_detection":
+      return "Evidencia satelital normalizada";
+    case "camera_snapshot":
+      return "Evidencia de cámara normalizada";
+    case "official_alert":
+      return "Alerta oficial normalizada";
+    case "news_report":
+      return "Referencia informativa normalizada";
+    case "weather_reading":
+      return "Lectura meteorológica normalizada";
+    default:
+      return "Observación normalizada";
+  }
+}
+
+function observationTimelineDetail(observation: Observation) {
+  const measurements = formatObservationMeasurements(observation.evidence.measurements);
+  const parts = [
+    observation.source.name,
+    shortTimelineText(observation.evidence.summary, 110),
+    measurements,
+    observation.narrativeUse.caution ? `Cautela: ${shortTimelineText(observation.narrativeUse.caution, 90)}` : null,
+  ].filter((item): item is string => Boolean(item));
+
+  return parts.join(" · ");
 }
 
 function pad2(n: number) {
@@ -1985,6 +2029,19 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     .map((id) => guardianStore.observations[id])
     .filter((observation): observation is GuardianObservation => Boolean(observation))
     .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+  const observationBundleGeneratedAt =
+    (observationDate ?? toValidDate(event.timestamp) ?? new Date(0)).toISOString();
+  const eventObservationBundle = buildEventObservations({
+    event,
+    guardianMemory: guardianEventMemory,
+    guardianObservations,
+    generatedAt: observationBundleGeneratedAt,
+  });
+  const normalizedObservationCount = eventObservationBundle.observations.length;
+  const normalizedInferenceCount = eventObservationBundle.inferences.length;
+  const normalizedGuardianObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "guardian_report"
+  );
   const cameraGuardianObservations = guardianObservations.filter(
     (observation) => observation.sourceType === "camera"
   );
@@ -2280,9 +2337,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       id: "timeline",
       label: "Historial",
       icon: <History className="h-4 w-4 text-cyan-200/65" />,
-      state: firstSeenDate || observationDate || eventHistory.length > 0 ? "available" : "empty",
+      state: normalizedObservationCount > 0 || firstSeenDate || observationDate || eventHistory.length > 0 ? "available" : "empty",
       detail:
-        firstSeenDate || observationDate || eventHistory.length > 0
+        normalizedObservationCount > 0
+          ? `${normalizedObservationCount} observaciones normalizadas · ${normalizedInferenceCount} inferencias separadas.`
+          : firstSeenDate || observationDate || eventHistory.length > 0
           ? "Cronolog\u00eda disponible con los puntos conservados por BioPulse."
           : "Sin puntos temporales v\u00e1lidos para este evento.",
       actionLabel: "Abrir secci\u00f3n",
@@ -2411,24 +2470,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   }
 
-  guardianObservations.forEach((observation) => {
-    const date = toValidDate(observation.observedAt) ?? toValidDate(observation.recordedAt);
+  normalizedGuardianObservations.forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
     if (!date) return;
-
-    const source = guardianSourceLabel(observation.sourceType);
-    const observed = shortTimelineText(observation.observedText);
-    const interpretation = shortTimelineText(observation.interpretation, 90);
-    const detailParts = [
-      `Memoria local Guardian · ${source}`,
-      observed ? `Observado: ${observed}` : null,
-      interpretation ? `Inferencia: ${interpretation}` : null,
-    ].filter((item): item is string => Boolean(item));
 
     timelineEntries.push({
       id: `guardian-${observation.id}`,
       date,
-      title: "Evidencia Guardian registrada",
-      detail: detailParts.join(" · "),
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
     });
   });
 
@@ -2439,6 +2489,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const eventStoryEvidence = [
     firstSeenDate ? `Comenzó a registrarse el ${fmtDateTimeUTC(firstSeenDate)}.` : null,
     observationDate ? `La señal más reciente conservada corresponde a ${fmtDateTimeUTC(observationDate)}.` : null,
+    normalizedObservationCount > 0
+      ? `BioPulse organiza este relato con ${normalizedObservationCount} ${
+          normalizedObservationCount === 1 ? "observación normalizada" : "observaciones normalizadas"
+        }: ${eventObservationBundle.sourceCounts.firms} instrumentales y ${
+          eventObservationBundle.sourceCounts.guardian
+        } humanas Guardian.`
+      : null,
     satelliteDetections != null
       ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`
       : null,
@@ -2450,9 +2507,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         }.`
       : null,
     guardianObservations.length > 0
-      ? `La memoria Guardian local aporta ${guardianObservations.length} ${
-          guardianObservations.length === 1 ? "observación privada" : "observaciones privadas"
-        } al relato del evento.`
+      ? `La memoria Guardian local aporta evidencia humana privada; ${
+          normalizedInferenceCount > 0
+            ? `${normalizedInferenceCount} interpretación${normalizedInferenceCount === 1 ? "" : "es"} queda${
+                normalizedInferenceCount === 1 ? "" : "n"
+              } separada${normalizedInferenceCount === 1 ? "" : "s"} de los hechos observados.`
+            : "no hay interpretaciones separadas para este evento."
+        }`
       : null,
     event.liveFeedUrl ? "Existe un enlace externo para revisar la observación FIRMS/NASA original." : null,
   ].filter((item): item is string => Boolean(item));
@@ -5104,12 +5165,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <div>
                       <div className="text-sm font-semibold text-cyan-100/90">Historia viva preliminar</div>
                       <div className="mt-1 text-xs leading-relaxed text-white/45">
-                        Reconstrucción operativa basada solo en evidencia ya conservada por BioPulse. No reemplaza
-                        confirmación oficial.
+                        Reconstrucción operativa basada en observaciones normalizadas, evidencia conservada e
+                        inferencias separadas. No reemplaza confirmación oficial.
                       </div>
                     </div>
                     <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
-                      Basado en evidencia
+                      Observation v1
                     </span>
                   </div>
 
@@ -5138,12 +5199,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 <div
                   className={cn(
                     "border-b px-4 py-3 text-xs leading-relaxed",
-                    hasComparableHistory
+                    normalizedObservationCount > 0 || hasComparableHistory
                       ? "border-cyan-300/15 bg-cyan-400/[0.05] text-cyan-100/70"
                       : "border-white/10 bg-white/[0.03] text-white/50"
                   )}
                 >
-                  {hasComparableHistory
+                  {normalizedObservationCount > 0
+                    ? `BioPulse conserva ${normalizedObservationCount} observaciones normalizadas y mantiene ${normalizedInferenceCount} inferencias separadas para no mezclar evidencia con interpretación.`
+                    : hasComparableHistory
                     ? guardianObservations.length > 0
                       ? "BioPulse muestra señales del evento junto con memoria Guardian local conservada en este dispositivo."
                       : "BioPulse conserva más de un momento comparable para este evento."
