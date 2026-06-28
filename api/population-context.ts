@@ -131,7 +131,7 @@ export default async function handler(req: Request): Promise<Response> {
 (
   node(around:${radiusMeters},${lat},${lon})["place"~"^(city|town|village|hamlet|municipality|township|locality|isolated_dwelling)$"];
 );
-out tags 100;`;
+out body 100;`;
 
   try {
     const upstream = await fetch("https://overpass-api.de/api/interpreter", {
