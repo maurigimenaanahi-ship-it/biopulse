@@ -2,11 +2,15 @@ import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
 import { eventToFirmsObservations } from "@/app/lib/firmsObservationAdapter";
 import { normalizeGuardianObservation } from "@/app/lib/guardianObservationAdapter";
+import { newsItemsToObservations, type NewsObservationClassification } from "@/app/lib/newsObservationAdapter";
+import type { NewsItem } from "@/app/lib/newsTypes";
 import type { InferenceRecord, Observation, ObservationType } from "@/app/lib/observations";
 
 export type EventObservationSourceCounts = {
   firms: number;
   guardian: number;
+  news: number;
+  officialReferences: number;
 };
 
 export type EventObservationTypeCount = {
@@ -27,6 +31,7 @@ export type BuildEventObservationsInput = {
   event: EnvironmentalEvent;
   guardianMemory?: GuardianEventMemory | null;
   guardianObservations?: GuardianObservation[];
+  newsItems?: Array<{ item: NewsItem; classification: NewsObservationClassification }>;
   generatedAt?: string;
 };
 
@@ -79,6 +84,11 @@ function countByType(observations: Observation[]): EventObservationTypeCount[] {
 export function buildEventObservations(input: BuildEventObservationsInput): EventObservationBundle {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const firmsObservations = eventToFirmsObservations(input.event, { normalizedAt: generatedAt });
+  const newsObservations = newsItemsToObservations({
+    event: input.event,
+    items: input.newsItems ?? [],
+    normalizedAt: generatedAt,
+  });
   const guardianNormalizations = (input.guardianObservations ?? [])
     .filter((observation) => isRelatedGuardianObservation(input.event, observation))
     .map((observation) => normalizeGuardianObservation(observation, input.guardianMemory));
@@ -88,7 +98,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     .map((item) => item.inference)
     .filter((item): item is InferenceRecord => Boolean(item));
 
-  const observations = sortObservations([...firmsObservations, ...guardianObservations]);
+  const observations = sortObservations([...firmsObservations, ...newsObservations, ...guardianObservations]);
   const inferences = sortInferences(guardianInferences);
 
   return {
@@ -99,6 +109,8 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     sourceCounts: {
       firms: firmsObservations.length,
       guardian: guardianObservations.length,
+      news: newsObservations.filter((observation) => observation.type === "news_report").length,
+      officialReferences: newsObservations.filter((observation) => observation.type === "official_reference").length,
     },
     typeCounts: countByType(observations),
   };

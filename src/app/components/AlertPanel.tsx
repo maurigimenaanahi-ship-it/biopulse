@@ -15,6 +15,7 @@ import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import { buildEventObservations } from "@/app/lib/eventObservations";
+import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -118,28 +119,6 @@ function toggleFollowedId(id: string): string[] {
 function isAbortError(err: unknown) {
   return (err instanceof DOMException && err.name === "AbortError") || (err as any)?.name === "AbortError";
 }
-
-// ---------- News types ----------
-type NewsItem = {
-  id: string;
-  title: string | null;
-  url: string | null;
-  domain: string | null;
-  language: string | null;
-  publishedAt: string | null;
-  sourceCountry: string | null;
-  image: string | null;
-  summary: string | null;
-};
-
-type NewsResponse = {
-  query: string;
-  count: number;
-  items: NewsItem[];
-  range?: { days: number; start: string; end: string };
-  gdelt?: any;
-  fetched_at?: string;
-};
 
 // ---------- Weather types (Open-Meteo current) ----------
 type WeatherCurrent = {
@@ -583,6 +562,8 @@ function observationTimelineTitle(observation: Observation) {
       return "Alerta oficial normalizada";
     case "news_report":
       return "Referencia informativa normalizada";
+    case "official_reference":
+      return "Referencia oficial normalizada";
     case "weather_reading":
       return "Lectura meteorológica normalizada";
     default:
@@ -2035,12 +2016,19 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     event,
     guardianMemory: guardianEventMemory,
     guardianObservations,
+    newsItems: [
+      ...splitNews.official.map((item) => ({ item, classification: "official_reference" as const })),
+      ...splitNews.regional.map((item) => ({ item, classification: "regional_report" as const })),
+    ],
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
   const normalizedInferenceCount = eventObservationBundle.inferences.length;
   const normalizedGuardianObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "guardian_report"
+  );
+  const normalizedNewsObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "news_report" || observation.type === "official_reference"
   );
   const cameraGuardianObservations = guardianObservations.filter(
     (observation) => observation.sourceType === "camera"
@@ -2482,6 +2470,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   });
 
+  normalizedNewsObservations.slice(-3).forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `news-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
   timelineEntries.sort((a, b) => a.date.getTime() - b.date.getTime());
   const visibleTimelineEntries =
     timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
@@ -2494,7 +2494,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           normalizedObservationCount === 1 ? "observación normalizada" : "observaciones normalizadas"
         }: ${eventObservationBundle.sourceCounts.firms} instrumentales y ${
           eventObservationBundle.sourceCounts.guardian
-        } humanas Guardian.`
+        } humanas Guardian, con ${eventObservationBundle.sourceCounts.news} referencias informativas y ${
+          eventObservationBundle.sourceCounts.officialReferences
+        } referencias de apariencia oficial.`
       : null,
     satelliteDetections != null
       ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`

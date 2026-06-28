@@ -19,6 +19,7 @@ export type ObservationType =
   | "camera_snapshot"
   | "weather_reading"
   | "news_report"
+  | "official_reference"
   | "official_alert"
   | "guardian_report"
   | "infrastructure_context"
