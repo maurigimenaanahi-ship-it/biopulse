@@ -16,6 +16,8 @@ import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline"
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
 import type {
+  AccessRoute,
+  AccessRoutesResponse,
   CriticalFacility,
   CriticalInfrastructureResponse,
   NearbyCommunitiesResponse,
@@ -334,6 +336,19 @@ async function fetchNearbyCommunities(
   return {
     ...data,
     communities: Array.isArray(data.communities) ? data.communities : [],
+  };
+}
+
+async function fetchAccessRoutes(lat: number, lon: number, signal?: AbortSignal): Promise<AccessRoutesResponse> {
+  const url =
+    `${apiUrl("/api/access-routes")}?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=25`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Rutas y accesos no disponibles (${res.status}).`);
+  const data = (await res.json()) as AccessRoutesResponse;
+  return {
+    ...data,
+    routes: Array.isArray(data.routes) ? data.routes : [],
   };
 }
 
@@ -1570,6 +1585,68 @@ function NearbyCommunitySummary({
   );
 }
 
+function AccessRouteSummary({
+  items,
+  loading,
+  error,
+  loaded,
+}: {
+  items: AccessRoute[];
+  loading: boolean;
+  error: boolean;
+  loaded: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-white/45">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Consultando rutas y accesos cercanos...
+      </div>
+    );
+  }
+
+  if (error) return <div className="mt-1 text-xs text-amber-100/65">Fuente vial temporalmente limitada.</div>;
+
+  if (items.length === 0) {
+    return (
+      <div className="mt-1 text-xs leading-relaxed text-white/45">
+        {loaded
+          ? "Sin rutas principales cartografiadas dentro del radio; la cobertura puede ser incompleta."
+          : "Esperando consulta vial."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-1">
+      <div className="text-xs text-white/55">
+        {items.length} {items.length === 1 ? "acceso cartografiado" : "accesos cartografiados"} en 25 km
+      </div>
+      <div className="mt-2 space-y-1.5">
+        {items.slice(0, 4).map((route) => (
+          <a
+            key={route.id}
+            href={route.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-w-0 items-start justify-between gap-2 text-xs text-cyan-100/65 hover:text-cyan-100/90"
+          >
+            <span className="min-w-0 truncate">
+              {route.name} · {route.label}
+            </span>
+            <span className="shrink-0 text-white/35">
+              {route.distanceKm != null ? `${route.distanceKm.toFixed(1)} km` : "distancia n/d"}
+            </span>
+          </a>
+        ))}
+      </div>
+      <div className="mt-2 text-[11px] leading-relaxed text-white/35">
+        No confirma cortes, tránsito, evacuación ni vía segura.
+      </div>
+    </div>
+  );
+}
+
 const WATER_KIND_LABEL: Record<WaterResource["kind"], string> = {
   river: "Curso o sistema hídrico",
   waterbody: "Cuerpo de agua",
@@ -1645,6 +1722,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
   const waterContextAbortRef = useRef<AbortController | null>(null);
+  const accessRoutesAbortRef = useRef<AbortController | null>(null);
   const fireHistoryAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [guardianStore, setGuardianStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
@@ -1715,6 +1793,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [nearbyCommunitiesLoading, setNearbyCommunitiesLoading] = useState(false);
   const [nearbyCommunitiesErr, setNearbyCommunitiesErr] = useState<string | null>(null);
   const [nearbyCommunitiesContext, setNearbyCommunitiesContext] = useState<NearbyCommunitiesResponse | null>(null);
+
+  // ====== ACCESS ROUTES state ======
+  const [accessRoutesLoading, setAccessRoutesLoading] = useState(false);
+  const [accessRoutesErr, setAccessRoutesErr] = useState<string | null>(null);
+  const [accessRoutes, setAccessRoutes] = useState<AccessRoutesResponse | null>(null);
 
   // ====== WATER CONTEXT state ======
   const [waterContextLoading, setWaterContextLoading] = useState(false);
@@ -1929,6 +2012,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadAccessRoutes = async () => {
+    if (!event) return;
+    accessRoutesAbortRef.current?.abort();
+    const controller = new AbortController();
+    accessRoutesAbortRef.current = controller;
+
+    setAccessRoutesLoading(true);
+    setAccessRoutesErr(null);
+    setAccessRoutes(null);
+
+    try {
+      const context = await fetchAccessRoutes(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setAccessRoutes(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setAccessRoutes(null);
+      setAccessRoutesErr(e?.message ? String(e.message) : "No se pudo consultar rutas y accesos.");
+    } finally {
+      if (!controller.signal.aborted) setAccessRoutesLoading(false);
+    }
+  };
+
   const loadWaterContext = async () => {
     if (!event) return;
     waterContextAbortRef.current?.abort();
@@ -2001,6 +2107,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadProtectedContext();
     loadCriticalInfrastructure();
     loadNearbyCommunities();
+    loadAccessRoutes();
     loadWaterContext();
     loadFireHistory();
 
@@ -2011,6 +2118,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       protectedContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
       nearbyCommunitiesAbortRef.current?.abort();
+      accessRoutesAbortRef.current?.abort();
       waterContextAbortRef.current?.abort();
       fireHistoryAbortRef.current?.abort();
     };
@@ -2243,7 +2351,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const nearbyCommunities = Array.isArray(nearbyCommunitiesContext?.communities)
     ? nearbyCommunitiesContext.communities
     : [];
-  const humanGeoSource = criticalInfrastructure?.source ?? nearbyCommunitiesContext?.source ?? null;
+  const nearbyAccessRoutes = Array.isArray(accessRoutes?.routes) ? accessRoutes.routes : [];
+  const humanGeoSource = criticalInfrastructure?.source ?? nearbyCommunitiesContext?.source ?? accessRoutes?.source ?? null;
   const humanEvacuationLabel =
     event.evacuationLevel === "mandatory"
       ? "Evacuación obligatoria informada en el evento"
@@ -2259,8 +2368,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     eventInfrastructure.length > 0 ||
     Boolean(criticalInfrastructure) ||
     Boolean(nearbyCommunitiesContext) ||
+    Boolean(accessRoutes) ||
     criticalFacilities.length > 0 ||
-    nearbyCommunities.length > 0;
+    nearbyCommunities.length > 0 ||
+    nearbyAccessRoutes.length > 0;
   const protectionConnectionItems: Array<{ label: string; detail: string; status: ContextConnectionStatus }> = [
     {
       label: "Áreas protegidas",
@@ -2365,12 +2476,31 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           : "Capa futura: falta conectar comunicados oficiales estructurados de evacuación.",
     },
     {
-      label: "Población, superficie y accesos",
+      label: "Rutas y accesos",
+      status: accessRoutesLoading
+        ? "loading"
+        : accessRoutesErr
+        ? "limited"
+        : accessRoutes
+        ? nearbyAccessRoutes.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: accessRoutes
+        ? `${nearbyAccessRoutes.length} ${nearbyAccessRoutes.length === 1 ? "acceso cercano" : "accesos cercanos"} en ${accessRoutes.radiusKm} km · ${accessRoutes.source.name}. No confirma transitabilidad.`
+        : accessRoutesLoading
+        ? "Consultando rutas y accesos cartografiados cerca del evento."
+        : accessRoutesErr
+        ? "La fuente vial respondió con error o quedó temporalmente limitada."
+        : "Fuente vial preparada, pendiente de respuesta para este evento.",
+    },
+    {
+      label: "Población y superficie",
       status: eventPopulation != null || eventArea != null || eventInfrastructure.length > 0 ? "event" : "future",
       detail:
         eventPopulation != null || eventArea != null || eventInfrastructure.length > 0
           ? "Hay campos asociados al evento, pero faltan fuente, metodología y validación de afectación real."
-          : "Capa futura: falta conectar demografía, cálculo de exposición, rutas y cortes de acceso.",
+          : "Capa futura: falta conectar demografía y cálculo de exposición.",
     },
   ];
   const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
@@ -2483,6 +2613,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     waterContext,
     criticalInfrastructure,
     nearbyCommunities: nearbyCommunitiesContext,
+    accessRoutes,
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
@@ -2771,20 +2902,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       label: "Impacto humano",
       icon: <Hospital className="h-4 w-4 text-rose-200/65" />,
       state:
-        criticalInfrastructureLoading || nearbyCommunitiesLoading
+        criticalInfrastructureLoading || nearbyCommunitiesLoading || accessRoutesLoading
           ? "loading"
-          : criticalInfrastructureErr || nearbyCommunitiesErr
+          : criticalInfrastructureErr || nearbyCommunitiesErr || accessRoutesErr
           ? "limited"
-          : criticalInfrastructure || nearbyCommunitiesContext
+          : criticalInfrastructure || nearbyCommunitiesContext || accessRoutes
           ? "partial"
           : "not_connected",
       detail:
-        criticalInfrastructureLoading || nearbyCommunitiesLoading
-          ? "Consultando infraestructura y comunidades."
-          : criticalInfrastructureErr || nearbyCommunitiesErr
+        criticalInfrastructureLoading || nearbyCommunitiesLoading || accessRoutesLoading
+          ? "Consultando infraestructura, comunidades y accesos."
+          : criticalInfrastructureErr || nearbyCommunitiesErr || accessRoutesErr
           ? "Parte del contexto humano est\u00e1 temporalmente limitado."
-        : criticalInfrastructure || nearbyCommunitiesContext
-        ? "Infraestructura y comunidades cercanas disponibles cuando hay fuente conectada."
+        : criticalInfrastructure || nearbyCommunitiesContext || accessRoutes
+        ? "Infraestructura, comunidades y accesos cercanos disponibles cuando hay fuente conectada."
         : "Contexto humano pendiente de respuesta.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("human"),
@@ -4682,11 +4813,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                     <div className="flex items-start gap-3 px-4 py-3">
                       <Route className="mt-0.5 h-4 w-4 shrink-0 text-white/55" />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium text-white/75">Rutas y accesos</div>
-                        <div className="mt-0.5 text-xs text-white/45">
-                          Capa vial futura: todavía no hay fuente de cortes, rutas o accesos.
-                        </div>
+                        <AccessRouteSummary
+                          items={nearbyAccessRoutes}
+                          loading={accessRoutesLoading}
+                          error={Boolean(accessRoutesErr)}
+                          loaded={Boolean(accessRoutes)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -4721,7 +4855,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 {humanGeoSource ? (
                   <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/35">
-                    Comunidades y servicios cercanos no implican población expuesta, disponibilidad ni afectación. {" "}
+                    Comunidades, servicios y accesos cercanos no implican población expuesta, disponibilidad, transitabilidad ni afectación.{" "}
                     <a
                       href={humanGeoSource.attributionUrl}
                       target="_blank"

@@ -2,6 +2,7 @@ import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
 import { camerasToObservations, type CameraObservationInput } from "@/app/lib/cameraObservationAdapter";
 import type {
+  AccessRoutesResponse,
   CriticalInfrastructureResponse,
   NearbyCommunitiesResponse,
   ProtectedContextResponse,
@@ -58,6 +59,7 @@ export type BuildEventObservationsInput = {
   waterContext?: WaterContextResponse | null;
   criticalInfrastructure?: CriticalInfrastructureResponse | null;
   nearbyCommunities?: NearbyCommunitiesResponse | null;
+  accessRoutes?: AccessRoutesResponse | null;
   generatedAt?: string;
 };
 
@@ -143,6 +145,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     event: input.event,
     criticalInfrastructure: input.criticalInfrastructure ?? null,
     nearbyCommunities: input.nearbyCommunities ?? null,
+    accessRoutes: input.accessRoutes ?? null,
     normalizedAt: generatedAt,
   });
   const guardianNormalizations = (input.guardianObservations ?? [])

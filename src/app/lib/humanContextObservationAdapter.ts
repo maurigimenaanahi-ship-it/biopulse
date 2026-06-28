@@ -1,5 +1,6 @@
 import type { EnvironmentalEvent } from "@/data/events";
 import type {
+  AccessRoutesResponse,
   CriticalInfrastructureResponse,
   NearbyCommunitiesResponse,
 } from "@/app/lib/contextObservationTypes";
@@ -241,10 +242,95 @@ export function nearbyCommunitiesToObservation(args: {
   };
 }
 
+export function accessRoutesToObservation(args: {
+  event: EnvironmentalEvent;
+  context: AccessRoutesResponse | null;
+  normalizedAt?: string;
+}): Observation | null {
+  if (!args.context) return null;
+
+  const normalizedAt = args.normalizedAt ?? new Date().toISOString();
+  const routes = Array.isArray(args.context.routes) ? args.context.routes : [];
+  const measurements: Record<string, MeasurementValue> = {};
+
+  addMeasurement(measurements, "routeCount", routes.length);
+  addMeasurement(measurements, "radiusKm", args.context.radiusKm);
+  addMeasurement(measurements, "sourceName", args.context.source.name);
+
+  return {
+    schema: "biopulse.observation.v1",
+    id: `access-routes:${eventIdentity(args.event)}`,
+    relatedEvent: {
+      eventId: eventIdentity(args.event),
+      category: args.event.category,
+      relation: "impact_context",
+    },
+    type: "infrastructure_context",
+    origin: {
+      kind: "automated",
+      actorType: "provider",
+      displayName: args.context.source.name,
+    },
+    source: {
+      id: "road-access-context",
+      name: "Rutas y accesos cercanos",
+      provider: args.context.source.name,
+      url: args.context.source.attributionUrl,
+      attribution: args.context.source.attribution,
+    },
+    timestamp: {
+      observedAt: observedAtFor(args.event),
+      recordedAt: normalizedAt,
+    },
+    location: eventLocation(args.event),
+    evidence: {
+      summary:
+        routes.length > 0
+          ? `${routes.length} ruta${routes.length === 1 ? "" : "s"} o acceso${routes.length === 1 ? "" : "s"} cartografiado${routes.length === 1 ? "" : "s"} cerca del evento.`
+          : "No se detectaron rutas o accesos principales en la fuente conectada.",
+      artifacts: routes
+        .slice(0, 5)
+        .map((route) => ({ kind: "link" as const, url: route.sourceUrl, label: route.name }))
+        .filter((item) => Boolean(item.url)),
+      measurements,
+      limitations: [
+        "Contexto vial cartografiado; no confirma cortes, transitabilidad, congestión, evacuación ni estado operativo.",
+        "La fuente abierta puede estar incompleta o desactualizada.",
+      ],
+    },
+    raw: {
+      providerPayload: args.context,
+      normalizedBy: ADAPTER_ID,
+      normalizedAt,
+    },
+    confidence: {
+      level: "medium",
+      basis: "direct_measurement",
+      notes: "Contexto geográfico de rutas cercanas; requiere fuente oficial o verificación local para estado real de acceso.",
+    },
+    provenance: {
+      chain: ["road_access_context", args.context.source.name, ADAPTER_ID],
+      fetchedBy: args.context.source.name,
+      transformedBy: ADAPTER_ID,
+      attributionRequired: true,
+    },
+    status: "recorded",
+    verification: {
+      status: "source_reviewed",
+    },
+    narrativeUse: {
+      eligible: true,
+      role: "impact",
+      caution: "Usar como contexto vial potencial; no presentar como corte, evacuación ni vía segura confirmada.",
+    },
+  };
+}
+
 export function humanContextsToObservations(args: {
   event: EnvironmentalEvent;
   criticalInfrastructure?: CriticalInfrastructureResponse | null;
   nearbyCommunities?: NearbyCommunitiesResponse | null;
+  accessRoutes?: AccessRoutesResponse | null;
   normalizedAt?: string;
 }): Observation[] {
   return [
@@ -256,6 +342,11 @@ export function humanContextsToObservations(args: {
     nearbyCommunitiesToObservation({
       event: args.event,
       context: args.nearbyCommunities ?? null,
+      normalizedAt: args.normalizedAt,
+    }),
+    accessRoutesToObservation({
+      event: args.event,
+      context: args.accessRoutes ?? null,
       normalizedAt: args.normalizedAt,
     }),
   ].filter((observation): observation is Observation => Boolean(observation));

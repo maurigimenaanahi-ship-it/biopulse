@@ -35,6 +35,31 @@ export type CriticalInfrastructureResponse = {
   interpretation: string;
 };
 
+export type AccessRoute = {
+  id: string;
+  kind: "motorway" | "trunk" | "primary" | "secondary" | "tertiary" | "unclassified";
+  label: string;
+  name: string;
+  ref: string | null;
+  distanceKm: number | null;
+  lat: number;
+  lon: number;
+  surface: string | null;
+  access: string | null;
+  bridge: string | null;
+  tunnel: string | null;
+  oneway: string | null;
+  sourceUrl: string;
+};
+
+export type AccessRoutesResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  routes: AccessRoute[];
+  source: { name: string; attribution: string; attributionUrl: string };
+  interpretation: string;
+};
+
 export type NearbyCommunity = {
   id: string;
   kind: "city" | "town" | "village" | "hamlet" | "municipality" | "township";
