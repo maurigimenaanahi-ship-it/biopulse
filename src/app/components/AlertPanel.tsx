@@ -577,6 +577,12 @@ function observationTimelineTitle(observation: Observation) {
       return "Referencia oficial normalizada";
     case "weather_reading":
       return "Lectura meteorológica normalizada";
+    case "environmental_context":
+      return "Contexto ambiental normalizado";
+    case "infrastructure_context":
+      return "Infraestructura y accesos normalizados";
+    case "community_context":
+      return "Contexto comunitario normalizado";
     default:
       return "Observación normalizada";
   }
@@ -2904,7 +2910,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
   const normalizedInferenceCount = eventObservationBundle.inferences.length;
-  const visibleObservationLedger = [...eventObservationBundle.observations].reverse().slice(0, 8);
+  const visibleObservationLedger = [...eventObservationBundle.observations].reverse().slice(0, 12);
   const normalizedGuardianObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "guardian_report"
   );
@@ -2916,6 +2922,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   );
   const normalizedCameraObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "camera_snapshot"
+  );
+  const normalizedEnvironmentalObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "environmental_context"
+  );
+  const normalizedHumanContextObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "infrastructure_context" || observation.type === "community_context"
   );
   const cameraGuardianObservations = guardianObservations.filter(
     (observation) => observation.sourceType === "camera"
@@ -3402,6 +3414,30 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   });
 
+  normalizedEnvironmentalObservations.slice(-4).forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `environmental-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
+  normalizedHumanContextObservations.slice(-5).forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `human-context-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
   timelineEntries.sort((a, b) => a.date.getTime() - b.date.getTime());
   const visibleTimelineEntries =
     timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
@@ -3417,7 +3453,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           eventObservationBundle.sourceCounts.guardian
         } humanas Guardian, con ${eventObservationBundle.sourceCounts.news} referencias informativas y ${
           eventObservationBundle.sourceCounts.officialReferences
-        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.cameras} cámaras cercanas y ${
+        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.environmental} ambientales, ${
+          eventObservationBundle.sourceCounts.humanContext
+        } de contexto humano, ${eventObservationBundle.sourceCounts.cameras} cámaras cercanas y ${
           eventObservationBundle.sourceCounts.weather
         } lectura climática contextual.`
       : null,
@@ -6407,7 +6445,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </span>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-5">
+                    <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
                       <div className="rounded-xl border border-cyan-300/10 bg-cyan-400/[0.04] p-3">
                         <div className="text-[10px] uppercase tracking-wide text-white/35">Satélite</div>
                         <div className="mt-1 text-lg font-semibold text-white/85">
@@ -6436,6 +6474,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div className="text-[10px] uppercase tracking-wide text-white/35">Clima</div>
                         <div className="mt-1 text-lg font-semibold text-white/85">
                           {eventObservationBundle.sourceCounts.weather}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-emerald-300/10 bg-emerald-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Ambiente</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.environmental}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-rose-300/10 bg-rose-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Contexto humano</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.humanContext}
                         </div>
                       </div>
                     </div>

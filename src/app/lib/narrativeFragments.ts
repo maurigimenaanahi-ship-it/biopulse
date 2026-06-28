@@ -73,7 +73,7 @@ function firstOf(observations: Observation[]) {
 
 export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): NarrativeFragment[] {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
-  const maxFragments = input.maxFragments ?? 6;
+  const maxFragments = input.maxFragments ?? 8;
   const eligible = input.observations.filter((observation) => observation.narrativeUse.eligible);
   const fragments: NarrativeFragment[] = [];
 
@@ -121,9 +121,6 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
       "weather_reading",
       "news_report",
       "official_reference",
-      "environmental_context",
-      "infrastructure_context",
-      "community_context",
     ].includes(observation.type)
   );
 
@@ -134,23 +131,11 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
       news: contextObservations.filter(
         (observation) => observation.type === "news_report" || observation.type === "official_reference"
       ).length,
-      environmental: contextObservations.filter((observation) => observation.type === "environmental_context").length,
-      human: contextObservations.filter(
-        (observation) => observation.type === "infrastructure_context" || observation.type === "community_context"
-      ).length,
     };
     const parts = [
       counts.cameras ? `${counts.cameras} referencia${counts.cameras === 1 ? "" : "s"} visual${counts.cameras === 1 ? "" : "es"}` : null,
       counts.weather ? "1 lectura meteorológica" : null,
       counts.news ? `${counts.news} referencia${counts.news === 1 ? "" : "s"} informativa${counts.news === 1 ? "" : "s"}` : null,
-      counts.environmental
-        ? `${counts.environmental} antecedente${counts.environmental === 1 ? "" : "s"} ambiental${
-            counts.environmental === 1 ? "" : "es"
-          }`
-        : null,
-      counts.human
-        ? `${counts.human} contexto${counts.human === 1 ? "" : "s"} humano${counts.human === 1 ? "" : "s"}`
-        : null,
     ].filter((item): item is string => Boolean(item));
     const contextVerb = parts.length === 1 ? "ayuda" : "ayudan";
 
@@ -162,6 +147,54 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
         generatedAt,
         text: `Contexto conservado: ${parts.join(", ")} ${contextVerb} a comprender el evento sin convertirlo en confirmación oficial.`,
         caution: "El contexto visual, meteorológico o periodístico debe contrastarse con fuentes oficiales y observación local.",
+      })
+    );
+  }
+
+  const environmentalContextObservations = eligible.filter(
+    (observation) => observation.type === "environmental_context"
+  );
+
+  if (environmentalContextObservations.length > 0) {
+    const latestEnvironmental = latestOf(environmentalContextObservations);
+    fragments.push(
+      makeFragment({
+        eventId: input.eventId,
+        role: "context",
+        observationIds: environmentalContextObservations.map((observation) => observation.id),
+        generatedAt,
+        text: `Qué protegemos aquí: BioPulse conserva ${environmentalContextObservations.length} observación${
+          environmentalContextObservations.length === 1 ? "" : "es"
+        } ambiental${environmentalContextObservations.length === 1 ? "" : "es"} cercana${
+          environmentalContextObservations.length === 1 ? "" : "s"
+        } al evento${
+          latestEnvironmental ? `. Referencia más reciente: ${compactText(latestEnvironmental.evidence.summary)}` : "."
+        }`,
+        caution:
+          "Este contexto identifica elementos ambientales cercanos; no confirma daño, exposición directa ni afectación ecológica.",
+      })
+    );
+  }
+
+  const humanContextObservations = eligible.filter(
+    (observation) => observation.type === "infrastructure_context" || observation.type === "community_context"
+  );
+
+  if (humanContextObservations.length > 0) {
+    const latestHumanContext = latestOf(humanContextObservations);
+    fragments.push(
+      makeFragment({
+        eventId: input.eventId,
+        role: "impact",
+        observationIds: humanContextObservations.map((observation) => observation.id),
+        generatedAt,
+        text: `Impacto humano contextual: BioPulse conserva ${humanContextObservations.length} observación${
+          humanContextObservations.length === 1 ? "" : "es"
+        } sobre comunidades, población registrada, servicios o accesos cercanos${
+          latestHumanContext ? `. Referencia más reciente: ${compactText(latestHumanContext.evidence.summary)}` : "."
+        }`,
+        caution:
+          "Este contexto no confirma personas afectadas, evacuaciones ni riesgo directo; sirve para orientar verificación humana y oficial.",
       })
     );
   }
