@@ -85,8 +85,8 @@ export interface EnvironmentalEvent {
   riskIndicators: string[];
 
   // ✅ visual sources
-  satelliteImageUrl?: string;
-  liveFeedUrl?: string; // idealmente URL real
+  satelliteImageUrl?: string; // no usar imágenes stock/mock
+  liveFeedUrl?: string; // solo si apunta a una fuente externa real
 
   // ====== PRO (opción B) ======
   status?: EventStatus;
@@ -163,8 +163,6 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedArea: 2500,
     affectedPopulation: 15000,
     riskIndicators: ["Rapid spread", "High winds", "Dense smoke", "Evacuation zones"],
-    satelliteImageUrl: "https://images.unsplash.com/photo-1615092296061-e2ccfeb2f3d6?w=800",
-    liveFeedUrl: "https://www.youtube.com",
     status: "escalating",
     evacuationLevel: "mandatory",
     nearbyInfrastructure: ["Highway corridors", "Power lines", "Protected areas"],
@@ -194,7 +192,6 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedArea: 1800,
     affectedPopulation: 500000,
     riskIndicators: ["Rising water levels", "Infrastructure damage", "Disease risk"],
-    satelliteImageUrl: "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800",
     status: "active",
     evacuationLevel: "recommended",
     nearbyInfrastructure: ["River crossings", "Primary roads", "Hospitals (regional)"],
@@ -224,8 +221,6 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedArea: 5000,
     affectedPopulation: 2000000,
     riskIndicators: ["Extreme winds", "Storm surge", "Heavy rainfall", "Power outages"],
-    satelliteImageUrl: "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=800",
-    liveFeedUrl: "https://www.noaa.gov",
     status: "escalating",
     evacuationLevel: "recommended",
     nearbyInfrastructure: ["Coastal cities", "Ports", "Power grid nodes"],
@@ -254,7 +249,6 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedArea: 800,
     affectedPopulation: 20000000,
     riskIndicators: ["Heat exhaustion", "Power grid stress", "Water shortage"],
-    satelliteImageUrl: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800",
     status: "active",
     evacuationLevel: "none",
     nearbyInfrastructure: ["Urban districts", "Hospitals", "Power grid"],
@@ -284,7 +278,6 @@ export const mockEvents: EnvironmentalEvent[] = [
     affectedArea: 1200,
     affectedPopulation: 21000000,
     riskIndicators: ["Respiratory hazard", "Visibility < 200m", "School closures"],
-    satelliteImageUrl: "https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800",
     status: "stabilizing",
     evacuationLevel: "none",
     nearbyInfrastructure: ["Urban core", "Schools", "Hospitals"],
@@ -311,7 +304,6 @@ export const mockEvents: EnvironmentalEvent[] = [
     temperature: 32,
     affectedArea: 3500,
     riskIndicators: ["Marine ecosystem stress", "Temperature anomaly +3°C", "Biodiversity loss"],
-    satelliteImageUrl: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800",
     status: "active",
     evacuationLevel: "none",
     nearbyInfrastructure: ["Marine protected areas"],
