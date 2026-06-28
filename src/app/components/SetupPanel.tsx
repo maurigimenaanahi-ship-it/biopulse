@@ -149,6 +149,7 @@ export function SetupPanel(props: {
   onChangeCategory: (c: EventCategory) => void;
   onChangeRegion: (regionKey: string) => void;
   onStart: (args: { category: EventCategory; region: Region }) => void;
+  isStarting?: boolean;
 
   // opcional: para volver al dashboard sin cambiar nada
   onClose?: () => void;
@@ -158,6 +159,7 @@ export function SetupPanel(props: {
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === props.regionKey) ?? null;
 
   const canStart = props.category && selectedRegion;
+  const startDisabled = !canStart || props.isStarting;
 
   const tint =
     (props.category ? (categoryColors as any)[props.category] : null) ?? "rgba(34,211,238,1)";
@@ -287,18 +289,21 @@ export function SetupPanel(props: {
           <div className="sticky bottom-0 mt-7 pt-6 border-t border-white/10 bg-[#0a0f1a]">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="text-white/45 text-sm">
-                {canStart
+                {props.isStarting
+                  ? "Escaneando señales satelitales y preparando el mapa. Esto puede tardar unos segundos."
+                  : canStart
                   ? "Configuración lista. Iniciá el escaneo para cargar eventos en la región seleccionada."
                   : "Seleccioná una categoría y una región para iniciar."}
               </div>
 
               <button
-                disabled={!canStart}
+                disabled={startDisabled}
+                aria-busy={props.isStarting ? "true" : undefined}
                 onClick={() => {
-                  if (!props.category || !selectedRegion) return;
+                  if (startDisabled || !props.category || !selectedRegion) return;
                   props.onStart({ category: props.category, region: selectedRegion });
                 }}
-                className="px-7 py-4 rounded-xl text-lg font-medium transition"
+                className="inline-flex items-center justify-center gap-3 px-7 py-4 rounded-xl text-lg font-medium transition"
                 style={{
                   border: "1px solid",
                   borderColor: canStart ? `${tint}66` : "rgba(255,255,255,0.12)",
@@ -307,11 +312,14 @@ export function SetupPanel(props: {
                     : "rgba(255,255,255,0.04)",
                   color: canStart ? "#e0fbff" : "rgba(255,255,255,0.35)",
                   boxShadow: canStart ? `0 0 30px ${tint}33` : "none",
-                  cursor: canStart ? "pointer" : "not-allowed",
+                  cursor: startDisabled ? "not-allowed" : "pointer",
                   whiteSpace: "nowrap",
                 }}
               >
-                Iniciar escaneo
+                {props.isStarting ? (
+                  <span className="h-4 w-4 rounded-full border-2 border-cyan-100/30 border-t-cyan-100 animate-spin" />
+                ) : null}
+                {props.isStarting ? "Escaneando..." : "Iniciar escaneo"}
               </button>
             </div>
           </div>

@@ -147,6 +147,7 @@ export default function App() {
   // “Explorando” (zoom-in) => colapsa panels
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
+  const [scanLoading, setScanLoading] = useState(false);
 
   // ✅ panel de seguidas
   const [showFollowed, setShowFollowed] = useState(false);
@@ -187,6 +188,7 @@ export default function App() {
     category: EventCategory;
     region: { key: string; label: string; bbox: string };
   }) => {
+    setScanLoading(true);
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
@@ -340,6 +342,7 @@ export default function App() {
       setStage("dashboard");
       setResetKey((k) => k + 1);
       setIsExploring(false);
+      setScanLoading(false);
       return;
     }
 
@@ -348,6 +351,7 @@ export default function App() {
     setStage("dashboard");
     setResetKey((k) => k + 1);
     setIsExploring(false);
+    setScanLoading(false);
   };
 
   const stats = useMemo(() => {
@@ -391,6 +395,7 @@ export default function App() {
           onChangeCategory={setSelectedCategory}
           onChangeRegion={setSelectedRegionKey}
           onStart={startMonitoring}
+          isStarting={scanLoading}
           onClose={() => setStage("dashboard")}
           canClose={events.length > 0}
         />
