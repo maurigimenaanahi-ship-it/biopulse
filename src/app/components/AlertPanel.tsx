@@ -16,6 +16,7 @@ import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline"
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import { buildEventObservations } from "@/app/lib/eventObservations";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
+import type { WeatherCurrent, WeatherResponse } from "@/app/lib/weatherTypes";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -119,29 +120,6 @@ function toggleFollowedId(id: string): string[] {
 function isAbortError(err: unknown) {
   return (err instanceof DOMException && err.name === "AbortError") || (err as any)?.name === "AbortError";
 }
-
-// ---------- Weather types (Open-Meteo current) ----------
-type WeatherCurrent = {
-  temperature_2m: number | null;
-  relative_humidity_2m: number | null;
-  precipitation: number | null;
-  wind_speed_10m: number | null;
-  wind_direction_10m: number | null;
-  time: string | null;
-};
-
-type WeatherResponse = {
-  latitude?: number;
-  longitude?: number;
-  current?: {
-    time?: string;
-    temperature_2m?: number;
-    relative_humidity_2m?: number;
-    precipitation?: number;
-    wind_speed_10m?: number;
-    wind_direction_10m?: number;
-  };
-};
 
 type ProtectedArea = {
   id: string;
@@ -2020,6 +1998,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ...splitNews.official.map((item) => ({ item, classification: "official_reference" as const })),
       ...splitNews.regional.map((item) => ({ item, classification: "regional_report" as const })),
     ],
+    weather,
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
@@ -2029,6 +2008,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   );
   const normalizedNewsObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "news_report" || observation.type === "official_reference"
+  );
+  const normalizedWeatherObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "weather_reading"
   );
   const cameraGuardianObservations = guardianObservations.filter(
     (observation) => observation.sourceType === "camera"
@@ -2482,6 +2464,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   });
 
+  normalizedWeatherObservations.forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `weather-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
   timelineEntries.sort((a, b) => a.date.getTime() - b.date.getTime());
   const visibleTimelineEntries =
     timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
@@ -2496,7 +2490,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           eventObservationBundle.sourceCounts.guardian
         } humanas Guardian, con ${eventObservationBundle.sourceCounts.news} referencias informativas y ${
           eventObservationBundle.sourceCounts.officialReferences
-        } referencias de apariencia oficial.`
+        } referencias de apariencia oficial, más ${eventObservationBundle.sourceCounts.weather} lectura climática contextual.`
+      : null,
+    eventObservationBundle.sourceCounts.weather > 0
+      ? "El clima se conserva como contexto operacional; no se usa como confirmación causal del evento."
       : null,
     satelliteDetections != null
       ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`
