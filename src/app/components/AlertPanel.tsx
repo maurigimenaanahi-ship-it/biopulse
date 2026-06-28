@@ -529,6 +529,115 @@ function observationTimelineDetail(observation: Observation) {
   return parts.join(" · ");
 }
 
+function observationTypeLabel(observation: Observation) {
+  switch (observation.type) {
+    case "satellite_detection":
+      return "Satélite";
+    case "satellite_layer":
+      return "Capa satelital";
+    case "camera_snapshot":
+      return "Cámara";
+    case "weather_reading":
+      return "Clima";
+    case "news_report":
+      return "Noticia";
+    case "official_reference":
+      return "Referencia oficial";
+    case "official_alert":
+      return "Alerta oficial";
+    case "guardian_report":
+      return "Guardian";
+    case "infrastructure_context":
+      return "Infraestructura";
+    case "environmental_context":
+      return "Ambiente";
+    case "community_context":
+      return "Comunidad";
+    default:
+      return "Observación";
+  }
+}
+
+function observationOriginLabel(observation: Observation) {
+  switch (observation.origin.kind) {
+    case "human":
+      return "Humana";
+    case "official":
+      return "Oficial";
+    case "automated":
+      return "Automatizada";
+    case "media":
+      return "Medio";
+    case "system":
+      return "Sistema";
+    default:
+      return "No indicada";
+  }
+}
+
+const observationConfidenceMeta: Record<Observation["confidence"]["level"], { label: string; className: string }> = {
+  high: {
+    label: "Alta",
+    className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85",
+  },
+  medium: {
+    label: "Media",
+    className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/85",
+  },
+  low: {
+    label: "Baja",
+    className: "border-amber-300/20 bg-amber-400/10 text-amber-100/85",
+  },
+  unknown: {
+    label: "No indicada",
+    className: "border-white/10 bg-white/5 text-white/55",
+  },
+};
+
+const observationStatusLabel: Record<Observation["status"], string> = {
+  recorded: "Registrada",
+  active: "Activa",
+  stale: "Desactualizada",
+  superseded: "Reemplazada",
+  disputed: "Discutida",
+  retracted: "Retirada",
+  confirmed: "Confirmada",
+  archived: "Archivada",
+};
+
+const observationVerificationLabel: Record<Observation["verification"]["status"], string> = {
+  unreviewed: "Sin revisión",
+  source_reviewed: "Fuente revisada",
+  corroborated: "Corroborada",
+  conflicted: "En conflicto",
+  official_confirmed: "Confirmada oficialmente",
+  inconclusive: "Inconclusa",
+};
+
+function observationLocationLabel(observation: Observation) {
+  if (observation.type === "news_report" || observation.type === "official_reference") {
+    return "No geolocalizada; vinculada por texto";
+  }
+
+  const { location } = observation;
+  if (
+    location.kind === "point" &&
+    Number.isFinite(location.latitude) &&
+    Number.isFinite(location.longitude)
+  ) {
+    return `${Number(location.latitude).toFixed(3)}, ${Number(location.longitude).toFixed(3)}`;
+  }
+  if (location.kind === "event_area") return "Área del evento";
+  if (location.kind === "bbox") return "Área aproximada";
+  if (location.kind === "polygon") return "Polígono";
+  return "No indicada";
+}
+
+function observationDateLabel(observation: Observation) {
+  const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+  return date ? fmtDateTimeUTC(date) : "Fecha no disponible";
+}
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -623,7 +732,7 @@ function normalizePlaceForQuery(place: string) {
 }
 
 function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
-  const { locality, state, country } = normalizePlaceForQuery(place);
+  const { country } = normalizePlaceForQuery(place);
 
   const hazard =
     ev.category === "fire"
@@ -638,18 +747,156 @@ function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
       ? "(sequía OR drought)"
       : "(emergency OR disaster)";
 
-  const placeBlock = [
-    locality ? `"${locality}"` : null,
-    state ? `"${state}"` : null,
-    country ? `"${country}"` : null,
-    locality ? `${locality}` : null,
-    state ? `${state}` : null,
-    country ? `${country}` : null,
-  ]
-    .filter(Boolean)
-    .join(" OR ");
+  const localTerms = newsPlaceTermsFor(ev, place).slice(0, 5);
+  const placeBlock = localTerms.length
+    ? localTerms.map((term) => `"${term}"`).join(" OR ")
+    : country
+    ? `"${country}"`
+    : `"${place}"`;
 
   return `(${placeBlock}) AND ${hazard}`;
+}
+
+function normalizeNewsSearchText(value: string | null | undefined) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const NEWS_COUNTRY_ONLY_TERMS = new Set([
+  "argentina",
+  "usa",
+  "united states",
+  "estados unidos",
+  "brasil",
+  "brazil",
+  "chile",
+  "uruguay",
+  "paraguay",
+  "bolivia",
+  "peru",
+  "colombia",
+  "ecuador",
+  "venezuela",
+  "mexico",
+  "canada",
+  "india",
+  "china",
+  "australia",
+  "bangladesh",
+]);
+
+const NEWS_ADMIN_PREFIXES = [
+  "distrito",
+  "departamento",
+  "partido",
+  "municipio",
+  "municipalidad",
+  "comuna",
+  "localidad",
+  "ciudad",
+  "provincia",
+  "region",
+];
+
+const NEWS_HAZARD_TERMS: Record<EnvironmentalEvent["category"], string[]> = {
+  fire: [
+    "incendio",
+    "incendios",
+    "humo",
+    "quema",
+    "quemas",
+    "foco igneo",
+    "focos igneos",
+    "forestal",
+    "bomberos",
+    "wildfire",
+    "wildfires",
+    "bushfire",
+    "forest fire",
+  ],
+  flood: ["inundacion", "inundaciones", "anegamiento", "crecida", "desborde", "evacuacion", "flood"],
+  storm: ["tormenta", "temporal", "viento", "granizo", "rayos", "alerta meteorologica", "storm"],
+  heatwave: ["calor", "ola de calor", "temperatura", "alerta amarilla", "alerta naranja", "alerta roja", "heatwave"],
+  "air-pollution": ["contaminacion", "humo", "calidad del aire", "particulas", "smog", "air pollution"],
+  "ocean-anomaly": ["marea", "oleaje", "temperatura del mar", "anomalia", "costa", "ocean"],
+};
+
+function uniqueNewsTerms(terms: string[]) {
+  const seen = new Set<string>();
+  return terms.filter((term) => {
+    const normalized = normalizeNewsSearchText(term);
+    if (!normalized || normalized.length < 4) return false;
+    if (NEWS_COUNTRY_ONLY_TERMS.has(normalized)) return false;
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
+function stripNewsAdminPrefix(term: string) {
+  const normalized = normalizeNewsSearchText(term);
+  for (const prefix of NEWS_ADMIN_PREFIXES) {
+    if (normalized.startsWith(`${prefix} `)) return normalized.slice(prefix.length + 1).trim();
+  }
+  return normalized;
+}
+
+function newsPlaceTermsFor(ev: EnvironmentalEvent, place: string) {
+  const candidates: string[] = [];
+  const addPlaceParts = (value: string | null | undefined) => {
+    String(value ?? "")
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .forEach((part) => {
+        candidates.push(part);
+        const stripped = stripNewsAdminPrefix(part);
+        if (stripped && stripped !== normalizeNewsSearchText(part)) candidates.push(stripped);
+      });
+  };
+
+  addPlaceParts(place);
+  addPlaceParts(ev.location);
+
+  return uniqueNewsTerms(candidates);
+}
+
+function newsItemTextBlob(item: NewsItem) {
+  return normalizeNewsSearchText([item.title, item.summary, item.url, item.domain].filter(Boolean).join(" "));
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function newsHasAnyTerm(blob: string, terms: string[]) {
+  return terms.some((term) => {
+    const normalized = normalizeNewsSearchText(term);
+    if (normalized.length < 4) return false;
+    if (normalized.includes(" ")) return blob.includes(normalized);
+    return new RegExp(`(^|\\s)${escapeRegExp(normalized)}(\\s|$)`).test(blob);
+  });
+}
+
+function isNewsRelevantToEvent(ev: EnvironmentalEvent, place: string, item: NewsItem) {
+  const blob = newsItemTextBlob(item);
+  if (!blob) return false;
+
+  const placeTerms = newsPlaceTermsFor(ev, place);
+  const hasPlaceSignal = placeTerms.length === 0 || newsHasAnyTerm(blob, placeTerms);
+  if (!hasPlaceSignal) return false;
+
+  const hazardTerms = NEWS_HAZARD_TERMS[ev.category] ?? ["emergency", "disaster", "alerta", "emergencia"];
+  const hasHazardSignal = newsHasAnyTerm(blob, hazardTerms);
+  const hasOfficialSignal = domainIsOfficial(item.domain) || textLooksOfficial(item.title, item.summary);
+  const hasEmergencySignal = isEvacuationRelevant(item);
+
+  return hasHazardSignal || hasOfficialSignal || hasEmergencySignal;
 }
 
 function parseFRPFromDescription(desc?: string) {
@@ -1367,6 +1614,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
   const [newsLimited, setNewsLimited] = useState(false);
+  const [newsDiscardedCount, setNewsDiscardedCount] = useState(0);
   const [newsView, setNewsView] = useState<"main" | "official" | "regional">("main");
   const [placeCache, setPlaceCache] = useState<Record<string, string>>({});
 
@@ -1443,6 +1691,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setNewsLoading(true);
     setNewsErr(null);
     setNewsLimited(false);
+    setNewsDiscardedCount(0);
     setNewsItems([]);
     setNewsMeta(null);
 
@@ -1460,7 +1709,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       if (controller.signal.aborted) return;
 
       const items = Array.isArray(data?.items) ? data.items : [];
-      const cleaned = items
+      const candidateItems = items
         .filter((x) => x && (x.title || x.url))
         .map((x) => ({
           ...x,
@@ -1468,13 +1717,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           summary: x.summary?.trim() ?? null,
           image: x.image?.trim() ?? null,
         }));
+      const cleaned = candidateItems.filter((item) => isNewsRelevantToEvent(event, place, item));
 
       setNewsItems(cleaned);
+      setNewsDiscardedCount(Math.max(0, candidateItems.length - cleaned.length));
       setNewsLimited(data?.gdelt?.ok === false || Number(data?.gdelt?.status) === 429);
       setNewsMeta({ query: data.query ?? query, fetchedAt: data.fetched_at, placeUsed: place });
     } catch (e: any) {
       if (isAbortError(e)) return;
       setNewsItems([]);
+      setNewsDiscardedCount(0);
       setNewsMeta(null);
       setNewsErr(e?.message ? String(e.message) : "No se pudo cargar noticias.");
     } finally {
@@ -1647,6 +1899,24 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     const regional = items.filter((x) => !(domainIsOfficial(x.domain) || textLooksOfficial(x.title, x.summary)));
     return { official, regional };
   }, [newsItems]);
+  const newsFilteredOut = newsDiscardedCount > 0 && newsItems.length === 0 && !newsLoading && !newsErr;
+  const newsFilteredMessage =
+    newsDiscardedCount === 1
+      ? "BioPulse descartó 1 resultado débil porque no mencionaba claramente el lugar del evento o no tenía relación suficiente con la catástrofe."
+      : `BioPulse descartó ${newsDiscardedCount} resultados débiles porque no mencionaban claramente el lugar del evento o no tenían relación suficiente con la catástrofe.`;
+  const showHistoricalNewsContext = Boolean(newsMeta) && !newsLoading && !newsErr && !newsLimited;
+  const historicalNewsTopic =
+    event.category === "fire"
+      ? "incendios y focos térmicos"
+      : event.category === "flood"
+      ? "inundaciones y crecidas"
+      : event.category === "storm"
+      ? "tormentas y alertas meteorológicas"
+      : event.category === "heatwave"
+      ? "olas de calor"
+      : event.category === "air-pollution"
+      ? "episodios de contaminación del aire"
+      : "eventos ambientales similares";
 
   const sirenActive = useMemo(() => {
     if (event?.evacuationLevel === "mandatory") return true;
@@ -1972,6 +2242,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
   const normalizedInferenceCount = eventObservationBundle.inferences.length;
+  const visibleObservationLedger = [...eventObservationBundle.observations].reverse().slice(0, 8);
   const normalizedGuardianObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "guardian_report"
   );
@@ -2189,6 +2460,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando noticias regionales."
         : newsErr || newsLimited
         ? "La fuente de noticias está temporalmente limitada."
+        : newsFilteredOut
+        ? `${newsDiscardedCount} resultados descartados por vínculo débil.`
         : newsItems.length > 0
         ? `${newsItems.length} referencias regionales recuperadas.`
         : "La consulta terminó sin resultados útiles.",
@@ -4270,6 +4543,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 ) : null}
 
+                {newsFilteredOut ? (
+                  <div className="mb-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.06] p-3 text-sm leading-relaxed text-cyan-50/75">
+                    {newsFilteredMessage} Preferimos dejar el espacio vacío antes que mostrar ruido como evidencia.
+                  </div>
+                ) : null}
+
                 {!visualMediaAllowed && newsItems.some((item) => Boolean(item.image)) ? (
                   <div className="mb-3">
                     <VisualExposureGate
@@ -4407,7 +4686,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           <div className="mt-3 space-y-3">
                             {splitNews.regional.length === 0 ? (
                               <div className="text-sm text-white/55">
-                                No se encontraron noticias regionales con esta query.
+                                {newsFilteredOut
+                                  ? "Se encontraron resultados regionales débiles, pero BioPulse los descartó para no mezclarlos con evidencia del evento."
+                                  : "No se encontraron noticias regionales suficientemente vinculadas a este evento."}
                               </div>
                             ) : (
                               splitNews.regional.slice(0, 3).map((it) => {
@@ -4464,6 +4745,52 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             )}
                           </div>
                         </div>
+
+                        {showHistoricalNewsContext ? (
+                          <div className="rounded-2xl border border-cyan-300/15 bg-cyan-400/[0.045] p-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-cyan-100/90">
+                                  <History className="h-4 w-4" />
+                                  Investigación histórica BioPulse
+                                </div>
+                                <div className="mt-1 text-xs leading-relaxed text-cyan-50/55">
+                                  Además de la actualidad, este espacio queda reservado para revisar antecedentes
+                                  históricos de {historicalNewsTopic} cerca de {event.location}.
+                                </div>
+                              </div>
+                              <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
+                                Próxima fuente
+                              </span>
+                            </div>
+
+                            <div className="mt-3 grid gap-2 md:grid-cols-3">
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Qué buscaría</div>
+                                <div className="mt-1 text-xs leading-relaxed text-white/58">
+                                  Antecedentes, años previos, focos repetidos, reportes oficiales y patrones de impacto.
+                                </div>
+                              </div>
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Fuentes futuras</div>
+                                <div className="mt-1 text-xs leading-relaxed text-white/58">
+                                  Archivo FIRMS, organismos públicos, medios históricos y registros locales citables.
+                                </div>
+                              </div>
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                <div className="text-[11px] uppercase tracking-wide text-white/35">Cómo se usaría</div>
+                                <div className="mt-1 text-xs leading-relaxed text-white/58">
+                                  Como contexto histórico, separado de noticias actuales y de confirmaciones oficiales.
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-xs leading-relaxed text-amber-50/65">
+                              Un antecedente histórico no confirma relación causal con el evento actual. BioPulse debe
+                              mostrar evidencia, fuente y fecha antes de convertirlo en memoria del evento.
+                            </div>
+                          </div>
+                        ) : null}
                       </>
                     ) : null}
 
@@ -4552,7 +4879,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                         {splitNews.regional.length === 0 ? (
                           <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/55">
-                            No se encontraron noticias regionales con esta query.
+                            {newsFilteredOut
+                              ? "Se encontraron resultados regionales débiles, pero BioPulse los descartó para no mezclarlos con evidencia del evento."
+                              : "No se encontraron noticias regionales suficientemente vinculadas a este evento."}
                           </div>
                         ) : (
                           splitNews.regional.map((it) => {
@@ -5202,6 +5531,171 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     ? "La cronología incluye memoria Guardian local, pero todavía conserva pocas señales instrumentales comparables."
                     : "Este evento solo conserva una observación comparable. Todavía no puede mostrarse una evolución temporal."}
                 </div>
+
+                {normalizedObservationCount > 0 ? (
+                  <div className="border-b border-white/10 bg-white/[0.025] px-4 py-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-white/85">Registro de evidencia normalizada</div>
+                        <div className="mt-1 max-w-2xl text-xs leading-relaxed text-white/45">
+                          Cada observación conserva fuente, evidencia, confianza, verificación y cautelas narrativas.
+                          Las inferencias permanecen separadas para no convertir interpretación en hecho.
+                        </div>
+                      </div>
+                      <span className="self-start rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-white/55">
+                        {visibleObservationLedger.length} visibles
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-5">
+                      <div className="rounded-xl border border-cyan-300/10 bg-cyan-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Satélite</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.firms}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-emerald-300/10 bg-emerald-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Guardian</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.guardian}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-violet-300/10 bg-violet-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Noticias</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.news + eventObservationBundle.sourceCounts.officialReferences}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Cámaras</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.cameras}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-sky-300/10 bg-sky-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Clima</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.weather}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      {visibleObservationLedger.map((observation) => {
+                        const confidence =
+                          observationConfidenceMeta[observation.confidence.level] ?? observationConfidenceMeta.unknown;
+                        const artifactCount = observation.evidence.artifacts?.length ?? 0;
+                        const measurementCount = Object.values(observation.evidence.measurements ?? {}).filter(
+                          (value) => value !== null && value !== undefined && value !== ""
+                        ).length;
+                        const providerLine = [observation.source.provider, observation.source.attribution]
+                          .filter(Boolean)
+                          .join(" · ");
+                        const limitation =
+                          observation.evidence.limitations?.[0] ?? observation.narrativeUse.caution ?? null;
+
+                        return (
+                          <div
+                            key={observation.id}
+                            className="rounded-xl border border-white/10 bg-black/20 p-3"
+                          >
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/60">
+                                    {observationTypeLabel(observation)}
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                                      confidence.className
+                                    )}
+                                  >
+                                    Confianza {confidence.label}
+                                  </span>
+                                  <span className="rounded-full border border-white/10 bg-white/[0.035] px-2 py-0.5 text-[10px] font-semibold text-white/45">
+                                    {observationStatusLabel[observation.status]}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2 text-sm font-semibold text-white/80 line-clamp-2">
+                                  {observation.source.name}
+                                </div>
+                                {providerLine ? (
+                                  <div className="mt-1 text-[11px] text-white/35 line-clamp-1">{providerLine}</div>
+                                ) : null}
+                              </div>
+                              <div className="shrink-0 text-[11px] text-white/35">
+                                {observationDateLabel(observation)}
+                              </div>
+                            </div>
+
+                            <div className="mt-2 text-xs leading-relaxed text-white/55">
+                              {observation.evidence.summary}
+                            </div>
+
+                            <div className="mt-3 grid gap-2 text-[11px] text-white/42 sm:grid-cols-2 lg:grid-cols-4">
+                              <div>
+                                <span className="text-white/30">Origen:</span> {observationOriginLabel(observation)}
+                              </div>
+                              <div>
+                                <span className="text-white/30">Evidencia:</span> {artifactCount} enlaces ·{" "}
+                                {measurementCount} métricas
+                              </div>
+                              <div>
+                                <span className="text-white/30">Verificación:</span>{" "}
+                                {observationVerificationLabel[observation.verification.status]}
+                              </div>
+                              <div>
+                                <span className="text-white/30">Ubicación:</span> {observationLocationLabel(observation)}
+                              </div>
+                            </div>
+
+                            {limitation ? (
+                              <div className="mt-2 rounded-lg border border-amber-300/10 bg-amber-400/[0.045] px-3 py-2 text-[11px] leading-relaxed text-amber-50/55">
+                                Cautela: {limitation}
+                              </div>
+                            ) : null}
+
+                            {observation.source.url ? (
+                              <a
+                                href={observation.source.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-cyan-100/70 hover:text-cyan-100"
+                              >
+                                Abrir fuente <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {normalizedObservationCount > visibleObservationLedger.length ? (
+                      <div className="mt-3 text-[11px] leading-relaxed text-white/35">
+                        Mostrando las {visibleObservationLedger.length} observaciones más recientes de{" "}
+                        {normalizedObservationCount}. El contrato conserva el resto para Historia Viva.
+                      </div>
+                    ) : null}
+
+                    {eventObservationBundle.inferences.length > 0 ? (
+                      <div className="mt-4 rounded-xl border border-fuchsia-300/15 bg-fuchsia-400/[0.045] p-3">
+                        <div className="text-xs font-semibold text-fuchsia-100/80">
+                          Inferencias separadas de la evidencia
+                        </div>
+                        <div className="mt-2 space-y-2">
+                          {eventObservationBundle.inferences.slice(0, 3).map((inference) => (
+                            <div key={inference.id} className="text-xs leading-relaxed text-fuchsia-50/58">
+                              {inference.statement}{" "}
+                              <span className="text-fuchsia-50/35">({inference.caution})</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 {visibleTimelineEntries.length > 0 ? (
                   <div className="relative px-4 py-2">
