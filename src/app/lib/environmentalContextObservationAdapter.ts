@@ -1,5 +1,9 @@
 import type { EnvironmentalEvent } from "@/data/events";
-import type { ProtectedContextResponse, WaterContextResponse } from "@/app/lib/contextObservationTypes";
+import type {
+  EcosystemContextResponse,
+  ProtectedContextResponse,
+  WaterContextResponse,
+} from "@/app/lib/contextObservationTypes";
 import type { Observation, ObservationLocation } from "@/app/lib/observations";
 
 const ADAPTER_ID = "biopulse.environmental-context-observation-adapter.v1";
@@ -219,13 +223,103 @@ export function waterContextToObservation(args: {
   };
 }
 
+export function ecosystemContextToObservation(args: {
+  event: EnvironmentalEvent;
+  context: EcosystemContextResponse | null;
+  normalizedAt?: string;
+}): Observation | null {
+  if (!args.context) return null;
+
+  const normalizedAt = args.normalizedAt ?? new Date().toISOString();
+  const features = Array.isArray(args.context.features) ? args.context.features : [];
+  const measurements: Record<string, MeasurementValue> = {};
+
+  addMeasurement(measurements, "ecosystemFeatureCount", features.length);
+  addMeasurement(measurements, "radiusKm", args.context.radiusKm);
+  addMeasurement(measurements, "sourceName", args.context.source.name);
+
+  return {
+    schema: "biopulse.observation.v1",
+    id: `ecosystem-context:${eventIdentity(args.event)}`,
+    relatedEvent: {
+      eventId: eventIdentity(args.event),
+      category: args.event.category,
+      relation: "nearby_context",
+    },
+    type: "environmental_context",
+    origin: {
+      kind: "automated",
+      actorType: "provider",
+      displayName: args.context.source.name,
+    },
+    source: {
+      id: "ecosystem-context",
+      name: "Coberturas ambientales cercanas",
+      provider: args.context.source.name,
+      url: args.context.source.attributionUrl,
+      attribution: args.context.source.attribution,
+    },
+    timestamp: {
+      observedAt: observedAtFor(args.event),
+      recordedAt: normalizedAt,
+    },
+    location: eventLocation(args.event),
+    evidence: {
+      summary:
+        features.length > 0
+          ? `${features.length} cobertura${features.length === 1 ? "" : "s"} ambiental${features.length === 1 ? "" : "es"} cartografiada${features.length === 1 ? "" : "s"} cerca del evento.`
+          : "No se detectaron coberturas ambientales cercanas en la fuente conectada.",
+      artifacts: features
+        .slice(0, 5)
+        .map((feature) => ({ kind: "link" as const, url: feature.sourceUrl, label: feature.name }))
+        .filter((item) => Boolean(item.url)),
+      measurements,
+      limitations: [
+        "Contexto ambiental cartográfico; no confirma ecosistema científico, estado ecológico, daño ni exposición directa.",
+        "La cobertura depende de la fuente abierta consultada y puede estar incompleta o desactualizada.",
+      ],
+    },
+    raw: {
+      providerPayload: args.context,
+      normalizedBy: ADAPTER_ID,
+      normalizedAt,
+    },
+    confidence: {
+      level: "medium",
+      basis: "direct_measurement",
+      notes: "Coberturas ambientales cercanas consultadas en fuente abierta; requiere fuente ecológica o validación local para clasificación científica.",
+    },
+    provenance: {
+      chain: ["ecosystem_context", args.context.source.name, ADAPTER_ID],
+      fetchedBy: args.context.source.name,
+      transformedBy: ADAPTER_ID,
+      attributionRequired: true,
+    },
+    status: "recorded",
+    verification: {
+      status: "source_reviewed",
+    },
+    narrativeUse: {
+      eligible: true,
+      role: "context",
+      caution: "Usar como contexto ambiental cartográfico; no presentar como daño ecológico confirmado.",
+    },
+  };
+}
+
 export function environmentalContextsToObservations(args: {
   event: EnvironmentalEvent;
+  ecosystemContext?: EcosystemContextResponse | null;
   protectedContext?: ProtectedContextResponse | null;
   waterContext?: WaterContextResponse | null;
   normalizedAt?: string;
 }): Observation[] {
   return [
+    ecosystemContextToObservation({
+      event: args.event,
+      context: args.ecosystemContext ?? null,
+      normalizedAt: args.normalizedAt,
+    }),
     protectedContextToObservation({
       event: args.event,
       context: args.protectedContext ?? null,

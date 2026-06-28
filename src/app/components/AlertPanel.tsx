@@ -20,6 +20,8 @@ import type {
   AccessRoutesResponse,
   CriticalFacility,
   CriticalInfrastructureResponse,
+  EcosystemContextResponse,
+  EcosystemFeature,
   NearbyCommunitiesResponse,
   NearbyCommunity,
   ProtectedArea,
@@ -302,6 +304,19 @@ async function fetchProtectedContext(
   return {
     ...data,
     areas: Array.isArray(data.areas) ? data.areas : [],
+  };
+}
+
+async function fetchEcosystemContext(lat: number, lon: number, signal?: AbortSignal): Promise<EcosystemContextResponse> {
+  const url =
+    `${apiUrl("/api/ecosystem-context")}?lat=${encodeURIComponent(String(lat))}` +
+    `&lon=${encodeURIComponent(String(lon))}&radiusKm=25`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!res.ok) throw new Error(`Coberturas ambientales no disponibles (${res.status}).`);
+  const data = (await res.json()) as EcosystemContextResponse;
+  return {
+    ...data,
+    features: Array.isArray(data.features) ? data.features : [],
   };
 }
 
@@ -1460,6 +1475,68 @@ function ContextConnectionGrid({
   );
 }
 
+function EcosystemFeatureSummary({
+  items,
+  loading,
+  error,
+  loaded,
+}: {
+  items: EcosystemFeature[];
+  loading: boolean;
+  error: boolean;
+  loaded: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-3 flex items-center gap-2 text-xs text-white/45">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Consultando coberturas ambientales cercanas...
+      </div>
+    );
+  }
+
+  if (error) return <div className="mt-3 text-xs text-amber-100/65">Fuente ambiental temporalmente limitada.</div>;
+
+  if (items.length === 0) {
+    return (
+      <div className="mt-3 text-sm leading-relaxed text-white/50">
+        {loaded
+          ? "Sin coberturas ambientales cartografiadas dentro del radio; la cobertura puede ser incompleta."
+          : "Esperando consulta de coberturas ambientales."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3">
+      <div className="text-xs text-white/55">
+        {items.length} {items.length === 1 ? "cobertura cartografiada" : "coberturas cartografiadas"} en 25 km
+      </div>
+      <div className="mt-2 space-y-1.5">
+        {items.slice(0, 4).map((feature) => (
+          <a
+            key={feature.id}
+            href={feature.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-w-0 items-start justify-between gap-2 text-xs text-cyan-100/65 hover:text-cyan-100/90"
+          >
+            <span className="min-w-0 truncate">
+              {feature.name} · {feature.label}
+            </span>
+            <span className="shrink-0 text-white/35">
+              {feature.distanceKm != null ? `${feature.distanceKm.toFixed(1)} km` : "distancia n/d"}
+            </span>
+          </a>
+        ))}
+      </div>
+      <div className="mt-2 text-[11px] leading-relaxed text-white/35">
+        Cartografía ambiental cercana; no confirma daño, exposición directa ni clasificación ecológica oficial.
+      </div>
+    </div>
+  );
+}
+
 function CriticalFacilitySummary({
   items,
   loading,
@@ -1719,6 +1796,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const weatherAbortRef = useRef<AbortController | null>(null);
   const cameraAbortRef = useRef<AbortController | null>(null);
   const protectedContextAbortRef = useRef<AbortController | null>(null);
+  const ecosystemContextAbortRef = useRef<AbortController | null>(null);
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
   const waterContextAbortRef = useRef<AbortController | null>(null);
@@ -1783,6 +1861,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [protectedContextLoading, setProtectedContextLoading] = useState(false);
   const [protectedContextErr, setProtectedContextErr] = useState<string | null>(null);
   const [protectedContext, setProtectedContext] = useState<ProtectedContextResponse | null>(null);
+
+  // ====== ECOSYSTEM CONTEXT state ======
+  const [ecosystemContextLoading, setEcosystemContextLoading] = useState(false);
+  const [ecosystemContextErr, setEcosystemContextErr] = useState<string | null>(null);
+  const [ecosystemContext, setEcosystemContext] = useState<EcosystemContextResponse | null>(null);
 
   // ====== CRITICAL INFRASTRUCTURE state ======
   const [criticalInfrastructureLoading, setCriticalInfrastructureLoading] = useState(false);
@@ -1966,6 +2049,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadEcosystemContext = async () => {
+    if (!event) return;
+    ecosystemContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    ecosystemContextAbortRef.current = controller;
+
+    setEcosystemContextLoading(true);
+    setEcosystemContextErr(null);
+    setEcosystemContext(null);
+
+    try {
+      const context = await fetchEcosystemContext(event.latitude, event.longitude, controller.signal);
+      if (controller.signal.aborted) return;
+      setEcosystemContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setEcosystemContext(null);
+      setEcosystemContextErr(e?.message ? String(e.message) : "No se pudo consultar coberturas ambientales.");
+    } finally {
+      if (!controller.signal.aborted) setEcosystemContextLoading(false);
+    }
+  };
+
   const loadCriticalInfrastructure = async () => {
     if (!event) return;
     criticalInfrastructureAbortRef.current?.abort();
@@ -2105,6 +2211,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadWeather();
     loadCameraRegistry();
     loadProtectedContext();
+    loadEcosystemContext();
     loadCriticalInfrastructure();
     loadNearbyCommunities();
     loadAccessRoutes();
@@ -2116,6 +2223,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       weatherAbortRef.current?.abort();
       cameraAbortRef.current?.abort();
       protectedContextAbortRef.current?.abort();
+      ecosystemContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
       nearbyCommunitiesAbortRef.current?.abort();
       accessRoutesAbortRef.current?.abort();
@@ -2321,14 +2429,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     ? event.speciesAtRisk.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
   const eventWaterLevel = Number.isFinite(event.waterLevel) ? event.waterLevel! : null;
+  const nearbyEcosystemFeatures = Array.isArray(ecosystemContext?.features) ? ecosystemContext.features : [];
   const nearbyWaterResources = Array.isArray(waterContext?.resources) ? waterContext.resources : [];
   const protectedAreas = Array.isArray(protectedContext?.areas) ? protectedContext.areas : [];
   const hasProtectionContext =
     eventEcosystems.length > 0 ||
     eventSpecies.length > 0 ||
     eventWaterLevel != null ||
+    Boolean(ecosystemContext) ||
     Boolean(protectedContext) ||
     Boolean(waterContext) ||
+    nearbyEcosystemFeatures.length > 0 ||
     protectedAreas.length > 0 ||
     nearbyWaterResources.length > 0;
   const eventPopulation =
@@ -2373,6 +2484,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     nearbyCommunities.length > 0 ||
     nearbyAccessRoutes.length > 0;
   const protectionConnectionItems: Array<{ label: string; detail: string; status: ContextConnectionStatus }> = [
+    {
+      label: "Coberturas ambientales",
+      status: ecosystemContextLoading
+        ? "loading"
+        : ecosystemContextErr
+        ? "limited"
+        : ecosystemContext
+        ? nearbyEcosystemFeatures.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: ecosystemContext
+        ? `${nearbyEcosystemFeatures.length} ${nearbyEcosystemFeatures.length === 1 ? "cobertura cercana" : "coberturas cercanas"} en ${ecosystemContext.radiusKm} km · ${ecosystemContext.source.name}. No confirma daño ambiental.`
+        : ecosystemContextLoading
+        ? "Consultando coberturas naturales y usos del suelo cercanos."
+        : ecosystemContextErr
+        ? "La fuente ambiental respondió con error o quedó temporalmente limitada."
+        : "Fuente preparada, pendiente de respuesta para este evento.",
+    },
     {
       label: "Áreas protegidas",
       status: protectedContextLoading
@@ -2609,6 +2739,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     weather,
     cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
     fireHistory,
+    ecosystemContext,
     protectedContext,
     waterContext,
     criticalInfrastructure,
@@ -2880,18 +3011,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       label: "Qu\u00e9 protegemos",
       icon: <Leaf className="h-4 w-4 text-emerald-200/65" />,
       state:
-        protectedContextLoading || waterContextLoading
+        ecosystemContextLoading || protectedContextLoading || waterContextLoading
           ? "loading"
-          : protectedContextErr || waterContextErr
+          : ecosystemContextErr || protectedContextErr || waterContextErr
           ? "limited"
-          : protectedContext || waterContext
+          : ecosystemContext || protectedContext || waterContext
           ? "partial"
           : "not_connected",
-      detail: protectedContextLoading || waterContextLoading
+      detail: ecosystemContextLoading || protectedContextLoading || waterContextLoading
         ? "Consultando contexto ambiental."
-        : protectedContextErr || waterContextErr
+        : ecosystemContextErr || protectedContextErr || waterContextErr
         ? "Contexto ambiental temporalmente limitado."
-        : protectedContext || waterContext
+        : ecosystemContext || protectedContext || waterContext
         ? "Contexto ambiental disponible con datos conectados y vac\u00edos expl\u00edcitos."
         : "Contexto ambiental pendiente de respuesta.",
       actionLabel: "Abrir secci\u00f3n",
@@ -4456,7 +4587,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         Ecosistemas
                       </div>
                       <span className="text-[11px] text-white/40">
-                        {eventEcosystems.length > 0 ? "Información asociada" : "Capa futura"}
+                        {eventEcosystems.length > 0
+                          ? "Dato del evento"
+                          : ecosystemContextLoading
+                          ? "Consultando"
+                          : ecosystemContextErr
+                          ? "Limitada"
+                          : ecosystemContext
+                          ? nearbyEcosystemFeatures.length > 0
+                            ? "Fuente real"
+                            : "Sin registros"
+                          : "Fuente pendiente"}
                       </span>
                     </div>
                     {eventEcosystems.length > 0 ? (
@@ -4469,9 +4610,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         ))}
                       </ul>
                     ) : (
-                      <div className="mt-3 text-sm leading-relaxed text-white/50">
-                        Capa ecológica específica pendiente: todavía no hay fuente de ecosistemas conectada para este evento.
-                      </div>
+                      <>
+                        <EcosystemFeatureSummary
+                          items={nearbyEcosystemFeatures}
+                          loading={ecosystemContextLoading}
+                          error={Boolean(ecosystemContextErr)}
+                          loaded={Boolean(ecosystemContext)}
+                        />
+                        {ecosystemContext?.source ? (
+                          <a
+                            href={ecosystemContext.source.attributionUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 text-[11px] text-cyan-100/50 hover:text-cyan-100/75"
+                          >
+                            {ecosystemContext.source.attribution}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : null}
+                      </>
                     )}
                   </div>
 

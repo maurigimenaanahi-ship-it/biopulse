@@ -4,6 +4,7 @@ import { camerasToObservations, type CameraObservationInput } from "@/app/lib/ca
 import type {
   AccessRoutesResponse,
   CriticalInfrastructureResponse,
+  EcosystemContextResponse,
   NearbyCommunitiesResponse,
   ProtectedContextResponse,
   WaterContextResponse,
@@ -55,6 +56,7 @@ export type BuildEventObservationsInput = {
   weather?: WeatherCurrent | null;
   cameras?: CameraObservationInput[];
   fireHistory?: FireHistoryResponse | null;
+  ecosystemContext?: EcosystemContextResponse | null;
   protectedContext?: ProtectedContextResponse | null;
   waterContext?: WaterContextResponse | null;
   criticalInfrastructure?: CriticalInfrastructureResponse | null;
@@ -137,6 +139,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
   });
   const environmentalObservations = environmentalContextsToObservations({
     event: input.event,
+    ecosystemContext: input.ecosystemContext ?? null,
     protectedContext: input.protectedContext ?? null,
     waterContext: input.waterContext ?? null,
     normalizedAt: generatedAt,

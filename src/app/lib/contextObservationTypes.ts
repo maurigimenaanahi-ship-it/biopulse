@@ -16,6 +16,38 @@ export type ProtectedContextResponse = {
   interpretation: string;
 };
 
+export type EcosystemFeature = {
+  id: string;
+  kind:
+    | "forest"
+    | "wetland"
+    | "grassland"
+    | "scrub"
+    | "heath"
+    | "farmland"
+    | "orchard"
+    | "vineyard"
+    | "water"
+    | "sand"
+    | "rock"
+    | "park"
+    | "other";
+  label: string;
+  name: string;
+  distanceKm: number | null;
+  lat: number;
+  lon: number;
+  sourceUrl: string;
+};
+
+export type EcosystemContextResponse = {
+  center: { lat: number; lon: number };
+  radiusKm: number;
+  features: EcosystemFeature[];
+  source: { name: string; attribution: string; attributionUrl: string };
+  interpretation: string;
+};
+
 export type CriticalFacility = {
   id: string;
   category: "healthcare" | "fire_station" | "shelter" | "school";
