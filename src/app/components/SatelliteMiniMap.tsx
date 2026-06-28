@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 
 export type SatelliteRasterLayer = {
   id: string;
@@ -78,15 +78,24 @@ function toGibsDate(d: Date) {
   return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
 }
 
-// Convert lat/lon to tile coordinates at a given zoom level
-function latLonToTile(lat: number, lon: number, zoom: number) {
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function wrapTileX(x: number, zoom: number) {
   const n = Math.pow(2, zoom);
-  const x = Math.floor(((lon + 180) / 360) * n);
-  const latRad = (lat * Math.PI) / 180;
-  const y = Math.floor(
-    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
-  );
-  return { x, y, z: zoom };
+  return ((x % n) + n) % n;
+}
+
+// Convert lat/lon to Web Mercator world pixel coordinates at a given zoom level.
+function latLonToWorldPixel(lat: number, lon: number, zoom: number, tileSize: number) {
+  const n = Math.pow(2, zoom);
+  const clampedLat = clamp(lat, -85.05112878, 85.05112878);
+  const x = ((lon + 180) / 360) * n * tileSize;
+  const latRad = (clampedLat * Math.PI) / 180;
+  const y =
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n * tileSize;
+  return { x, y };
 }
 
 export function SatelliteMiniMap(props: {
@@ -100,34 +109,48 @@ export function SatelliteMiniMap(props: {
   const date = props.date ?? new Date();
   const ymd = toGibsDate(date);
   const layer = props.layer ?? SATELLITE_RASTER_LAYERS[0];
-  const zoom = Math.min(props.zoom ?? 5, layer.maxZoom); // Lower zoom for static image
+  const zoom = Math.min(props.zoom ?? 7, layer.maxZoom);
   const height = props.height ?? 260;
-
-  // Calculate center tile
-  const centerTile = latLonToTile(props.lat, props.lon, zoom);
-
-  // Create a grid of tiles around the center
-  const [tiles, setTiles] = useState<Array<{ x: number; y: number; z: number }>>([]);
-
-  useEffect(() => {
-    const tileGrid = [];
-    // Create a 3x3 grid of tiles centered on the location
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        tileGrid.push({
-          x: centerTile.x + dx,
-          y: centerTile.y + dy,
-          z: centerTile.z,
-        });
-      }
-    }
-    setTiles(tileGrid);
-  }, [centerTile.x, centerTile.y, centerTile.z]);
-
   const tileSize = 256;
   const gridSize = 3;
   const containerWidth = tileSize * gridSize;
   const containerHeight = tileSize * gridSize;
+  const centerPixel = latLonToWorldPixel(props.lat, props.lon, zoom, tileSize);
+  const centerTile = {
+    x: Math.floor(centerPixel.x / tileSize),
+    y: Math.floor(centerPixel.y / tileSize),
+    z: zoom,
+  };
+  const firstTile = {
+    x: centerTile.x - 1,
+    y: centerTile.y - 1,
+  };
+  const eventPixelInGrid = {
+    x: centerPixel.x - firstTile.x * tileSize,
+    y: centerPixel.y - firstTile.y * tileSize,
+  };
+
+  const tiles = useMemo(() => {
+    const tileGrid: Array<{ x: number; y: number; z: number; key: string }> = [];
+    const maxTile = Math.pow(2, zoom) - 1;
+
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const rawX = centerTile.x + dx;
+        const rawY = centerTile.y + dy;
+        const y = clamp(rawY, 0, maxTile);
+        const x = wrapTileX(rawX, zoom);
+        tileGrid.push({
+          x,
+          y,
+          z: centerTile.z,
+          key: `${zoom}-${rawX}-${rawY}-${x}-${y}`,
+        });
+      }
+    }
+
+    return tileGrid;
+  }, [centerTile.x, centerTile.y, centerTile.z, zoom]);
 
   return (
     <div
@@ -145,7 +168,7 @@ export function SatelliteMiniMap(props: {
           position: 'absolute',
           top: '50%',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: `translate(${-eventPixelInGrid.x}px, ${-eventPixelInGrid.y}px)`,
           width: containerWidth,
           height: containerHeight,
           display: 'grid',
@@ -157,7 +180,7 @@ export function SatelliteMiniMap(props: {
           const url = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer.id}/default/${ymd}/${layer.matrixSet}/${tile.z}/${tile.y}/${tile.x}.${layer.format}`;
           return (
             <img
-              key={index}
+              key={tile.key}
               src={url}
               alt=""
               style={{

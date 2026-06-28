@@ -4326,7 +4326,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             lat={event.latitude}
                             lon={event.longitude}
                             date={observationDate ?? undefined}
-                            zoom={6}
+                            zoom={activeSatelliteLayer.maxZoom >= 9 ? 8 : activeSatelliteLayer.maxZoom}
                             height={260}
                             layer={activeSatelliteLayer}
                           />
