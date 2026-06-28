@@ -280,8 +280,8 @@ export default async function handler(req: Request): Promise<Response> {
       years: yearSummaries,
       attributionText: "NASA FIRMS fire detection data",
       limitations: [
-        "Consulta historica inicial por mes calendario y radio aproximado; no representa todavia un archivo anual completo.",
-        "FIRMS detecta anomalias termicas satelitales; no confirma por si solo causa, perimetro, dano ni impacto humano.",
+        "Consulta histórica inicial por mes calendario y radio aproximado; no representa todavía un archivo anual completo.",
+        "FIRMS detecta anomalías térmicas satelitales; no confirma por sí solo causa, perímetro, daño ni impacto humano.",
         "La disponibilidad depende del producto FIRMS y puede variar por sensor, nubes, humo, cobertura y procesamiento.",
       ],
       fetchedAt: now.toISOString(),
