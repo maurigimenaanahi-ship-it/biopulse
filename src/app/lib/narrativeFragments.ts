@@ -116,9 +116,15 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
   }
 
   const contextObservations = eligible.filter((observation) =>
-    ["camera_snapshot", "weather_reading", "news_report", "official_reference", "environmental_context"].includes(
-      observation.type
-    )
+    [
+      "camera_snapshot",
+      "weather_reading",
+      "news_report",
+      "official_reference",
+      "environmental_context",
+      "infrastructure_context",
+      "community_context",
+    ].includes(observation.type)
   );
 
   if (contextObservations.length > 0) {
@@ -129,6 +135,9 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
         (observation) => observation.type === "news_report" || observation.type === "official_reference"
       ).length,
       environmental: contextObservations.filter((observation) => observation.type === "environmental_context").length,
+      human: contextObservations.filter(
+        (observation) => observation.type === "infrastructure_context" || observation.type === "community_context"
+      ).length,
     };
     const parts = [
       counts.cameras ? `${counts.cameras} referencia${counts.cameras === 1 ? "" : "s"} visual${counts.cameras === 1 ? "" : "es"}` : null,
@@ -138,6 +147,9 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
         ? `${counts.environmental} antecedente${counts.environmental === 1 ? "" : "s"} ambiental${
             counts.environmental === 1 ? "" : "es"
           }`
+        : null,
+      counts.human
+        ? `${counts.human} contexto${counts.human === 1 ? "" : "s"} humano${counts.human === 1 ? "" : "s"}`
         : null,
     ].filter((item): item is string => Boolean(item));
     const contextVerb = parts.length === 1 ? "ayuda" : "ayudan";

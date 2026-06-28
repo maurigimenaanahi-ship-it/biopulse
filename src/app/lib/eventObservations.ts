@@ -1,10 +1,18 @@
 import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
 import { camerasToObservations, type CameraObservationInput } from "@/app/lib/cameraObservationAdapter";
+import type {
+  CriticalInfrastructureResponse,
+  NearbyCommunitiesResponse,
+  ProtectedContextResponse,
+  WaterContextResponse,
+} from "@/app/lib/contextObservationTypes";
+import { environmentalContextsToObservations } from "@/app/lib/environmentalContextObservationAdapter";
 import { fireHistoryToObservation } from "@/app/lib/fireHistoryObservationAdapter";
 import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import { eventToFirmsObservations } from "@/app/lib/firmsObservationAdapter";
 import { normalizeGuardianObservation } from "@/app/lib/guardianObservationAdapter";
+import { humanContextsToObservations } from "@/app/lib/humanContextObservationAdapter";
 import { buildNarrativeFragments } from "@/app/lib/narrativeFragments";
 import { newsItemsToObservations, type NewsObservationClassification } from "@/app/lib/newsObservationAdapter";
 import type { NewsItem } from "@/app/lib/newsTypes";
@@ -19,6 +27,8 @@ export type EventObservationSourceCounts = {
   officialReferences: number;
   weather: number;
   cameras: number;
+  environmental: number;
+  humanContext: number;
 };
 
 export type EventObservationTypeCount = {
@@ -44,6 +54,10 @@ export type BuildEventObservationsInput = {
   weather?: WeatherCurrent | null;
   cameras?: CameraObservationInput[];
   fireHistory?: FireHistoryResponse | null;
+  protectedContext?: ProtectedContextResponse | null;
+  waterContext?: WaterContextResponse | null;
+  criticalInfrastructure?: CriticalInfrastructureResponse | null;
+  nearbyCommunities?: NearbyCommunitiesResponse | null;
   generatedAt?: string;
 };
 
@@ -119,6 +133,18 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     cameras: input.cameras ?? [],
     normalizedAt: generatedAt,
   });
+  const environmentalObservations = environmentalContextsToObservations({
+    event: input.event,
+    protectedContext: input.protectedContext ?? null,
+    waterContext: input.waterContext ?? null,
+    normalizedAt: generatedAt,
+  });
+  const humanContextObservations = humanContextsToObservations({
+    event: input.event,
+    criticalInfrastructure: input.criticalInfrastructure ?? null,
+    nearbyCommunities: input.nearbyCommunities ?? null,
+    normalizedAt: generatedAt,
+  });
   const guardianNormalizations = (input.guardianObservations ?? [])
     .filter((observation) => isRelatedGuardianObservation(input.event, observation))
     .map((observation) => normalizeGuardianObservation(observation, input.guardianMemory));
@@ -134,6 +160,8 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     ...weatherObservations,
     ...cameraObservations,
     ...newsObservations,
+    ...environmentalObservations,
+    ...humanContextObservations,
     ...guardianObservations,
   ]);
   const inferences = sortInferences(guardianInferences);
@@ -157,6 +185,8 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
       officialReferences: newsObservations.filter((observation) => observation.type === "official_reference").length,
       weather: weatherObservations.length,
       cameras: cameraObservations.length,
+      environmental: environmentalObservations.length,
+      humanContext: humanContextObservations.length,
     },
     typeCounts: countByType(observations),
   };

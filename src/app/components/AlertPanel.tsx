@@ -15,6 +15,16 @@ import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
+import type {
+  CriticalFacility,
+  CriticalInfrastructureResponse,
+  NearbyCommunitiesResponse,
+  NearbyCommunity,
+  ProtectedArea,
+  ProtectedContextResponse,
+  WaterContextResponse,
+  WaterResource,
+} from "@/app/lib/contextObservationTypes";
 import { buildEventObservations } from "@/app/lib/eventObservations";
 import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
@@ -93,7 +103,22 @@ type AlertPanelSection =
   | "operations";
 
 const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+const PRODUCTION_API_BASE = "https://biopulse-weld.vercel.app";
 const FAV_KEY = "biopulse:followed-alerts";
+
+function apiUrl(path: string) {
+  const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
+  if (configuredBase) return `${configuredBase}${path}`;
+
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return `${PRODUCTION_API_BASE}${path}`;
+    }
+  }
+
+  return path;
+}
 
 function readFollowedIds(): string[] {
   try {
@@ -122,84 +147,6 @@ function toggleFollowedId(id: string): string[] {
 function isAbortError(err: unknown) {
   return (err instanceof DOMException && err.name === "AbortError") || (err as any)?.name === "AbortError";
 }
-
-type ProtectedArea = {
-  id: string;
-  name: string;
-  designation: string | null;
-  protectClass: string | null;
-  operator: string | null;
-  website: string | null;
-  sourceUrl: string;
-};
-
-type ProtectedContextResponse = {
-  center: { lat: number; lon: number };
-  radiusKm: number;
-  areas: ProtectedArea[];
-  source: { name: string; attribution: string; licenseUrl: string };
-  interpretation: string;
-};
-
-type CriticalFacility = {
-  id: string;
-  category: "healthcare" | "fire_station" | "shelter" | "school";
-  name: string;
-  address: string | null;
-  distanceKm: number | null;
-  lat: number;
-  lon: number;
-  mapUrl: string;
-};
-
-type CriticalInfrastructureResponse = {
-  center: { lat: number; lon: number };
-  radiusKm: number;
-  facilities: CriticalFacility[];
-  source: { name: string; attribution: string; attributionUrl: string };
-  interpretation: string;
-};
-
-type NearbyCommunity = {
-  id: string;
-  kind: "city" | "town" | "village" | "hamlet" | "municipality" | "township";
-  name: string;
-  state: string | null;
-  country: string | null;
-  address: string | null;
-  distanceKm: number | null;
-  lat: number;
-  lon: number;
-  mapUrl: string;
-};
-
-type NearbyCommunitiesResponse = {
-  center: { lat: number; lon: number };
-  radiusKm: number;
-  communities: NearbyCommunity[];
-  source: { name: string; attribution: string; attributionUrl: string };
-  interpretation: string;
-};
-
-type WaterResource = {
-  id: string;
-  kind: "river" | "waterbody" | "wetland" | "bay" | "spring";
-  name: string;
-  state: string | null;
-  country: string | null;
-  distanceKm: number | null;
-  lat: number;
-  lon: number;
-  mapUrl: string;
-};
-
-type WaterContextResponse = {
-  center: { lat: number; lon: number };
-  radiusKm: number;
-  resources: WaterResource[];
-  source: { name: string; attribution: string; attributionUrl: string };
-  interpretation: string;
-};
 
 function GuardianSourceButton({
   onClick,
@@ -321,7 +268,7 @@ async function fetchWindyCameraSnapshot(args: {
   endpoint?: string;
   signal?: AbortSignal;
 }): Promise<ProviderCameraSnapshot> {
-  const endpoint = args.endpoint || "/api/windy-camera";
+  const endpoint = args.endpoint?.startsWith("/api/") ? apiUrl(args.endpoint) : args.endpoint || apiUrl("/api/windy-camera");
   const url = `${endpoint}?cameraId=${encodeURIComponent(args.cameraKey)}`;
 
   const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
@@ -345,7 +292,7 @@ async function fetchProtectedContext(
   signal?: AbortSignal
 ): Promise<ProtectedContextResponse> {
   const url =
-    `/api/protected-context?lat=${encodeURIComponent(String(lat))}` +
+    `${apiUrl("/api/protected-context")}?lat=${encodeURIComponent(String(lat))}` +
     `&lon=${encodeURIComponent(String(lon))}&radiusKm=50`;
   const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) throw new Error(`Contexto ambiental no disponible (${res.status}).`);
@@ -362,7 +309,7 @@ async function fetchCriticalInfrastructure(
   signal?: AbortSignal
 ): Promise<CriticalInfrastructureResponse> {
   const url =
-    `/api/critical-infrastructure?lat=${encodeURIComponent(String(lat))}` +
+    `${apiUrl("/api/critical-infrastructure")}?lat=${encodeURIComponent(String(lat))}` +
     `&lon=${encodeURIComponent(String(lon))}&radiusKm=25&schema=2`;
   const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) throw new Error(`Infraestructura crítica no disponible (${res.status}).`);
@@ -379,7 +326,7 @@ async function fetchNearbyCommunities(
   signal?: AbortSignal
 ): Promise<NearbyCommunitiesResponse> {
   const url =
-    `/api/nearby-communities?lat=${encodeURIComponent(String(lat))}` +
+    `${apiUrl("/api/nearby-communities")}?lat=${encodeURIComponent(String(lat))}` +
     `&lon=${encodeURIComponent(String(lon))}&radiusKm=50`;
   const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) throw new Error(`Comunidades cercanas no disponibles (${res.status}).`);
@@ -392,7 +339,7 @@ async function fetchNearbyCommunities(
 
 async function fetchWaterContext(lat: number, lon: number, signal?: AbortSignal): Promise<WaterContextResponse> {
   const url =
-    `/api/water-context?lat=${encodeURIComponent(String(lat))}` +
+    `${apiUrl("/api/water-context")}?lat=${encodeURIComponent(String(lat))}` +
     `&lon=${encodeURIComponent(String(lon))}&radiusKm=50`;
   const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!res.ok) throw new Error(`Recursos hídricos no disponibles (${res.status}).`);
@@ -412,7 +359,7 @@ async function fetchFireHistory(args: {
   signal?: AbortSignal;
 }): Promise<FireHistoryResponse> {
   const url =
-    `/api/fire-history?lat=${encodeURIComponent(String(args.lat))}` +
+    `${apiUrl("/api/fire-history")}?lat=${encodeURIComponent(String(args.lat))}` +
     `&lon=${encodeURIComponent(String(args.lon))}` +
     `&radiusKm=${encodeURIComponent(String(args.radiusKm))}` +
     `&years=${encodeURIComponent(String(args.years))}` +
@@ -485,7 +432,47 @@ const sourceCoverageMeta: Record<SourceCoverageState, { label: string; className
     dot: "bg-amber-300",
   },
   not_connected: {
-    label: "No conectada",
+    label: "Pendiente",
+    className: "border-white/10 bg-white/[0.03] text-white/45",
+    dot: "bg-white/25",
+  },
+};
+
+type ContextConnectionStatus = "connected" | "event" | "loading" | "limited" | "empty" | "future" | "pending";
+
+const contextConnectionMeta: Record<ContextConnectionStatus, { label: string; className: string; dot: string }> = {
+  connected: {
+    label: "Fuente real",
+    className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-50/85",
+    dot: "bg-emerald-300",
+  },
+  event: {
+    label: "Dato del evento",
+    className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/80",
+    dot: "bg-cyan-300",
+  },
+  loading: {
+    label: "Consultando",
+    className: "border-white/10 bg-white/[0.04] text-white/60",
+    dot: "bg-white/45 animate-pulse",
+  },
+  limited: {
+    label: "Limitada",
+    className: "border-amber-300/20 bg-amber-400/10 text-amber-100/85",
+    dot: "bg-amber-300",
+  },
+  empty: {
+    label: "Sin registros",
+    className: "border-white/10 bg-white/[0.04] text-white/55",
+    dot: "bg-white/35",
+  },
+  future: {
+    label: "Capa futura",
+    className: "border-violet-300/15 bg-violet-400/[0.06] text-violet-100/70",
+    dot: "bg-violet-300/70",
+  },
+  pending: {
+    label: "Pendiente",
     className: "border-white/10 bg-white/[0.03] text-white/45",
     dot: "bg-white/25",
   },
@@ -1422,6 +1409,42 @@ function SectionShell({
   );
 }
 
+function ContextConnectionGrid({
+  title,
+  description,
+  items,
+}: {
+  title: string;
+  description: string;
+  items: Array<{ label: string; detail: string; status: ContextConnectionStatus }>;
+}) {
+  return (
+    <div className="border-b border-white/10 bg-white/[0.025] px-4 py-4">
+      <div>
+        <div className="text-sm font-semibold text-white/80">{title}</div>
+        <div className="mt-1 text-xs leading-relaxed text-white/45">{description}</div>
+      </div>
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {items.map((item) => {
+          const meta = contextConnectionMeta[item.status];
+          return (
+            <div key={item.label} className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 text-sm font-medium text-white/75">{item.label}</div>
+                <div className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5", meta.className)}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", meta.dot)} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wide">{meta.label}</span>
+                </div>
+              </div>
+              <div className="mt-2 text-xs leading-relaxed text-white/45">{item.detail}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function CriticalFacilitySummary({
   items,
   loading,
@@ -1476,7 +1499,7 @@ function CriticalFacilitySummary({
     <div className="mt-1 text-xs leading-relaxed text-white/45">
       {loaded
         ? "Sin registros cercanos en la fuente consultada; la cobertura puede ser incompleta."
-        : "Fuente aún no conectada."}
+        : "Esperando consulta de servicios cercanos."}
     </div>
   );
 }
@@ -1515,7 +1538,7 @@ function NearbyCommunitySummary({
       <div className="mt-1 text-xs leading-relaxed text-white/45">
         {loaded
           ? "Sin comunidades registradas dentro del radio; la cobertura puede ser incompleta."
-          : "Información territorial aún no conectada."}
+          : "Esperando consulta territorial."}
       </div>
     );
   }
@@ -1580,7 +1603,7 @@ function WaterResourceSummary({
       <div className="mt-2 text-xs leading-relaxed text-white/45">
         {loaded
           ? "Sin recursos hídricos con nombre dentro del radio; la cobertura puede ser incompleta."
-          : "Información de recursos hídricos aún no conectada."}
+          : "Esperando consulta de recursos hídricos."}
       </div>
     );
   }
@@ -2196,6 +2219,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     eventEcosystems.length > 0 ||
     eventSpecies.length > 0 ||
     eventWaterLevel != null ||
+    Boolean(protectedContext) ||
+    Boolean(waterContext) ||
     protectedAreas.length > 0 ||
     nearbyWaterResources.length > 0;
   const eventPopulation =
@@ -2232,8 +2257,122 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     eventPopulation != null ||
     eventArea != null ||
     eventInfrastructure.length > 0 ||
+    Boolean(criticalInfrastructure) ||
+    Boolean(nearbyCommunitiesContext) ||
     criticalFacilities.length > 0 ||
     nearbyCommunities.length > 0;
+  const protectionConnectionItems: Array<{ label: string; detail: string; status: ContextConnectionStatus }> = [
+    {
+      label: "Áreas protegidas",
+      status: protectedContextLoading
+        ? "loading"
+        : protectedContextErr
+        ? "limited"
+        : protectedContext
+        ? protectedAreas.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: protectedContext
+        ? `${protectedAreas.length} ${protectedAreas.length === 1 ? "registro cercano" : "registros cercanos"} en ${protectedContext.radiusKm} km · ${protectedContext.source.name}.`
+        : protectedContextLoading
+        ? "Consultando la fuente cartográfica de áreas protegidas."
+        : protectedContextErr
+        ? "La fuente respondió con error o quedó temporalmente limitada."
+        : "Fuente preparada, pendiente de respuesta para este evento.",
+    },
+    {
+      label: "Recursos hídricos",
+      status: waterContextLoading
+        ? "loading"
+        : waterContextErr
+        ? "limited"
+        : waterContext
+        ? nearbyWaterResources.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: waterContext
+        ? `${nearbyWaterResources.length} ${nearbyWaterResources.length === 1 ? "recurso cercano" : "recursos cercanos"} en ${waterContext.radiusKm} km · ${waterContext.source.name}.`
+        : waterContextLoading
+        ? "Consultando recursos hídricos cercanos."
+        : waterContextErr
+        ? "La fuente hídrica respondió con error o quedó temporalmente limitada."
+        : "Fuente preparada, pendiente de respuesta para este evento.",
+    },
+    {
+      label: "Ecosistemas específicos",
+      status: eventEcosystems.length > 0 ? "event" : "future",
+      detail:
+        eventEcosystems.length > 0
+          ? `${eventEcosystems.length} referencia${eventEcosystems.length === 1 ? "" : "s"} asociada${eventEcosystems.length === 1 ? "" : "s"} al evento; falta fuente ecológica externa.`
+          : "Capa futura: falta conectar una fuente ecológica específica para clasificar ecosistemas.",
+    },
+    {
+      label: "Fauna, flora y especies",
+      status: eventSpecies.length > 0 ? "event" : "future",
+      detail:
+        eventSpecies.length > 0
+          ? `${eventSpecies.length} especie${eventSpecies.length === 1 ? "" : "s"} asociada${eventSpecies.length === 1 ? "" : "s"} al evento; no confirma afectación.`
+          : "Capa futura: falta conectar fuentes de biodiversidad, flora y especies sensibles.",
+    },
+  ];
+  const humanConnectionItems: Array<{ label: string; detail: string; status: ContextConnectionStatus }> = [
+    {
+      label: "Comunidades cercanas",
+      status: nearbyCommunitiesLoading
+        ? "loading"
+        : nearbyCommunitiesErr
+        ? "limited"
+        : nearbyCommunitiesContext
+        ? nearbyCommunities.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: nearbyCommunitiesContext
+        ? `${nearbyCommunities.length} ${nearbyCommunities.length === 1 ? "comunidad cercana" : "comunidades cercanas"} en ${nearbyCommunitiesContext.radiusKm} km · ${nearbyCommunitiesContext.source.name}.`
+        : nearbyCommunitiesLoading
+        ? "Consultando núcleos habitados cercanos."
+        : nearbyCommunitiesErr
+        ? "La fuente territorial respondió con error o quedó temporalmente limitada."
+        : "Fuente preparada, pendiente de respuesta para este evento.",
+    },
+    {
+      label: "Servicios críticos",
+      status: criticalInfrastructureLoading
+        ? "loading"
+        : criticalInfrastructureErr
+        ? "limited"
+        : criticalInfrastructure
+        ? criticalFacilities.length > 0
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: criticalInfrastructure
+        ? `${criticalFacilities.length} ${criticalFacilities.length === 1 ? "servicio cercano" : "servicios cercanos"} en ${criticalInfrastructure.radiusKm} km · ${criticalInfrastructure.source.name}.`
+        : criticalInfrastructureLoading
+        ? "Consultando hospitales, escuelas, bomberos y refugios cercanos."
+        : criticalInfrastructureErr
+        ? "La fuente de servicios críticos respondió con error o quedó temporalmente limitada."
+        : "Fuente preparada, pendiente de respuesta para este evento.",
+    },
+    {
+      label: "Evacuación oficial",
+      status: event.evacuationLevel != null ? "event" : "future",
+      detail:
+        event.evacuationLevel != null
+          ? "El evento trae un estado de evacuación, pero falta un canal oficial estructurado con procedencia verificable."
+          : "Capa futura: falta conectar comunicados oficiales estructurados de evacuación.",
+    },
+    {
+      label: "Población, superficie y accesos",
+      status: eventPopulation != null || eventArea != null || eventInfrastructure.length > 0 ? "event" : "future",
+      detail:
+        eventPopulation != null || eventArea != null || eventInfrastructure.length > 0
+          ? "Hay campos asociados al evento, pero faltan fuente, metodología y validación de afectación real."
+          : "Capa futura: falta conectar demografía, cálculo de exposición, rutas y cortes de acceso.",
+    },
+  ];
   const timelineEntries: Array<{ id: string; date: Date; title: string; detail: string }> = [];
   const firstSeenDate = toValidDate(event.firstSeen);
   const eventHistory = Array.isArray(event.history) ? event.history : [];
@@ -2340,6 +2479,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     weather,
     cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
     fireHistory,
+    protectedContext,
+    waterContext,
+    criticalInfrastructure,
+    nearbyCommunities: nearbyCommunitiesContext,
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
@@ -2605,14 +2748,21 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       id: "protected-context",
       label: "Qu\u00e9 protegemos",
       icon: <Leaf className="h-4 w-4 text-emerald-200/65" />,
-      state: protectedContextLoading ? "loading" : protectedContextErr ? "limited" : protectedContext ? "partial" : "not_connected",
-      detail: protectedContextLoading
+      state:
+        protectedContextLoading || waterContextLoading
+          ? "loading"
+          : protectedContextErr || waterContextErr
+          ? "limited"
+          : protectedContext || waterContext
+          ? "partial"
+          : "not_connected",
+      detail: protectedContextLoading || waterContextLoading
         ? "Consultando contexto ambiental."
-        : protectedContextErr
+        : protectedContextErr || waterContextErr
         ? "Contexto ambiental temporalmente limitado."
-        : protectedContext
+        : protectedContext || waterContext
         ? "Contexto ambiental disponible con datos conectados y vac\u00edos expl\u00edcitos."
-        : "Contexto ambiental todav\u00eda no conectado.",
+        : "Contexto ambiental pendiente de respuesta.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("protected"),
     },
@@ -2633,9 +2783,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           ? "Consultando infraestructura y comunidades."
           : criticalInfrastructureErr || nearbyCommunitiesErr
           ? "Parte del contexto humano est\u00e1 temporalmente limitado."
-          : criticalInfrastructure || nearbyCommunitiesContext
-          ? "Infraestructura y comunidades cercanas disponibles cuando hay fuente conectada."
-          : "Impacto humano estructurado todav\u00eda no conectado.",
+        : criticalInfrastructure || nearbyCommunitiesContext
+        ? "Infraestructura y comunidades cercanas disponibles cuando hay fuente conectada."
+        : "Contexto humano pendiente de respuesta.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("human"),
     },
@@ -3118,7 +3268,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   })}
                 </div>
                 <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[11px] leading-relaxed text-white/35">
-                  Los estados indican disponibilidad de fuentes o capas de trabajo. No conectada, sin resultados y limitada describen situaciones diferentes; ninguna confirma ausencia del fenómeno.
+                  Los estados indican disponibilidad de fuentes o capas de trabajo. Pendiente, sin resultados y limitada describen situaciones diferentes; ninguna confirma ausencia del fenómeno.
                 </div>
               </div>
             </SectionShell>
@@ -3893,7 +4043,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               : "border-white/10 bg-white/5 text-white/45"
                           )}
                         >
-                          {metric.available ? "Dato observado" : "No conectado"}
+                          {metric.available ? "Dato observado" : "Sin dato"}
                         </span>
                       </div>
                       <div className="mt-2 text-xs leading-relaxed text-white/45">{metric.meaning}</div>
@@ -4150,7 +4300,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   )}
                 >
                   <span className="text-xs font-semibold">
-                    {hasProtectionContext ? "Parcial" : "No conectado"}
+                    {hasProtectionContext ? "Parcial" : "Fuente pendiente"}
                   </span>
                 </div>
               }
@@ -4161,6 +4311,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   por sí sola un análisis de exposición o afectación.
                 </div>
 
+                <ContextConnectionGrid
+                  title="Estado de datos ambientales"
+                  description="BioPulse separa fuentes reales conectadas, datos propios del evento y capas futuras para no mezclar evidencia con intención de diseño."
+                  items={protectionConnectionItems}
+                />
+
                 <div className="grid grid-cols-1 md:grid-cols-2">
                   <div className="border-b border-white/10 p-4 md:border-r">
                     <div className="flex items-center justify-between gap-3">
@@ -4169,7 +4325,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         Ecosistemas
                       </div>
                       <span className="text-[11px] text-white/40">
-                        {eventEcosystems.length > 0 ? "Información asociada" : "No conectada"}
+                        {eventEcosystems.length > 0 ? "Información asociada" : "Capa futura"}
                       </span>
                     </div>
                     {eventEcosystems.length > 0 ? (
@@ -4183,7 +4339,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </ul>
                     ) : (
                       <div className="mt-3 text-sm leading-relaxed text-white/50">
-                        Información de ecosistemas aún no conectada para este evento.
+                        Capa ecológica específica pendiente: todavía no hay fuente de ecosistemas conectada para este evento.
                       </div>
                     )}
                   </div>
@@ -4195,7 +4351,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         Fauna y especies relevantes
                       </div>
                       <span className="text-[11px] text-white/40">
-                        {eventSpecies.length > 0 ? "Información asociada" : "No conectada"}
+                        {eventSpecies.length > 0 ? "Información asociada" : "Capa futura"}
                       </span>
                     </div>
                     {eventSpecies.length > 0 ? (
@@ -4214,7 +4370,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </>
                     ) : (
                       <div className="mt-3 text-sm leading-relaxed text-white/50">
-                        Información de fauna aún no conectada.
+                        Capa de fauna pendiente: BioPulse todavía no consulta una fuente de especies para este punto.
                       </div>
                     )}
                   </div>
@@ -4225,7 +4381,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <Flower2 className="mt-0.5 h-4 w-4 shrink-0 text-pink-200/65" />
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-white/75">Flora</div>
-                      <div className="mt-0.5 text-xs text-white/45">Información de flora aún no conectada.</div>
+                      <div className="mt-0.5 text-xs text-white/45">
+                        Capa de flora pendiente: se reservará para una fuente botánica o ecológica específica.
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 px-4 py-3">
@@ -4281,7 +4439,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           ausencia de registros o cobertura cartográfica incompleta.
                         </div>
                       ) : (
-                        <div className="mt-2 text-xs text-white/45">Catálogo de áreas protegidas aún no conectado.</div>
+                        <div className="mt-2 text-xs text-white/45">
+                          Esperando respuesta de la fuente cartográfica de áreas protegidas.
+                        </div>
                       )}
 
                       {protectedContext?.source ? (
@@ -4357,11 +4517,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       : "border-white/10 bg-white/5 text-white/55"
                   )}
                 >
-                  <span className="text-xs font-semibold">{hasHumanContext ? "Parcial" : "No conectado"}</span>
+                  <span className="text-xs font-semibold">{hasHumanContext ? "Parcial" : "Sin fuente aún"}</span>
                 </div>
               }
             >
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <ContextConnectionGrid
+                  title="Estado de datos humanos"
+                  description="Estos datos describen proximidad y contexto. No confirman personas afectadas, evacuaciones ni disponibilidad operativa."
+                  items={humanConnectionItems}
+                />
+
                 <div
                   className={cn(
                     "flex items-start gap-3 border-b px-4 py-4",
@@ -4391,7 +4557,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </div>
                     ) : (
                       <div className="mt-1 text-xs leading-relaxed text-white/45">
-                        BioPulse todavía no dispone de una fuente estructurada para este estado.
+                        Fuente oficial estructurada pendiente para este estado.
                       </div>
                     )}
                   </div>
@@ -4413,7 +4579,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         </div>
                       </>
                     ) : (
-                      <div className="mt-2 text-sm text-white/50">Información poblacional aún no conectada.</div>
+                      <div className="mt-2 text-sm text-white/50">
+                        Capa poblacional pendiente: no se consulta todavía una fuente demográfica para este evento.
+                      </div>
                     )}
                   </div>
 
@@ -4448,7 +4616,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       Infraestructura asociada al evento
                     </div>
                     <span className="text-[11px] text-white/40">
-                      {eventInfrastructure.length > 0 ? "Información asociada" : "No conectada"}
+                      {eventInfrastructure.length > 0 ? "Información asociada" : "Capa del evento pendiente"}
                     </span>
                   </div>
                   {eventInfrastructure.length > 0 ? (
@@ -4467,7 +4635,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </>
                   ) : (
                     <div className="mt-2 text-sm text-white/50">
-                      Inventario de infraestructura aún no conectado.
+                      El evento no trae inventario propio de infraestructura. Abajo se consultan servicios cercanos si la fuente responde.
                     </div>
                   )}
                 </div>
@@ -4516,7 +4684,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       <Route className="mt-0.5 h-4 w-4 shrink-0 text-white/55" />
                       <div>
                         <div className="text-sm font-medium text-white/75">Rutas y accesos</div>
-                        <div className="mt-0.5 text-xs text-white/45">Estado vial aún no conectado.</div>
+                        <div className="mt-0.5 text-xs text-white/45">
+                          Capa vial futura: todavía no hay fuente de cortes, rutas o accesos.
+                        </div>
                       </div>
                     </div>
                   </div>
