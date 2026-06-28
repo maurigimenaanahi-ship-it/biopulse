@@ -2436,6 +2436,32 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const visibleTimelineEntries =
     timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
   const hasComparableHistory = visibleTimelineEntries.length > 1;
+  const eventStoryEvidence = [
+    firstSeenDate ? `Comenzó a registrarse el ${fmtDateTimeUTC(firstSeenDate)}.` : null,
+    observationDate ? `La señal más reciente conservada corresponde a ${fmtDateTimeUTC(observationDate)}.` : null,
+    satelliteDetections != null
+      ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`
+      : null,
+    satelliteFrpMax != null || satelliteFrpSum != null
+      ? `La energía térmica observada incluye ${
+          satelliteFrpMax != null ? `FRP máximo ${satelliteFrpMax.toFixed(2)} MW` : "FRP máximo no disponible"
+        }${
+          satelliteFrpSum != null ? ` y FRP acumulado ${satelliteFrpSum.toFixed(2)} MW` : ""
+        }.`
+      : null,
+    guardianObservations.length > 0
+      ? `La memoria Guardian local aporta ${guardianObservations.length} ${
+          guardianObservations.length === 1 ? "observación privada" : "observaciones privadas"
+        } al relato del evento.`
+      : null,
+    event.liveFeedUrl ? "Existe un enlace externo para revisar la observación FIRMS/NASA original." : null,
+  ].filter((item): item is string => Boolean(item));
+  const eventStoryUnknowns = [
+    event.evacuationLevel == null ? "estado de evacuación oficial" : null,
+    !eventPopulation ? "población afectada verificada" : null,
+    nearbyCameras.length === 0 ? "cámaras cercanas disponibles" : null,
+    newsItems.length === 0 ? "noticias o comunicados vinculados" : null,
+  ].filter((item): item is string => Boolean(item));
 
   const panel = (
     <div className="pointer-events-auto fixed inset-0 z-[10050]">
@@ -5073,6 +5099,42 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
               }
             >
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                <div className="border-b border-cyan-300/10 bg-cyan-400/[0.04] px-4 py-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-cyan-100/90">Historia viva preliminar</div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        Reconstrucción operativa basada solo en evidencia ya conservada por BioPulse. No reemplaza
+                        confirmación oficial.
+                      </div>
+                    </div>
+                    <span className="self-start rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-100/70">
+                      Basado en evidencia
+                    </span>
+                  </div>
+
+                  {eventStoryEvidence.length > 0 ? (
+                    <div className="mt-3 space-y-2">
+                      {eventStoryEvidence.map((item) => (
+                        <div key={item} className="flex gap-2 text-xs leading-relaxed text-white/60">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300/70" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-xl border border-dashed border-white/10 bg-black/15 p-3 text-xs text-white/45">
+                      Todavía no hay evidencia suficiente para construir un relato operativo.
+                    </div>
+                  )}
+
+                  {eventStoryUnknowns.length > 0 ? (
+                    <div className="mt-3 rounded-xl border border-amber-300/15 bg-amber-400/[0.05] p-3 text-xs leading-relaxed text-amber-50/60">
+                      Falta confirmar: {eventStoryUnknowns.join(", ")}.
+                    </div>
+                  ) : null}
+                </div>
+
                 <div
                   className={cn(
                     "border-b px-4 py-3 text-xs leading-relaxed",
