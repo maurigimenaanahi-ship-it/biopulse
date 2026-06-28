@@ -14,6 +14,7 @@ import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationD
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
+import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
 import { buildEventObservations } from "@/app/lib/eventObservations";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
 import type { WeatherCurrent, WeatherResponse } from "@/app/lib/weatherTypes";
@@ -197,39 +198,6 @@ type WaterContextResponse = {
   resources: WaterResource[];
   source: { name: string; attribution: string; attributionUrl: string };
   interpretation: string;
-};
-
-// ---------- Cameras (biopulse.camera.v1) ----------
-type CameraRegistryItem = {
-  schema: "biopulse.camera.v1";
-  id: string;
-  providerId?: string;
-  title?: string;
-  description?: string;
-  geo: { lat: number; lon: number };
-  coverage?: { countryISO2?: string; admin1?: string; locality?: string };
-  mediaType?: "snapshot" | "video" | "stream";
-  fetch:
-    | { kind: "image_url"; url: string }
-    | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string }
-    | { kind: string; [k: string]: any };
-  update?: { expectedIntervalSec?: number };
-  usage?: { isPublic?: boolean; attributionText?: string; termsUrl?: string };
-  tags?: string[];
-  priority?: number;
-  validation?: { status?: "pending" | "verified" | "rejected"; verifiedBy?: string; verifiedAt?: string };
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type LoadedCamera = CameraRegistryItem & { distanceKm: number };
-
-type ProviderCameraSnapshot = {
-  status: "loading" | "ready" | "error";
-  snapshotUrl?: string | null;
-  detailUrl?: string | null;
-  attributionText?: string | null;
-  message?: string;
 };
 
 function GuardianSourceButton({
@@ -1999,6 +1967,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ...splitNews.regional.map((item) => ({ item, classification: "regional_report" as const })),
     ],
     weather,
+    cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
     generatedAt: observationBundleGeneratedAt,
   });
   const normalizedObservationCount = eventObservationBundle.observations.length;
@@ -2011,6 +1980,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   );
   const normalizedWeatherObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "weather_reading"
+  );
+  const normalizedCameraObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "camera_snapshot"
   );
   const cameraGuardianObservations = guardianObservations.filter(
     (observation) => observation.sourceType === "camera"
@@ -2476,6 +2448,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   });
 
+  normalizedCameraObservations.slice(0, 3).forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `camera-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
   timelineEntries.sort((a, b) => a.date.getTime() - b.date.getTime());
   const visibleTimelineEntries =
     timelineEntries.length > 8 ? [...timelineEntries.slice(0, 1), ...timelineEntries.slice(-7)] : timelineEntries;
@@ -2490,7 +2474,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           eventObservationBundle.sourceCounts.guardian
         } humanas Guardian, con ${eventObservationBundle.sourceCounts.news} referencias informativas y ${
           eventObservationBundle.sourceCounts.officialReferences
-        } referencias de apariencia oficial, más ${eventObservationBundle.sourceCounts.weather} lectura climática contextual.`
+        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.cameras} cámaras cercanas y ${
+          eventObservationBundle.sourceCounts.weather
+        } lectura climática contextual.`
+      : null,
+    eventObservationBundle.sourceCounts.cameras > 0
+      ? "Las cámaras se conservan como evidencia visual contextual: muestran una perspectiva limitada, no el evento completo."
       : null,
     eventObservationBundle.sourceCounts.weather > 0
       ? "El clima se conserva como contexto operacional; no se usa como confirmación causal del evento."

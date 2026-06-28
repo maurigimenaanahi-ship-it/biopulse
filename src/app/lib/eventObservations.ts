@@ -1,5 +1,6 @@
 import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
+import { camerasToObservations, type CameraObservationInput } from "@/app/lib/cameraObservationAdapter";
 import { eventToFirmsObservations } from "@/app/lib/firmsObservationAdapter";
 import { normalizeGuardianObservation } from "@/app/lib/guardianObservationAdapter";
 import { newsItemsToObservations, type NewsObservationClassification } from "@/app/lib/newsObservationAdapter";
@@ -14,6 +15,7 @@ export type EventObservationSourceCounts = {
   news: number;
   officialReferences: number;
   weather: number;
+  cameras: number;
 };
 
 export type EventObservationTypeCount = {
@@ -36,6 +38,7 @@ export type BuildEventObservationsInput = {
   guardianObservations?: GuardianObservation[];
   newsItems?: Array<{ item: NewsItem; classification: NewsObservationClassification }>;
   weather?: WeatherCurrent | null;
+  cameras?: CameraObservationInput[];
   generatedAt?: string;
 };
 
@@ -99,6 +102,11 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     normalizedAt: generatedAt,
   });
   const weatherObservations = weatherObservation ? [weatherObservation] : [];
+  const cameraObservations = camerasToObservations({
+    event: input.event,
+    cameras: input.cameras ?? [],
+    normalizedAt: generatedAt,
+  });
   const guardianNormalizations = (input.guardianObservations ?? [])
     .filter((observation) => isRelatedGuardianObservation(input.event, observation))
     .map((observation) => normalizeGuardianObservation(observation, input.guardianMemory));
@@ -111,6 +119,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
   const observations = sortObservations([
     ...firmsObservations,
     ...weatherObservations,
+    ...cameraObservations,
     ...newsObservations,
     ...guardianObservations,
   ]);
@@ -127,6 +136,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
       news: newsObservations.filter((observation) => observation.type === "news_report").length,
       officialReferences: newsObservations.filter((observation) => observation.type === "official_reference").length,
       weather: weatherObservations.length,
+      cameras: cameraObservations.length,
     },
     typeCounts: countByType(observations),
   };
