@@ -119,6 +119,7 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
     [
       "camera_snapshot",
       "weather_reading",
+      "fire_danger_forecast",
       "news_report",
       "official_reference",
     ].includes(observation.type)
@@ -128,6 +129,7 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
     const counts = {
       cameras: contextObservations.filter((observation) => observation.type === "camera_snapshot").length,
       weather: contextObservations.filter((observation) => observation.type === "weather_reading").length,
+      fireDanger: contextObservations.filter((observation) => observation.type === "fire_danger_forecast").length,
       news: contextObservations.filter(
         (observation) => observation.type === "news_report" || observation.type === "official_reference"
       ).length,
@@ -135,6 +137,7 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
     const parts = [
       counts.cameras ? `${counts.cameras} referencia${counts.cameras === 1 ? "" : "s"} visual${counts.cameras === 1 ? "" : "es"}` : null,
       counts.weather ? "1 lectura meteorológica" : null,
+      counts.fireDanger ? "1 lectura de peligro meteorologico de incendio" : null,
       counts.news ? `${counts.news} referencia${counts.news === 1 ? "" : "s"} informativa${counts.news === 1 ? "" : "s"}` : null,
     ].filter((item): item is string => Boolean(item));
     const contextVerb = parts.length === 1 ? "ayuda" : "ayudan";

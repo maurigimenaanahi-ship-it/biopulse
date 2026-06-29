@@ -16,6 +16,7 @@ export type ObservationRelation =
 export type ObservationType =
   | "satellite_detection"
   | "satellite_layer"
+  | "fire_danger_forecast"
   | "camera_snapshot"
   | "weather_reading"
   | "news_report"

@@ -745,6 +745,8 @@ function observationTimelineTitle(observation: Observation) {
       return "Evidencia Guardian normalizada";
     case "satellite_detection":
       return "Evidencia satelital normalizada";
+    case "fire_danger_forecast":
+      return "Peligro de incendio GWIS normalizado";
     case "camera_snapshot":
       return "Evidencia de cámara normalizada";
     case "official_alert":
@@ -784,6 +786,8 @@ function observationTypeLabel(observation: Observation) {
       return "Satélite";
     case "satellite_layer":
       return "Capa satelital";
+    case "fire_danger_forecast":
+      return "Riesgo GWIS";
     case "camera_snapshot":
       return "Cámara";
     case "weather_reading":
@@ -3124,6 +3128,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ...splitNews.regional.map((item) => ({ item, classification: "regional_report" as const })),
     ],
     weather,
+    gwisFireDanger,
     cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
     fireHistory,
     ecosystemContext,
@@ -3146,6 +3151,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   );
   const normalizedWeatherObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "weather_reading"
+  );
+  const normalizedFireDangerObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "fire_danger_forecast"
   );
   const normalizedCameraObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "camera_snapshot"
@@ -3656,6 +3664,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   });
 
+  normalizedFireDangerObservations.forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `fire-danger-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
   normalizedCameraObservations.slice(0, 3).forEach((observation) => {
     const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
     if (!date) return;
@@ -3718,6 +3738,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : null,
     eventObservationBundle.sourceCounts.weather > 0
       ? "El clima se conserva como contexto operacional; no se usa como confirmación causal del evento."
+      : null,
+    eventObservationBundle.sourceCounts.fireDanger > 0
+      ? "GWIS se conserva como peligro meteorologico de incendio: orienta la lectura de riesgo, pero no es una alerta oficial."
       : null,
     satelliteDetections != null
       ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`
@@ -6795,7 +6818,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </span>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
+                    <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
                       <div className="rounded-xl border border-cyan-300/10 bg-cyan-400/[0.04] p-3">
                         <div className="text-[10px] uppercase tracking-wide text-white/35">Satélite</div>
                         <div className="mt-1 text-lg font-semibold text-white/85">
@@ -6824,6 +6847,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div className="text-[10px] uppercase tracking-wide text-white/35">Clima</div>
                         <div className="mt-1 text-lg font-semibold text-white/85">
                           {eventObservationBundle.sourceCounts.weather}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-orange-300/10 bg-orange-400/[0.04] p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Riesgo</div>
+                        <div className="mt-1 text-lg font-semibold text-white/85">
+                          {eventObservationBundle.sourceCounts.fireDanger}
                         </div>
                       </div>
                       <div className="rounded-xl border border-emerald-300/10 bg-emerald-400/[0.04] p-3">
