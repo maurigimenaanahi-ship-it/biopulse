@@ -21,6 +21,8 @@ import { humanContextsToObservations } from "@/app/lib/humanContextObservationAd
 import { buildNarrativeFragments } from "@/app/lib/narrativeFragments";
 import { newsItemsToObservations, type NewsObservationClassification } from "@/app/lib/newsObservationAdapter";
 import type { NewsItem } from "@/app/lib/newsTypes";
+import { officialAlertsToObservations } from "@/app/lib/officialAlertObservationAdapter";
+import type { OfficialAlertsResponse } from "@/app/lib/officialAlertTypes";
 import { weatherCurrentToObservation } from "@/app/lib/weatherObservationAdapter";
 import type { WeatherCurrent } from "@/app/lib/weatherTypes";
 import type { InferenceRecord, NarrativeFragment, Observation, ObservationType } from "@/app/lib/observations";
@@ -30,6 +32,7 @@ export type EventObservationSourceCounts = {
   guardian: number;
   news: number;
   officialReferences: number;
+  officialAlerts: number;
   weather: number;
   fireDanger: number;
   cameras: number;
@@ -57,6 +60,7 @@ export type BuildEventObservationsInput = {
   guardianMemory?: GuardianEventMemory | null;
   guardianObservations?: GuardianObservation[];
   newsItems?: Array<{ item: NewsItem; classification: NewsObservationClassification }>;
+  officialAlerts?: OfficialAlertsResponse | null;
   weather?: WeatherCurrent | null;
   gwisFireDanger?: GwisFireDangerResponse | null;
   cameras?: CameraObservationInput[];
@@ -132,6 +136,11 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     items: input.newsItems ?? [],
     normalizedAt: generatedAt,
   });
+  const officialAlertObservations = officialAlertsToObservations({
+    event: input.event,
+    response: input.officialAlerts ?? null,
+    normalizedAt: generatedAt,
+  });
   const weatherObservation = weatherCurrentToObservation({
     event: input.event,
     weather: input.weather ?? null,
@@ -180,6 +189,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     ...gwisFireDangerObservations,
     ...cameraObservations,
     ...newsObservations,
+    ...officialAlertObservations,
     ...environmentalObservations,
     ...humanContextObservations,
     ...guardianObservations,
@@ -203,6 +213,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
       guardian: guardianObservations.length,
       news: newsObservations.filter((observation) => observation.type === "news_report").length,
       officialReferences: newsObservations.filter((observation) => observation.type === "official_reference").length,
+      officialAlerts: officialAlertObservations.length,
       weather: weatherObservations.length,
       fireDanger: gwisFireDangerObservations.length,
       cameras: cameraObservations.length,

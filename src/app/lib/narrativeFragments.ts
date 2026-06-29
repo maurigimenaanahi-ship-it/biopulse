@@ -122,6 +122,7 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
       "fire_danger_forecast",
       "news_report",
       "official_reference",
+      "official_alert",
     ].includes(observation.type)
   );
 
@@ -133,12 +134,16 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
       news: contextObservations.filter(
         (observation) => observation.type === "news_report" || observation.type === "official_reference"
       ).length,
+      officialAlerts: contextObservations.filter((observation) => observation.type === "official_alert").length,
     };
     const parts = [
       counts.cameras ? `${counts.cameras} referencia${counts.cameras === 1 ? "" : "s"} visual${counts.cameras === 1 ? "" : "es"}` : null,
       counts.weather ? "1 lectura meteorológica" : null,
       counts.fireDanger ? "1 lectura de peligro meteorologico de incendio" : null,
       counts.news ? `${counts.news} referencia${counts.news === 1 ? "" : "s"} informativa${counts.news === 1 ? "" : "s"}` : null,
+      counts.officialAlerts
+        ? `${counts.officialAlerts} referencia${counts.officialAlerts === 1 ? "" : "s"} internacional${counts.officialAlerts === 1 ? "" : "es"} GDACS`
+        : null,
     ].filter((item): item is string => Boolean(item));
     const contextVerb = parts.length === 1 ? "ayuda" : "ayudan";
 

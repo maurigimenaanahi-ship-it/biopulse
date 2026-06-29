@@ -35,6 +35,7 @@ import { buildEventObservations } from "@/app/lib/eventObservations";
 import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import type { GwisFireDangerResponse } from "@/app/lib/gwisTypes";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
+import type { OfficialAlertRecord, OfficialAlertsResponse } from "@/app/lib/officialAlertTypes";
 import type { WeatherCurrent, WeatherResponse } from "@/app/lib/weatherTypes";
 import {
   OFFICIAL_SOURCE_KIND_LABELS,
@@ -460,6 +461,33 @@ async function fetchGwisFireDanger(args: {
   return data as GwisFireDangerResponse;
 }
 
+async function fetchOfficialAlerts(args: {
+  lat: number;
+  lon: number;
+  category: string;
+  signal?: AbortSignal;
+}): Promise<OfficialAlertsResponse> {
+  const url =
+    `${apiUrl("/api/official-alerts")}?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}` +
+    `&category=${encodeURIComponent(args.category)}` +
+    `&radiusKm=250&days=180`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as OfficialAlertsResponse | { error?: string; message?: string } | null;
+
+  if (!res.ok) {
+    const message =
+      data && "error" in data && data.error
+        ? data.message
+          ? `${data.error}: ${data.message}`
+          : data.error
+        : `Alertas oficiales no disponibles (${res.status}).`;
+    throw new Error(message);
+  }
+
+  return data as OfficialAlertsResponse;
+}
+
 // ---------- UI helpers ----------
 function cn(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
@@ -701,6 +729,25 @@ function gwisDangerClassName(classCode: string | null | undefined) {
 
 function fmtGwisNumber(value: number | null | undefined, decimals = 1) {
   return value == null || !Number.isFinite(value) ? "No disponible" : value.toFixed(decimals);
+}
+
+function officialAlertLevelClass(alertLevel: string | null | undefined) {
+  const level = String(alertLevel ?? "").toLowerCase();
+  if (level.includes("red")) return "border-red-300/25 bg-red-500/10 text-red-100/90";
+  if (level.includes("orange")) return "border-orange-300/25 bg-orange-400/10 text-orange-100/90";
+  if (level.includes("green")) return "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85";
+  return "border-white/10 bg-white/[0.04] text-white/55";
+}
+
+function officialAlertWindowLabel(alert: OfficialAlertRecord) {
+  const from = alert.fromDate ? fmtNowishUTC(alert.fromDate) : null;
+  const to = alert.toDate ? fmtNowishUTC(alert.toDate) : null;
+  if (from && to) return `${from} a ${to}`;
+  return from ?? to ?? "fecha no disponible";
+}
+
+function officialAlertStatusLabel(alert: OfficialAlertRecord) {
+  return alert.status === "active" ? "Vigente en GDACS" : "Archivada en GDACS";
 }
 
 function guardianSourceLabel(source: GuardianObservation["sourceType"]) {
@@ -2069,6 +2116,58 @@ function WaterResourceSummary({
   );
 }
 
+function OfficialAlertCard({ alert, compact = false }: { alert: OfficialAlertRecord; compact?: boolean }) {
+  return (
+    <div className="rounded-xl border border-orange-300/15 bg-orange-400/[0.055] p-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                officialAlertLevelClass(alert.alertLevel)
+              )}
+            >
+              GDACS {alert.alertLevel}
+            </span>
+            <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] font-semibold text-white/55">
+              {officialAlertStatusLabel(alert)}
+            </span>
+          </div>
+          <div className="mt-2 text-sm font-semibold leading-snug text-white/90">{alert.title}</div>
+          <div className="mt-1 text-[11px] leading-relaxed text-white/45">
+            {alert.eventTypeLabel}
+            {alert.country ? ` / ${alert.country}` : ""}
+            {Number.isFinite(alert.distanceKm) ? ` / ${alert.distanceKm.toFixed(1)} km` : ""}
+          </div>
+          {!compact ? (
+            <div className="mt-2 text-xs leading-relaxed text-orange-50/62">
+              Ventana GDACS: {officialAlertWindowLabel(alert)}. Esta referencia internacional no es una orden local de
+              evacuacion.
+            </div>
+          ) : null}
+        </div>
+
+        {alert.reportUrl ? (
+          <a
+            href={alert.reportUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={cn(
+              "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-orange-200/15 bg-black/20 px-3 py-2",
+              "text-orange-50/80 transition-colors hover:bg-orange-300/10 hover:text-orange-50"
+            )}
+            title="Abrir reporte GDACS"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span className="text-xs font-medium">Abrir</span>
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const guardianObservationRef = useRef<HTMLDivElement | null>(null);
@@ -2084,6 +2183,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const accessRoutesAbortRef = useRef<AbortController | null>(null);
   const fireHistoryAbortRef = useRef<AbortController | null>(null);
   const gwisFireDangerAbortRef = useRef<AbortController | null>(null);
+  const officialAlertsAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [guardianStore, setGuardianStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
   const [guardianStorageErr, setGuardianStorageErr] = useState<string | null>(null);
@@ -2183,6 +2283,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [gwisFireDangerLoading, setGwisFireDangerLoading] = useState(false);
   const [gwisFireDangerErr, setGwisFireDangerErr] = useState<string | null>(null);
   const [gwisFireDanger, setGwisFireDanger] = useState<GwisFireDangerResponse | null>(null);
+
+  // ====== OFFICIAL / HUMANITARIAN ALERTS state ======
+  const [officialAlertsLoading, setOfficialAlertsLoading] = useState(false);
+  const [officialAlertsErr, setOfficialAlertsErr] = useState<string | null>(null);
+  const [officialAlerts, setOfficialAlerts] = useState<OfficialAlertsResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -2552,6 +2657,35 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadOfficialAlerts = async () => {
+    if (!event) return;
+
+    officialAlertsAbortRef.current?.abort();
+    const controller = new AbortController();
+    officialAlertsAbortRef.current = controller;
+
+    setOfficialAlertsLoading(true);
+    setOfficialAlertsErr(null);
+    setOfficialAlerts(null);
+
+    try {
+      const response = await fetchOfficialAlerts({
+        lat: event.latitude,
+        lon: event.longitude,
+        category: event.category,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setOfficialAlerts(response);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setOfficialAlerts(null);
+      setOfficialAlertsErr(e?.message ? String(e.message) : "No se pudo consultar GDACS.");
+    } finally {
+      if (!controller.signal.aborted) setOfficialAlertsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -2568,6 +2702,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadWaterContext();
     loadFireHistory();
     loadGwisFireDanger();
+    loadOfficialAlerts();
 
     return () => {
       newsAbortRef.current?.abort();
@@ -2582,6 +2717,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       waterContextAbortRef.current?.abort();
       fireHistoryAbortRef.current?.abort();
       gwisFireDangerAbortRef.current?.abort();
+      officialAlertsAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -2782,6 +2918,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const gwisFwiText = gwisCurrent?.fwi == null ? "FWI no disponible" : `FWI ${gwisCurrent.fwi.toFixed(1)}`;
   const gwisDateText = gwisCurrent?.date ? fmtNowishUTC(gwisCurrent.date) : "fecha no informada";
   const gwisDangerLabel = gwisCurrent?.classLabel ?? "Sin dato";
+  const officialAlertItems = Array.isArray(officialAlerts?.alerts) ? officialAlerts.alerts : [];
+  const activeOfficialAlertItems = officialAlertItems.filter((alert) => alert.status === "active");
+  const officialAlertsUnsupported = officialAlerts?.status === "unsupported_category";
   const eventEcosystems = Array.isArray(event.ecosystems)
     ? event.ecosystems.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
@@ -3127,6 +3266,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ...splitNews.official.map((item) => ({ item, classification: "official_reference" as const })),
       ...splitNews.regional.map((item) => ({ item, classification: "regional_report" as const })),
     ],
+    officialAlerts,
     weather,
     gwisFireDanger,
     cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
@@ -3148,6 +3288,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   );
   const normalizedNewsObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "news_report" || observation.type === "official_reference"
+  );
+  const normalizedOfficialAlertObservations = eventObservationBundle.observations.filter(
+    (observation) => observation.type === "official_alert"
   );
   const normalizedWeatherObservations = eventObservationBundle.observations.filter(
     (observation) => observation.type === "weather_reading"
@@ -3411,13 +3554,33 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       id: "official-alerts",
       label: "Alertas oficiales",
       icon: <Siren className="h-4 w-4 text-orange-200/75" />,
-      state: splitNews.official.length > 0 ? "partial" : "not_connected",
+      state: officialAlertsLoading
+        ? "loading"
+        : officialAlertsErr
+        ? "limited"
+        : officialAlertItems.length > 0
+        ? "partial"
+        : officialAlerts
+        ? "empty"
+        : splitNews.official.length > 0
+        ? "partial"
+        : "not_connected",
       detail:
-        newsLoading
+        officialAlertsLoading
+          ? "Consultando GDACS / ERCC como referencia internacional estructurada."
+          : officialAlertsErr
+          ? "GDACS esta temporalmente limitado."
+          : officialAlertItems.length > 0
+          ? `${officialAlertItems.length} referencia${officialAlertItems.length === 1 ? "" : "s"} GDACS cercana${officialAlertItems.length === 1 ? "" : "s"} (${activeOfficialAlertItems.length} vigente${activeOfficialAlertItems.length === 1 ? "" : "s"}); no equivale a orden local.`
+          : officialAlertsUnsupported
+          ? "GDACS no cubre esta categoria en el MVP actual."
+          : officialAlerts
+          ? "GDACS consultado sin referencias internacionales cercanas para este evento."
+          : newsLoading
           ? "Clasificando referencias; el canal oficial estructurado sigue sin conectar."
           : splitNews.official.length > 0
-          ? `${splitNews.official.length} referencias clasificadas desde noticias; falta un canal oficial estructurado.`
-          : "Fuente oficial estructurada todavía no conectada.",
+          ? `${splitNews.official.length} referencias clasificadas desde noticias; falta fuente local/CAP estructurada.`
+          : "Canal local/CAP todavia no conectado.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => {
         setNewsView("official");
@@ -3526,9 +3689,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     official: {
       title: "Alertas oficiales",
       subtitle:
-        splitNews.official.length > 0
+        officialAlertItems.length > 0
+          ? `${officialAlertItems.length} referencias GDACS cercanas.`
+          : officialAlertsUnsupported
+          ? "GDACS no cubre esta categoria en el MVP actual."
+          : officialAlerts
+          ? "GDACS consultado sin referencias cercanas; falta fuente local/CAP."
+          : splitNews.official.length > 0
           ? `${splitNews.official.length} referencias clasificadas desde noticias.`
-          : "Canal oficial estructurado todav\u00eda no conectado.",
+          : "Canal local/CAP todavia no conectado.",
     },
     guardians: {
       title: "Guardianes",
@@ -3652,6 +3821,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     });
   });
 
+  normalizedOfficialAlertObservations.forEach((observation) => {
+    const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
+    if (!date) return;
+
+    timelineEntries.push({
+      id: `official-alert-${observation.id}`,
+      date,
+      title: observationTimelineTitle(observation),
+      detail: observationTimelineDetail(observation),
+    });
+  });
+
   normalizedWeatherObservations.forEach((observation) => {
     const date = toValidDate(observation.timestamp.observedAt) ?? toValidDate(observation.timestamp.recordedAt);
     if (!date) return;
@@ -3727,7 +3908,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           eventObservationBundle.sourceCounts.guardian
         } humanas Guardian, con ${eventObservationBundle.sourceCounts.news} referencias informativas y ${
           eventObservationBundle.sourceCounts.officialReferences
-        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.environmental} ambientales, ${
+        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.officialAlerts} referencias internacionales estructuradas, ${eventObservationBundle.sourceCounts.environmental} ambientales, ${
           eventObservationBundle.sourceCounts.humanContext
         } de contexto humano, ${eventObservationBundle.sourceCounts.cameras} cámaras cercanas y ${
           eventObservationBundle.sourceCounts.weather
@@ -3741,6 +3922,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : null,
     eventObservationBundle.sourceCounts.fireDanger > 0
       ? "GWIS se conserva como peligro meteorologico de incendio: orienta la lectura de riesgo, pero no es una alerta oficial."
+      : null,
+    eventObservationBundle.sourceCounts.officialAlerts > 0
+      ? "GDACS se conserva como referencia internacional estructurada: ayuda a contextualizar, pero no reemplaza una orden local."
       : null,
     satelliteDetections != null
       ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`
@@ -5809,7 +5993,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             <div className="min-w-0">
                               <div className="text-sm font-semibold text-white/90">Comunicados oficiales</div>
                               <div className="text-xs text-white/45 mt-0.5">
-                                Prioridad máxima. Activa alerta si menciona evacuación/alerta.
+                                Referencias estructuradas y comunicados; evacuacion local requiere fuente oficial local.
                               </div>
                             </div>
                             <button
@@ -5824,6 +6008,32 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <span className="text-xs font-medium">Ver más</span>
                               <ExternalLink className="h-4 w-4 opacity-70" />
                             </button>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {officialAlertsLoading ? (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/55">
+                                Consultando GDACS / ERCC...
+                              </div>
+                            ) : officialAlertsErr ? (
+                              <div className="rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-sm text-amber-50/65">
+                                Fuente GDACS temporalmente limitada: {officialAlertsErr}
+                              </div>
+                            ) : officialAlertItems.length > 0 ? (
+                              officialAlertItems.slice(0, 2).map((alert) => (
+                                <OfficialAlertCard key={alert.id} alert={alert} compact />
+                              ))
+                            ) : officialAlertsUnsupported ? (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
+                                GDACS no cubre esta categoria en el MVP actual. BioPulse necesita sumar fuentes locales o
+                                especificas para este tipo de evento.
+                              </div>
+                            ) : officialAlerts ? (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
+                                GDACS no devuelve referencias internacionales cercanas para este evento. Esto no confirma
+                                ausencia de peligro local.
+                              </div>
+                            ) : null}
                           </div>
 
                           <div className="mt-3 space-y-3">
@@ -6039,6 +6249,49 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       <div className="space-y-3">
                         <div className="text-[11px] uppercase tracking-wide text-white/45">
                           Sección: <span className="text-white/55 normal-case">Comunicados oficiales</span>
+                        </div>
+
+                        <div className="rounded-2xl border border-orange-300/15 bg-orange-400/[0.035] p-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div className="text-sm font-semibold text-orange-50/90">GDACS / ERCC</div>
+                              <div className="mt-1 text-xs leading-relaxed text-orange-50/55">
+                                Referencia internacional estructurada. BioPulse no la trata como orden local de
+                                evacuacion.
+                              </div>
+                            </div>
+                            <span className="self-start rounded-full border border-orange-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-orange-50/70">
+                              {officialAlertItems.length} cercanas / {activeOfficialAlertItems.length} vigentes
+                            </span>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {officialAlertsLoading ? (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/55">
+                                Consultando GDACS / ERCC...
+                              </div>
+                            ) : officialAlertsErr ? (
+                              <div className="rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-sm text-amber-50/65">
+                                Fuente GDACS temporalmente limitada: {officialAlertsErr}
+                              </div>
+                            ) : officialAlertItems.length > 0 ? (
+                              officialAlertItems.map((alert) => <OfficialAlertCard key={alert.id} alert={alert} />)
+                            ) : officialAlertsUnsupported ? (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
+                                GDACS no cubre esta categoria en el MVP actual. Para este tipo de evento BioPulse debe
+                                sumar una fuente oficial especifica.
+                              </div>
+                            ) : officialAlerts ? (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
+                                GDACS fue consultado y no devolvio referencias internacionales cercanas para este evento.
+                                Esto no confirma ausencia de peligro ni reemplaza fuentes locales.
+                              </div>
+                            ) : (
+                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/55">
+                                Fuente preparada para consultar referencias internacionales.
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {splitNews.official.length === 0 ? (
@@ -6834,7 +7087,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       <div className="rounded-xl border border-violet-300/10 bg-violet-400/[0.04] p-3">
                         <div className="text-[10px] uppercase tracking-wide text-white/35">Noticias</div>
                         <div className="mt-1 text-lg font-semibold text-white/85">
-                          {eventObservationBundle.sourceCounts.news + eventObservationBundle.sourceCounts.officialReferences}
+                          {eventObservationBundle.sourceCounts.news +
+                            eventObservationBundle.sourceCounts.officialReferences +
+                            eventObservationBundle.sourceCounts.officialAlerts}
                         </div>
                       </div>
                       <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
