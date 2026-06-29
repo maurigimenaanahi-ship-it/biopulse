@@ -33,8 +33,17 @@ import type {
 } from "@/app/lib/contextObservationTypes";
 import { buildEventObservations } from "@/app/lib/eventObservations";
 import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
+import type { GwisFireDangerResponse } from "@/app/lib/gwisTypes";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
 import type { WeatherCurrent, WeatherResponse } from "@/app/lib/weatherTypes";
+import {
+  OFFICIAL_SOURCE_KIND_LABELS,
+  OFFICIAL_SOURCE_REGISTRY,
+  OFFICIAL_SOURCE_STATUS_LABELS,
+  officialSourceRecordsByStatus,
+  type OfficialSourceKind,
+  type OfficialSourceStatus,
+} from "@/app/lib/officialSources";
 import {
   prepareGuardianEvent,
   completeGuardianPreparation,
@@ -427,6 +436,30 @@ async function fetchFireHistory(args: {
   return data as FireHistoryResponse;
 }
 
+async function fetchGwisFireDanger(args: {
+  lat: number;
+  lon: number;
+  signal?: AbortSignal;
+}): Promise<GwisFireDangerResponse> {
+  const url =
+    `${apiUrl("/api/gwis-fire-danger")}?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}&model=ecmwf&days=6`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as GwisFireDangerResponse | { error?: string; message?: string } | null;
+
+  if (!res.ok) {
+    const message =
+      data && "error" in data && data.error
+        ? data.message
+          ? `${data.error}: ${data.message}`
+          : data.error
+        : `GWIS no disponible (${res.status}).`;
+    throw new Error(message);
+  }
+
+  return data as GwisFireDangerResponse;
+}
+
 // ---------- UI helpers ----------
 function cn(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
@@ -524,6 +557,151 @@ const contextConnectionMeta: Record<ContextConnectionStatus, { label: string; cl
     dot: "bg-white/25",
   },
 };
+
+const officialSourceStatusMeta: Record<OfficialSourceStatus, { className: string; dot: string }> = {
+  connected: {
+    className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85",
+    dot: "bg-emerald-300",
+  },
+  partial: {
+    className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/85",
+    dot: "bg-cyan-300",
+  },
+  planned: {
+    className: "border-white/10 bg-white/[0.04] text-white/50",
+    dot: "bg-white/30",
+  },
+  local: {
+    className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85",
+    dot: "bg-emerald-300",
+  },
+};
+
+const officialSourcePreview = [
+  ...officialSourceRecordsByStatus("connected"),
+  ...officialSourceRecordsByStatus("partial"),
+  ...officialSourceRecordsByStatus("local"),
+  ...officialSourceRecordsByStatus("planned"),
+].slice(0, 6);
+
+function officialSourceIcon(kind: OfficialSourceKind) {
+  switch (kind) {
+    case "satellite_detection":
+    case "satellite_visual":
+      return <Satellite className="h-4 w-4 text-cyan-200/75" />;
+    case "weather":
+      return <CloudRain className="h-4 w-4 text-sky-200/75" />;
+    case "environmental_context":
+      return <Leaf className="h-4 w-4 text-emerald-200/70" />;
+    case "fire_risk":
+      return <Flame className="h-4 w-4 text-orange-200/75" />;
+    case "official_alert":
+      return <Siren className="h-4 w-4 text-orange-200/75" />;
+    case "humanitarian_coordination":
+      return <Activity className="h-4 w-4 text-violet-200/75" />;
+    case "guardian":
+      return <Users className="h-4 w-4 text-emerald-200/70" />;
+    default:
+      return <Activity className="h-4 w-4 text-white/60" />;
+  }
+}
+
+function OfficialSourceRegistryCard() {
+  return (
+    <div className="mt-3 rounded-xl border border-cyan-300/10 bg-cyan-400/[0.045] px-4 py-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="text-sm font-semibold text-white/80">Registro de fuentes BioPulse</div>
+          <div className="mt-1 max-w-3xl text-xs leading-relaxed text-white/45">
+            Fuentes oficiales, cientificas, abiertas y humanas separadas por rol. Una deteccion, una imagen,
+            una alerta oficial y una inferencia no significan lo mismo.
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-1.5">
+          {(["connected", "partial", "local", "planned"] as const).map((status) => {
+            const meta = officialSourceStatusMeta[status];
+            const count = officialSourceRecordsByStatus(status).length;
+            return (
+              <span
+                key={status}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  meta.className
+                )}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", meta.dot)} />
+                {OFFICIAL_SOURCE_STATUS_LABELS[status]}: {count}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+        {officialSourcePreview.map((source) => {
+          const meta = officialSourceStatusMeta[source.status];
+          return (
+            <a
+              key={source.id}
+              href={source.url}
+              target={source.url ? "_blank" : undefined}
+              rel={source.url ? "noreferrer" : undefined}
+              className={cn(
+                "min-w-0 rounded-xl border border-white/10 bg-black/20 p-3 text-left transition-colors",
+                source.url && "hover:border-cyan-200/20 hover:bg-white/[0.04]"
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  {officialSourceIcon(source.kind)}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-white/78">{source.name}</div>
+                    <div className="mt-0.5 truncate text-[11px] text-white/38">
+                      {OFFICIAL_SOURCE_KIND_LABELS[source.kind]}
+                    </div>
+                  </div>
+                </div>
+                <span className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5", meta.className)}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", meta.dot)} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wide">
+                    {OFFICIAL_SOURCE_STATUS_LABELS[source.status]}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-2 text-xs leading-relaxed text-white/42">{source.currentUse}</div>
+            </a>
+          );
+        })}
+      </div>
+      <div className="mt-3 text-[11px] leading-relaxed text-cyan-50/45">
+        BioPulse no declara verdad automaticamente: conserva senales, evidencia, procedencia e interpretaciones
+        separadas. El registro completo contiene {OFFICIAL_SOURCE_REGISTRY.length} fuentes iniciales para integrar en
+        fases.
+      </div>
+    </div>
+  );
+}
+
+function gwisDangerClassName(classCode: string | null | undefined) {
+  switch (classCode) {
+    case "low":
+      return "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85";
+    case "moderate":
+      return "border-lime-300/20 bg-lime-400/10 text-lime-100/85";
+    case "high":
+      return "border-amber-300/20 bg-amber-400/10 text-amber-100/85";
+    case "very_high":
+      return "border-orange-300/20 bg-orange-400/10 text-orange-100/85";
+    case "extreme":
+    case "very_extreme":
+      return "border-red-300/25 bg-red-500/10 text-red-100/90";
+    default:
+      return "border-white/10 bg-white/[0.04] text-white/55";
+  }
+}
+
+function fmtGwisNumber(value: number | null | undefined, decimals = 1) {
+  return value == null || !Number.isFinite(value) ? "No disponible" : value.toFixed(decimals);
+}
 
 function guardianSourceLabel(source: GuardianObservation["sourceType"]) {
   switch (source) {
@@ -1901,6 +2079,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const waterContextAbortRef = useRef<AbortController | null>(null);
   const accessRoutesAbortRef = useRef<AbortController | null>(null);
   const fireHistoryAbortRef = useRef<AbortController | null>(null);
+  const gwisFireDangerAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [guardianStore, setGuardianStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
   const [guardianStorageErr, setGuardianStorageErr] = useState<string | null>(null);
@@ -1995,6 +2174,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [fireHistoryLoading, setFireHistoryLoading] = useState(false);
   const [fireHistoryErr, setFireHistoryErr] = useState<string | null>(null);
   const [fireHistory, setFireHistory] = useState<FireHistoryResponse | null>(null);
+
+  // ====== GWIS FIRE DANGER state ======
+  const [gwisFireDangerLoading, setGwisFireDangerLoading] = useState(false);
+  const [gwisFireDangerErr, setGwisFireDangerErr] = useState<string | null>(null);
+  const [gwisFireDanger, setGwisFireDanger] = useState<GwisFireDangerResponse | null>(null);
 
   // ====== CAMERAS state ======
   const [camLoading, setCamLoading] = useState(false);
@@ -2330,6 +2514,40 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     }
   };
 
+  const loadGwisFireDanger = async () => {
+    if (!event || event.category !== "fire") {
+      gwisFireDangerAbortRef.current?.abort();
+      setGwisFireDangerLoading(false);
+      setGwisFireDangerErr(null);
+      setGwisFireDanger(null);
+      return;
+    }
+
+    gwisFireDangerAbortRef.current?.abort();
+    const controller = new AbortController();
+    gwisFireDangerAbortRef.current = controller;
+
+    setGwisFireDangerLoading(true);
+    setGwisFireDangerErr(null);
+    setGwisFireDanger(null);
+
+    try {
+      const danger = await fetchGwisFireDanger({
+        lat: event.latitude,
+        lon: event.longitude,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setGwisFireDanger(danger);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setGwisFireDanger(null);
+      setGwisFireDangerErr(e?.message ? String(e.message) : "No se pudo consultar peligro GWIS.");
+    } finally {
+      if (!controller.signal.aborted) setGwisFireDangerLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!event) return;
     setNewsView("main");
@@ -2345,6 +2563,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     loadAccessRoutes();
     loadWaterContext();
     loadFireHistory();
+    loadGwisFireDanger();
 
     return () => {
       newsAbortRef.current?.abort();
@@ -2358,6 +2577,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       accessRoutesAbortRef.current?.abort();
       waterContextAbortRef.current?.abort();
       fireHistoryAbortRef.current?.abort();
+      gwisFireDangerAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
@@ -2554,6 +2774,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     Number.isFinite(event.humidity) ? `Humedad: ${event.humidity!.toFixed(0)}%` : null,
     Number.isFinite(event.windSpeed) ? `Viento: ${event.windSpeed!.toFixed(0)} km/h` : null,
   ].filter((item): item is string => Boolean(item));
+  const gwisCurrent = gwisFireDanger?.current ?? null;
+  const gwisFwiText = gwisCurrent?.fwi == null ? "FWI no disponible" : `FWI ${gwisCurrent.fwi.toFixed(1)}`;
+  const gwisDateText = gwisCurrent?.date ? fmtNowishUTC(gwisCurrent.date) : "fecha no informada";
+  const gwisDangerLabel = gwisCurrent?.classLabel ?? "Sin dato";
   const eventEcosystems = Array.isArray(event.ecosystems)
     ? event.ecosystems.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
@@ -3112,6 +3336,33 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : "No hay condiciones disponibles.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("weather"),
+    },
+    {
+      id: "gwis-fire-danger",
+      label: "Riesgo GWIS",
+      icon: <Flame className="h-4 w-4 text-orange-200/75" />,
+      state:
+        event.category !== "fire"
+          ? "not_connected"
+          : gwisFireDangerLoading
+          ? "loading"
+          : gwisFireDangerErr
+          ? "limited"
+          : gwisFireDanger?.current
+          ? "available"
+          : "empty",
+      detail:
+        event.category !== "fire"
+          ? "Fuente prevista para eventos de incendio."
+          : gwisFireDangerLoading
+          ? "Consultando GWIS Fire Danger Forecast."
+          : gwisFireDangerErr
+          ? "GWIS no respondio para este evento."
+          : gwisFireDanger?.current
+          ? `${gwisDangerLabel} · ${gwisFwiText} · ${gwisDateText}`
+          : "Sin dato FWI disponible para esta coordenada.",
+      actionLabel: "Abrir secci\u00f3n",
+      onOpen: () => setActiveSection("operations"),
     },
     {
       id: "cameras",
@@ -3725,6 +3976,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     );
                   })}
                 </div>
+                <OfficialSourceRegistryCard />
                 <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[11px] leading-relaxed text-white/35">
                   Los estados indican disponibilidad de fuentes o capas de trabajo. Pendiente, sin resultados y limitada describen situaciones diferentes; ninguna confirma ausencia del fenómeno.
                 </div>
@@ -4147,6 +4399,79 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <span className="text-white/55 font-medium">Estado:</span>{" "}
                     <span className="font-semibold text-white/90">{statusLabel(event.status)}</span>
                   </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.035] p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
+                        <Flame className="h-4 w-4 text-orange-200/75" />
+                        Peligro meteorologico de incendio
+                      </div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        GWIS / Fire Weather Index estima condiciones favorables para fuego; no confirma incendio activo
+                        ni orden oficial.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={loadGwisFireDanger}
+                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      {gwisFireDangerLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                      Actualizar
+                    </button>
+                  </div>
+
+                  {gwisFireDangerErr ? (
+                    <div className="mt-3 rounded-lg border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100/80">
+                      GWIS temporalmente limitado: {gwisFireDangerErr}
+                    </div>
+                  ) : gwisFireDangerLoading && !gwisCurrent ? (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-white/45">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Consultando GWIS Fire Danger Forecast...
+                    </div>
+                  ) : gwisCurrent ? (
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+                      <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Clase FWI</div>
+                        <div className={cn("mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold", gwisDangerClassName(gwisCurrent.classCode))}>
+                          {gwisDangerLabel}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Indice</div>
+                        <div className="mt-2 text-sm font-semibold text-white/85">{gwisFwiText}</div>
+                      </div>
+                      <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Fecha modelo</div>
+                        <div className="mt-2 text-sm font-semibold text-white/75">{gwisDateText}</div>
+                      </div>
+                      <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="text-[10px] uppercase tracking-wide text-white/35">Anomalia / ranking</div>
+                        <div className="mt-2 text-sm font-semibold text-white/75">
+                          {fmtGwisNumber(gwisCurrent.anomaly)} / {fmtGwisNumber(gwisCurrent.ranking, 0)}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                      Sin dato GWIS disponible para esta coordenada.
+                    </div>
+                  )}
+
+                  {gwisFireDanger?.sourceUrl ? (
+                    <a
+                      href={gwisFireDanger.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-cyan-100/55 hover:text-cyan-100/80"
+                    >
+                      Fuente: {gwisFireDanger.attributionText}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
                 </div>
 
                 <div className="mt-3 text-[11px] text-white/35">
