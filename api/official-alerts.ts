@@ -55,6 +55,12 @@ const GDACS_TYPE_LABELS: Record<string, string> = {
   DR: "Drought",
 };
 
+const GDACS_REQUEST_HEADERS = {
+  Accept: "application/json",
+  "Accept-Language": "en-US,en;q=0.8",
+  "User-Agent": "BioPulse/1.0 (disaster observation prototype; https://biopulse-weld.vercel.app)",
+};
+
 function json(data: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(data, null, 2), {
     ...init,
@@ -255,7 +261,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   try {
     const response = await fetch(upstream.toString(), {
-      headers: { Accept: "application/json" },
+      headers: GDACS_REQUEST_HEADERS,
     });
 
     if (response.status === 204) {
