@@ -39,6 +39,7 @@ export type OfficialAlertsResponse = {
   count: number;
   upstreamCount?: number;
   upstreamStatus?: number;
+  fallback?: "gdacs_rss";
   attributionText: string;
   sourceUrl: string;
   apiSourceUrl?: string;

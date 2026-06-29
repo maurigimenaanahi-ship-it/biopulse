@@ -35,6 +35,7 @@ type GdacsPayload = {
 };
 
 const GDACS_SEARCH_URL = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/search";
+const GDACS_RSS_URL = "https://www.gdacs.org/xml/rss.xml";
 const DEFAULT_RADIUS_KM = 250;
 const DEFAULT_DAYS = 180;
 const MAX_RADIUS_KM = 2000;
@@ -90,6 +91,39 @@ function cleanText(value: unknown, max = 220): string | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const text = String(value).replace(/\s+/g, " ").trim();
   return text ? text.slice(0, max) : null;
+}
+
+function decodeXml(value: string) {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function tagValue(block: string, tag: string, max = 500): string | null {
+  const escaped = escapeRegExp(tag);
+  const match = block.match(new RegExp(`<${escaped}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escaped}>`, "i"));
+  if (!match?.[1]) return null;
+  return cleanText(decodeXml(match[1].replace(/<[^>]+>/g, " ")), max);
+}
+
+function tagAttribute(block: string, tag: string, attribute: string): string | null {
+  const escapedTag = escapeRegExp(tag);
+  const escapedAttribute = escapeRegExp(attribute);
+  const match = block.match(new RegExp(`<${escapedTag}\\b[^>]*\\s${escapedAttribute}=["']([^"']*)["'][^>]*>`, "i"));
+  return match?.[1] ? cleanText(decodeXml(match[1]), 160) : null;
+}
+
+function rssItems(xml: string) {
+  return xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? [];
 }
 
 function isoDay(date: Date) {
@@ -200,6 +234,114 @@ function normalizeFeature(args: {
   };
 }
 
+function normalizeRssItem(args: {
+  item: string;
+  eventlist: string;
+  queryLat: number;
+  queryLon: number;
+  radiusKm: number;
+  now: Date;
+}) {
+  const eventType = tagValue(args.item, "gdacs:eventtype", 12) ?? "unknown";
+  if (eventType !== args.eventlist) return null;
+
+  const lat = finiteNumber(tagValue(args.item, "geo:lat", 40));
+  const lon = finiteNumber(tagValue(args.item, "geo:long", 40));
+  if (lat === null || lon === null || !validCoordinate(lat, -90, 90) || !validCoordinate(lon, -180, 180)) {
+    return null;
+  }
+
+  const distanceKm = haversineKm(args.queryLat, args.queryLon, lat, lon);
+  if (distanceKm > args.radiusKm) return null;
+
+  const typeLabel = GDACS_TYPE_LABELS[eventType] ?? eventType;
+  const eventId = tagValue(args.item, "gdacs:eventid", 40) ?? "unknown";
+  const episodeId = tagValue(args.item, "gdacs:episodeid", 40) ?? "unknown";
+  const alertLevel = tagValue(args.item, "gdacs:alertlevel", 40) ?? "Unknown";
+  const country = tagValue(args.item, "gdacs:country", 120);
+  const fromDate = validIso(tagValue(args.item, "gdacs:fromdate", 80));
+  const toDate = validIso(tagValue(args.item, "gdacs:todate", 80));
+  const eventName = tagValue(args.item, "gdacs:eventname", 120);
+  const title = eventName || tagValue(args.item, "title", 180) || `${typeLabel} ${alertLevel}${country ? ` - ${country}` : ""}`;
+  const isCurrent = String(tagValue(args.item, "gdacs:iscurrent", 20) ?? "").toLowerCase() === "true";
+  const reportUrl = tagValue(args.item, "link", 500);
+  const capUrl = tagValue(args.item, "gdacs:cap", 500);
+
+  return {
+    id: `gdacs:${eventType}:${eventId}:${episodeId}`,
+    sourceId: "gdacs-ercc",
+    provider: "GDACS / ERCC",
+    eventType,
+    eventTypeLabel: typeLabel,
+    eventId,
+    episodeId,
+    title,
+    alertLevel,
+    country,
+    fromDate,
+    toDate,
+    status: isCurrent ? "active" : alertStatus(toDate, args.now),
+    lat,
+    lon,
+    distanceKm: Number(distanceKm.toFixed(1)),
+    severity: finiteNumber(tagAttribute(args.item, "gdacs:severity", "value")),
+    reportUrl,
+    detailsUrl: capUrl,
+    geometryUrl: null,
+    isLocalOfficialOrder: false,
+  };
+}
+
+async function fetchGdacsRssFallback(args: {
+  eventlist: string;
+  queryLat: number;
+  queryLon: number;
+  radiusKm: number;
+  now: Date;
+}) {
+  const response = await fetch(GDACS_RSS_URL, {
+    headers: {
+      ...GDACS_REQUEST_HEADERS,
+      Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    return {
+      ok: false as const,
+      status: response.status,
+      message: message.slice(0, 240),
+      alerts: [],
+      upstreamCount: 0,
+    };
+  }
+
+  const xml = await response.text();
+  const items = rssItems(xml);
+  const alerts = items
+    .map((item) =>
+      normalizeRssItem({
+        item,
+        eventlist: args.eventlist,
+        queryLat: args.queryLat,
+        queryLon: args.queryLon,
+        radiusKm: args.radiusKm,
+        now: args.now,
+      })
+    )
+    .filter((alert): alert is NonNullable<typeof alert> => Boolean(alert))
+    .sort((a, b) => a.distanceKm - b.distanceKm || (b.toDate ?? "").localeCompare(a.toDate ?? ""));
+
+  return {
+    ok: true as const,
+    status: response.status,
+    message: null,
+    alerts,
+    upstreamCount: items.length,
+  };
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -285,8 +427,46 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (!response.ok) {
       const message = await response.text().catch(() => "");
+
+      const fallback = await fetchGdacsRssFallback({
+        eventlist: GDACS_EVENTLIST_BY_CATEGORY[category],
+        queryLat: lat,
+        queryLon: lon,
+        radiusKm,
+        now,
+      });
+
+      if (fallback.ok) {
+        return json({
+          provider: "GDACS",
+          status: fallback.alerts.length > 0 ? "ok" : "no_nearby_alerts",
+          query: { lat, lon, radiusKm, days, category, eventlist: GDACS_EVENTLIST_BY_CATEGORY[category] },
+          alerts: fallback.alerts,
+          count: fallback.alerts.length,
+          upstreamCount: fallback.upstreamCount,
+          upstreamStatus: response.status,
+          fallback: "gdacs_rss",
+          attributionText: "Global Disaster Alert and Coordination System (GDACS)",
+          sourceUrl: "https://www.gdacs.org/",
+          apiSourceUrl: GDACS_RSS_URL,
+          limitations: [
+            "GDACS JSON API was unavailable to BioPulse, so this response uses the public GDACS RSS feed.",
+            "GDACS references are international disaster information and automated impact estimates, not local evacuation orders.",
+            "Distance filtering is performed by BioPulse from GDACS event coordinates and may miss polygons or local jurisdictions.",
+            "Use local civil protection, emergency services and official CAP/local channels for public safety decisions.",
+          ],
+          fetchedAt: now.toISOString(),
+        });
+      }
+
       return errorJson(
-        { error: "GDACS source temporarily unavailable", status: response.status, message: message.slice(0, 240) },
+        {
+          error: "GDACS source temporarily unavailable",
+          status: response.status,
+          message: message.slice(0, 240),
+          fallbackStatus: fallback.status,
+          fallbackMessage: fallback.message,
+        },
         502
       );
     }
