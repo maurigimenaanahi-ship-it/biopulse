@@ -142,7 +142,7 @@ export function buildNarrativeFragments(input: BuildNarrativeFragmentsInput): Na
       counts.fireDanger ? "1 lectura de peligro meteorologico de incendio" : null,
       counts.news ? `${counts.news} referencia${counts.news === 1 ? "" : "s"} informativa${counts.news === 1 ? "" : "s"}` : null,
       counts.officialAlerts
-        ? `${counts.officialAlerts} referencia${counts.officialAlerts === 1 ? "" : "s"} internacional${counts.officialAlerts === 1 ? "" : "es"} GDACS`
+        ? `${counts.officialAlerts} alerta${counts.officialAlerts === 1 ? "" : "s"} oficial${counts.officialAlerts === 1 ? "" : "es"} con procedencia`
         : null,
     ].filter((item): item is string => Boolean(item));
     const contextVerb = parts.length === 1 ? "ayuda" : "ayudan";

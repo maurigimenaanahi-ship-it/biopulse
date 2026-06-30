@@ -36,10 +36,13 @@ type GdacsPayload = {
 
 const GDACS_SEARCH_URL = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/search";
 const GDACS_RSS_URL = "https://www.gdacs.org/xml/rss.xml";
+const ALERT_HUB_ARGENTINA_RSS_URL = "https://cap-alerts.s3.amazonaws.com/country-ar-lang-en/rss.xml";
+const SMN_ALERTS_URL = "https://www.smn.gob.ar/alertas";
 const DEFAULT_RADIUS_KM = 250;
 const DEFAULT_DAYS = 180;
 const MAX_RADIUS_KM = 2000;
 const MAX_DAYS = 730;
+const MAX_CAP_ITEMS = 50;
 
 const GDACS_EVENTLIST_BY_CATEGORY: Record<SupportedCategory, string> = {
   fire: "WF",
@@ -60,6 +63,12 @@ const GDACS_REQUEST_HEADERS = {
   Accept: "application/json",
   "Accept-Language": "en-US,en;q=0.8",
   "User-Agent": "BioPulse/1.0 (disaster observation prototype; https://biopulse-weld.vercel.app)",
+};
+
+const CAP_REQUEST_HEADERS = {
+  Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+  "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
+  "User-Agent": "BioPulse/1.0 (official alert context; https://biopulse-weld.vercel.app)",
 };
 
 function json(data: unknown, init: ResponseInit = {}) {
@@ -96,6 +105,8 @@ function cleanText(value: unknown, max = 220): string | null {
 function decodeXml(value: string) {
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number.parseInt(code, 10)))
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -113,6 +124,14 @@ function tagValue(block: string, tag: string, max = 500): string | null {
   const match = block.match(new RegExp(`<${escaped}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escaped}>`, "i"));
   if (!match?.[1]) return null;
   return cleanText(decodeXml(match[1].replace(/<[^>]+>/g, " ")), max);
+}
+
+function tagValues(block: string, tag: string, max = 500): string[] {
+  const escaped = escapeRegExp(tag);
+  const matches = block.matchAll(new RegExp(`<${escaped}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escaped}>`, "gi"));
+  return Array.from(matches)
+    .map((match) => (match[1] ? cleanText(decodeXml(match[1].replace(/<[^>]+>/g, " ")), max) : null))
+    .filter((value): value is string => Boolean(value));
 }
 
 function tagAttribute(block: string, tag: string, attribute: string): string | null {
@@ -154,6 +173,103 @@ function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number) {
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+type CapPoint = {
+  lat: number;
+  lon: number;
+};
+
+type CapCandidate = {
+  item: string;
+  link: string;
+  preservationCopy: string | null;
+  alertId: string | null;
+  publishedAt: string | null;
+};
+
+function parseCapPoint(value: string): CapPoint | null {
+  const [latText, lonText] = value.split(",").map((part) => part.trim());
+  const lat = finiteNumber(latText);
+  const lon = finiteNumber(lonText);
+  if (lat === null || lon === null || !validCoordinate(lat, -90, 90) || !validCoordinate(lon, -180, 180)) {
+    return null;
+  }
+  return { lat, lon };
+}
+
+function parseCapPolygon(value: string | null): CapPoint[] {
+  if (!value) return [];
+  return value
+    .split(/\s+/)
+    .map(parseCapPoint)
+    .filter((point): point is CapPoint => Boolean(point));
+}
+
+function parseCapCircle(value: string | null): { center: CapPoint; radiusKm: number } | null {
+  if (!value) return null;
+  const [centerText, radiusText] = value.split(/\s+/);
+  const center = parseCapPoint(centerText);
+  const radiusKm = finiteNumber(radiusText);
+  if (!center || radiusKm === null || radiusKm < 0) return null;
+  return { center, radiusKm };
+}
+
+function pointInPolygon(point: CapPoint, polygon: CapPoint[]) {
+  if (polygon.length < 3) return false;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lon;
+    const yi = polygon[i].lat;
+    const xj = polygon[j].lon;
+    const yj = polygon[j].lat;
+    const intersects = yi > point.lat !== yj > point.lat && point.lon < ((xj - xi) * (point.lat - yi)) / (yj - yi) + xi;
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function centroid(points: CapPoint[]): CapPoint | null {
+  if (points.length === 0) return null;
+  const sum = points.reduce(
+    (acc, point) => {
+      acc.lat += point.lat;
+      acc.lon += point.lon;
+      return acc;
+    },
+    { lat: 0, lon: 0 }
+  );
+  return { lat: sum.lat / points.length, lon: sum.lon / points.length };
+}
+
+function distanceToPolygonKm(point: CapPoint, polygon: CapPoint[]) {
+  if (polygon.length === 0) return Number.POSITIVE_INFINITY;
+  if (pointInPolygon(point, polygon)) return 0;
+  return polygon.reduce(
+    (closest, vertex) => Math.min(closest, haversineKm(point.lat, point.lon, vertex.lat, vertex.lon)),
+    Number.POSITIVE_INFINITY
+  );
+}
+
+function severityScore(value: string | null) {
+  const severity = String(value ?? "").toLowerCase();
+  if (severity === "extreme") return 4;
+  if (severity === "severe") return 3;
+  if (severity === "moderate") return 2;
+  if (severity === "minor") return 1;
+  return null;
+}
+
+function sourceFeedFrom(item: string) {
+  return tagValue(item, "capcol:sourceFeed", 80);
+}
+
+function isWithinDays(value: string | null, now: Date, days: number) {
+  if (!value) return true;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return true;
+  const maxAgeMs = Math.max(1, days) * 24 * 60 * 60 * 1000;
+  return now.getTime() - date.getTime() <= maxAgeMs;
 }
 
 function categoryFrom(value: string | null): SupportedCategory | null {
@@ -342,6 +458,161 @@ async function fetchGdacsRssFallback(args: {
   };
 }
 
+async function normalizeCapCandidate(args: {
+  candidate: CapCandidate;
+  queryLat: number;
+  queryLon: number;
+  radiusKm: number;
+  now: Date;
+}) {
+  const capUrl = args.candidate.preservationCopy ?? args.candidate.link;
+  const response = await fetch(capUrl, { headers: CAP_REQUEST_HEADERS });
+  if (!response.ok) return null;
+
+  const xml = await response.text();
+  const status = tagValue(xml, "status", 40);
+  const scope = tagValue(xml, "scope", 40);
+  if (status !== "Actual" || scope !== "Public") return null;
+
+  const polygons = tagValues(xml, "polygon", 20000).map(parseCapPolygon).filter((polygon) => polygon.length >= 3);
+  const circles = tagValues(xml, "circle", 2000).map(parseCapCircle).filter((circle): circle is NonNullable<typeof circle> => Boolean(circle));
+  const eventPoint = { lat: args.queryLat, lon: args.queryLon };
+
+  const polygonDistances = polygons.map((polygon) => distanceToPolygonKm(eventPoint, polygon));
+  const circleDistances = circles.map((circle) =>
+    Math.max(0, haversineKm(eventPoint.lat, eventPoint.lon, circle.center.lat, circle.center.lon) - circle.radiusKm)
+  );
+  const distances = [...polygonDistances, ...circleDistances];
+  const distanceKm = distances.length > 0 ? Math.min(...distances) : Number.POSITIVE_INFINITY;
+  if (!Number.isFinite(distanceKm) || distanceKm > args.radiusKm) return null;
+
+  const representativePoint =
+    polygons.map(centroid).find((point): point is CapPoint => Boolean(point)) ?? circles[0]?.center ?? eventPoint;
+
+  const identifier = tagValue(xml, "identifier", 180) ?? args.candidate.alertId ?? args.candidate.link;
+  const sender = tagValue(xml, "sender", 120);
+  const sent = validIso(tagValue(xml, "sent", 80)) ?? args.candidate.publishedAt;
+  const msgType = tagValue(xml, "msgType", 40) ?? "Actual";
+  const eventType = tagValue(xml, "category", 40) ?? "Met";
+  const eventTypeLabel = tagValue(xml, "event", 120) ?? tagValue(args.candidate.item, "title", 180) ?? "Alerta oficial";
+  const alertLevel = tagValue(xml, "severity", 40) ?? "Unknown";
+  const urgency = tagValue(xml, "urgency", 40);
+  const certainty = tagValue(xml, "certainty", 40);
+  const fromDate = validIso(tagValue(xml, "onset", 80)) ?? sent;
+  const toDate = validIso(tagValue(xml, "expires", 80));
+  const senderName = tagValue(xml, "senderName", 160) ?? "Servicio Meteorologico Nacional";
+  const headline = tagValue(xml, "headline", 180);
+  const description = tagValue(xml, "description", 900);
+  const instruction = tagValue(xml, "instruction", 900);
+  const areaDesc = tagValue(xml, "areaDesc", 260);
+
+  return {
+    id: `cap-smn:${identifier}`,
+    sourceId: "smn-cap-alert-hub",
+    provider: "Servicio Meteorologico Nacional",
+    eventType,
+    eventTypeLabel,
+    eventId: identifier,
+    episodeId: args.candidate.alertId ?? msgType,
+    title: headline ?? eventTypeLabel,
+    alertLevel,
+    country: "Argentina",
+    fromDate,
+    toDate,
+    status: alertStatus(toDate, args.now),
+    lat: representativePoint.lat,
+    lon: representativePoint.lon,
+    distanceKm: Number(distanceKm.toFixed(1)),
+    severity: severityScore(alertLevel),
+    reportUrl: args.candidate.link,
+    detailsUrl: args.candidate.preservationCopy,
+    geometryUrl: null,
+    isLocalOfficialOrder: false,
+    senderName,
+    sender,
+    urgency,
+    certainty,
+    description,
+    instruction,
+    areaDesc,
+  };
+}
+
+async function fetchArgentinaCapAlerts(args: {
+  queryLat: number;
+  queryLon: number;
+  radiusKm: number;
+  days: number;
+  now: Date;
+}) {
+  const response = await fetch(ALERT_HUB_ARGENTINA_RSS_URL, { headers: CAP_REQUEST_HEADERS });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    return {
+      ok: false as const,
+      status: response.status,
+      message: message.slice(0, 240),
+      alerts: [],
+      upstreamCount: 0,
+      fetchedCapCount: 0,
+    };
+  }
+
+  const xml = await response.text();
+  const items = rssItems(xml);
+  const candidates: CapCandidate[] = items
+    .map((item) => {
+      const sourceFeed = sourceFeedFrom(item);
+      const link = tagValue(item, "link", 600);
+      if (!link) return null;
+      if (sourceFeed !== "ar-smn-es" && !link?.includes("smn.gob.ar")) return null;
+      const publishedAt = validIso(tagValue(item, "capcol:isoPubDate", 80) ?? tagValue(item, "pubDate", 80));
+      if (!isWithinDays(publishedAt, args.now, args.days)) return null;
+
+      return {
+        item,
+        link,
+        preservationCopy: tagValue(item, "capcol:preservationCopy", 600),
+        alertId: tagValue(item, "capcol:alertId", 120),
+        publishedAt,
+      };
+    })
+    .filter((candidate): candidate is CapCandidate => Boolean(candidate))
+    .slice(0, MAX_CAP_ITEMS);
+
+  const normalized = await Promise.all(
+    candidates.map((candidate) =>
+      normalizeCapCandidate({
+        candidate,
+        queryLat: args.queryLat,
+        queryLon: args.queryLon,
+        radiusKm: args.radiusKm,
+        now: args.now,
+      }).catch(() => null)
+    )
+  );
+
+  const seen = new Set<string>();
+  const alerts = normalized
+    .filter((alert): alert is NonNullable<typeof alert> => Boolean(alert))
+    .filter((alert) => {
+      if (seen.has(alert.id)) return false;
+      seen.add(alert.id);
+      return true;
+    })
+    .sort((a, b) => a.distanceKm - b.distanceKm || (b.fromDate ?? "").localeCompare(a.fromDate ?? ""));
+
+  return {
+    ok: true as const,
+    status: response.status,
+    message: null,
+    alerts,
+    upstreamCount: items.length,
+    fetchedCapCount: candidates.length,
+  };
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -389,6 +660,36 @@ export default async function handler(req: Request): Promise<Response> {
       limitations: [
         "This BioPulse MVP currently maps GDACS only for fire, flood and storm categories.",
         "GDACS references are international disaster information, not local evacuation orders.",
+      ],
+      fetchedAt: now.toISOString(),
+    });
+  }
+
+  const capAlerts = await fetchArgentinaCapAlerts({
+    queryLat: lat,
+    queryLon: lon,
+    radiusKm,
+    days,
+    now,
+  });
+
+  if (capAlerts.ok) {
+    return json({
+      provider: "Servicio Meteorologico Nacional",
+      status: capAlerts.alerts.length > 0 ? "ok" : "no_nearby_alerts",
+      query: { lat, lon, radiusKm, days, category, eventlist: "country-ar-lang-en" },
+      alerts: capAlerts.alerts,
+      count: capAlerts.alerts.length,
+      upstreamCount: capAlerts.upstreamCount,
+      fetchedCapCount: capAlerts.fetchedCapCount,
+      attributionText: "Servicio Meteorologico Nacional, via Alert-Hub",
+      sourceUrl: SMN_ALERTS_URL,
+      apiSourceUrl: ALERT_HUB_ARGENTINA_RSS_URL,
+      limitations: [
+        "BioPulse consulta el canal publico nacional de alertas de Argentina agregado por Alert-Hub y normaliza items del Servicio Meteorologico Nacional.",
+        "Estas alertas meteorologicas oficiales pueden aportar contexto de riesgo, pero no equivalen por si mismas a una orden local de evacuacion.",
+        "El filtrado geografico se realiza con areas oficiales cuando estan disponibles; la distancia a esas areas es aproximada en este MVP.",
+        "Usar defensa civil, bomberos, autoridades locales y canales oficiales jurisdiccionales para decisiones de seguridad.",
       ],
       fetchedAt: now.toISOString(),
     });

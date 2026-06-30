@@ -540,7 +540,7 @@ const sourceCoverageMeta: Record<SourceCoverageState, { label: string; className
     dot: "bg-amber-300",
   },
   not_connected: {
-    label: "Pendiente",
+    label: "Preparado",
     className: "border-white/10 bg-white/[0.03] text-white/45",
     dot: "bg-white/25",
   },
@@ -580,7 +580,7 @@ const contextConnectionMeta: Record<ContextConnectionStatus, { label: string; cl
     dot: "bg-violet-300/70",
   },
   pending: {
-    label: "Pendiente",
+    label: "Esperando dato",
     className: "border-white/10 bg-white/[0.03] text-white/45",
     dot: "bg-white/25",
   },
@@ -733,6 +733,8 @@ function fmtGwisNumber(value: number | null | undefined, decimals = 1) {
 
 function officialAlertLevelClass(alertLevel: string | null | undefined) {
   const level = String(alertLevel ?? "").toLowerCase();
+  if (level.includes("extreme") || level.includes("severe")) return "border-red-300/25 bg-red-500/10 text-red-100/90";
+  if (level.includes("moderate") || level.includes("minor")) return "border-orange-300/25 bg-orange-400/10 text-orange-100/90";
   if (level.includes("red")) return "border-red-300/25 bg-red-500/10 text-red-100/90";
   if (level.includes("orange")) return "border-orange-300/25 bg-orange-400/10 text-orange-100/90";
   if (level.includes("green")) return "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/85";
@@ -747,7 +749,35 @@ function officialAlertWindowLabel(alert: OfficialAlertRecord) {
 }
 
 function officialAlertStatusLabel(alert: OfficialAlertRecord) {
-  return alert.status === "active" ? "Vigente en GDACS" : "Archivada en GDACS";
+  return alert.status === "active" ? "Vigente" : "Archivada";
+}
+
+function officialAlertProviderLabel(alert: OfficialAlertRecord) {
+  if (alert.sourceId === "smn-cap-alert-hub") return "Servicio Meteorologico Nacional";
+  if (alert.sourceId === "gdacs-ercc") return "Referencia internacional";
+  return alert.provider;
+}
+
+function officialAlertLevelLabel(alertLevel: string | null | undefined) {
+  const level = String(alertLevel ?? "").toLowerCase();
+  if (level.includes("extreme")) return "Extrema";
+  if (level.includes("severe")) return "Severa";
+  if (level.includes("moderate")) return "Moderada";
+  if (level.includes("minor")) return "Baja";
+  if (level.includes("red")) return "Roja";
+  if (level.includes("orange")) return "Naranja";
+  if (level.includes("green")) return "Verde";
+  return alertLevel ? String(alertLevel) : "Nivel no informado";
+}
+
+function officialAlertProvenanceNote(alert: OfficialAlertRecord) {
+  if (alert.sourceId === "smn-cap-alert-hub") {
+    return "Publicada por el Servicio Meteorologico Nacional y recibida por BioPulse desde un canal publico estandarizado.";
+  }
+  if (alert.sourceId === "gdacs-ercc") {
+    return "Fuente global de coordinacion de desastres. Sirve como contexto internacional y no reemplaza autoridades locales.";
+  }
+  return "Fuente oficial. BioPulse conserva procedencia y vigencia por separado.";
 }
 
 function guardianSourceLabel(source: GuardianObservation["sourceType"]) {
@@ -2123,12 +2153,17 @@ function OfficialAlertCard({ alert, compact = false }: { alert: OfficialAlertRec
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span
+              className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] font-semibold text-white/68"
+            >
+              {officialAlertProviderLabel(alert)}
+            </span>
+            <span
               className={cn(
                 "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
                 officialAlertLevelClass(alert.alertLevel)
               )}
             >
-              GDACS {alert.alertLevel}
+              {officialAlertLevelLabel(alert.alertLevel)}
             </span>
             <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] font-semibold text-white/55">
               {officialAlertStatusLabel(alert)}
@@ -2140,11 +2175,24 @@ function OfficialAlertCard({ alert, compact = false }: { alert: OfficialAlertRec
             {alert.country ? ` / ${alert.country}` : ""}
             {Number.isFinite(alert.distanceKm) ? ` / ${alert.distanceKm.toFixed(1)} km` : ""}
           </div>
+          <div className="mt-1 text-[11px] leading-relaxed text-white/40">
+            {officialAlertProvenanceNote(alert)}
+          </div>
           {!compact ? (
-            <div className="mt-2 text-xs leading-relaxed text-orange-50/62">
-              Ventana GDACS: {officialAlertWindowLabel(alert)}. Esta referencia internacional no es una orden local de
-              evacuacion.
-            </div>
+            <>
+              <div className="mt-2 text-xs leading-relaxed text-orange-50/62">
+                Vigencia: {officialAlertWindowLabel(alert)}. BioPulse muestra esta alerta como contexto oficial, no como
+                orden local automatica.
+              </div>
+              {alert.description ? (
+                <div className="mt-2 text-xs leading-relaxed text-white/62">{alert.description}</div>
+              ) : null}
+              {alert.instruction ? (
+                <div className="mt-2 rounded-lg border border-orange-200/10 bg-black/20 p-2 text-xs leading-relaxed text-orange-50/68">
+                  {alert.instruction}
+                </div>
+              ) : null}
+            </>
           ) : null}
         </div>
 
@@ -2157,7 +2205,7 @@ function OfficialAlertCard({ alert, compact = false }: { alert: OfficialAlertRec
               "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-orange-200/15 bg-black/20 px-3 py-2",
               "text-orange-50/80 transition-colors hover:bg-orange-300/10 hover:text-orange-50"
             )}
-            title="Abrir reporte GDACS"
+            title="Abrir fuente oficial"
           >
             <ExternalLink className="h-4 w-4" />
             <span className="text-xs font-medium">Abrir</span>
@@ -2680,7 +2728,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     } catch (e: any) {
       if (isAbortError(e)) return;
       setOfficialAlerts(null);
-      setOfficialAlertsErr(e?.message ? String(e.message) : "No se pudo consultar GDACS.");
+      setOfficialAlertsErr(e?.message ? String(e.message) : "No se pudo consultar la fuente oficial.");
     } finally {
       if (!controller.signal.aborted) setOfficialAlertsLoading(false);
     }
@@ -2980,7 +3028,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "Evacuación recomendada informada en el evento"
       : event.evacuationLevel === "none"
       ? "El evento no registra una evacuación"
-      : "Estado de evacuación no conectado";
+      : "Estado de evacuación no informado por el evento";
   const hasHumanContext =
     event.evacuationLevel != null ||
     eventPopulation != null ||
@@ -3012,7 +3060,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando coberturas naturales y usos del suelo cercanos."
         : ecosystemContextErr
         ? "La fuente ambiental respondió con error o quedó temporalmente limitada."
-        : "Fuente preparada, pendiente de respuesta para este evento.",
+        : "Fuente preparada; esperando consulta para este evento.",
     },
     {
       label: "Áreas protegidas",
@@ -3031,7 +3079,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando la fuente cartográfica de áreas protegidas."
         : protectedContextErr
         ? "La fuente respondió con error o quedó temporalmente limitada."
-        : "Fuente preparada, pendiente de respuesta para este evento.",
+        : "Fuente preparada; esperando consulta para este evento.",
     },
     {
       label: "Recursos hídricos",
@@ -3050,7 +3098,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando recursos hídricos cercanos."
         : waterContextErr
         ? "La fuente hídrica respondió con error o quedó temporalmente limitada."
-        : "Fuente preparada, pendiente de respuesta para este evento.",
+        : "Fuente preparada; esperando consulta para este evento.",
     },
     {
       label: "Ecosistemas específicos",
@@ -3087,7 +3135,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando núcleos habitados cercanos."
         : nearbyCommunitiesErr
         ? "La fuente territorial respondió con error o quedó temporalmente limitada."
-        : "Fuente preparada, pendiente de respuesta para este evento.",
+        : "Fuente preparada; esperando consulta para este evento.",
     },
     {
       label: "Servicios críticos",
@@ -3106,7 +3154,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando hospitales, escuelas, bomberos y refugios cercanos."
         : criticalInfrastructureErr
         ? "La fuente de servicios críticos respondió con error o quedó temporalmente limitada."
-        : "Fuente preparada, pendiente de respuesta para este evento.",
+        : "Fuente preparada; esperando consulta para este evento.",
     },
     {
       label: "Población cercana registrada",
@@ -3125,7 +3173,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando población registrada en comunidades cercanas."
         : populationContextErr
         ? "La fuente poblacional respondió con error o quedó temporalmente limitada."
-        : "Fuente poblacional preparada, pendiente de respuesta para este evento.",
+        : "Fuente poblacional preparada; esperando consulta para este evento.",
     },
     {
       label: "Evacuación oficial",
@@ -3152,7 +3200,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Consultando rutas y accesos cartografiados cerca del evento."
         : accessRoutesErr
         ? "La fuente vial respondió con error o quedó temporalmente limitada."
-        : "Fuente vial preparada, pendiente de respuesta para este evento.",
+        : "Fuente vial preparada; esperando consulta para este evento.",
     },
     {
       label: "Superficie e inventario del evento",
@@ -3567,20 +3615,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : "not_connected",
       detail:
         officialAlertsLoading
-          ? "Consultando GDACS / ERCC como referencia internacional estructurada."
+          ? "Consultando alertas meteorologicas oficiales."
           : officialAlertsErr
-          ? "GDACS esta temporalmente limitado."
+          ? "La fuente oficial esta temporalmente limitada."
           : officialAlertItems.length > 0
-          ? `${officialAlertItems.length} referencia${officialAlertItems.length === 1 ? "" : "s"} GDACS cercana${officialAlertItems.length === 1 ? "" : "s"} (${activeOfficialAlertItems.length} vigente${activeOfficialAlertItems.length === 1 ? "" : "s"}); no equivale a orden local.`
+          ? `${officialAlertItems.length} alerta${officialAlertItems.length === 1 ? "" : "s"} oficial${officialAlertItems.length === 1 ? "" : "es"} cercana${officialAlertItems.length === 1 ? "" : "s"} (${activeOfficialAlertItems.length} vigente${activeOfficialAlertItems.length === 1 ? "" : "s"}); no equivale automaticamente a orden local.`
           : officialAlertsUnsupported
-          ? "GDACS no cubre esta categoria en el MVP actual."
+          ? "Todavia falta una fuente oficial para esta categoria en el MVP actual."
           : officialAlerts
-          ? "GDACS consultado sin referencias internacionales cercanas para este evento."
+          ? "Fuente meteorologica oficial consultada sin alertas cercanas para este evento."
           : newsLoading
-          ? "Clasificando referencias; el canal oficial estructurado sigue sin conectar."
+          ? "Clasificando referencias; falta un canal oficial local para esta zona."
           : splitNews.official.length > 0
-          ? `${splitNews.official.length} referencias clasificadas desde noticias; falta fuente local/CAP estructurada.`
-          : "Canal local/CAP todavia no conectado.",
+          ? `${splitNews.official.length} referencias clasificadas desde noticias; falta fuente oficial local directa.`
+          : "Fuente oficial preparada; esperando respuesta para este evento.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => {
         setNewsView("official");
@@ -3616,7 +3664,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? "Contexto ambiental temporalmente limitado."
         : ecosystemContext || protectedContext || waterContext
         ? "Contexto ambiental disponible con datos conectados y vac\u00edos expl\u00edcitos."
-        : "Contexto ambiental pendiente de respuesta.",
+        : "Contexto ambiental preparado; esperando datos del evento.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("protected"),
     },
@@ -3639,7 +3687,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           ? "Parte del contexto humano est\u00e1 temporalmente limitado."
         : criticalInfrastructure || nearbyCommunitiesContext || populationContext || accessRoutes
         ? "Infraestructura, comunidades, población cercana y accesos disponibles cuando hay fuente conectada."
-        : "Contexto humano pendiente de respuesta.",
+        : "Contexto humano preparado; esperando datos del evento.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("human"),
     },
@@ -3690,14 +3738,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       title: "Alertas oficiales",
       subtitle:
         officialAlertItems.length > 0
-          ? `${officialAlertItems.length} referencias GDACS cercanas.`
+          ? `${officialAlertItems.length} alertas oficiales cercanas.`
           : officialAlertsUnsupported
-          ? "GDACS no cubre esta categoria en el MVP actual."
+          ? "Todavia falta una fuente oficial para esta categoria."
           : officialAlerts
-          ? "GDACS consultado sin referencias cercanas; falta fuente local/CAP."
+          ? "Fuente meteorologica oficial consultada sin alertas cercanas."
           : splitNews.official.length > 0
           ? `${splitNews.official.length} referencias clasificadas desde noticias.`
-          : "Canal local/CAP todavia no conectado.",
+          : "Fuente oficial preparada; esperando respuesta del evento.",
     },
     guardians: {
       title: "Guardianes",
@@ -3908,7 +3956,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           eventObservationBundle.sourceCounts.guardian
         } humanas Guardian, con ${eventObservationBundle.sourceCounts.news} referencias informativas y ${
           eventObservationBundle.sourceCounts.officialReferences
-        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.officialAlerts} referencias internacionales estructuradas, ${eventObservationBundle.sourceCounts.environmental} ambientales, ${
+        } referencias de apariencia oficial, ${eventObservationBundle.sourceCounts.officialAlerts} alertas oficiales con procedencia, ${eventObservationBundle.sourceCounts.environmental} ambientales, ${
           eventObservationBundle.sourceCounts.humanContext
         } de contexto humano, ${eventObservationBundle.sourceCounts.cameras} cámaras cercanas y ${
           eventObservationBundle.sourceCounts.weather
@@ -3924,7 +3972,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "GWIS se conserva como peligro meteorologico de incendio: orienta la lectura de riesgo, pero no es una alerta oficial."
       : null,
     eventObservationBundle.sourceCounts.officialAlerts > 0
-      ? "GDACS se conserva como referencia internacional estructurada: ayuda a contextualizar, pero no reemplaza una orden local."
+      ? "Las alertas oficiales se conservan con evidencia de procedencia clara: ayudan a contextualizar, pero no se transforman automaticamente en una orden local."
       : null,
     satelliteDetections != null
       ? `BioPulse conserva ${satelliteDetections} ${satelliteDetections === 1 ? "detección instrumental" : "detecciones instrumentales"} para este evento.`
@@ -4185,7 +4233,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
                 <OfficialSourceRegistryCard />
                 <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[11px] leading-relaxed text-white/35">
-                  Los estados indican disponibilidad de fuentes o capas de trabajo. Pendiente, sin resultados y limitada describen situaciones diferentes; ninguna confirma ausencia del fenómeno.
+                  Los estados indican disponibilidad de fuentes o capas de trabajo. Preparado, sin resultados y limitada describen situaciones diferentes; ninguna confirma ausencia del fenómeno.
                 </div>
               </div>
             </SectionShell>
@@ -5595,7 +5643,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       </div>
                     ) : (
                       <div className="mt-1 text-xs leading-relaxed text-white/45">
-                        Fuente oficial estructurada pendiente para este estado.
+                        Fuente oficial pendiente para este estado.
                       </div>
                     )}
                   </div>
@@ -5993,7 +6041,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             <div className="min-w-0">
                               <div className="text-sm font-semibold text-white/90">Comunicados oficiales</div>
                               <div className="text-xs text-white/45 mt-0.5">
-                                Referencias estructuradas y comunicados; evacuacion local requiere fuente oficial local.
+                                Referencias oficiales y comunicados; evacuacion local requiere fuente oficial local.
                               </div>
                             </div>
                             <button
@@ -6013,11 +6061,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           <div className="mt-3 space-y-3">
                             {officialAlertsLoading ? (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/55">
-                                Consultando GDACS / ERCC...
+                                Consultando alertas meteorologicas oficiales...
                               </div>
                             ) : officialAlertsErr ? (
                               <div className="rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-sm text-amber-50/65">
-                                Fuente GDACS temporalmente limitada: {officialAlertsErr}
+                                Fuente oficial temporalmente limitada: {officialAlertsErr}
                               </div>
                             ) : officialAlertItems.length > 0 ? (
                               officialAlertItems.slice(0, 2).map((alert) => (
@@ -6025,13 +6073,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               ))
                             ) : officialAlertsUnsupported ? (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
-                                GDACS no cubre esta categoria en el MVP actual. BioPulse necesita sumar fuentes locales o
-                                especificas para este tipo de evento.
+                                Todavia falta una fuente oficial conectada para esta categoria. BioPulse necesita sumar
+                                fuentes locales o especificas para este tipo de evento.
                               </div>
                             ) : officialAlerts ? (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
-                                GDACS no devuelve referencias internacionales cercanas para este evento. Esto no confirma
-                                ausencia de peligro local.
+                                La fuente meteorologica oficial fue consultada y no devolvio alertas cercanas para este
+                                evento. Esto no confirma ausencia de peligro local.
                               </div>
                             ) : null}
                           </div>
@@ -6254,10 +6302,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div className="rounded-2xl border border-orange-300/15 bg-orange-400/[0.035] p-3">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <div className="text-sm font-semibold text-orange-50/90">GDACS / ERCC</div>
+                              <div className="text-sm font-semibold text-orange-50/90">
+                                Servicio Meteorologico Nacional
+                              </div>
                               <div className="mt-1 text-xs leading-relaxed text-orange-50/55">
-                                Referencia internacional estructurada. BioPulse no la trata como orden local de
-                                evacuacion.
+                                Fuente meteorologica oficial. BioPulse muestra sus alertas como contexto de riesgo, no
+                                como orden local automatica.
                               </div>
                             </div>
                             <span className="self-start rounded-full border border-orange-300/20 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-orange-50/70">
@@ -6268,27 +6318,27 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           <div className="mt-3 space-y-3">
                             {officialAlertsLoading ? (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/55">
-                                Consultando GDACS / ERCC...
+                                Consultando alertas meteorologicas oficiales...
                               </div>
                             ) : officialAlertsErr ? (
                               <div className="rounded-xl border border-amber-300/15 bg-amber-400/[0.055] p-3 text-sm text-amber-50/65">
-                                Fuente GDACS temporalmente limitada: {officialAlertsErr}
+                                Fuente oficial temporalmente limitada: {officialAlertsErr}
                               </div>
                             ) : officialAlertItems.length > 0 ? (
                               officialAlertItems.map((alert) => <OfficialAlertCard key={alert.id} alert={alert} />)
                             ) : officialAlertsUnsupported ? (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
-                                GDACS no cubre esta categoria en el MVP actual. Para este tipo de evento BioPulse debe
-                                sumar una fuente oficial especifica.
+                                Todavia falta una fuente oficial conectada para esta categoria. Para este tipo de evento
+                                BioPulse debe sumar una fuente oficial especifica.
                               </div>
                             ) : officialAlerts ? (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/55">
-                                GDACS fue consultado y no devolvio referencias internacionales cercanas para este evento.
-                                Esto no confirma ausencia de peligro ni reemplaza fuentes locales.
+                                La fuente meteorologica oficial fue consultada y no devolvio alertas cercanas para este
+                                evento. Esto no confirma ausencia de peligro ni reemplaza fuentes locales.
                               </div>
                             ) : (
                               <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/55">
-                                Fuente preparada para consultar referencias internacionales.
+                                Fuente preparada para consultar alertas oficiales.
                               </div>
                             )}
                           </div>

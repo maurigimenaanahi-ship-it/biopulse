@@ -74,15 +74,19 @@ export function officialAlertToObservation(args: {
   addMeasurement(measurements, "alertLevel", args.alert.alertLevel);
   addMeasurement(measurements, "country", args.alert.country);
   addMeasurement(measurements, "distanceKm", args.alert.distanceKm);
-  addMeasurement(measurements, "gdacsEventId", args.alert.eventId);
-  addMeasurement(measurements, "gdacsEpisodeId", args.alert.episodeId);
+  addMeasurement(measurements, "officialAlertEventId", args.alert.eventId);
+  addMeasurement(measurements, "officialAlertEpisodeId", args.alert.episodeId);
   addMeasurement(measurements, "isLocalOfficialOrder", args.alert.isLocalOfficialOrder);
   addMeasurement(measurements, "status", args.alert.status);
+  addMeasurement(measurements, "senderName", args.alert.senderName);
+  addMeasurement(measurements, "urgency", args.alert.urgency);
+  addMeasurement(measurements, "certainty", args.alert.certainty);
+  addMeasurement(measurements, "areaDesc", args.alert.areaDesc);
 
   const artifacts = [
-    args.alert.reportUrl ? { kind: "link" as const, url: args.alert.reportUrl, label: "Abrir reporte GDACS" } : null,
-    args.alert.detailsUrl ? { kind: "link" as const, url: args.alert.detailsUrl, label: "Abrir datos GDACS" } : null,
-    args.alert.geometryUrl ? { kind: "link" as const, url: args.alert.geometryUrl, label: "Abrir geometria GDACS" } : null,
+    args.alert.reportUrl ? { kind: "link" as const, url: args.alert.reportUrl, label: "Abrir fuente oficial" } : null,
+    args.alert.detailsUrl ? { kind: "link" as const, url: args.alert.detailsUrl, label: "Abrir copia preservada" } : null,
+    args.alert.geometryUrl ? { kind: "link" as const, url: args.alert.geometryUrl, label: "Abrir geometria" } : null,
   ].filter((artifact): artifact is NonNullable<typeof artifact> => Boolean(artifact));
 
   return {
@@ -101,7 +105,7 @@ export function officialAlertToObservation(args: {
     },
     source: {
       id: args.alert.sourceId,
-      name: "GDACS disaster reference",
+      name: args.alert.provider,
       provider: args.response.attributionText,
       url: args.alert.reportUrl ?? args.response.sourceUrl,
       attribution: args.response.attributionText,
@@ -118,7 +122,7 @@ export function officialAlertToObservation(args: {
       measurements,
       limitations: [
         ...args.response.limitations,
-        "BioPulse conserva esta referencia como informacion internacional estructurada; no como orden local de evacuacion.",
+        "BioPulse conserva esta alerta con fuente y procedencia; no debe presentarse automaticamente como orden local de evacuacion.",
       ],
     },
     raw: {
@@ -128,14 +132,13 @@ export function officialAlertToObservation(args: {
       normalizedAt,
     },
     confidence: {
-      level: "medium",
+      level: args.alert.sourceId === "smn-cap-alert-hub" ? "high" : "medium",
       basis: "official_source",
-      notes:
-        "Fuente internacional estructurada. La existencia del registro GDACS tiene procedencia clara, pero no reemplaza autoridad local ni confirma orden operativa.",
+      notes: "Fuente oficial con procedencia clara. BioPulse conserva la alerta sin convertirla automaticamente en decision operativa local.",
     },
     provenance: {
-      chain: ["gdacs", args.alert.eventType, ADAPTER_ID],
-      fetchedBy: "GDACS API",
+      chain: [args.alert.sourceId, args.alert.eventType, ADAPTER_ID],
+      fetchedBy: args.response.provider,
       transformedBy: ADAPTER_ID,
       attributionRequired: true,
     },
@@ -147,7 +150,7 @@ export function officialAlertToObservation(args: {
       eligible: true,
       role: "response",
       caution:
-        "Referencia GDACS internacional. No presentar como evacuacion local, decision gubernamental local ni confirmacion final de impacto.",
+        "Alerta oficial con procedencia clara. No presentar como evacuacion local, decision gubernamental local ni confirmacion final de impacto salvo que la fuente lo indique explicitamente.",
     },
   };
 }

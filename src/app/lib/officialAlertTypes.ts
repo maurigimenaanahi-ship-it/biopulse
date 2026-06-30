@@ -22,10 +22,17 @@ export type OfficialAlertRecord = {
   detailsUrl: string | null;
   geometryUrl: string | null;
   isLocalOfficialOrder: boolean;
+  senderName?: string | null;
+  sender?: string | null;
+  urgency?: string | null;
+  certainty?: string | null;
+  description?: string | null;
+  instruction?: string | null;
+  areaDesc?: string | null;
 };
 
 export type OfficialAlertsResponse = {
-  provider: "GDACS";
+  provider: "GDACS" | "Servicio Meteorologico Nacional";
   status: "ok" | "no_nearby_alerts" | "unsupported_category";
   query: {
     lat: number;
@@ -39,6 +46,7 @@ export type OfficialAlertsResponse = {
   count: number;
   upstreamCount?: number;
   upstreamStatus?: number;
+  fetchedCapCount?: number;
   fallback?: "gdacs_rss";
   attributionText: string;
   sourceUrl: string;
