@@ -56,11 +56,11 @@ function addMeasurement(target: Record<string, MeasurementValue>, key: string, v
 function summaryFor(event: EnvironmentalEvent, danger: GwisFireDangerResponse) {
   const current = danger.current;
   if (!current) {
-    return `GWIS no devolvio un valor FWI vigente cerca de ${event.location}.`;
+    return `La fuente de peligro meteorologico no devolvio un valor vigente cerca de ${event.location}.`;
   }
 
   const fwi = current.fwi == null ? "FWI no disponible" : `FWI ${current.fwi.toFixed(1)}`;
-  return `GWIS estima peligro meteorologico de incendio ${current.classLabel.toLowerCase()} cerca de ${event.location} (${fwi}).`;
+  return `La fuente de peligro meteorologico estima peligro de incendio ${current.classLabel.toLowerCase()} cerca de ${event.location} (${fwi}).`;
 }
 
 export function gwisFireDangerToObservation(args: {
@@ -102,11 +102,11 @@ export function gwisFireDangerToObservation(args: {
     origin: {
       kind: "automated",
       actorType: "provider",
-      displayName: "GWIS",
+      displayName: "Peligro meteorologico",
     },
     source: {
       id: "gwis-fire-danger",
-      name: "GWIS Fire Danger Forecast",
+      name: "Peligro meteorologico de incendio",
       provider: danger.attributionText,
       url: danger.sourceUrl,
       license: danger.licenseUrl,
@@ -120,7 +120,7 @@ export function gwisFireDangerToObservation(args: {
     location: locationForDanger(danger),
     evidence: {
       summary: summaryFor(args.event, danger),
-      artifacts: [{ kind: "link", url: danger.sourceUrl, label: "Abrir GWIS" }],
+      artifacts: undefined,
       measurements,
       limitations: danger.limitations,
     },
@@ -154,4 +154,3 @@ export function gwisFireDangerToObservation(args: {
     },
   };
 }
-

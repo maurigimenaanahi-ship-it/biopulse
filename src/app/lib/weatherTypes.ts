@@ -8,6 +8,8 @@ export type WeatherCurrent = {
 };
 
 export type WeatherResponse = {
+  provider?: string;
+  status?: "ok" | "no_data";
   latitude?: number;
   longitude?: number;
   current?: {
@@ -18,4 +20,7 @@ export type WeatherResponse = {
     wind_speed_10m?: number;
     wind_direction_10m?: number;
   };
+  attributionText?: string;
+  sourceUrl?: string;
+  fetchedAt?: string;
 };
