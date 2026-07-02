@@ -1315,6 +1315,25 @@ function isEvacuationRelevant(it: NewsItem) {
   return SIREN_KEYWORDS.some((k) => blob.includes(k));
 }
 
+function officialAlertMentionsEvacuation(alert: OfficialAlertRecord) {
+  if (alert.isLocalOfficialOrder) return true;
+  const blob = [
+    alert.title,
+    alert.eventTypeLabel,
+    alert.description,
+    alert.instruction,
+    alert.areaDesc,
+    alert.urgency,
+    alert.certainty,
+  ]
+    .map((value) => safeLower(value))
+    .join(" ")
+    .trim();
+
+  if (!blob) return false;
+  return SIREN_KEYWORDS.some((keyword) => blob.includes(keyword));
+}
+
 // ---------- Guardian climate insight (heurística) ----------
 type GuardianWeatherInsight = {
   headline: string;
@@ -2683,11 +2702,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       : event?.category === "air-pollution"
       ? "episodios de contaminación del aire"
       : "eventos ambientales similares";
-  const sirenActive = useMemo(() => {
-    if (event?.evacuationLevel === "mandatory") return true;
-    return splitNews.official.some((item) => domainIsOfficial(item.domain) && isEvacuationRelevant(item));
-  }, [event?.evacuationLevel, splitNews.official]);
-
   const guardianInsight = useMemo(() => {
     if (!event) {
       return {
@@ -2857,6 +2871,40 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const officialAlertItems = Array.isArray(officialAlerts?.alerts) ? officialAlerts.alerts : [];
   const activeOfficialAlertItems = officialAlertItems.filter((alert) => alert.status === "active");
   const officialAlertsUnsupported = officialAlerts?.status === "unsupported_category";
+  const officialEvacuationAlert =
+    activeOfficialAlertItems.find((alert) => officialAlertMentionsEvacuation(alert)) ?? null;
+  const eventHasEvacuationSignal =
+    event.evacuationLevel === "mandatory" || event.evacuationLevel === "recommended";
+  const officialEvacuationSignal = eventHasEvacuationSignal || Boolean(officialEvacuationAlert);
+  const officialEvacuationTone =
+    event.evacuationLevel === "mandatory" || officialEvacuationAlert?.isLocalOfficialOrder ? "mandatory" : "recommended";
+  const officialEvacuationTitle =
+    event.evacuationLevel === "mandatory"
+      ? "Evacuacion obligatoria"
+      : event.evacuationLevel === "recommended"
+      ? "Evacuacion recomendada"
+      : officialEvacuationAlert
+      ? "Alerta oficial con mencion de evacuacion"
+      : "Alerta oficial";
+  const officialEvacuationSource = officialEvacuationAlert
+    ? officialAlertProviderLabel(officialEvacuationAlert)
+    : "Estado informado por el evento";
+  const officialEvacuationDetail =
+    officialEvacuationAlert?.instruction?.trim() ||
+    officialEvacuationAlert?.description?.trim() ||
+    (eventHasEvacuationSignal
+      ? "El evento trae un estado de evacuacion. BioPulse lo muestra como prioridad, pero conserva por separado la fuente oficial cuando este disponible."
+      : "BioPulse conserva esta senal como prioridad operativa mientras separa fuente, evidencia e interpretacion.");
+  const officialEvacuationMeta =
+    officialEvacuationAlert != null
+      ? `Vigencia: ${officialAlertWindowLabel(officialEvacuationAlert)}`
+      : "Sin comunicado oficial enlazado en este evento";
+  const officialEvacuationActionLabel = officialEvacuationAlert ? "Ver alerta oficial" : "Ver fuentes oficiales";
+  const officialEvacuationBadge = officialEvacuationAlert ? "Prioridad oficial" : "Estado de evacuacion";
+  const officialEvacuationHeaderLabel = officialEvacuationAlert
+    ? "Alerta oficial detectada"
+    : "Estado de evacuacion detectado";
+  const sirenActive = officialEvacuationSignal;
   const eventEcosystems = Array.isArray(event.ecosystems)
     ? event.ecosystems.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];
@@ -3937,15 +3985,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
               {sirenActive ? (
                 <button
-                  onClick={() => setNewsView("official")}
+                  onClick={() => {
+                    setActiveSection("official");
+                    setNewsView("official");
+                  }}
                   className={cn(
                     "inline-flex items-center gap-2",
                     "px-3 py-2 rounded-2xl border border-red-400/30 bg-red-500/10",
                     "text-red-100/90 hover:text-white hover:bg-red-500/20 transition-colors",
                     "animate-pulse"
                   )}
-                  aria-label="Alerta oficial detectada"
-                  title="Alerta oficial detectada (ver comunicados)"
+                  aria-label={officialEvacuationHeaderLabel}
+                  title={officialEvacuationHeaderLabel}
                 >
                   <Siren className="h-4 w-4" />
                   <span className="text-sm font-semibold">ALERTA</span>
@@ -4024,6 +4075,77 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
             {activeSection === "main" ? (
               <>
+            {officialEvacuationSignal ? (
+              <div
+                className={cn(
+                  "relative overflow-hidden rounded-2xl border p-4",
+                  officialEvacuationTone === "mandatory"
+                    ? "border-red-300/35 bg-red-500/[0.12]"
+                    : "border-amber-300/30 bg-amber-400/[0.10]"
+                )}
+              >
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 top-0 h-px",
+                    officialEvacuationTone === "mandatory" ? "bg-red-200/45" : "bg-amber-200/35"
+                  )}
+                />
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <div
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
+                        officialEvacuationTone === "mandatory"
+                          ? "border-red-200/30 bg-red-500/15 text-red-100"
+                          : "border-amber-200/25 bg-amber-400/10 text-amber-100"
+                      )}
+                    >
+                      <Siren className="h-3.5 w-3.5" />
+                      {officialEvacuationBadge}
+                    </div>
+
+                    <div className="mt-3 text-lg font-semibold leading-snug text-white/95">
+                      {officialEvacuationTitle}
+                    </div>
+                    <div className="mt-2 max-w-3xl text-sm leading-relaxed text-white/72">
+                      {officialEvacuationDetail}
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/60">
+                      <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">
+                        Fuente: {officialEvacuationSource}
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">
+                        {officialEvacuationMeta}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 text-xs leading-relaxed text-white/48">
+                      Fuente, evidencia e interpretacion se conservan separadas; esta vista no reemplaza instrucciones de autoridades locales.
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSection("official");
+                      setNewsView("official");
+                    }}
+                    className={cn(
+                      "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors",
+                      officialEvacuationTone === "mandatory"
+                        ? "border-red-200/25 bg-red-500/15 text-red-50 hover:bg-red-500/25"
+                        : "border-amber-200/25 bg-amber-400/10 text-amber-50 hover:bg-amber-400/18"
+                    )}
+                    title={officialEvacuationActionLabel}
+                  >
+                    {officialEvacuationActionLabel}
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
               <div className="text-[11px] uppercase tracking-wide text-white/45">Qué está pasando</div>
               <div className="mt-2 text-sm leading-relaxed text-white/80">
