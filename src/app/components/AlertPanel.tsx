@@ -1536,6 +1536,64 @@ function CameraSnapshotPreview({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function resolveCameraVisual(
+  cam: LoadedCamera,
+  providerSnapshot: ProviderCameraSnapshot | null,
+  camRefreshTick: number
+) {
+  const title = cam.title ?? cam.id;
+  const locality = cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
+  const dist = `${cam.distanceKm.toFixed(1)} km`;
+  const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
+  const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
+  const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
+  const snapUrl = snapUrlRaw
+    ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
+    : isWindyProvider && providerSnapshot?.snapshotUrl
+    ? `${providerSnapshot.snapshotUrl}${providerSnapshot.snapshotUrl.includes("?") ? "&" : "?"}t=${camRefreshTick}`
+    : null;
+  const providerDetailUrl =
+    isWindyProvider && (cam.fetch as any)?.cameraKey
+      ? providerSnapshot?.detailUrl ?? `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
+      : null;
+  const openUrl = snapUrlRaw ?? providerDetailUrl;
+  const providerInfo =
+    cam.fetch?.kind === "provider_api"
+      ? `Provider: ${(cam.fetch as any).provider}`
+      : cam.providerId
+      ? `Provider: ${cam.providerId}`
+      : null;
+  const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
+  const snapshotState = snapUrl
+    ? "Snapshot disponible"
+    : isWindyProvider && providerSnapshot?.status === "loading"
+    ? "Consultando provider"
+    : openUrl
+    ? "Fuente externa"
+    : "Sin snapshot";
+  const snapshotStateClass = snapUrl
+    ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
+    : isWindyProvider && providerSnapshot?.status === "loading"
+    ? "border-white/10 bg-white/5 text-white/60"
+    : openUrl
+    ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75"
+    : "border-amber-300/20 bg-amber-400/10 text-amber-100/75";
+
+  return {
+    title,
+    locality,
+    dist,
+    isSnapshot,
+    isWindyProvider,
+    snapUrl,
+    openUrl,
+    providerInfo,
+    attribution,
+    snapshotState,
+    snapshotStateClass,
+  };
+}
+
 function VisualExposureGate({
   preference,
   onReveal,
@@ -3341,6 +3399,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const visualMediaAllowed =
     guardianPreparationComplete &&
     (guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent));
+  const primaryCamera = nearbyCameras[0] ?? null;
+  const primaryCameraVisual = primaryCamera
+    ? resolveCameraVisual(primaryCamera, providerSnapshots[primaryCamera.id] ?? null, camRefreshTick)
+    : null;
   const hasInstrumentalFireData =
     satelliteDetections != null ||
     satelliteFrpMax != null ||
@@ -4156,18 +4218,87 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 {event.description?.trim() || "BioPulse está monitoreando este evento y actualizará la información disponible."}
               </div>
 
-              {event.liveFeedUrl ? (
-                <a
-                  href={event.liveFeedUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-flex items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-400/15 transition-colors"
-                  title="Abrir observación FIRMS/NASA"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Abrir observación FIRMS / NASA
-                </a>
-              ) : null}
+              <div className="mt-4 rounded-2xl border border-cyan-200/15 bg-cyan-400/[0.045] p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-cyan-100/55">Cámaras en vivo</div>
+                    <div className="mt-1 text-sm leading-relaxed text-white/62">
+                      Vista rápida de la cámara más cercana. Entrá para ver todas las cámaras disponibles de la zona.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection("cameras")}
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-200/20 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-50/85 transition-colors hover:bg-cyan-400/15 hover:text-white"
+                  >
+                    Abrir cámaras
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {camLoading ? (
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-white/55">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Cargando cámaras cercanas...
+                  </div>
+                ) : primaryCamera && primaryCameraVisual ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection("cameras")}
+                    className="mt-3 flex w-full items-start gap-3 rounded-xl border border-white/10 bg-black/20 p-3 text-left transition-colors hover:border-cyan-200/25 hover:bg-white/[0.055]"
+                  >
+                    {visualMediaAllowed ? (
+                      <CameraThumb src={primaryCameraVisual.snapUrl ?? ""} alt={primaryCameraVisual.title} />
+                    ) : (
+                      <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 px-1 text-center">
+                        <ShieldCheck className="h-4 w-4 text-emerald-200/55" />
+                        <span className="text-[9px] leading-tight text-white/40">Vista oculta</span>
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-100/80">
+                        Cámara más cercana
+                      </div>
+                      <div className="mt-1 text-sm font-semibold leading-snug text-white/90 line-clamp-2">
+                        {primaryCameraVisual.title}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span
+                          className={cn(
+                            "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                            primaryCameraVisual.snapshotStateClass
+                          )}
+                        >
+                          {primaryCameraVisual.snapshotState}
+                        </span>
+                        {primaryCameraVisual.isWindyProvider ? (
+                          <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
+                            Windy API
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="mt-1 text-[11px] text-white/45">
+                        <span className="text-white/55">{primaryCameraVisual.dist}</span>
+                        {primaryCameraVisual.locality ? (
+                          <>
+                            <span className="mx-2 text-white/20">•</span>
+                            <span>{primaryCameraVisual.locality}</span>
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-100/45" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection("cameras")}
+                    className="mt-3 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-left text-sm text-white/52 transition-colors hover:border-cyan-200/20 hover:bg-white/[0.045]"
+                  >
+                    No hay cámaras dentro del radio actual. Abrí la sección para ampliar el radio o revisar el registro.
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Centro de comando */}
