@@ -3434,7 +3434,24 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     detail: string;
     actionLabel?: string;
     onOpen?: () => void;
+    emphasis?: "visual" | "official";
   }> = [
+    {
+      id: "cameras",
+      label: "Cámaras",
+      icon: <Camera className="h-4 w-4 text-white/75" />,
+      state: camLoading ? "loading" : camErr ? "limited" : camRegistry.length > 0 ? "available" : "empty",
+      detail: camLoading
+        ? "Cargando registro de cámaras."
+        : camErr
+        ? "El registro de cámaras no está disponible."
+        : camRegistry.length > 0
+        ? `${camRegistry.length} registradas · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
+        : "Registro cargado sin cámaras válidas.",
+      actionLabel: "Ver cámaras",
+      onOpen: () => setActiveSection("cameras"),
+      emphasis: "visual",
+    },
     {
       id: "firms",
       label: "Satélite / FIRMS",
@@ -3445,67 +3462,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : hasInstrumentalFireData
         ? `${satelliteDetections ?? "Sin conteo"} ${satelliteDetections === 1 ? "detección" : "detecciones"} · ${observationFreshness}`
         : "Evento disponible sin métricas instrumentales completas.",
-      actionLabel: "Abrir secci\u00f3n",
+      actionLabel: "Ver satélite",
       onOpen: () => setActiveSection("satellite"),
-    },
-    {
-      id: "operations",
-      label: "Estado operativo",
-      icon: <Activity className="h-4 w-4 text-yellow-200/75" />,
-      state: hasInstrumentalFireData ? "partial" : "empty",
-      detail: `${trend} · ${statusLabel(event.status)} · ${observationFreshness}`,
-      actionLabel: "Abrir secci\u00f3n",
-      onOpen: () => setActiveSection("operations"),
-    },
-    {
-      id: "weather",
-      label: "Clima",
-      icon: <CloudRain className="h-4 w-4 text-sky-200/75" />,
-      state: weatherLoading ? "loading" : weatherErr ? "limited" : weather ? "available" : "empty",
-      detail: weatherLoading
-        ? "Consultando clima actual."
-        : weatherErr
-        ? "La fuente climatica no respondio para este evento."
-        : weather
-        ? `Clima actual · ${weather.time ? fmtNowishUTC(weather.time) : "hora no informada"}`
-        : "No hay condiciones disponibles.",
-      actionLabel: "Abrir secci\u00f3n",
-      onOpen: () => setActiveSection("weather"),
-    },
-    {
-      id: "cameras",
-      label: "Cámaras",
-      icon: <Camera className="h-4 w-4 text-white/65" />,
-      state: camLoading ? "loading" : camErr ? "limited" : camRegistry.length > 0 ? "available" : "empty",
-      detail: camLoading
-        ? "Cargando registro de cámaras."
-        : camErr
-        ? "El registro de cámaras no está disponible."
-        : camRegistry.length > 0
-        ? `${camRegistry.length} registradas · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
-        : "Registro cargado sin cámaras válidas.",
-      actionLabel: "Abrir secci\u00f3n",
-      onOpen: () => setActiveSection("cameras"),
-    },
-    {
-      id: "news",
-      label: "Noticias",
-      icon: <Newspaper className="h-4 w-4 text-violet-200/75" />,
-      state: newsLoading ? "loading" : newsErr || newsLimited ? "limited" : newsMeta && newsItems.length === 0 ? "empty" : newsItems.length > 0 ? "available" : "loading",
-      detail: newsLoading
-        ? "Consultando noticias regionales."
-        : newsErr || newsLimited
-        ? "La fuente de noticias está temporalmente limitada."
-        : newsFilteredOut
-        ? `${newsDiscardedCount} resultados descartados por vínculo débil.`
-        : newsItems.length > 0
-        ? `${newsItems.length} referencias regionales recuperadas.`
-        : "La consulta terminó sin resultados útiles.",
-      actionLabel: "Abrir secci\u00f3n",
-      onOpen: () => {
-        setNewsView("main");
-        setActiveSection("news");
-      },
+      emphasis: "visual",
     },
     {
       id: "official-alerts",
@@ -3538,10 +3497,46 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
           : splitNews.official.length > 0
           ? `${splitNews.official.length} referencias clasificadas desde noticias; falta fuente oficial local directa.`
           : "Fuente oficial preparada; esperando respuesta para este evento.",
-      actionLabel: "Abrir secci\u00f3n",
+      actionLabel: "Ver oficiales",
       onOpen: () => {
         setNewsView("official");
         setActiveSection("official");
+      },
+      emphasis: "official",
+    },
+    {
+      id: "weather",
+      label: "Clima",
+      icon: <CloudRain className="h-4 w-4 text-sky-200/75" />,
+      state: weatherLoading ? "loading" : weatherErr ? "limited" : weather ? "available" : "empty",
+      detail: weatherLoading
+        ? "Consultando clima actual."
+        : weatherErr
+        ? "La fuente climatica no respondio para este evento."
+        : weather
+        ? `Clima actual · ${weather.time ? fmtNowishUTC(weather.time) : "hora no informada"}`
+        : "No hay condiciones disponibles.",
+      actionLabel: "Abrir sección",
+      onOpen: () => setActiveSection("weather"),
+    },
+    {
+      id: "news",
+      label: "Noticias",
+      icon: <Newspaper className="h-4 w-4 text-violet-200/75" />,
+      state: newsLoading ? "loading" : newsErr || newsLimited ? "limited" : newsMeta && newsItems.length === 0 ? "empty" : newsItems.length > 0 ? "available" : "loading",
+      detail: newsLoading
+        ? "Consultando noticias regionales."
+        : newsErr || newsLimited
+        ? "La fuente de noticias está temporalmente limitada."
+        : newsFilteredOut
+        ? `${newsDiscardedCount} resultados descartados por vínculo débil.`
+        : newsItems.length > 0
+        ? `${newsItems.length} referencias regionales recuperadas.`
+        : "La consulta terminó sin resultados útiles.",
+      actionLabel: "Abrir sección",
+      onOpen: () => {
+        setNewsView("main");
+        setActiveSection("news");
       },
     },
     {
@@ -3599,6 +3594,15 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : "Contexto humano preparado; esperando datos del evento.",
       actionLabel: "Abrir secci\u00f3n",
       onOpen: () => setActiveSection("human"),
+    },
+    {
+      id: "operations",
+      label: "Estado operativo",
+      icon: <Activity className="h-4 w-4 text-yellow-200/75" />,
+      state: hasInstrumentalFireData ? "partial" : "empty",
+      detail: `${trend} · ${statusLabel(event.status)} · ${observationFreshness}`,
+      actionLabel: "Abrir sección",
+      onOpen: () => setActiveSection("operations"),
     },
     {
       id: "insight",
@@ -4170,7 +4174,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             <SectionShell
               icon={<Activity className="h-5 w-5 text-cyan-200" />}
               title="Centro de comando"
-              subtitle="Entradas operativas del evento. Cada módulo conserva su estado de fuente sin saturar el resumen."
+              subtitle="Recorrido recomendado: observar visualmente, revisar fuentes oficiales y después entrar al contexto del evento."
               right={
                 <div className="hidden sm:inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-white/60">
                   <span className="text-xs font-semibold">{sourceCoverageItems.length} módulos</span>
@@ -4190,6 +4194,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         className={cn(
                           "group min-w-0 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-left",
                           "transition-colors",
+                          source.emphasis === "visual" && "border-cyan-200/20 bg-cyan-400/[0.055]",
+                          source.emphasis === "official" && "border-orange-200/20 bg-orange-400/[0.055]",
                           source.onOpen && "cursor-pointer hover:border-cyan-200/25 hover:bg-white/[0.065]"
                         )}
                       >
