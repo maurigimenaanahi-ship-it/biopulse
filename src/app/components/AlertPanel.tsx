@@ -1596,13 +1596,19 @@ function resolveCameraVisual(
 
 function VisualExposureGate({
   preference,
+  prepared,
   onReveal,
+  onPrepare,
 }: {
   preference: GuardianExposurePreference;
+  prepared: boolean;
   onReveal: () => void;
+  onPrepare: () => void;
 }) {
   const message =
-    preference === "data_only"
+    !prepared
+      ? "Antes de ver contenido visual, completá la preparación Guardian para definir tu nivel de exposición y límites de observación."
+      : preference === "data_only"
       ? "Contenido visual oculto por tu preferencia Solo datos."
       : preference === "hide_sensitive"
       ? "Contenido visual sin clasificación de sensibilidad. Se mantiene oculto."
@@ -1612,7 +1618,16 @@ function VisualExposureGate({
     <div className="rounded-xl border border-emerald-300/15 bg-emerald-400/[0.04] px-4 py-4 text-center">
       <ShieldCheck className="mx-auto h-5 w-5 text-emerald-200/65" />
       <div className="mt-2 text-sm text-white/65">{message}</div>
-      {preference === "ask_first" ? (
+      {!prepared ? (
+        <button
+          type="button"
+          onClick={onPrepare}
+          className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/15"
+        >
+          <ShieldCheck className="h-4 w-4" />
+          Prepararme antes de observar
+        </button>
+      ) : preference === "ask_first" ? (
         <button
           type="button"
           onClick={onReveal}
@@ -3399,6 +3414,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const visualMediaAllowed =
     guardianPreparationComplete &&
     (guardianExposure === "general_images" || (guardianExposure === "ask_first" && guardianVisualConsent));
+  const openCameraObservation = () => {
+    setActiveSection("cameras");
+    if (!guardianPreparationComplete) setGuardianPreparationOpen(true);
+  };
   const primaryCamera = nearbyCameras[0] ?? null;
   const primaryCameraVisual = primaryCamera
     ? resolveCameraVisual(primaryCamera, providerSnapshots[primaryCamera.id] ?? null, camRefreshTick)
@@ -3511,7 +3530,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         ? `${camRegistry.length} registradas · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
         : "Registro cargado sin cámaras válidas.",
       actionLabel: "Ver cámaras",
-      onOpen: () => setActiveSection("cameras"),
+      onOpen: openCameraObservation,
       emphasis: "visual",
     },
     {
@@ -4228,7 +4247,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setActiveSection("cameras")}
+                    onClick={openCameraObservation}
                     className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-200/20 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-50/85 transition-colors hover:bg-cyan-400/15 hover:text-white"
                   >
                     Abrir cámaras
@@ -4244,7 +4263,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 ) : primaryCamera && primaryCameraVisual ? (
                   <button
                     type="button"
-                    onClick={() => setActiveSection("cameras")}
+                    onClick={openCameraObservation}
                     className="mt-3 flex w-full items-start gap-3 rounded-xl border border-white/10 bg-black/20 p-3 text-left transition-colors hover:border-cyan-200/25 hover:bg-white/[0.055]"
                   >
                     {visualMediaAllowed ? (
@@ -4292,7 +4311,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setActiveSection("cameras")}
+                    onClick={openCameraObservation}
                     className="mt-3 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-left text-sm text-white/52 transition-colors hover:border-cyan-200/20 hover:bg-white/[0.045]"
                   >
                     No hay cámaras dentro del radio actual. Abrí la sección para ampliar el radio o revisar el registro.
@@ -4975,7 +4994,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     ) : event.satelliteImageUrl ? (
                       <VisualExposureGate
                         preference={guardianExposure}
+                        prepared={guardianPreparationComplete}
                         onReveal={() => setGuardianVisualConsent(true)}
+                        onPrepare={() => setGuardianPreparationOpen(true)}
                       />
                     ) : (
                       <div>
@@ -6130,7 +6151,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="mb-3">
                     <VisualExposureGate
                       preference={guardianExposure}
+                      prepared={guardianPreparationComplete}
                       onReveal={() => setGuardianVisualConsent(true)}
+                      onPrepare={() => setGuardianPreparationOpen(true)}
                     />
                   </div>
                 ) : null}
@@ -7027,7 +7050,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="mt-4">
                     <VisualExposureGate
                       preference={guardianExposure}
+                      prepared={guardianPreparationComplete}
                       onReveal={() => setGuardianVisualConsent(true)}
+                      onPrepare={() => setGuardianPreparationOpen(true)}
                     />
                   </div>
                 ) : null}

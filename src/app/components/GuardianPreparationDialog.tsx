@@ -84,7 +84,7 @@ export function GuardianPreparationDialog({
               Preparación Guardian
             </div>
             <div className="mt-1 text-xs leading-relaxed text-white/45">
-              Observar con propósito también implica cuidarte y reconocer los límites de tu rol.
+              Antes de observar un evento real, BioPulse te ayuda a entrar con propósito, cuidado y límites claros.
             </div>
           </div>
           <button
@@ -106,7 +106,7 @@ export function GuardianPreparationDialog({
                 Tu propósito
               </div>
               <div className="mt-2 text-xs leading-relaxed text-white/45">
-                Observar, documentar y preservar información con cuidado. No necesitás ser autoridad ni rescatista para aportar, pero nunca debés exponerte físicamente para hacerlo.
+                Un Guardián observa, documenta y preserva evidencia para cuidar. No necesitás ser autoridad ni rescatista para aportar, y nunca debés exponerte físicamente para hacerlo.
               </div>
             </div>
             <div className="border-l-2 border-amber-300/20 pl-4">
@@ -117,6 +117,35 @@ export function GuardianPreparationDialog({
               <div className="mt-2 text-xs leading-relaxed text-white/45">
                 Una catástrofe puede incluir imágenes o relatos difíciles. Podés detenerte, cerrar el evento o elegir trabajar únicamente con datos en cualquier momento.
               </div>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-emerald-300/15 bg-emerald-400/[0.04] p-4">
+            <div className="text-sm font-semibold text-emerald-50/90">Código Guardian</div>
+            <div className="mt-2 text-xs leading-relaxed text-white/50">
+              BioPulse no declara verdad automáticamente. Conserva señales, evidencia, procedencia e interpretaciones separadas para construir comprensión compartida sin borrar la incertidumbre.
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {[
+                "Describir solo lo observable.",
+                "Separar evidencia de interpretación.",
+                "No publicar rumores como hechos.",
+                "Proteger personas vulnerables.",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-[11px] leading-relaxed text-white/55"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-red-300/15 bg-red-500/[0.04] p-4">
+            <div className="text-sm font-semibold text-red-50/85">Límite de seguridad</div>
+            <div className="mt-2 text-xs leading-relaxed text-white/50">
+              No uses BioPulse para identificar, seguir, exponer o localizar personas. Si una cámara o evidencia muestra víctimas, menores, refugios o datos sensibles, tratala como información protegida.
             </div>
           </div>
 
@@ -155,7 +184,7 @@ export function GuardianPreparationDialog({
                 className="mt-0.5 h-4 w-4 accent-emerald-400"
               />
               <span className="text-xs leading-relaxed text-white/55">
-                Comprendo que puedo encontrar contenido difícil, que puedo detenerme cuando lo necesite y que BioPulse no reemplaza a servicios de emergencia ni autoridades oficiales.
+                Comprendo que puedo encontrar contenido difícil, que puedo detenerme cuando lo necesite, que BioPulse no reemplaza a servicios de emergencia ni autoridades oficiales, y que mi rol es observar para cuidar, no para exponer personas.
               </span>
             </label>
           </div>

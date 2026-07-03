@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link2, Save } from "lucide-react";
+import { AlertTriangle, Link2, Save, ShieldCheck } from "lucide-react";
 import {
   createGuardianObservation,
   type GuardianExposurePreference,
@@ -53,6 +53,11 @@ export function GuardianObservationForm({
   const [sensitivity, setSensitivity] = useState<GuardianSensitivity>("unknown");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const sensitiveTextPattern =
+    /\b(niñ[oa]s?|menor(?:es)?|persona(?:s)?|víctima(?:s)?|victima(?:s)?|herid[oa]s?|desaparecid[oa]s?|refugio|hospital|rostro|cara|nombre|dni|tel[eé]fono|direcci[oó]n|domicilio)\b/i;
+  const sensitiveHint = sensitiveTextPattern.test(
+    `${observedText} ${interpretation} ${sourceReference} ${limitations}`
+  );
 
   useEffect(() => {
     if (!draft) return;
@@ -101,6 +106,21 @@ export function GuardianObservationForm({
       <div className="mt-1 text-xs leading-relaxed text-white/40">
         Describí algo concreto. Las conclusiones pertenecen al campo de interpretación.
       </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {[
+          "Observación: lo visible o consultado.",
+          "Evidencia: fuente, enlace o referencia.",
+          "Interpretación: separada y opcional.",
+        ].map((item) => (
+          <div
+            key={item}
+            className="flex items-start gap-2 rounded-xl border border-emerald-300/10 bg-emerald-400/[0.035] px-3 py-2 text-[11px] leading-relaxed text-white/48"
+          >
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-200/55" />
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
       {missionId && missionTitle ? (
         <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.04] px-3 py-2 text-xs text-cyan-100/65">
           Misión activa: {missionTitle}
@@ -125,9 +145,12 @@ export function GuardianObservationForm({
           onChange={(event) => setObservedText(event.target.value)}
           rows={4}
           maxLength={4000}
-          placeholder="Descripción concreta de lo observado"
+          placeholder="Ej.: La cámara muestra una columna de humo gris. No se observan llamas desde este ángulo."
           className={fieldClass}
         />
+        <div className="mt-1.5 text-[11px] leading-relaxed text-white/32">
+          Evitá identificar personas o afirmar causas. Si no se ve con claridad, registrá esa limitación.
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -171,6 +194,9 @@ export function GuardianObservationForm({
           placeholder="URL, nombre del documento, cámara u otra referencia"
           className={fieldClass}
         />
+        <div className="mt-1.5 text-[11px] leading-relaxed text-white/32">
+          Esta referencia funciona como evidencia local. BioPulse no la convierte en confirmación oficial.
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -201,6 +227,16 @@ export function GuardianObservationForm({
         </label>
       </div>
 
+      {sensitiveHint && sensitivity !== "sensitive" ? (
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-300/20 bg-amber-400/[0.06] px-3 py-2.5 text-xs leading-relaxed text-amber-50/75">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-200/75" />
+          <span>
+            Tu texto parece mencionar personas, identidad, refugios o información sensible. Revisá si corresponde marcar
+            la observación como sensible o proteger la ubicación antes de guardar.
+          </span>
+        </div>
+      ) : null}
+
       <div className="mt-3">
         <label className="text-xs font-medium text-white/60" htmlFor={`guardian-interpretation-${eventId}`}>
           Interpretación opcional
@@ -211,9 +247,12 @@ export function GuardianObservationForm({
           onChange={(event) => setInterpretation(event.target.value)}
           rows={3}
           maxLength={4000}
-          placeholder="Qué podría significar, separado de lo observado"
+          placeholder="Ej.: Podría indicar viento hacia un sector, pero no conozco la orientación exacta de la cámara."
           className={fieldClass}
         />
+        <div className="mt-1.5 text-[11px] leading-relaxed text-white/32">
+          Usá lenguaje prudente: “podría”, “parece”, “no permite concluir”. No presentes inferencias como hechos.
+        </div>
       </div>
 
       <div className="mt-3">
@@ -226,7 +265,7 @@ export function GuardianObservationForm({
           onChange={(event) => setLimitations(event.target.value)}
           rows={2}
           maxLength={2000}
-          placeholder="Visibilidad, retraso, precisión u otras limitaciones"
+          placeholder="Visibilidad, retraso, orientación de cámara, precisión, fuente caída u otras limitaciones"
           className={fieldClass}
         />
       </div>

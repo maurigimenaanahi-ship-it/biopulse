@@ -1,7 +1,7 @@
 import type { EnvironmentalEvent, EventCategory, EventStatus, EventTrend, EvacuationLevel } from "@/data/events";
 
 export const GUARDIAN_STORAGE_KEY = "biopulse:guardian:local:v1";
-export const GUARDIAN_PREPARATION_VERSION = "biopulse.guardian.preparation.v1" as const;
+export const GUARDIAN_PREPARATION_VERSION = "biopulse.guardian.preparation.v2" as const;
 
 export type GuardianExposurePreference =
   | "data_only"
