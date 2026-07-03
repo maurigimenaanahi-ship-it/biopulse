@@ -6817,6 +6817,152 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 ) : null}
 
+                <div className="mb-4 overflow-hidden rounded-2xl border border-cyan-300/15 bg-cyan-400/[0.045]">
+                  <div className="border-b border-cyan-300/10 px-4 py-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wide text-cyan-100/55">Cámara principal</div>
+                        <div className="mt-1 text-sm font-semibold text-white/90">
+                          {primaryCameraVisual?.title ?? "Sin cámara cercana seleccionada"}
+                        </div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/45">
+                          La cámara más cercana funciona como primera conexión visual. La lectura completa vive en la
+                          lista de cámaras y en los registros Guardian.
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 flex-wrap gap-2">
+                        {primaryCameraVisual?.openUrl ? (
+                          <a
+                            href={primaryCameraVisual.openUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm font-semibold text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Fuente externa
+                          </a>
+                        ) : null}
+                        {guardianCanCaptureSource && primaryCamera ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              beginGuardianSourceObservation({
+                                label: primaryCameraVisual?.title ?? primaryCamera.title ?? primaryCamera.id,
+                                sourceType: "camera",
+                                sourceReference: primaryCameraVisual?.openUrl ?? `Cámara ${primaryCamera.id}`,
+                                observedAt: new Date().toISOString(),
+                                limitations:
+                                  "La referencia apunta a una cámara externa que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
+                              })
+                            }
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-100/85 transition-colors hover:bg-emerald-400/15 hover:text-emerald-50"
+                          >
+                            <ClipboardPlus className="h-4 w-4" />
+                            Registrar
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {camLoading ? (
+                    <div className="flex min-h-[260px] items-center justify-center gap-2 bg-black/20 text-sm text-white/55">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Cargando cámara principal...
+                    </div>
+                  ) : primaryCamera && primaryCameraVisual ? (
+                    <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.45fr_0.55fr]">
+                      <div className="min-h-[260px] bg-black/30">
+                        {visualMediaAllowed ? (
+                          primaryCameraVisual.snapUrl ? (
+                            <img
+                              src={primaryCameraVisual.snapUrl}
+                              alt={primaryCameraVisual.title}
+                              className="h-full max-h-[420px] min-h-[260px] w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex min-h-[260px] flex-col items-center justify-center gap-2 px-4 text-center">
+                              <ImageIcon className="h-7 w-7 text-white/35" />
+                              <div className="text-sm font-medium text-white/65">Snapshot no disponible</div>
+                              <div className="max-w-md text-xs leading-relaxed text-white/40">
+                                La cámara sigue disponible como fuente externa aunque BioPulse no pueda mostrar una
+                                captura directa en este momento.
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex min-h-[260px] flex-col items-center justify-center gap-2 px-4 text-center">
+                            <ShieldCheck className="h-7 w-7 text-emerald-200/55" />
+                            <div className="text-sm font-medium text-white/65">Vista visual oculta</div>
+                            <div className="max-w-md text-xs leading-relaxed text-white/40">
+                              BioPulse respeta tu preparación visual. Podés habilitar imágenes desde esta sección si
+                              querés observar snapshots.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="border-t border-white/10 p-4 lg:border-l lg:border-t-0">
+                        <div className="flex flex-wrap gap-2">
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                              primaryCameraVisual.snapshotStateClass
+                            )}
+                          >
+                            {primaryCameraVisual.snapshotState}
+                          </span>
+                          {primaryCameraVisual.isWindyProvider ? (
+                            <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
+                              Windy API
+                            </span>
+                          ) : primaryCameraVisual.isSnapshot ? (
+                            <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
+                              Imagen directa
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="mt-4 space-y-3 text-sm">
+                          <div>
+                            <div className="text-[11px] uppercase tracking-wide text-white/35">Distancia</div>
+                            <div className="mt-1 font-semibold text-white/85">{primaryCameraVisual.dist}</div>
+                          </div>
+                          {primaryCameraVisual.locality ? (
+                            <div>
+                              <div className="text-[11px] uppercase tracking-wide text-white/35">Zona</div>
+                              <div className="mt-1 text-white/70">{primaryCameraVisual.locality}</div>
+                            </div>
+                          ) : null}
+                          {primaryCamera.description ? (
+                            <div>
+                              <div className="text-[11px] uppercase tracking-wide text-white/35">Descripción</div>
+                              <div className="mt-1 leading-relaxed text-white/58">{primaryCamera.description}</div>
+                            </div>
+                          ) : null}
+                          <div className="text-[11px] leading-relaxed text-white/35">
+                            {primaryCameraVisual.providerInfo ? <span>{primaryCameraVisual.providerInfo}</span> : null}
+                            {primaryCameraVisual.providerInfo && primaryCameraVisual.attribution ? (
+                              <span className="mx-2 text-white/20">•</span>
+                            ) : null}
+                            {primaryCameraVisual.attribution ? <span>{primaryCameraVisual.attribution}</span> : null}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 px-4 text-center text-white/55">
+                      <Camera className="h-7 w-7 text-white/35" />
+                      <div className="text-sm font-medium">No hay cámara cercana en el radio actual</div>
+                      <div className="max-w-md text-xs leading-relaxed text-white/38">
+                        Probá ampliar el radio o sumar nuevas cámaras al registro cuando avancemos con expansión visual.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/40">Cámaras cercanas</div>
@@ -6911,52 +7057,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                   ) : (
                     nearbyCameras.map((cam, index) => {
-                      const title = cam.title ?? cam.id;
-                      const locality = cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
-                      const dist = `${cam.distanceKm.toFixed(1)} km`;
                       const isNearest = index === 0;
-
-                      const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
-                      const isWindyProvider =
-                        cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
                       const providerSnapshot = providerSnapshots[cam.id] ?? null;
-                      const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
-                      const snapUrl = snapUrlRaw
-                        ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
-                        : isWindyProvider && providerSnapshot?.snapshotUrl
-                        ? `${providerSnapshot.snapshotUrl}${
-                            providerSnapshot.snapshotUrl.includes("?") ? "&" : "?"
-                          }t=${camRefreshTick}`
-                        : null;
-                      const providerDetailUrl =
-                        isWindyProvider && (cam.fetch as any)?.cameraKey
-                          ? providerSnapshot?.detailUrl ?? `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
-                          : null;
-                      const openUrl = snapUrlRaw ?? providerDetailUrl;
-
-                      const providerInfo =
-                        cam.fetch?.kind === "provider_api"
-                          ? `Provider: ${(cam.fetch as any).provider}`
-                          : cam.providerId
-                          ? `Provider: ${cam.providerId}`
-                          : null;
-
-                      const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
-                      const snapshotState =
-                        snapUrl
-                          ? "Snapshot disponible"
-                          : isWindyProvider && providerSnapshot?.status === "loading"
-                          ? "Consultando provider"
-                          : openUrl
-                          ? "Fuente externa"
-                          : "Sin snapshot";
-                      const snapshotStateClass = snapUrl
-                        ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
-                        : isWindyProvider && providerSnapshot?.status === "loading"
-                        ? "border-white/10 bg-white/5 text-white/60"
-                        : openUrl
-                        ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75"
-                        : "border-amber-300/20 bg-amber-400/10 text-amber-100/75";
+                      const cameraVisual = resolveCameraVisual(cam, providerSnapshot, camRefreshTick);
 
                       return (
                         <div
@@ -6971,7 +7074,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-3 min-w-0">
                               {visualMediaAllowed ? (
-                                <CameraThumb src={snapUrl ?? ""} alt={title} />
+                                <CameraThumb src={cameraVisual.snapUrl ?? ""} alt={cameraVisual.title} />
                               ) : (
                                 <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 px-1 text-center">
                                   <ShieldCheck className="h-4 w-4 text-emerald-200/55" />
@@ -6985,27 +7088,27 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                     Cámara más cercana
                                   </div>
                                 ) : null}
-                                <div className="text-sm font-semibold text-white/90 line-clamp-2">{title}</div>
+                                <div className="text-sm font-semibold text-white/90 line-clamp-2">{cameraVisual.title}</div>
                                 <div className="mt-2 flex flex-wrap gap-2">
-                                  <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold", snapshotStateClass)}>
-                                    {snapshotState}
+                                  <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold", cameraVisual.snapshotStateClass)}>
+                                    {cameraVisual.snapshotState}
                                   </span>
-                                  {isWindyProvider ? (
+                                  {cameraVisual.isWindyProvider ? (
                                     <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
                                       Windy API
                                     </span>
-                                  ) : isSnapshot ? (
+                                  ) : cameraVisual.isSnapshot ? (
                                     <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
                                       Imagen directa
                                     </span>
                                   ) : null}
                                 </div>
                                 <div className="mt-1 text-[11px] text-white/45">
-                                  <span className="text-white/55">{dist}</span>
-                                  {locality ? (
+                                  <span className="text-white/55">{cameraVisual.dist}</span>
+                                  {cameraVisual.locality ? (
                                     <>
                                       <span className="mx-2 text-white/20">•</span>
-                                      <span>{locality}</span>
+                                      <span>{cameraVisual.locality}</span>
                                     </>
                                   ) : null}
                                 </div>
@@ -7017,21 +7120,21 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 ) : null}
 
                                 <div className="mt-2 text-[11px] text-white/35">
-                                  {providerInfo ? <span>{providerInfo}</span> : null}
-                                  {providerInfo && attribution ? <span className="mx-2 text-white/20">•</span> : null}
-                                  {attribution ? <span>{attribution}</span> : null}
+                                  {cameraVisual.providerInfo ? <span>{cameraVisual.providerInfo}</span> : null}
+                                  {cameraVisual.providerInfo && cameraVisual.attribution ? <span className="mx-2 text-white/20">•</span> : null}
+                                  {cameraVisual.attribution ? <span>{cameraVisual.attribution}</span> : null}
                                 </div>
 
-                                {isWindyProvider && providerSnapshot?.status === "loading" ? (
+                                {cameraVisual.isWindyProvider && providerSnapshot?.status === "loading" ? (
                                   <div className="mt-2 text-[11px] text-white/35">Cargando snapshot...</div>
                                 ) : null}
                               </div>
                             </div>
 
                             <div className="shrink-0 flex flex-col gap-2">
-                              {openUrl ? (
+                              {cameraVisual.openUrl ? (
                                 <a
-                                  href={openUrl}
+                                  href={cameraVisual.openUrl}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={cn(
@@ -7039,7 +7142,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                     "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
                                     "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                                   )}
-                                  title={isWindyProvider ? "Abrir fuente" : "Abrir snapshot"}
+                                  title={cameraVisual.isWindyProvider ? "Abrir fuente" : "Abrir snapshot"}
                                 >
                                   <ExternalLink className="h-4 w-4" />
                                   <span className="text-xs font-medium">Abrir</span>
@@ -7057,9 +7160,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <GuardianSourceButton
                                 onClick={() =>
                                   beginGuardianSourceObservation({
-                                    label: title,
+                                    label: cameraVisual.title,
                                     sourceType: "camera",
-                                    sourceReference: openUrl ?? `Cámara ${cam.id}`,
+                                    sourceReference: cameraVisual.openUrl ?? `Cámara ${cam.id}`,
                                     observedAt: new Date().toISOString(),
                                     limitations:
                                       "La referencia apunta a una cámara externa que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
@@ -7069,8 +7172,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             </div>
                           ) : null}
 
-                          {visualMediaAllowed && (isSnapshot || isWindyProvider) ? (
-                            <CameraSnapshotPreview src={snapUrl ?? ""} alt={title} />
+                          {visualMediaAllowed && (cameraVisual.isSnapshot || cameraVisual.isWindyProvider) ? (
+                            <CameraSnapshotPreview src={cameraVisual.snapUrl ?? ""} alt={cameraVisual.title} />
                           ) : null}
                         </div>
                       );
