@@ -13,6 +13,7 @@ import { GuardianObservationIntegrity } from "@/app/components/GuardianObservati
 import { GuardianPreparationDialog } from "@/app/components/GuardianPreparationDialog";
 import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
+import { GuardianSessionClosePanel } from "@/app/components/GuardianSessionClosePanel";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
 import type {
@@ -49,6 +50,7 @@ import {
   type GuardianLocalStore,
   type GuardianMission,
   type GuardianObservation,
+  type GuardianSessionClosure,
   GUARDIAN_PREPARATION_VERSION,
 } from "@/app/lib/guardianStore";
 import type { NarrativeFragment, Observation } from "@/app/lib/observations";
@@ -3375,6 +3377,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     ? guardianStore.missions[guardianEventMemory.activeMissionId] ?? null
     : null;
   const previousGuardianMissions = guardianMissions.filter((mission) => mission.status !== "active");
+  const guardianSessionClosures = (guardianEventMemory?.sessionClosureIds ?? [])
+    .map((id) => guardianStore.sessionClosures[id])
+    .filter((sessionClosure): sessionClosure is GuardianSessionClosure => Boolean(sessionClosure))
+    .sort((a, b) => new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime());
   const activeMissionObservationCount = activeGuardianMission
     ? guardianObservations.filter((observation) => observation.missionId === activeGuardianMission.id).length
     : 0;
@@ -4621,6 +4627,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       memory={guardianEventMemory}
                       missions={guardianMissions}
                       observations={guardianObservations}
+                      sessionClosures={guardianSessionClosures}
+                    />
+
+                    <GuardianSessionClosePanel
+                      eventId={guardianEventRecordId!}
+                      observations={guardianObservations}
+                      missions={guardianMissions}
+                      sessionClosures={guardianSessionClosures}
+                      onStoreChange={(store) => {
+                        setGuardianStore(store);
+                        setGuardianStorageErr(null);
+                      }}
                     />
 
                     <GuardianReportPanel

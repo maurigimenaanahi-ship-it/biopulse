@@ -96,6 +96,17 @@ export type GuardianObservation = {
   status: "recorded";
 };
 
+export type GuardianSessionClosure = {
+  id: string;
+  eventId: string;
+  closedAt: string;
+  observationCount: number;
+  missionCount: number;
+  sensitiveCount: number;
+  pendingMissionCount: number;
+  note: string | null;
+};
+
 export type GuardianEventMemory = {
   eventId: string;
   snapshot: GuardianEventSnapshot | null;
@@ -103,6 +114,7 @@ export type GuardianEventMemory = {
   lastOpenedAt: string;
   observationIds: string[];
   missionIds: string[];
+  sessionClosureIds: string[];
   activeMissionId: string | null;
 };
 
@@ -116,6 +128,7 @@ export type GuardianLocalStore = {
   events: Record<string, GuardianEventMemory>;
   observations: Record<string, GuardianObservation>;
   missions: Record<string, GuardianMission>;
+  sessionClosures: Record<string, GuardianSessionClosure>;
 };
 
 const DEFAULT_EXPOSURE: GuardianExposurePreference = "ask_first";
@@ -127,6 +140,7 @@ function emptyStore(): GuardianLocalStore {
     events: {},
     observations: {},
     missions: {},
+    sessionClosures: {},
   };
 }
 
@@ -283,6 +297,9 @@ function normalizeEventMemory(eventId: string, value: unknown): GuardianEventMem
   const missionIds = Array.isArray(record.missionIds)
     ? record.missionIds.filter((id): id is string => typeof id === "string")
     : [];
+  const sessionClosureIds = Array.isArray(record.sessionClosureIds)
+    ? record.sessionClosureIds.filter((id): id is string => typeof id === "string")
+    : [];
   const activeMissionId = typeof record.activeMissionId === "string" ? record.activeMissionId : null;
   return {
     eventId,
@@ -291,6 +308,7 @@ function normalizeEventMemory(eventId: string, value: unknown): GuardianEventMem
     lastOpenedAt,
     observationIds,
     missionIds,
+    sessionClosureIds,
     activeMissionId,
   };
 }
@@ -344,6 +362,26 @@ function isSafeRecordId(value: string) {
     value !== "prototype" &&
     value !== "constructor"
   );
+}
+
+function normalizeSessionClosure(id: string, value: unknown): GuardianSessionClosure | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Partial<GuardianSessionClosure>;
+  const eventId = optionalText(record.eventId, 200);
+  const closedAt = optionalText(record.closedAt, 80);
+  if (!eventId || !closedAt || !Number.isFinite(new Date(closedAt).getTime())) return null;
+  const numberOrZero = (value: unknown) =>
+    typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+  return {
+    id,
+    eventId,
+    closedAt,
+    observationCount: numberOrZero(record.observationCount),
+    missionCount: numberOrZero(record.missionCount),
+    sensitiveCount: numberOrZero(record.sensitiveCount),
+    pendingMissionCount: numberOrZero(record.pendingMissionCount),
+    note: optionalText(record.note, 1200),
+  };
 }
 
 function normalizeObservationIntegrity(value: unknown): GuardianObservationIntegrity | null {
@@ -450,6 +488,15 @@ export function normalizeGuardianLocalStore(value: unknown): GuardianLocalStore 
     }
   }
 
+  const sessionClosures: Record<string, GuardianSessionClosure> = {};
+  if (parsed.sessionClosures && typeof parsed.sessionClosures === "object") {
+    for (const [id, value] of Object.entries(parsed.sessionClosures)) {
+      if (!isSafeRecordId(id)) continue;
+      const normalized = normalizeSessionClosure(id, value);
+      if (normalized) sessionClosures[id] = normalized;
+    }
+  }
+
   const events: Record<string, GuardianEventMemory> = {};
   if (parsed.events && typeof parsed.events === "object") {
     for (const [eventId, value] of Object.entries(parsed.events)) {
@@ -478,6 +525,7 @@ export function normalizeGuardianLocalStore(value: unknown): GuardianLocalStore 
     events,
     observations,
     missions,
+    sessionClosures,
   };
 }
 
@@ -526,6 +574,7 @@ export function prepareGuardianEvent(eventOrId: EnvironmentalEvent | string, now
         lastOpenedAt: timestamp,
         observationIds: previous?.observationIds ?? [],
         missionIds: previous?.missionIds ?? [],
+        sessionClosureIds: previous?.sessionClosureIds ?? [],
         activeMissionId: previous?.activeMissionId ?? null,
       },
     },
@@ -567,6 +616,7 @@ export function removeGuardianEvent(eventId: string): GuardianLocalStore {
   const events = { ...store.events };
   const observations = { ...store.observations };
   const missions = { ...store.missions };
+  const sessionClosures = { ...store.sessionClosures };
   delete events[eventId];
   for (const [id, observation] of Object.entries(observations)) {
     if (observation.eventId === eventId) delete observations[id];
@@ -574,7 +624,10 @@ export function removeGuardianEvent(eventId: string): GuardianLocalStore {
   for (const [id, mission] of Object.entries(missions)) {
     if (mission.eventId === eventId) delete missions[id];
   }
-  const next: GuardianLocalStore = { ...store, events, observations, missions };
+  for (const [id, sessionClosure] of Object.entries(sessionClosures)) {
+    if (sessionClosure.eventId === eventId) delete sessionClosures[id];
+  }
+  const next: GuardianLocalStore = { ...store, events, observations, missions, sessionClosures };
   writeGuardianLocalStore(next);
   return next;
 }
@@ -890,6 +943,46 @@ export function closeGuardianMission(
       ...store.missions,
       [missionId]: { ...mission, status, updatedAt: timestamp, closedAt: timestamp },
     },
+  };
+  writeGuardianLocalStore(next);
+  return next;
+}
+
+export function closeGuardianSession(eventId: string, note?: string, now = new Date()): GuardianLocalStore {
+  const store = readGuardianLocalStore();
+  const eventMemory = store.events[eventId];
+  if (!eventMemory) throw new Error("El espacio Guardian no está preparado para este evento.");
+
+  const id = createLocalId();
+  const closedAt = now.toISOString();
+  const eventObservations = eventMemory.observationIds
+    .map((observationId) => store.observations[observationId])
+    .filter((observation): observation is GuardianObservation => Boolean(observation));
+  const eventMissions = eventMemory.missionIds
+    .map((missionId) => store.missions[missionId])
+    .filter((mission): mission is GuardianMission => Boolean(mission));
+  const closure: GuardianSessionClosure = {
+    id,
+    eventId,
+    closedAt,
+    observationCount: eventObservations.length,
+    missionCount: eventMissions.length,
+    sensitiveCount: eventObservations.filter((observation) => observation.sensitivity === "sensitive").length,
+    pendingMissionCount: eventMissions.filter((mission) => mission.status === "active").length,
+    note: optionalText(note, 1200),
+  };
+
+  const next: GuardianLocalStore = {
+    ...store,
+    events: {
+      ...store.events,
+      [eventId]: {
+        ...eventMemory,
+        lastOpenedAt: closedAt,
+        sessionClosureIds: [...eventMemory.sessionClosureIds, id],
+      },
+    },
+    sessionClosures: { ...store.sessionClosures, [id]: closure },
   };
   writeGuardianLocalStore(next);
   return next;

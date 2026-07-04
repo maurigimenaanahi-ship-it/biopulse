@@ -3,6 +3,7 @@ import type {
   GuardianMission,
   GuardianObservation,
   GuardianReviewStatus,
+  GuardianSessionClosure,
 } from "@/app/lib/guardianStore";
 
 export type GuardianTimelineKind =
@@ -11,7 +12,8 @@ export type GuardianTimelineKind =
   | "mission_closed"
   | "observation_recorded"
   | "provenance_reviewed"
-  | "integrity_generated";
+  | "integrity_generated"
+  | "session_closed";
 
 export type GuardianTimelineEntry = {
   id: string;
@@ -51,7 +53,8 @@ function shortText(value: string, limit = 110) {
 export function buildGuardianTimeline(
   memory: GuardianEventMemory,
   missions: GuardianMission[],
-  observations: GuardianObservation[]
+  observations: GuardianObservation[],
+  sessionClosures: GuardianSessionClosure[] = []
 ): GuardianTimelineEntry[] {
   const entries: GuardianTimelineEntry[] = [];
 
@@ -120,6 +123,18 @@ export function buildGuardianTimeline(
           detail: "Se preservó una referencia SHA-256 del contenido base.",
         });
       }
+    }
+  }
+
+  for (const sessionClosure of sessionClosures) {
+    if (validTimestamp(sessionClosure.closedAt)) {
+      entries.push({
+        id: `session-close:${sessionClosure.id}`,
+        at: sessionClosure.closedAt,
+        kind: "session_closed",
+        title: "Sesión Guardian cerrada",
+        detail: `${sessionClosure.observationCount} observaciones · ${sessionClosure.missionCount} misiones · ${sessionClosure.pendingMissionCount} pendientes`,
+      });
     }
   }
 

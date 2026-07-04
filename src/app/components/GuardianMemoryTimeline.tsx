@@ -10,7 +10,12 @@ import {
   ShieldCheck,
   Target,
 } from "lucide-react";
-import type { GuardianEventMemory, GuardianMission, GuardianObservation } from "@/app/lib/guardianStore";
+import type {
+  GuardianEventMemory,
+  GuardianMission,
+  GuardianObservation,
+  GuardianSessionClosure,
+} from "@/app/lib/guardianStore";
 import { buildGuardianTimeline, type GuardianTimelineKind } from "@/app/lib/guardianTimeline";
 
 const SUMMARY_LIMIT = 8;
@@ -22,6 +27,7 @@ function TimelineIcon({ kind }: { kind: GuardianTimelineKind }) {
   if (kind === "mission_closed") return <CheckCircle2 className={className} />;
   if (kind === "observation_recorded") return <FileText className={className} />;
   if (kind === "provenance_reviewed") return <Search className={className} />;
+  if (kind === "session_closed") return <CheckCircle2 className={className} />;
   return <Fingerprint className={className} />;
 }
 
@@ -40,15 +46,17 @@ export function GuardianMemoryTimeline({
   memory,
   missions,
   observations,
+  sessionClosures,
 }: {
   memory: GuardianEventMemory;
   missions: GuardianMission[];
   observations: GuardianObservation[];
+  sessionClosures: GuardianSessionClosure[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const entries = useMemo(
-    () => buildGuardianTimeline(memory, missions, observations),
-    [memory, missions, observations]
+    () => buildGuardianTimeline(memory, missions, observations, sessionClosures),
+    [memory, missions, observations, sessionClosures]
   );
   const visibleEntries = expanded ? entries : entries.slice(0, SUMMARY_LIMIT);
   const canExpand = entries.length > SUMMARY_LIMIT;
