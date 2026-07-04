@@ -5,18 +5,20 @@ import { AlertPanel } from "./components/AlertPanel";
 import { Timeline } from "./components/Timeline";
 import { StatsPanel } from "./components/StatsPanel";
 import { SplashScreen } from "./components/SplashScreen";
+import { PlanetGatewayBackground, PlanetGuardianGateway } from "./components/PlanetGuardianGateway";
 import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { FollowedAlertsPanel } from "./components/FollowedAlertsPanel";
 import { GuardianActivityPanel } from "./components/GuardianActivityPanel";
+import { PlanetObservationView } from "./components/PlanetObservationView";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
-import { SlidersHorizontal, CornerUpLeft, Bell, ShieldCheck } from "lucide-react";
+import { SlidersHorizontal, CornerUpLeft, Bell, ShieldCheck, Globe2 } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 
-type AppStage = "splash" | "setup" | "dashboard";
+type AppStage = "splash" | "guardian" | "setup" | "dashboard";
 
 /** ===== Reverse geocode via Cloudflare Worker ===== */
 const GEO_CACHE = new Map<string, string>();
@@ -152,6 +154,7 @@ export default function App() {
   // ✅ panel de seguidas
   const [showFollowed, setShowFollowed] = useState(false);
   const [showGuardianActivity, setShowGuardianActivity] = useState(false);
+  const [showPlanetObservation, setShowPlanetObservation] = useState(false);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -364,7 +367,7 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen bg-[#050a14] relative">
-      <SplashScreen open={stage === "splash"} onStart={() => setStage("setup")} />
+      <SplashScreen open={stage === "splash"} onStart={() => setStage("guardian")} />
 
       <Header activeView={activeView} onViewChange={setActiveView} />
 
@@ -387,6 +390,22 @@ export default function App() {
           ensureSelectedEventHasLocation(ev);
         }}
       />
+
+      {showPlanetObservation && (
+        <PlanetObservationView
+          events={events}
+          onClose={() => setShowPlanetObservation(false)}
+          onOpenEvent={(ev) => {
+            setShowPlanetObservation(false);
+            setSelectedEvent(ev);
+            ensureSelectedEventHasLocation(ev);
+          }}
+        />
+      )}
+
+      {stage === "guardian" && <PlanetGuardianGateway onComplete={() => setStage("setup")} />}
+
+      {stage === "setup" && <PlanetGatewayBackground className="z-[60]" />}
 
       {stage === "setup" && (
         <SetupPanel
@@ -426,6 +445,33 @@ export default function App() {
           <div className="absolute inset-0 z-[2] pointer-events-none">
             {!isAlertOpen && (
               <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24 space-y-3">
+                <button
+                  onClick={() => {
+                    setShowFollowed(false);
+                    setShowGuardianActivity(false);
+                    setShowPlanetObservation(true);
+                  }}
+                  className={[
+                    "group flex items-center gap-3",
+                    "px-4 py-3 rounded-2xl shadow-lg",
+                    "backdrop-blur-md border border-cyan-300/20",
+                    "bg-cyan-400/[0.08] hover:bg-cyan-400/12",
+                    "text-white/90 hover:text-white",
+                    "transition-colors",
+                    "min-w-[220px]",
+                  ].join(" ")}
+                  title="Explorar señales sobre el planeta"
+                  aria-label="Explorar señales sobre el planeta"
+                >
+                  <div className="h-10 w-10 rounded-xl border border-cyan-300/15 bg-black/20 flex items-center justify-center">
+                    <Globe2 className="h-5 w-5 text-cyan-200/75" />
+                  </div>
+                  <div className="text-left leading-tight">
+                    <div className="text-sm md:text-base font-semibold">Planeta vivo</div>
+                    <div className="text-xs text-white/55 mt-0.5">Señales 3D</div>
+                  </div>
+                </button>
+
                 <button
                   onClick={openSetup}
                   className={[
