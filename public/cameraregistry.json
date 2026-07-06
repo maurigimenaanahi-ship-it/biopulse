@@ -1,71 +1,11 @@
 [
   {
     "schema": "biopulse.camera.v1",
-    "id": "ar-windy-bariloche-1497537282",
+    "id": "ar-windy-buenos-aires-oficina-1691337947",
     "providerId": "windy",
-    "title": "Bariloche — Vista (Windy)",
-    "description": "Snapshot público (Windy).",
-    "geo": { "lat": -41.133, "lon": -71.308 },
-    "coverage": { "countryISO2": "AR", "admin1": "Río Negro", "locality": "San Carlos de Bariloche" },
-    "mediaType": "snapshot",
-    "fetch": {
-      "kind": "image_url",
-      "url": "https://images-webcams.windy.com/20/1497537282/current/full/1497537282.jpg"
-    },
-    "update": { "expectedIntervalSec": 300 },
-    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
-    "tags": ["city", "weather", "snapshot"],
-    "priority": 2,
-    "validation": { "status": "pending" }
-  },
-
-  {
-    "schema": "biopulse.camera.v1",
-    "id": "ar-windy-mar-del-plata-1252080680",
-    "providerId": "windy",
-    "title": "Mar del Plata — Plaza Colón 2 (Windy)",
-    "description": "Snapshot público (Windy).",
-    "geo": { "lat": -38.006, "lon": -57.542 },
-    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Mar del Plata" },
-    "mediaType": "snapshot",
-    "fetch": {
-      "kind": "image_url",
-      "url": "https://images-webcams.windy.com/20/1252080680/current/full/1252080680.jpg"
-    },
-    "update": { "expectedIntervalSec": 300 },
-    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
-    "tags": ["coast", "city", "snapshot"],
-    "priority": 2,
-    "validation": { "status": "pending" }
-  },
-
-  {
-    "schema": "biopulse.camera.v1",
-    "id": "ar-windy-ushuaia-1243366423",
-    "providerId": "windy",
-    "title": "Ushuaia — Vista (Windy)",
-    "description": "Snapshot público (Windy).",
-    "geo": { "lat": -54.801, "lon": -68.303 },
-    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
-    "mediaType": "snapshot",
-    "fetch": {
-      "kind": "image_url",
-      "url": "https://images-webcams.windy.com/20/1243366423/current/full/1243366423.jpg"
-    },
-    "update": { "expectedIntervalSec": 300 },
-    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
-    "tags": ["city", "snapshot"],
-    "priority": 1,
-    "validation": { "status": "pending" }
-  },
-
-  {
-    "schema": "biopulse.camera.v1",
-    "id": "ar-windy-rio-de-la-plata-1462803263",
-    "providerId": "windy",
-    "title": "Río de la Plata — Vista (Windy)",
-    "description": "Snapshot público (Windy).",
-    "geo": { "lat": -34.603, "lon": -58.381 },
+    "title": "Buenos Aires - Oficina externa (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -34.6033, "lon": -58.3816 },
     "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
     "mediaType": "snapshot",
     "fetch": {
@@ -76,8 +16,239 @@
     },
     "update": { "expectedIntervalSec": 300 },
     "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "weather", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-olivos-1577126865",
+    "providerId": "windy",
+    "title": "Olivos - Vicente Lopez norte (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -34.50528, "lon": -58.47482 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Olivos" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1577126865",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
     "tags": ["river", "city", "snapshot"],
     "priority": 1,
-    "validation": { "status": "pending" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-punta-iglesia-1595396557",
+    "providerId": "windy",
+    "title": "Mar del Plata - Playa Punta Iglesia (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -37.99996, "lon": -57.5412 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Mar del Plata" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1595396557",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["coast", "city", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-patio-olmos-1664693412",
+    "providerId": "windy",
+    "title": "Cordoba - Patio Olmos (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -31.42017, "lon": -64.18879 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664693412",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "urban", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-27-abril-1664734573",
+    "providerId": "windy",
+    "title": "Cordoba - 27 de Abril y Velez Sarsfield (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -31.41633, "lon": -64.18724 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664734573",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "urban", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mendoza-finca-la-anita-1697039896",
+    "providerId": "windy",
+    "title": "Mendoza - Finca La Anita (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -33.17541, "lon": -68.91167 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Furlotti" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1697039896",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["rural", "weather", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-neuquen-southeast-1635539217",
+    "providerId": "windy",
+    "title": "Neuquen - Vista sudeste (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -38.97977, "lon": -68.05619 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Neuquen" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1635539217",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "patagonia", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-neuquen-rio-limay-1793907004",
+    "providerId": "windy",
+    "title": "Neuquen - Mirador Rio Limay (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -38.97579, "lon": -68.02335 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Neuquen" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793907004",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["river", "patagonia", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-villa-catedral-1793905094",
+    "providerId": "windy",
+    "title": "Villa Catedral - Catedral Alta Patagonia (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -41.16572, "lon": -71.44354 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Villa Catedral" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793905094",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["mountain", "patagonia", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-villa-la-angostura-1727908561",
+    "providerId": "windy",
+    "title": "Villa La Angostura - Vista sur (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -40.74571, "lon": -71.61135 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1727908561",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["mountain", "patagonia", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-san-martin-lacar-1743356914",
+    "providerId": "windy",
+    "title": "San Martin de los Andes - Lago Lacar (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -40.16059, "lon": -71.35835 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "San Martin de los Andes" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1743356914",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["lake", "patagonia", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-ushuaia-1670072888",
+    "providerId": "windy",
+    "title": "Ushuaia - Vista ciudad (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -54.80567, "lon": -68.30061 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1670072888",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "patagonia", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
   }
 ]
