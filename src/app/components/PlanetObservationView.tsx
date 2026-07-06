@@ -57,9 +57,21 @@ function formatEventDate(value: EnvironmentalEvent["timestamp"]) {
 
 function PlanetLoadingState() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-[#020712]">
-      <div className="rounded-2xl border border-cyan-200/12 bg-cyan-200/[0.045] px-4 py-3 text-sm font-semibold text-cyan-50/78 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-md">
-        Cargando planeta vivo
+    <div className="absolute inset-0 flex items-center justify-center bg-[#020712]" role="status" aria-live="polite">
+      <div className="relative w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-cyan-200/12 bg-[#06111a]/72 px-5 py-5 text-center shadow-[0_0_90px_rgba(34,211,238,0.1)] backdrop-blur-md">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-cyan-200/18 bg-cyan-200/[0.055]">
+          <Activity className="h-6 w-6 animate-pulse text-cyan-200/86" />
+        </div>
+        <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100/48">
+          Planeta vivo
+        </div>
+        <div className="mt-1 text-base font-semibold text-white/88">Sincronizando globo planetario</div>
+        <div className="mt-2 text-xs leading-relaxed text-white/48">
+          Estamos cargando el mapa satelital y las señales activas. En conexiones lentas puede tardar unos segundos.
+        </div>
+        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-cyan-200/55" />
+        </div>
       </div>
     </div>
   );
