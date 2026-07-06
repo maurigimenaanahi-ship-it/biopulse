@@ -115,6 +115,7 @@ type AlertPanelSection =
 const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const PRODUCTION_API_BASE = "https://biopulse-weld.vercel.app";
 const FAV_KEY = "biopulse:followed-alerts";
+const CAMERA_RADIUS_OPTIONS = [60, 100, 250, 500];
 
 function apiUrl(path: string) {
   const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
@@ -2774,17 +2775,22 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "border-red-400/20 bg-red-500/10 text-red-100/90"
       : "border-white/10 bg-white/5 text-white/80";
 
-  const nearbyCameras = useMemo(() => {
+  const cameraCandidates = useMemo(() => {
     if (!event) return [] as LoadedCamera[];
     const baseLat = event.latitude;
     const baseLon = event.longitude;
 
-    const list = (Array.isArray(camRegistry) ? camRegistry : [])
+    return (Array.isArray(camRegistry) ? camRegistry : [])
       .filter((c) => c?.geo && Number.isFinite(c.geo.lat as any) && Number.isFinite(c.geo.lon as any))
       .map((c) => {
         const d = haversineKm(baseLat, baseLon, c.geo.lat, c.geo.lon);
         return { ...c, distanceKm: d } as LoadedCamera;
       })
+      .sort((a, b) => a.distanceKm - b.distanceKm);
+  }, [camRegistry, event?.id]);
+
+  const nearbyCameras = useMemo(() => {
+    const list = cameraCandidates
       .filter((c) => c.distanceKm <= camRadiusKm)
       .sort((a, b) => {
         const pa = a.priority ?? 0;
@@ -2794,7 +2800,19 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       });
 
     return list;
-  }, [camRegistry, camRadiusKm, event?.id]);
+  }, [cameraCandidates, camRadiusKm]);
+
+  const closestCameraOutsideRadius = useMemo(
+    () => cameraCandidates.find((camera) => camera.distanceKm > camRadiusKm) ?? null,
+    [cameraCandidates, camRadiusKm]
+  );
+  const closestCameraSuggestedRadius = useMemo(
+    () =>
+      closestCameraOutsideRadius
+        ? CAMERA_RADIUS_OPTIONS.find((km) => closestCameraOutsideRadius.distanceKm <= km) ?? null
+        : null,
+    [closestCameraOutsideRadius?.distanceKm]
+  );
 
   useEffect(() => {
     if (nearbyCameras.length === 0) {
@@ -3417,6 +3435,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const activeCamera = nearbyCameras.find((cam) => cam.id === selectedCameraId) ?? primaryCamera;
   const activeCameraVisual = activeCamera
     ? resolveCameraVisual(activeCamera, providerSnapshots[activeCamera.id] ?? null, camRefreshTick)
+    : null;
+  const closestCameraOutsideVisual = closestCameraOutsideRadius
+    ? resolveCameraVisual(
+        closestCameraOutsideRadius,
+        providerSnapshots[closestCameraOutsideRadius.id] ?? null,
+        camRefreshTick
+      )
     : null;
   const hasInstrumentalFireData =
     satelliteDetections != null ||
@@ -7007,7 +7032,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       <Camera className="h-7 w-7 text-white/35" />
                       <div className="text-sm font-medium">No hay cámara cercana en el radio actual</div>
                       <div className="max-w-md text-xs leading-relaxed text-white/38">
-                        Probá ampliar el radio o sumar nuevas cámaras al registro cuando avancemos con expansión visual.
+                        Proba ampliar el radio para usar una referencia regional cuando el evento este lejos de zonas
+                        urbanas.
                       </div>
                     </div>
                   )}
@@ -7043,7 +7069,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="flex items-center gap-2">
                     <div className="text-[11px] text-white/45">Radio:</div>
                     <div className="inline-flex overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                      {[20, 40, 60, 100].map((km) => (
+                      {CAMERA_RADIUS_OPTIONS.map((km) => (
                         <button
                           key={km}
                           onClick={() => setCamRadiusKm(km)}
@@ -7114,8 +7140,41 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       ))}
                     </div>
                   ) : nearbyCameras.length === 0 ? (
-                    <div className="text-sm text-white/55">
-                      No hay cámaras dentro del radio actual. Probá ampliar a 100 km o registrar nuevas cámaras.
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                      <div className="text-sm font-semibold text-white/75">
+                        No hay camaras dentro de {camRadiusKm} km.
+                      </div>
+                      {closestCameraOutsideRadius && closestCameraOutsideVisual ? (
+                        <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-400/[0.055] p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-cyan-100/55">
+                            Referencia regional mas cercana
+                          </div>
+                          <div className="mt-1 text-sm font-semibold text-white/88">
+                            {closestCameraOutsideVisual.title}
+                          </div>
+                          <div className="mt-1 text-xs leading-relaxed text-white/48">
+                            Esta a {closestCameraOutsideVisual.dist}
+                            {closestCameraOutsideVisual.locality ? ` - ${closestCameraOutsideVisual.locality}` : ""}.
+                          </div>
+                          {closestCameraSuggestedRadius ? (
+                            <button
+                              type="button"
+                              onClick={() => setCamRadiusKm(closestCameraSuggestedRadius)}
+                              className="mt-3 inline-flex min-h-9 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 text-xs font-semibold text-cyan-100/85 transition hover:bg-cyan-400/15 hover:text-white"
+                            >
+                              Ampliar a {closestCameraSuggestedRadius} km
+                            </button>
+                          ) : (
+                            <div className="mt-2 text-xs text-white/38">
+                              Esta fuera del radio maximo disponible. Conviene sumar una fuente local para esta zona.
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-sm text-white/50">
+                          No hay camaras cargadas para sugerir una referencia regional.
+                        </div>
+                      )}
                     </div>
                   ) : (
                     nearbyCameras.map((cam, index) => {
