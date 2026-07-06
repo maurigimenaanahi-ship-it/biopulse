@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, ArrowRight, Clock, Flame, Map as MapIcon, MapPin, RadioTower, X, ZoomIn } from "lucide-react";
 import type { EnvironmentalEvent } from "@/data/events";
 import type { PlanetSignal, PlanetSignalDensity } from "./BioPulsePlanet";
-import { CesiumPlanet } from "./CesiumPlanet";
+
+const LazyCesiumPlanet = lazy(() => import("./CesiumPlanet").then((module) => ({ default: module.CesiumPlanet })));
 
 const DENSITY_COPY: Record<PlanetSignalDensity, { label: string; hint: string }> = {
   global: {
@@ -54,6 +55,16 @@ function formatEventDate(value: EnvironmentalEvent["timestamp"]) {
   return date.toLocaleDateString();
 }
 
+function PlanetLoadingState() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-[#020712]">
+      <div className="rounded-2xl border border-cyan-200/12 bg-cyan-200/[0.045] px-4 py-3 text-sm font-semibold text-cyan-50/78 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-md">
+        Cargando planeta vivo
+      </div>
+    </div>
+  );
+}
+
 export function PlanetObservationView({
   events,
   onClose,
@@ -101,14 +112,16 @@ export function PlanetObservationView({
 
   return (
     <div className="absolute inset-0 z-[65] overflow-hidden bg-[#020712]">
-      <CesiumPlanet
-        signals={signals}
-        selectedSignalId={selectedSignalId}
-        onSignalSelect={setSelectedSignal}
-        onSignalClear={clearSelectedSignal}
-        onSignalDensityChange={setSignalDensity}
-        onProjectedSignalStatsChange={setPlanetSignalStats}
-      />
+      <Suspense fallback={<PlanetLoadingState />}>
+        <LazyCesiumPlanet
+          signals={signals}
+          selectedSignalId={selectedSignalId}
+          onSignalSelect={setSelectedSignal}
+          onSignalClear={clearSelectedSignal}
+          onSignalDensityChange={setSignalDensity}
+          onProjectedSignalStatsChange={setPlanetSignalStats}
+        />
+      </Suspense>
 
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-3 top-[calc(env(safe-area-inset-top)+76px)] w-[min(20rem,calc(100vw-1.5rem))] md:left-5 md:top-20 md:w-72">
