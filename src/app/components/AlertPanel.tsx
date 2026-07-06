@@ -1512,32 +1512,6 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-function CameraSnapshotPreview({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  const ok = !!src && /^https?:\/\//i.test(src) && !failed;
-
-  if (!ok) {
-    return (
-      <div className="mt-3 rounded-xl border border-white/10 bg-black/20 min-h-[180px] flex flex-col items-center justify-center gap-2 px-4 text-center">
-        <ImageIcon className="h-6 w-6 text-white/35" />
-        <div className="text-sm font-medium text-white/65">Snapshot no disponible</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
-      <img
-        src={src}
-        alt={alt}
-        className="w-full max-h-[260px] object-cover"
-        loading="lazy"
-        onError={() => setFailed(true)}
-      />
-    </div>
-  );
-}
-
 function resolveCameraVisual(
   cam: LoadedCamera,
   providerSnapshot: ProviderCameraSnapshot | null,
@@ -2326,6 +2300,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [camRadiusKm, setCamRadiusKm] = useState<number>(60);
   const [camRefreshTick, setCamRefreshTick] = useState<number>(0);
   const [providerSnapshots, setProviderSnapshots] = useState<Record<string, ProviderCameraSnapshot>>({});
+  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
 
   const trend = useMemo(() => (event ? guessTrendLabel(event) ?? "TREND: —" : "TREND: —"), [event?.id]);
 
@@ -2720,6 +2695,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     if (!event) return;
     setNewsView("main");
     setProviderSnapshots({});
+    setSelectedCameraId(null);
     loadNews();
     loadWeather();
     loadCameraRegistry();
@@ -2819,6 +2795,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     return list;
   }, [camRegistry, camRadiusKm, event?.id]);
+
+  useEffect(() => {
+    if (nearbyCameras.length === 0) {
+      if (selectedCameraId) setSelectedCameraId(null);
+      return;
+    }
+    if (!selectedCameraId || !nearbyCameras.some((cam) => cam.id === selectedCameraId)) {
+      setSelectedCameraId(nearbyCameras[0].id);
+    }
+  }, [nearbyCameras, selectedCameraId]);
 
   useEffect(() => {
     if (!event || nearbyCameras.length === 0) return;
@@ -3427,6 +3413,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const primaryCamera = nearbyCameras[0] ?? null;
   const primaryCameraVisual = primaryCamera
     ? resolveCameraVisual(primaryCamera, providerSnapshots[primaryCamera.id] ?? null, camRefreshTick)
+    : null;
+  const activeCamera = nearbyCameras.find((cam) => cam.id === selectedCameraId) ?? primaryCamera;
+  const activeCameraVisual = activeCamera
+    ? resolveCameraVisual(activeCamera, providerSnapshots[activeCamera.id] ?? null, camRefreshTick)
     : null;
   const hasInstrumentalFireData =
     satelliteDetections != null ||
@@ -4248,7 +4238,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div>
                     <div className="text-[11px] uppercase tracking-wide text-cyan-100/55">Cámaras en vivo</div>
                     <div className="mt-1 text-sm leading-relaxed text-white/62">
-                      Vista rápida de la cámara más cercana. Entrá para ver todas las cámaras disponibles de la zona.
+                      {nearbyCameras.length > 1
+                        ? `Vista rápida de la cámara más cercana y acceso a ${nearbyCameras.length} cámaras disponibles de la zona.`
+                        : "Vista rápida de la cámara más cercana. Entrá para ver todas las cámaras disponibles de la zona."}
                     </div>
                   </div>
                   <button
@@ -4311,6 +4303,23 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           </>
                         ) : null}
                       </div>
+                      {nearbyCameras.length > 1 ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {nearbyCameras.slice(0, 3).map((cam, index) => (
+                            <span
+                              key={cam.id}
+                              className="inline-flex max-w-full rounded-full border border-white/10 bg-white/[0.045] px-2 py-0.5 text-[10px] font-medium text-white/45"
+                            >
+                              {index + 1}. {cam.title ?? cam.id}
+                            </span>
+                          ))}
+                          {nearbyCameras.length > 3 ? (
+                            <span className="inline-flex rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2 py-0.5 text-[10px] font-semibold text-cyan-100/65">
+                              +{nearbyCameras.length - 3} más
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                     <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-100/45" />
                   </button>
@@ -6862,20 +6871,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div className="border-b border-cyan-300/10 px-4 py-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <div className="text-[11px] uppercase tracking-wide text-cyan-100/55">Cámara principal</div>
+                        <div className="text-[11px] uppercase tracking-wide text-cyan-100/55">Cámara activa</div>
                         <div className="mt-1 text-sm font-semibold text-white/90">
-                          {primaryCameraVisual?.title ?? "Sin cámara cercana seleccionada"}
+                          {activeCameraVisual?.title ?? "Sin cámara cercana seleccionada"}
                         </div>
                         <div className="mt-1 text-xs leading-relaxed text-white/45">
-                          La cámara más cercana funciona como primera conexión visual. La lectura completa vive en la
-                          lista de cámaras y en los registros Guardian.
+                          Seleccioná una cámara de la lista para convertirla en vista principal. La más cercana se
+                          usa como punto de partida.
                         </div>
                       </div>
 
                       <div className="flex shrink-0 flex-wrap gap-2">
-                        {primaryCameraVisual?.openUrl ? (
+                        {activeCameraVisual?.openUrl ? (
                           <a
-                            href={primaryCameraVisual.openUrl}
+                            href={activeCameraVisual.openUrl}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm font-semibold text-white/75 transition-colors hover:bg-white/10 hover:text-white"
@@ -6884,14 +6893,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             Fuente externa
                           </a>
                         ) : null}
-                        {guardianCanCaptureSource && primaryCamera ? (
+                        {guardianCanCaptureSource && activeCamera ? (
                           <button
                             type="button"
                             onClick={() =>
                               beginGuardianSourceObservation({
-                                label: primaryCameraVisual?.title ?? primaryCamera.title ?? primaryCamera.id,
+                                label: activeCameraVisual?.title ?? activeCamera.title ?? activeCamera.id,
                                 sourceType: "camera",
-                                sourceReference: primaryCameraVisual?.openUrl ?? `Cámara ${primaryCamera.id}`,
+                                sourceReference: activeCameraVisual?.openUrl ?? `Cámara ${activeCamera.id}`,
                                 observedAt: new Date().toISOString(),
                                 limitations:
                                   "La referencia apunta a una cámara externa que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
@@ -6910,16 +6919,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   {camLoading ? (
                     <div className="flex min-h-[260px] items-center justify-center gap-2 bg-black/20 text-sm text-white/55">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Cargando cámara principal...
+                      Cargando cámara activa...
                     </div>
-                  ) : primaryCamera && primaryCameraVisual ? (
+                  ) : activeCamera && activeCameraVisual ? (
                     <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.45fr_0.55fr]">
                       <div className="min-h-[260px] bg-black/30">
                         {visualMediaAllowed ? (
-                          primaryCameraVisual.snapUrl ? (
+                          activeCameraVisual.snapUrl ? (
                             <img
-                              src={primaryCameraVisual.snapUrl}
-                              alt={primaryCameraVisual.title}
+                              src={activeCameraVisual.snapUrl}
+                              alt={activeCameraVisual.title}
                               className="h-full max-h-[420px] min-h-[260px] w-full object-cover"
                               loading="lazy"
                             />
@@ -6950,16 +6959,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           <span
                             className={cn(
                               "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                              primaryCameraVisual.snapshotStateClass
+                              activeCameraVisual.snapshotStateClass
                             )}
                           >
-                            {primaryCameraVisual.snapshotState}
+                            {activeCameraVisual.snapshotState}
                           </span>
-                          {primaryCameraVisual.isWindyProvider ? (
+                          {activeCameraVisual.isWindyProvider ? (
                             <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
                               Windy API
                             </span>
-                          ) : primaryCameraVisual.isSnapshot ? (
+                          ) : activeCameraVisual.isSnapshot ? (
                             <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
                               Imagen directa
                             </span>
@@ -6969,26 +6978,26 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         <div className="mt-4 space-y-3 text-sm">
                           <div>
                             <div className="text-[11px] uppercase tracking-wide text-white/35">Distancia</div>
-                            <div className="mt-1 font-semibold text-white/85">{primaryCameraVisual.dist}</div>
+                            <div className="mt-1 font-semibold text-white/85">{activeCameraVisual.dist}</div>
                           </div>
-                          {primaryCameraVisual.locality ? (
+                          {activeCameraVisual.locality ? (
                             <div>
                               <div className="text-[11px] uppercase tracking-wide text-white/35">Zona</div>
-                              <div className="mt-1 text-white/70">{primaryCameraVisual.locality}</div>
+                              <div className="mt-1 text-white/70">{activeCameraVisual.locality}</div>
                             </div>
                           ) : null}
-                          {primaryCamera.description ? (
+                          {activeCamera.description ? (
                             <div>
                               <div className="text-[11px] uppercase tracking-wide text-white/35">Descripción</div>
-                              <div className="mt-1 leading-relaxed text-white/58">{primaryCamera.description}</div>
+                              <div className="mt-1 leading-relaxed text-white/58">{activeCamera.description}</div>
                             </div>
                           ) : null}
                           <div className="text-[11px] leading-relaxed text-white/35">
-                            {primaryCameraVisual.providerInfo ? <span>{primaryCameraVisual.providerInfo}</span> : null}
-                            {primaryCameraVisual.providerInfo && primaryCameraVisual.attribution ? (
+                            {activeCameraVisual.providerInfo ? <span>{activeCameraVisual.providerInfo}</span> : null}
+                            {activeCameraVisual.providerInfo && activeCameraVisual.attribution ? (
                               <span className="mx-2 text-white/20">•</span>
                             ) : null}
-                            {primaryCameraVisual.attribution ? <span>{primaryCameraVisual.attribution}</span> : null}
+                            {activeCameraVisual.attribution ? <span>{activeCameraVisual.attribution}</span> : null}
                           </div>
                         </div>
                       </div>
@@ -7083,7 +7092,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-white/85">Cámaras disponibles</div>
+                    <div className="text-xs text-white/40">Elegí una cámara para verla arriba como cámara activa.</div>
+                  </div>
+                  <div className="inline-flex w-fit rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/55">
+                    {nearbyCameras.length} dentro de {camRadiusKm} km
+                  </div>
+                </div>
+
+                <div className="mt-3 space-y-3">
                   {camLoading ? (
                     <div className="space-y-3">
                       {Array.from({ length: 3 }).map((_, i) => (
@@ -7101,6 +7120,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   ) : (
                     nearbyCameras.map((cam, index) => {
                       const isNearest = index === 0;
+                      const isActiveCamera = activeCamera?.id === cam.id;
                       const providerSnapshot = providerSnapshots[cam.id] ?? null;
                       const cameraVisual = resolveCameraVisual(cam, providerSnapshot, camRefreshTick);
 
@@ -7109,7 +7129,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           key={cam.id}
                           className={cn(
                             "rounded-2xl border p-3 transition-colors",
-                            isNearest
+                            isActiveCamera
+                              ? "border-emerald-300/25 bg-emerald-400/[0.055]"
+                              : isNearest
                               ? "border-cyan-300/25 bg-cyan-400/[0.055]"
                               : "border-white/10 bg-white/5"
                           )}
@@ -7126,8 +7148,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               )}
 
                               <div className="min-w-0">
+                                {isActiveCamera ? (
+                                  <div className="mb-1 inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-100/80">
+                                    En vista
+                                  </div>
+                                ) : null}
                                 {isNearest ? (
-                                  <div className="mb-1 inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-100/80">
+                                  <div className={cn("mb-1 inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-100/80", isActiveCamera && "ml-1")}>
                                     Cámara más cercana
                                   </div>
                                 ) : null}
@@ -7175,6 +7202,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             </div>
 
                             <div className="shrink-0 flex flex-col gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedCameraId(cam.id)}
+                                disabled={isActiveCamera}
+                                className={cn(
+                                  "inline-flex items-center justify-center gap-2",
+                                  "px-3 py-2 rounded-xl border text-xs font-semibold transition-colors",
+                                  isActiveCamera
+                                    ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/75"
+                                    : "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/80 hover:bg-cyan-400/15 hover:text-white"
+                                )}
+                              >
+                                {isActiveCamera ? "En vista" : "Ver"}
+                              </button>
                               {cameraVisual.openUrl ? (
                                 <a
                                   href={cameraVisual.openUrl}
@@ -7213,10 +7254,6 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 }
                               />
                             </div>
-                          ) : null}
-
-                          {visualMediaAllowed && (cameraVisual.isSnapshot || cameraVisual.isWindyProvider) ? (
-                            <CameraSnapshotPreview src={cameraVisual.snapUrl ?? ""} alt={cameraVisual.title} />
                           ) : null}
                         </div>
                       );
