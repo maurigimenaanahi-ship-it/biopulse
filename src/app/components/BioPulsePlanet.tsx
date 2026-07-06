@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbitControls as ThreeOrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -12,6 +12,7 @@ export type PlanetSignal = {
   latitude: number;
   longitude: number;
   intensity?: number;
+  severity?: "critical" | "high" | "moderate" | "low" | string;
   label?: string;
   count?: number;
   eventIds?: string[];
@@ -21,9 +22,16 @@ type ProjectedPlanetSignal = {
   id: string;
   label: string;
   signal: PlanetSignal;
+  color: string;
+  count: number;
   size: number;
   x: number;
   y: number;
+};
+
+type ProjectedSignalStats = {
+  visible: number;
+  groups: number;
 };
 
 const CITY_COORDINATES = [
@@ -48,9 +56,36 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function densityFromCameraDistance(distance: number): PlanetSignalDensity {
-  if (distance > 6.4) return "global";
-  if (distance > 4.65) return "regional";
+  if (distance > 5.45) return "global";
+  if (distance > 4.1) return "regional";
   return "local";
+}
+
+function signalColor(signal: PlanetSignal) {
+  if (signal.kind === "fire") {
+    if (signal.severity === "critical") return "#ef4444";
+    if (signal.severity === "high") return "#f97316";
+    if (signal.severity === "moderate") return "#facc15";
+    return "#fb923c";
+  }
+  if (signal.kind === "storm") return "#fde047";
+  if (signal.kind === "flood") return "#38bdf8";
+  if (signal.kind === "earthquake") return "#f472b6";
+  return "#a7f3d0";
+}
+
+function signalSeverityWeight(signal: PlanetSignal) {
+  if (signal.severity === "critical") return 4;
+  if (signal.severity === "high") return 3;
+  if (signal.severity === "moderate") return 2;
+  if (signal.severity === "low") return 1;
+  return 0;
+}
+
+function screenClusterRadius(density: PlanetSignalDensity) {
+  if (density === "global") return 54;
+  if (density === "regional") return 34;
+  return 18;
 }
 
 function makeCloudTexture() {
@@ -144,25 +179,34 @@ function EarthCameraControls({
     const controls = new ThreeOrbitControls(camera, gl.domElement);
     controls.enablePan = false;
     controls.enableZoom = true;
-    controls.minDistance = 3.15;
+    controls.minDistance = 2.34;
     controls.maxDistance = 8.6;
     controls.rotateSpeed = 0.46;
-    controls.zoomSpeed = 0.42;
+    controls.zoomSpeed = 0.5;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.32;
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
+    const stopAutoRotate = () => {
+      controls.autoRotate = false;
+    };
+    controls.addEventListener("start", stopAutoRotate);
     controlsRef.current = controls;
     onSignalDensityChange?.(densityRef.current);
 
     return () => {
+      controls.removeEventListener("start", stopAutoRotate);
       controls.dispose();
       controlsRef.current = null;
     };
   }, [camera, gl, onSignalDensityChange]);
 
   useFrame(() => {
-    controlsRef.current?.update();
+    const controls = controlsRef.current;
+    controls?.update();
+    if (controls && camera.position.length() < 5.25) {
+      controls.autoRotate = false;
+    }
     const nextDensity = densityFromCameraDistance(camera.position.length());
     if (nextDensity !== densityRef.current) {
       densityRef.current = nextDensity;
@@ -173,89 +217,12 @@ function EarthCameraControls({
   return null;
 }
 
-function PlanetSignalMarker({
-  signal,
-  selected,
-  onSelect,
-}: {
-  signal: PlanetSignal;
-  selected?: boolean;
-  onSelect?: (signal: PlanetSignal) => void;
-}) {
-  const marker = useRef<THREE.Group>(null);
-  const position = useMemo(() => latLonToVector3(signal.latitude, signal.longitude, 2.16), [
-    signal.latitude,
-    signal.longitude,
-  ]);
-  const color =
-    signal.kind === "fire"
-      ? "#fb923c"
-      : signal.kind === "storm"
-      ? "#fde047"
-      : signal.kind === "flood"
-      ? "#38bdf8"
-      : signal.kind === "earthquake"
-      ? "#f472b6"
-      : "#a7f3d0";
-  const signalCount = signal.count ?? 1;
-  const isCluster = signalCount > 1;
-  const countScale = isCluster ? clamp(Math.log10(signalCount + 1) * 0.28, 0.1, 0.48) : 0;
-  const scale = (clamp((signal.intensity ?? 0.5) * 0.55, 0.18, 0.7) + countScale) * (selected ? 1.2 : 1);
-
-  useFrame(({ camera }, delta) => {
-    if (!marker.current) return;
-    marker.current.lookAt(camera.position);
-    marker.current.rotation.z += delta * 0.7;
-  });
-
-  return (
-    <group
-      ref={marker}
-      position={position}
-      onPointerDown={(event) => event.stopPropagation()}
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelect?.(signal);
-      }}
-    >
-      <mesh>
-        <sphereGeometry args={[isCluster ? 0.28 : 0.22, 12, 12]} />
-        <meshBasicMaterial color={color} transparent opacity={0.001} depthWrite={false} />
-      </mesh>
-      <mesh scale={[scale, scale, scale]}>
-        <ringGeometry args={[0.07, 0.13, 28]} />
-        <meshBasicMaterial color={color} transparent opacity={selected ? 0.98 : isCluster ? 0.64 : 0.78} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh scale={[scale * 0.45, scale * 0.45, scale * 0.45]}>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <meshBasicMaterial color={color} transparent opacity={0.9} />
-      </mesh>
-      {isCluster ? (
-        <mesh scale={[scale * 0.92, scale * 0.92, scale * 0.92]}>
-          <ringGeometry args={[0.16, 0.19, 34]} />
-          <meshBasicMaterial color={color} transparent opacity={0.22} side={THREE.DoubleSide} />
-        </mesh>
-      ) : null}
-      {selected ? (
-        <mesh scale={[scale * 1.35, scale * 1.35, scale * 1.35]}>
-          <ringGeometry args={[0.12, 0.17, 36]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.28} side={THREE.DoubleSide} />
-        </mesh>
-      ) : null}
-    </group>
-  );
-}
-
 function EarthScene({
   signals = [],
-  selectedSignalId,
-  onSignalSelect,
   onSignalDensityChange,
   onProjectedSignalsChange,
 }: {
   signals?: PlanetSignal[];
-  selectedSignalId?: string | null;
-  onSignalSelect?: (signal: PlanetSignal) => void;
   onSignalDensityChange?: (density: PlanetSignalDensity) => void;
   onProjectedSignalsChange?: (signals: ProjectedPlanetSignal[]) => void;
 }) {
@@ -323,40 +290,169 @@ function EarthScene({
     if (!earthGroup.current || !onProjectedSignalsChange) return;
 
     projectionFrame.current += 1;
-    if (projectionFrame.current % 5 !== 0) return;
+    if (projectionFrame.current % 10 !== 0) return;
 
     earthGroup.current.updateMatrixWorld();
     const earthQuaternion = new THREE.Quaternion();
     earthGroup.current.getWorldQuaternion(earthQuaternion);
 
-    const projectedSignals = signals
+    const density = densityFromCameraDistance(state.camera.position.length());
+    const radius = screenClusterRadius(density);
+    const radiusSq = radius * radius;
+
+    const projectedPoints = signals
       .map((signal) => {
-        const localPoint = latLonToVector3(signal.latitude, signal.longitude, 2.16);
+        const localPoint = latLonToVector3(signal.latitude, signal.longitude, 2.105);
         const worldPoint = earthGroup.current!.localToWorld(localPoint.clone());
         const normal = latLonToVector3(signal.latitude, signal.longitude, 1).normalize().applyQuaternion(earthQuaternion);
         const toCamera = state.camera.position.clone().sub(worldPoint).normalize();
 
-        if (normal.dot(toCamera) < 0.04) return null;
+        if (normal.dot(toCamera) < 0.03) return null;
 
         const projected = worldPoint.clone().project(state.camera);
         const x = (projected.x * 0.5 + 0.5) * state.size.width;
         const y = (-projected.y * 0.5 + 0.5) * state.size.height;
 
-        if (projected.z < -1 || projected.z > 1 || x < -20 || y < -20 || x > state.size.width + 20 || y > state.size.height + 20) {
+        if (
+          projected.z < -1 ||
+          projected.z > 1 ||
+          x < -radius ||
+          y < -radius ||
+          x > state.size.width + radius ||
+          y > state.size.height + radius
+        ) {
           return null;
         }
 
         const count = signal.count ?? 1;
         return {
-          id: signal.id,
-          label: signal.label ?? "Seleccionar senal del planeta",
           signal,
-          size: count > 1 ? 34 : 26,
           x,
           y,
+          count,
+          weight: Math.max(1, count),
         };
       })
-      .filter((signal): signal is ProjectedPlanetSignal => Boolean(signal));
+      .filter(
+        (
+          point
+        ): point is {
+          signal: PlanetSignal;
+          x: number;
+          y: number;
+          count: number;
+          weight: number;
+        } => Boolean(point)
+      )
+      .sort((a, b) => {
+        const severityDelta = signalSeverityWeight(b.signal) - signalSeverityWeight(a.signal);
+        if (severityDelta) return severityDelta;
+        return b.weight - a.weight;
+      });
+
+    const clusters: Array<{
+      x: number;
+      y: number;
+      weight: number;
+      count: number;
+      eventIds: string[];
+      latitudeSum: number;
+      longitudeSum: number;
+      intensitySum: number;
+      strongest: PlanetSignal;
+    }> = [];
+
+    projectedPoints.forEach((point) => {
+      let nearest:
+        | {
+            x: number;
+            y: number;
+            weight: number;
+            count: number;
+            eventIds: string[];
+            latitudeSum: number;
+            longitudeSum: number;
+            intensitySum: number;
+            strongest: PlanetSignal;
+          }
+        | null = null;
+      let nearestDistance = radiusSq;
+
+      clusters.forEach((cluster) => {
+        const dx = point.x - cluster.x;
+        const dy = point.y - cluster.y;
+        const distance = dx * dx + dy * dy;
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearest = cluster;
+        }
+      });
+
+      const eventIds = point.signal.eventIds ?? [point.signal.id];
+      if (!nearest) {
+        clusters.push({
+          x: point.x,
+          y: point.y,
+          weight: point.weight,
+          count: point.count,
+          eventIds: [...eventIds],
+          latitudeSum: point.signal.latitude * point.weight,
+          longitudeSum: point.signal.longitude * point.weight,
+          intensitySum: (point.signal.intensity ?? 0.4) * point.weight,
+          strongest: point.signal,
+        });
+        return;
+      }
+
+      const nextWeight = nearest.weight + point.weight;
+      nearest.x = (nearest.x * nearest.weight + point.x * point.weight) / nextWeight;
+      nearest.y = (nearest.y * nearest.weight + point.y * point.weight) / nextWeight;
+      nearest.weight = nextWeight;
+      nearest.count += point.count;
+      nearest.eventIds.push(...eventIds);
+      nearest.latitudeSum += point.signal.latitude * point.weight;
+      nearest.longitudeSum += point.signal.longitude * point.weight;
+      nearest.intensitySum += (point.signal.intensity ?? 0.4) * point.weight;
+
+      const currentRank = signalSeverityWeight(nearest.strongest);
+      const nextRank = signalSeverityWeight(point.signal);
+      if (nextRank > currentRank || (nextRank === currentRank && point.weight > (nearest.strongest.count ?? 1))) {
+        nearest.strongest = point.signal;
+      }
+    });
+
+    const projectedSignals = clusters
+      .map((cluster) => {
+        const uniqueEventIds = Array.from(new Set(cluster.eventIds));
+        const isSingle = cluster.count === 1 && uniqueEventIds.length === 1;
+        const signal = isSingle
+          ? cluster.strongest
+          : {
+              id: `screen-cluster:${density}:${uniqueEventIds.slice(0, 8).join(":")}:${uniqueEventIds.length}`,
+              kind: cluster.strongest.kind,
+              latitude: cluster.latitudeSum / cluster.weight,
+              longitude: cluster.longitudeSum / cluster.weight,
+              intensity: clamp(cluster.intensitySum / cluster.weight + Math.log10(cluster.count + 1) * 0.08, 0.25, 1),
+              severity: cluster.strongest.severity,
+              label: `${cluster.count} señales agrupadas`,
+              count: cluster.count,
+              eventIds: uniqueEventIds,
+            };
+
+        const count = signal.count ?? 1;
+        const size = count > 1 ? clamp(15 + Math.log10(count + 1) * 5.8, 18, 30) : 9;
+        return {
+          id: signal.id,
+          label: signal.label ?? "Señal del planeta",
+          signal,
+          color: signalColor(signal),
+          count,
+          size,
+          x: cluster.x,
+          y: cluster.y,
+        };
+      })
+      .sort((a, b) => b.count - a.count);
 
     onProjectedSignalsChange(projectedSignals);
   });
@@ -388,25 +484,6 @@ function EarthScene({
   };
 
   const endDrag = (event: any) => {
-    const wasClick = dragState.current.active && !dragState.current.moved;
-    if (wasClick && earthGroup.current && onSignalSelect && signals.length > 0 && event.point) {
-      const clickedPoint = earthGroup.current.worldToLocal(event.point.clone()).normalize();
-      let closestSignal: PlanetSignal | null = null;
-      let closestAngle = Number.POSITIVE_INFINITY;
-
-      signals.forEach((signal) => {
-        const signalPoint = latLonToVector3(signal.latitude, signal.longitude, 1).normalize();
-        const angle = clickedPoint.angleTo(signalPoint);
-        if (angle < closestAngle) {
-          closestAngle = angle;
-          closestSignal = signal;
-        }
-      });
-
-      if (closestSignal && closestAngle < 0.28) {
-        onSignalSelect(closestSignal);
-      }
-    }
     dragState.current.active = false;
     event.target?.releasePointerCapture?.(event.pointerId);
   };
@@ -484,14 +561,6 @@ function EarthScene({
           </bufferGeometry>
           <pointsMaterial color="#fef08a" size={0.05} transparent opacity={0.72} sizeAttenuation />
         </points>
-        {signals.map((signal) => (
-          <PlanetSignalMarker
-            key={signal.id}
-            signal={signal}
-            selected={signal.id === selectedSignalId}
-            onSelect={onSignalSelect}
-          />
-        ))}
       </group>
 
       <group ref={orbitGroup}>
@@ -524,14 +593,26 @@ export function BioPulsePlanet({
   selectedSignalId,
   onSignalSelect,
   onSignalDensityChange,
+  onProjectedSignalStatsChange,
 }: {
   className?: string;
   signals?: PlanetSignal[];
   selectedSignalId?: string | null;
   onSignalSelect?: (signal: PlanetSignal) => void;
   onSignalDensityChange?: (density: PlanetSignalDensity) => void;
+  onProjectedSignalStatsChange?: (stats: ProjectedSignalStats) => void;
 }) {
   const [projectedSignals, setProjectedSignals] = useState<ProjectedPlanetSignal[]>([]);
+  const handleProjectedSignalsChange = useCallback(
+    (nextSignals: ProjectedPlanetSignal[]) => {
+      setProjectedSignals(nextSignals);
+      onProjectedSignalStatsChange?.({
+        visible: nextSignals.length,
+        groups: nextSignals.filter((signal) => signal.count > 1).length,
+      });
+    },
+    [onProjectedSignalStatsChange]
+  );
 
   return (
     <div className={`absolute inset-0 overflow-hidden bg-[#020712] ${className}`}>
@@ -543,45 +624,55 @@ export function BioPulsePlanet({
       >
         <EarthScene
           signals={signals}
-          selectedSignalId={selectedSignalId}
-          onSignalSelect={onSignalSelect}
           onSignalDensityChange={onSignalDensityChange}
-          onProjectedSignalsChange={setProjectedSignals}
+          onProjectedSignalsChange={handleProjectedSignalsChange}
         />
       </Canvas>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_44%,transparent_0,rgba(2,7,18,0.05)_28%,rgba(2,7,18,0.74)_88%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#020712]/34 via-transparent to-[#020712]/58" />
       <div className="pointer-events-none absolute inset-0">
         {projectedSignals.map((projected) => {
-          const selected = projected.id === selectedSignalId;
+          const isCluster = projected.count > 1;
+          const selected = projected.signal.id === selectedSignalId;
+          const color = projected.color;
+          const countLabel = projected.count > 99 ? "99+" : String(projected.count);
+
           return (
             <button
               key={projected.id}
               type="button"
               aria-label={projected.label}
               title={projected.label}
-              onPointerDown={(event) => {
+              onClick={(event) => {
                 event.stopPropagation();
                 onSignalSelect?.(projected.signal);
               }}
-              onClick={() => onSignalSelect?.(projected.signal)}
               className={[
-                "pointer-events-auto absolute rounded-full border transition",
-                selected
-                  ? "border-white/45 bg-white/12 shadow-[0_0_22px_rgba(255,255,255,0.18)]"
-                  : "border-orange-100/15 bg-orange-300/[0.025] hover:bg-orange-300/15",
+                "pointer-events-auto absolute flex items-center justify-center border text-[9px] font-bold leading-none",
+                "transition-transform duration-150 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/45",
+                selected ? "scale-110 border-white/60" : "border-white/15",
+                isCluster ? "rounded-full text-white/90 shadow-lg" : "text-transparent",
               ].join(" ")}
               style={{
                 left: projected.x,
                 top: projected.y,
                 width: projected.size,
                 height: projected.size,
-                transform: "translate(-50%, -50%)",
+                transform: `translate(-50%, -50%) ${isCluster ? "" : "rotate(45deg)"}`,
+                background: isCluster
+                  ? `radial-gradient(circle at 42% 35%, rgba(255,255,255,0.48), ${color}96 42%, ${color}2f 76%, transparent 100%)`
+                  : `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.58), ${color}bf 46%, ${color}35 78%, transparent 100%)`,
+                boxShadow: selected
+                  ? `0 0 0 2px rgba(255,255,255,0.28), 0 0 22px ${color}72`
+                  : `0 0 ${isCluster ? 10 : 8}px ${color}38`,
+                borderRadius: isCluster ? "9999px" : "58% 58% 58% 18%",
               }}
-            />
+            >
+              {isCluster ? <span style={{ transform: "none" }}>{countLabel}</span> : null}
+            </button>
           );
         })}
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_44%,transparent_0,rgba(2,7,18,0.05)_28%,rgba(2,7,18,0.74)_88%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#020712]/34 via-transparent to-[#020712]/58" />
     </div>
   );
 }

@@ -150,6 +150,7 @@ export default function App() {
   const [isExploring, setIsExploring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1.2);
   const [scanLoading, setScanLoading] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   // ✅ panel de seguidas
   const [showFollowed, setShowFollowed] = useState(false);
@@ -192,6 +193,7 @@ export default function App() {
     region: { key: string; label: string; bbox: string };
   }) => {
     setScanLoading(true);
+    setScanError(null);
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
 
@@ -335,10 +337,15 @@ export default function App() {
           })
         );
 
+        setScanError(null);
         setEvents(clusteredEvents);
       } catch (err) {
         console.error("Error fetching FIRMS data:", err);
-        setEvents(mockEvents.filter((e) => e.category === "fire"));
+        setScanError(
+          events.length > 0
+            ? "No se pudo obtener el escaneo actual. Se conserva el ultimo escaneo visible."
+            : "No se pudo obtener el escaneo actual. Intenta nuevamente."
+        );
       }
 
       setSelectedEvent(null);
@@ -349,6 +356,7 @@ export default function App() {
       return;
     }
 
+    setScanError(null);
     setEvents(mockEvents.filter((e) => e.category === args.category));
     setSelectedEvent(null);
     setStage("dashboard");
@@ -396,7 +404,6 @@ export default function App() {
           events={events}
           onClose={() => setShowPlanetObservation(false)}
           onOpenEvent={(ev) => {
-            setShowPlanetObservation(false);
             setSelectedEvent(ev);
             ensureSelectedEventHasLocation(ev);
           }}
@@ -443,6 +450,13 @@ export default function App() {
           </div>
 
           <div className="absolute inset-0 z-[2] pointer-events-none">
+            {scanError && !isAlertOpen && (
+              <div className="pointer-events-auto fixed left-1/2 top-[calc(env(safe-area-inset-top)+88px)] z-[9999] w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-amber-300/20 bg-amber-950/55 px-4 py-3 text-amber-50 shadow-2xl shadow-amber-950/20 backdrop-blur-md">
+                <div className="text-sm font-semibold text-amber-100">Fuente FIRMS temporalmente limitada</div>
+                <div className="mt-1 text-xs leading-relaxed text-amber-50/70">{scanError}</div>
+              </div>
+            )}
+
             {!isAlertOpen && (
               <div className="pointer-events-auto fixed left-4 z-[9999] top-[calc(env(safe-area-inset-top)+96px)] md:left-6 md:top-24 space-y-3">
                 <button

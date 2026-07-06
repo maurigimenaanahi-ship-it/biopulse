@@ -1,33 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, ArrowRight, Clock, Flame, Map as MapIcon, MapPin, RadioTower, X, ZoomIn } from "lucide-react";
 import type { EnvironmentalEvent } from "@/data/events";
-import { BioPulsePlanet, type PlanetSignal, type PlanetSignalDensity } from "./BioPulsePlanet";
+import type { PlanetSignal, PlanetSignalDensity } from "./BioPulsePlanet";
+import { CesiumPlanet } from "./CesiumPlanet";
 
 const DENSITY_COPY: Record<PlanetSignalDensity, { label: string; hint: string }> = {
   global: {
     label: "Vista global",
-    hint: "BioPulse concentra las senales para que el planeta respire y no se sature.",
+    hint: "BioPulse muestra latidos agrupados para que el planeta respire y no se sature.",
   },
   regional: {
     label: "Vista regional",
-    hint: "Los grupos empiezan a separarse en areas mas precisas.",
+    hint: "Los grupos se separan por zonas. Cada latido puede contener varias señales cercanas.",
   },
   local: {
     label: "Vista local",
-    hint: "Las senales se abren con mayor detalle al acercarte.",
+    hint: "Las señales se abren con mayor detalle. Tocá una señal individual para entrar al evento.",
   },
 };
-
-const SEVERITY_WEIGHT: Record<string, number> = {
-  critical: 4,
-  high: 3,
-  moderate: 2,
-  low: 1,
-};
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
 
 function eventToPlanetSignal(event: EnvironmentalEvent): PlanetSignal {
   const severityIntensity =
@@ -52,7 +42,9 @@ function eventToPlanetSignal(event: EnvironmentalEvent): PlanetSignal {
     latitude: event.latitude,
     longitude: event.longitude,
     intensity: severityIntensity,
+    severity: event.severity,
     label: event.title,
+    eventIds: [event.id],
   };
 }
 
@@ -60,84 +52,6 @@ function formatEventDate(value: EnvironmentalEvent["timestamp"]) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "sin fecha";
   return date.toLocaleDateString();
-}
-
-function cellSizeForDensity(density: PlanetSignalDensity, total: number) {
-  if (total <= 160) return 0;
-  if (density === "global") return 10;
-  if (density === "regional") return 4;
-  return 1.35;
-}
-
-function signalWeight(signal: PlanetSignal) {
-  return (signal.count ?? 1) * (signal.intensity ?? 0.4);
-}
-
-function clusterEventsIntoPlanetSignals(events: EnvironmentalEvent[], density: PlanetSignalDensity): PlanetSignal[] {
-  const cellSize = cellSizeForDensity(density, events.length);
-  if (!cellSize) return events.map(eventToPlanetSignal);
-
-  const buckets = new Map<
-    string,
-    {
-      count: number;
-      eventIds: string[];
-      intensitySum: number;
-      latitudeSum: number;
-      longitudeSum: number;
-      strongest: EnvironmentalEvent;
-    }
-  >();
-
-  events.forEach((event) => {
-    const signal = eventToPlanetSignal(event);
-    const latCell = Math.floor((event.latitude + 90) / cellSize);
-    const lonCell = Math.floor((event.longitude + 180) / cellSize);
-    const key = `${signal.kind}:${latCell}:${lonCell}`;
-    const existing = buckets.get(key);
-
-    if (!existing) {
-      buckets.set(key, {
-        count: 1,
-        eventIds: [event.id],
-        intensitySum: signal.intensity ?? 0.4,
-        latitudeSum: event.latitude,
-        longitudeSum: event.longitude,
-        strongest: event,
-      });
-      return;
-    }
-
-    existing.count += 1;
-    existing.eventIds.push(event.id);
-    existing.intensitySum += signal.intensity ?? 0.4;
-    existing.latitudeSum += event.latitude;
-    existing.longitudeSum += event.longitude;
-
-    const currentWeight = SEVERITY_WEIGHT[existing.strongest.severity] ?? 1;
-    const nextWeight = SEVERITY_WEIGHT[event.severity] ?? 1;
-    if (nextWeight > currentWeight) {
-      existing.strongest = event;
-    }
-  });
-
-  return Array.from(buckets.entries())
-    .map(([key, bucket]) => {
-      if (bucket.count === 1) return eventToPlanetSignal(bucket.strongest);
-
-      const strongestSignal = eventToPlanetSignal(bucket.strongest);
-      return {
-        id: `cluster:${density}:${key}`,
-        kind: strongestSignal.kind,
-        latitude: bucket.latitudeSum / bucket.count,
-        longitude: bucket.longitudeSum / bucket.count,
-        intensity: clamp(bucket.intensitySum / bucket.count + Math.log10(bucket.count + 1) * 0.12, 0.28, 1),
-        label: `${bucket.count} senales agrupadas`,
-        count: bucket.count,
-        eventIds: bucket.eventIds,
-      };
-    })
-    .sort((a, b) => signalWeight(b) - signalWeight(a));
 }
 
 export function PlanetObservationView({
@@ -149,10 +63,11 @@ export function PlanetObservationView({
   onClose: () => void;
   onOpenEvent: (event: EnvironmentalEvent) => void;
 }) {
-  const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
-  const [signalDensity, setSignalDensity] = useState<PlanetSignalDensity>("regional");
-  const signals = useMemo(() => clusterEventsIntoPlanetSignals(events, signalDensity), [events, signalDensity]);
-  const selectedSignal = signals.find((signal) => signal.id === selectedSignalId) ?? null;
+  const [selectedSignal, setSelectedSignal] = useState<PlanetSignal | null>(null);
+  const [planetSignalStats, setPlanetSignalStats] = useState({ visible: 0, groups: 0 });
+  const [signalDensity, setSignalDensity] = useState<PlanetSignalDensity>("global");
+  const signals = useMemo(() => events.map(eventToPlanetSignal), [events]);
+  const selectedSignalId = selectedSignal?.id ?? null;
   const selectedEvent =
     selectedSignal && (selectedSignal.count ?? 1) === 1
       ? events.find((event) => event.id === (selectedSignal.eventIds?.[0] ?? selectedSignal.id)) ?? null
@@ -162,48 +77,53 @@ export function PlanetObservationView({
       ? selectedSignal.eventIds.map((id) => events.find((event) => event.id === id)).filter(Boolean)
       : [];
   const fireCount = events.filter((event) => event.category === "fire").length;
-  const criticalCount = events.filter((event) => event.severity === "critical").length;
-  const groupedCount = signals.filter((signal) => (signal.count ?? 1) > 1).length;
+  const visibleSignalCount = planetSignalStats.visible || signals.length;
+  const groupedCount = planetSignalStats.groups;
+  const clearSelectedSignal = useCallback(() => setSelectedSignal(null), []);
 
   useEffect(() => {
-    if (selectedSignalId && !signals.some((signal) => signal.id === selectedSignalId)) {
-      setSelectedSignalId(null);
+    if (!selectedSignal) return;
+    const selectedIds = selectedSignal.eventIds ?? [selectedSignal.id];
+    if (!selectedIds.some((id) => events.some((event) => event.id === id))) {
+      setSelectedSignal(null);
     }
-  }, [selectedSignalId, signals]);
+  }, [selectedSignal, events]);
 
   const selectedTitle = selectedEvent?.title ?? selectedSignal?.label ?? "";
   const selectedLocation =
     selectedEvent?.location ??
-    (selectedSignal ? `Area aproximada ${selectedSignal.latitude.toFixed(2)}, ${selectedSignal.longitude.toFixed(2)}` : "");
+    (selectedSignal ? `Área aproximada ${selectedSignal.latitude.toFixed(2)}, ${selectedSignal.longitude.toFixed(2)}` : "");
   const selectedDescription =
     selectedEvent?.description ??
     (selectedSignal
-      ? `BioPulse agrupa estas ${selectedSignal.count ?? 0} senales cercanas para evitar ruido visual. Acercate al planeta para separarlas en lecturas mas especificas.`
+      ? `Estas ${selectedSignal.count ?? 0} señales cercanas se muestran como un solo latido para evitar ruido visual. Acercate al planeta para separarlas en lecturas más específicas.`
       : "");
 
   return (
     <div className="absolute inset-0 z-[65] overflow-hidden bg-[#020712]">
-      <BioPulsePlanet
+      <CesiumPlanet
         signals={signals}
         selectedSignalId={selectedSignalId}
-        onSignalSelect={(signal) => setSelectedSignalId(signal.id)}
+        onSignalSelect={setSelectedSignal}
+        onSignalClear={clearSelectedSignal}
         onSignalDensityChange={setSignalDensity}
+        onProjectedSignalStatsChange={setPlanetSignalStats}
       />
 
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-4 top-[calc(env(safe-area-inset-top)+88px)] max-w-sm md:left-6 md:top-24">
-          <div className="pointer-events-auto rounded-[28px] border border-orange-200/12 bg-[#06111a]/48 p-4 shadow-[0_0_80px_rgba(251,146,60,0.08)] backdrop-blur-md">
-            <div className="flex items-center justify-between gap-4">
+        <div className="absolute left-3 top-[calc(env(safe-area-inset-top)+76px)] w-[min(20rem,calc(100vw-1.5rem))] md:left-5 md:top-20 md:w-72">
+          <div className="pointer-events-auto rounded-2xl border border-orange-200/12 bg-[#06111a]/42 p-3 shadow-[0_0_60px_rgba(251,146,60,0.07)] backdrop-blur-md">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-orange-100/54">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-orange-100/54">
                   Planeta vivo
                 </div>
-                <div className="mt-1 text-xl font-semibold text-white/92">Senales sobre la Tierra</div>
+                <div className="mt-0.5 text-sm font-semibold text-white/92">Señales sobre la Tierra</div>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] text-white/58 transition hover:bg-white/[0.08] hover:text-white"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] text-white/58 transition hover:bg-white/[0.08] hover:text-white"
                 aria-label="Volver al mapa operativo"
                 title="Volver al mapa operativo"
               >
@@ -211,32 +131,42 @@ export function PlanetObservationView({
               </button>
             </div>
 
-            <div className="mt-3 text-sm leading-relaxed text-white/52">
-              Vista experimental. Los eventos cargados se proyectan por coordenadas sobre el planeta para explorar
-              sus latidos antes de entrar al detalle operativo.
+            <div className="mt-2 text-xs leading-relaxed text-white/48">
+              Explorá los latidos activos del planeta. Cuando hay demasiadas señales cercanas, BioPulse las agrupa
+              y las abre gradualmente al acercarte.
             </div>
 
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-                <Activity className="h-4 w-4 text-cyan-200/75" />
-                <div className="mt-2 text-lg font-semibold text-white/90">{events.length}</div>
-                <div className="text-[10px] uppercase tracking-[0.16em] text-white/36">eventos</div>
+            <div className="mt-2 text-[10px] leading-relaxed text-white/38">
+              Globo 3D con mapa satelital NASA GIBS y señales vivas agrupadas por proximidad.
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              <div className="rounded-xl border border-white/10 bg-white/[0.035] px-2 py-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-white/82">
+                  <Activity className="h-3 w-3 text-cyan-200/75" />
+                  {events.length}
+                </div>
+                <div className="mt-0.5 text-[8px] uppercase tracking-[0.14em] text-white/34">eventos</div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-                <Flame className="h-4 w-4 text-orange-200/75" />
-                <div className="mt-2 text-lg font-semibold text-white/90">{fireCount}</div>
-                <div className="text-[10px] uppercase tracking-[0.16em] text-white/36">incendios</div>
+              <div className="rounded-xl border border-white/10 bg-white/[0.035] px-2 py-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-white/82">
+                  <Flame className="h-3 w-3 text-orange-200/75" />
+                  {fireCount}
+                </div>
+                <div className="mt-0.5 text-[8px] uppercase tracking-[0.14em] text-white/34">incendios</div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-                <MapIcon className="h-4 w-4 text-emerald-200/75" />
-                <div className="mt-2 text-lg font-semibold text-white/90">{signals.length}</div>
-                <div className="text-[10px] uppercase tracking-[0.16em] text-white/36">visibles</div>
+              <div className="rounded-xl border border-white/10 bg-white/[0.035] px-2 py-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-white/82">
+                  <MapIcon className="h-3 w-3 text-emerald-200/75" />
+                  {visibleSignalCount}
+                </div>
+                <div className="mt-0.5 text-[8px] uppercase tracking-[0.14em] text-white/34">visibles</div>
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-orange-200/10 bg-orange-300/[0.045] px-3 py-2 text-xs leading-relaxed text-white/48">
+            <div className="mt-2 rounded-xl border border-orange-200/10 bg-orange-300/[0.045] px-2.5 py-1.5 text-[10px] leading-relaxed text-white/46">
               <span className="font-semibold text-orange-100/70">{DENSITY_COPY[signalDensity].label}</span>
-              {" · "}
+              {" - "}
               {DENSITY_COPY[signalDensity].hint}
               {groupedCount > 0 ? ` ${groupedCount} grupos visibles.` : ""}
             </div>
@@ -250,7 +180,7 @@ export function PlanetObservationView({
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/16 bg-orange-300/[0.07] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-100/66">
                     <RadioTower className="h-3.5 w-3.5" />
-                    {(selectedSignal.count ?? 1) > 1 ? "Grupo de senales" : "Senal seleccionada"}
+                    {(selectedSignal.count ?? 1) > 1 ? "Grupo de señales" : "Señal seleccionada"}
                   </div>
                   <h2 className="mt-3 text-lg font-semibold leading-tight text-white/92">{selectedTitle}</h2>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/44">
@@ -266,10 +196,10 @@ export function PlanetObservationView({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedSignalId(null)}
+                  onClick={() => setSelectedSignal(null)}
                   className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] text-white/54 transition hover:bg-white/[0.08] hover:text-white"
-                  aria-label="Cerrar lectura de senal"
-                  title="Cerrar lectura de senal"
+                  aria-label="Cerrar lectura de señal"
+                  title="Cerrar lectura de señal"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -305,7 +235,7 @@ export function PlanetObservationView({
                     </>
                   ) : (
                     <>
-                      <div className="text-[10px] uppercase tracking-[0.16em] text-white/35">senales</div>
+                      <div className="text-[10px] uppercase tracking-[0.16em] text-white/35">señales</div>
                       <div className="mt-1 text-sm font-semibold text-white/82">
                         {selectedSignal.count ?? selectedClusterEvents.length}
                       </div>
@@ -327,7 +257,7 @@ export function PlanetObservationView({
                 ) : (
                   <div className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-5 text-sm font-semibold text-white/58">
                     <ZoomIn className="h-4 w-4" />
-                    Acercate para separar senales
+                    Acercate para separar señales
                   </div>
                 )}
               </div>
