@@ -19,10 +19,10 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - SkylineWebcams Argentina: aplicada como `external_page`. Sus terminos permiten ver y compartir mediante enlaces, pero restringen copiar, descargar o reproducir frames. Por eso BioPulse solo abre la pagina original.
   Fuentes: https://www.skylinewebcams.com/en/webcam/argentina.html y https://www.skylinewebcams.com/en/terms-of-use.html
 
-## Fuentes revisadas, no aplicadas aun
+- Webcamtaxi Argentina: aplicada como `external_page` para paginas que agregan cobertura o un angulo no duplicado por el registro actual. BioPulse solo abre la fuente original; no copia frames, no descarga imagenes y no rehostea video.
+  Fuentes: https://www.webcamtaxi.com/en/argentina.html y https://www.webcamtaxi.com/en/terms.html
 
-- Webcamtaxi: directorio amplio con paginas de Argentina. Queda como fuente de descubrimiento/enlace, pero no se integra hasta revisar URLs finales y condiciones por pagina.
-  Fuente: https://www.webcamtaxi.com/en/argentina.html
+## Fuentes revisadas, no aplicadas aun
 
 - ALERTCalifornia / ALERTWildfire / HPWREN: modelo muy relevante para incendios y camaras PTZ, pero centrado en California/EE.UU. No cubre Argentina para el MVP actual. Puede inspirar una futura capa de redes oficiales de incendio.
   Fuentes: https://alertcalifornia.org/ , https://www.alertwildfire.org/ , https://www.hpwren.ucsd.edu/

@@ -526,5 +526,97 @@
     "tags": ["city", "cordoba", "external"],
     "priority": 1,
     "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-buenos-aires-july-9-avenue",
+    "providerId": "webcamtaxi",
+    "title": "Buenos Aires - Avenida 9 de Julio (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -34.6173, "lon": -58.3814 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/july-9-avenue.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["city", "traffic", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-rio-grande-cams",
+    "providerId": "webcamtaxi",
+    "title": "Rio Grande - Camaras urbanas (Webcamtaxi)",
+    "description": "Pagina publica externa con camaras en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -53.786, "lon": -67.701 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Rio Grande" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/rio-grande-cams.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["city", "traffic", "tierra-del-fuego", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-puente-gral-belgrano",
+    "providerId": "webcamtaxi",
+    "title": "Puente General Belgrano - Corrientes/Chaco (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -27.466, "lon": -58.854 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/corrientes-province/puentegeneral-manuelbelgrano-bridge.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["bridge", "river", "traffic", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-beagle-channel-ushuaia",
+    "providerId": "webcamtaxi",
+    "title": "Ushuaia - Canal Beagle (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -54.807, "lon": -68.303 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-beaglechannel.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["sea", "harbor", "patagonia", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
   }
 ]
