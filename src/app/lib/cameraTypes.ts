@@ -9,6 +9,7 @@ export type CameraRegistryItem = {
   mediaType?: "snapshot" | "video" | "stream" | "embed";
   fetch:
     | { kind: "image_url"; url: string }
+    | { kind: "external_page"; url: string; provider?: string }
     | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string }
     | { kind: string; [key: string]: unknown };
   update?: { expectedIntervalSec?: number };

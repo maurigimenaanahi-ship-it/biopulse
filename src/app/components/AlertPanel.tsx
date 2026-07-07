@@ -316,6 +316,105 @@ async function fetchWindyCameraSnapshot(args: {
   };
 }
 
+type WindyNearbySearchItem = {
+  webcamId?: string | number | null;
+  title?: string | null;
+  status?: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  detailUrl?: string | null;
+};
+
+type WindyNearbySearchResponse = {
+  count?: number;
+  items?: WindyNearbySearchItem[];
+};
+
+function safeCameraSlug(value: string, fallback: string) {
+  const slug = String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+  return slug || fallback;
+}
+
+function normalizeWindyNearbyCamera(item: WindyNearbySearchItem): CameraRegistryItem | null {
+  const cameraKey = String(item.webcamId ?? "").trim();
+  const lat = Number(item.lat);
+  const lon = Number(item.lon);
+
+  if (!/^\d+$/.test(cameraKey)) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  if (String(item.status ?? "").toLowerCase() !== "active") return null;
+
+  const title = String(item.title ?? "").trim() || `Windy webcam ${cameraKey}`;
+  const slug = safeCameraSlug(title, cameraKey);
+  const now = new Date().toISOString();
+
+  return {
+    schema: "biopulse.camera.v1",
+    id: `windy-live-${slug}-${cameraKey}`,
+    providerId: "windy",
+    title: `${title} (Windy)`,
+    description: "Camara publica activa descubierta cerca del evento mediante Windy Webcams.",
+    geo: { lat, lon },
+    coverage: { locality: title },
+    mediaType: "snapshot",
+    fetch: {
+      kind: "provider_api",
+      provider: "windy",
+      cameraKey,
+      endpoint: "/api/windy-camera",
+    },
+    update: { expectedIntervalSec: 300 },
+    usage: { isPublic: true, attributionText: "Fuente: Windy Webcams" },
+    tags: ["weather", "snapshot", "dynamic"],
+    priority: 1,
+    validation: { status: "verified", verifiedBy: "Windy API search", verifiedAt: now },
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+async function fetchWindyNearbyCameras(args: {
+  lat: number;
+  lon: number;
+  radiusKm: number;
+  signal?: AbortSignal;
+}): Promise<CameraRegistryItem[]> {
+  const endpoint = apiUrl("/api/windy-search");
+  const radius = Math.max(1, Math.min(1000, Math.round(args.radiusKm)));
+  const url =
+    `${endpoint}?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}` +
+    `&radius=${encodeURIComponent(String(radius))}`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as WindyNearbySearchResponse | null;
+
+  if (!res.ok) {
+    const message = typeof (data as any)?.error === "string" ? (data as any).error : `Windy search error ${res.status}`;
+    throw new Error(message);
+  }
+
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const cameras = items
+    .map((item) => normalizeWindyNearbyCamera(item))
+    .filter((item): item is CameraRegistryItem => Boolean(item));
+
+  const seen = new Set<string>();
+  return cameras.filter((camera) => {
+    const key = cameraDedupeKey(camera);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 async function fetchProtectedContext(
   lat: number,
   lon: number,
@@ -1513,6 +1612,38 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function cameraDedupeKey(cam: CameraRegistryItem) {
+  const fetchInfo: any = cam.fetch;
+
+  if (fetchInfo?.kind === "provider_api" && fetchInfo?.provider && fetchInfo?.cameraKey) {
+    return `provider:${String(fetchInfo.provider)}:${String(fetchInfo.cameraKey)}`;
+  }
+
+  if (fetchInfo?.kind === "external_page" && typeof fetchInfo.url === "string") {
+    return `external:${fetchInfo.url}`;
+  }
+
+  if (fetchInfo?.kind === "image_url" && typeof fetchInfo.url === "string") {
+    return `image:${fetchInfo.url}`;
+  }
+
+  return `id:${cam.id}`;
+}
+
+function mergeCameraRegistries(primary: CameraRegistryItem[], discovered: CameraRegistryItem[]) {
+  const result: CameraRegistryItem[] = [];
+  const seen = new Set<string>();
+
+  [...primary, ...discovered].forEach((camera) => {
+    const key = cameraDedupeKey(camera);
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(camera);
+  });
+
+  return result;
+}
+
 function resolveCameraVisual(
   cam: LoadedCamera,
   providerSnapshot: ProviderCameraSnapshot | null,
@@ -1522,6 +1653,7 @@ function resolveCameraVisual(
   const locality = cam.coverage?.locality || cam.coverage?.admin1 || cam.coverage?.countryISO2 || "";
   const dist = `${cam.distanceKm.toFixed(1)} km`;
   const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
+  const isExternalPage = cam.fetch?.kind === "external_page" && typeof (cam.fetch as any)?.url === "string";
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
   const snapUrl = snapUrlRaw
@@ -1533,9 +1665,12 @@ function resolveCameraVisual(
     isWindyProvider && (cam.fetch as any)?.cameraKey
       ? providerSnapshot?.detailUrl ?? `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
       : null;
-  const openUrl = snapUrlRaw ?? providerDetailUrl;
+  const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
+  const openUrl = snapUrlRaw ?? providerDetailUrl ?? externalPageUrl;
   const providerInfo =
     cam.fetch?.kind === "provider_api"
+      ? `Provider: ${(cam.fetch as any).provider}`
+      : cam.fetch?.kind === "external_page" && (cam.fetch as any)?.provider
       ? `Provider: ${(cam.fetch as any).provider}`
       : cam.providerId
       ? `Provider: ${cam.providerId}`
@@ -1561,6 +1696,7 @@ function resolveCameraVisual(
     locality,
     dist,
     isSnapshot,
+    isExternalPage,
     isWindyProvider,
     snapUrl,
     openUrl,
@@ -2179,6 +2315,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const newsAbortRef = useRef<AbortController | null>(null);
   const weatherAbortRef = useRef<AbortController | null>(null);
   const cameraAbortRef = useRef<AbortController | null>(null);
+  const windySearchAbortRef = useRef<AbortController | null>(null);
   const protectedContextAbortRef = useRef<AbortController | null>(null);
   const ecosystemContextAbortRef = useRef<AbortController | null>(null);
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
@@ -2298,6 +2435,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [camLoading, setCamLoading] = useState(false);
   const [camErr, setCamErr] = useState<string | null>(null);
   const [camRegistry, setCamRegistry] = useState<CameraRegistryItem[]>([]);
+  const [windyNearbyLoading, setWindyNearbyLoading] = useState(false);
+  const [windyNearbyErr, setWindyNearbyErr] = useState<string | null>(null);
+  const [windyNearbyCameras, setWindyNearbyCameras] = useState<CameraRegistryItem[]>([]);
   const [camRadiusKm, setCamRadiusKm] = useState<number>(60);
   const [camRefreshTick, setCamRefreshTick] = useState<number>(0);
   const [providerSnapshots, setProviderSnapshots] = useState<Record<string, ProviderCameraSnapshot>>({});
@@ -2426,6 +2566,34 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       setCamErr(e?.message ? String(e.message) : "No se pudo cargar cámaras.");
     } finally {
       if (!controller.signal.aborted) setCamLoading(false);
+    }
+  };
+
+  const loadWindyNearbyCameras = async () => {
+    if (!event) return;
+
+    windySearchAbortRef.current?.abort();
+    const controller = new AbortController();
+    windySearchAbortRef.current = controller;
+
+    setWindyNearbyLoading(true);
+    setWindyNearbyErr(null);
+
+    try {
+      const items = await fetchWindyNearbyCameras({
+        lat: event.latitude,
+        lon: event.longitude,
+        radiusKm: camRadiusKm,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setWindyNearbyCameras(items);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setWindyNearbyCameras([]);
+      setWindyNearbyErr(e?.message ? String(e.message) : "No se pudo buscar cÃ¡maras Windy cercanas.");
+    } finally {
+      if (!controller.signal.aborted) setWindyNearbyLoading(false);
     }
   };
 
@@ -2697,6 +2865,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setNewsView("main");
     setProviderSnapshots({});
     setSelectedCameraId(null);
+    setWindyNearbyCameras([]);
+    setWindyNearbyErr(null);
     loadNews();
     loadWeather();
     loadCameraRegistry();
@@ -2715,6 +2885,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       newsAbortRef.current?.abort();
       weatherAbortRef.current?.abort();
       cameraAbortRef.current?.abort();
+      windySearchAbortRef.current?.abort();
       protectedContextAbortRef.current?.abort();
       ecosystemContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
@@ -2728,6 +2899,21 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
+
+  useEffect(() => {
+    if (!event) {
+      setWindyNearbyCameras([]);
+      setWindyNearbyErr(null);
+      return;
+    }
+
+    loadWindyNearbyCameras();
+
+    return () => {
+      windySearchAbortRef.current?.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.id, event?.latitude, event?.longitude, camRadiusKm, camRefreshTick]);
 
   const splitNews = useMemo(() => {
     const items = Array.isArray(newsItems) ? newsItems : [];
@@ -2775,28 +2961,38 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       ? "border-red-400/20 bg-red-500/10 text-red-100/90"
       : "border-white/10 bg-white/5 text-white/80";
 
+  const combinedCameraRegistry = useMemo(
+    () => mergeCameraRegistries(Array.isArray(camRegistry) ? camRegistry : [], windyNearbyCameras),
+    [camRegistry, windyNearbyCameras]
+  );
+  const cameraDiscoveryLoading = camLoading || windyNearbyLoading;
+
   const cameraCandidates = useMemo(() => {
     if (!event) return [] as LoadedCamera[];
     const baseLat = event.latitude;
     const baseLon = event.longitude;
 
-    return (Array.isArray(camRegistry) ? camRegistry : [])
+    return combinedCameraRegistry
       .filter((c) => c?.geo && Number.isFinite(c.geo.lat as any) && Number.isFinite(c.geo.lon as any))
       .map((c) => {
         const d = haversineKm(baseLat, baseLon, c.geo.lat, c.geo.lon);
         return { ...c, distanceKm: d } as LoadedCamera;
       })
       .sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [camRegistry, event?.id]);
+  }, [combinedCameraRegistry, event?.id, event?.latitude, event?.longitude]);
 
   const nearbyCameras = useMemo(() => {
     const list = cameraCandidates
       .filter((c) => c.distanceKm <= camRadiusKm)
       .sort((a, b) => {
+        const distanceDelta = a.distanceKm - b.distanceKm;
+        if (Math.abs(distanceDelta) > 1) return distanceDelta;
+
         const pa = a.priority ?? 0;
         const pb = b.priority ?? 0;
         if (pb !== pa) return pb - pa;
-        return a.distanceKm - b.distanceKm;
+
+        return distanceDelta;
       });
 
     return list;
@@ -3542,13 +3738,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       id: "cameras",
       label: "Cámaras",
       icon: <Camera className="h-4 w-4 text-white/75" />,
-      state: camLoading ? "loading" : camErr ? "limited" : camRegistry.length > 0 ? "available" : "empty",
-      detail: camLoading
+      state: cameraDiscoveryLoading ? "loading" : camErr ? "limited" : combinedCameraRegistry.length > 0 ? "available" : "empty",
+      detail: cameraDiscoveryLoading
         ? "Cargando registro de cámaras."
         : camErr
         ? "El registro de cámaras no está disponible."
-        : camRegistry.length > 0
-        ? `${camRegistry.length} registradas · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
+        : combinedCameraRegistry.length > 0
+        ? `${combinedCameraRegistry.length} disponibles · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
         : "Registro cargado sin cámaras válidas.",
       actionLabel: "Ver cámaras",
       onOpen: openCameraObservation,
@@ -3743,7 +3939,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     },
     cameras: {
       title: "C\u00e1maras cercanas",
-      subtitle: `${event.location} · ${nearbyCameras.length} dentro de ${camRadiusKm} km · ${camRegistry.length} registradas`,
+      subtitle: `${event.location} · ${nearbyCameras.length} dentro de ${camRadiusKm} km · ${combinedCameraRegistry.length} disponibles`,
     },
     news: {
       title: "Noticias relacionadas",
@@ -4278,7 +4474,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </button>
                 </div>
 
-                {camLoading ? (
+                {cameraDiscoveryLoading && !primaryCamera ? (
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-white/55">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Cargando cámaras cercanas...
@@ -6875,7 +7071,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     aria-label="Actualizar cámaras"
                     title="Actualizar cámaras"
                   >
-                    {camLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    {cameraDiscoveryLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                     <span className="text-xs font-medium">Actualizar</span>
                   </button>
                 </div>
@@ -6889,6 +7085,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       Tip: asegurate de tener el JSON en <span className="font-semibold">/public</span> (ej.{" "}
                       <span className="font-mono">public/cameraRegistry.sample.json</span>)
                     </div>
+                  </div>
+                ) : null}
+
+                {windyNearbyErr ? (
+                  <div className="mb-3 rounded-xl border border-amber-300/20 bg-amber-400/10 p-3 text-sm text-amber-100/85">
+                    Busqueda Windy limitada. <span className="text-amber-100/65">{windyNearbyErr}</span>
                   </div>
                 ) : null}
 
@@ -6941,7 +7143,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     </div>
                   </div>
 
-                  {camLoading ? (
+                  {cameraDiscoveryLoading && !activeCamera ? (
                     <div className="flex min-h-[260px] items-center justify-center gap-2 bg-black/20 text-sm text-white/55">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Cargando cámara activa...
@@ -6992,6 +7194,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           {activeCameraVisual.isWindyProvider ? (
                             <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
                               Windy API
+                            </span>
+                          ) : activeCameraVisual.isExternalPage ? (
+                            <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-100/75">
+                              PÃ¡gina externa
                             </span>
                           ) : activeCameraVisual.isSnapshot ? (
                             <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
@@ -7046,8 +7252,8 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <div className="mt-1 text-xs text-white/35">Dentro del radio actual.</div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40">Registro</div>
-                    <div className="mt-2 text-2xl font-semibold text-white/90">{camRegistry.length}</div>
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Disponibles</div>
+                    <div className="mt-2 text-2xl font-semibold text-white/90">{combinedCameraRegistry.length}</div>
                     <div className="mt-1 text-xs text-white/35">Cámaras cargadas en BioPulse.</div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
@@ -7129,7 +7335,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 </div>
 
                 <div className="mt-3 space-y-3">
-                  {camLoading ? (
+                  {cameraDiscoveryLoading && nearbyCameras.length === 0 ? (
                     <div className="space-y-3">
                       {Array.from({ length: 3 }).map((_, i) => (
                         <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
@@ -7225,6 +7431,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                   {cameraVisual.isWindyProvider ? (
                                     <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
                                       Windy API
+                                    </span>
+                                  ) : cameraVisual.isExternalPage ? (
+                                    <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-100/75">
+                                      PÃ¡gina externa
                                     </span>
                                   ) : cameraVisual.isSnapshot ? (
                                     <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">

@@ -56,11 +56,18 @@ function providerName(camera: LoadedCamera) {
   if (camera.fetch.kind === "provider_api" && typeof camera.fetch.provider === "string") {
     return camera.fetch.provider;
   }
+  if (camera.fetch.kind === "external_page" && typeof camera.fetch.provider === "string") {
+    return camera.fetch.provider;
+  }
   return camera.providerId || "camera_registry";
 }
 
 function directSnapshotUrl(camera: LoadedCamera) {
   return camera.fetch.kind === "image_url" && typeof camera.fetch.url === "string" ? camera.fetch.url : null;
+}
+
+function externalPageUrl(camera: LoadedCamera) {
+  return camera.fetch.kind === "external_page" && typeof camera.fetch.url === "string" ? camera.fetch.url : null;
 }
 
 function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
@@ -72,7 +79,7 @@ function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCame
 }
 
 function externalUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
-  return directSnapshotUrl(camera) ?? providerDetailUrl(camera, providerSnapshot);
+  return directSnapshotUrl(camera) ?? providerDetailUrl(camera, providerSnapshot) ?? externalPageUrl(camera);
 }
 
 function snapshotUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {

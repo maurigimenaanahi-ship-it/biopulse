@@ -250,5 +250,281 @@
     "tags": ["city", "patagonia", "snapshot"],
     "priority": 2,
     "validation": { "status": "verified", "verifiedBy": "Codex via Windy API", "verifiedAt": "2026-07-06" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-ushuaia-port",
+    "providerId": "skyline",
+    "title": "Ushuaia - Puerto (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -54.807, "lon": -68.302 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/tierra-del-fuego/ushuaia/ushuaia.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["city", "harbor", "patagonia", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-ushuaia-tren-fin-mundo",
+    "providerId": "skyline",
+    "title": "Ushuaia - Tren del Fin del Mundo (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -54.833, "lon": -68.42 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/tierra-del-fuego/ushuaia/tren-del-fin-del-mundo.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["forest", "tourism", "patagonia", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-atuel-canyon",
+    "providerId": "skyline",
+    "title": "Canon del Atuel - San Rafael (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -34.835, "lon": -68.5 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Valle Grande" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/provincia-de-mendoza/san-rafael/canon-del-atuel.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["canyon", "mendoza", "landscape", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-valle-grande-rio-atuel",
+    "providerId": "skyline",
+    "title": "Valle Grande - Rio Atuel (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -34.82, "lon": -68.49 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Valle Grande" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/provincia-de-mendoza/san-rafael/valle-grande-rio-atuel.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["river", "mendoza", "landscape", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-buenos-aires-obelisco",
+    "providerId": "skyline",
+    "title": "Buenos Aires - Obelisco (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -34.6037, "lon": -58.3816 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/buenos-aires/buenos-aires/obelisco.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["city", "urban", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-buenos-aires-panorama",
+    "providerId": "skyline",
+    "title": "Buenos Aires - Panorama (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -34.6037, "lon": -58.3816 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/buenos-aires/buenos-aires/panorama.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["city", "urban", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-necochea-beach",
+    "providerId": "skyline",
+    "title": "Necochea - Playa (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -38.5545, "lon": -58.7396 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Necochea" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/buenos-aires/necochea/necochea.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["coast", "beach", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-pinamar-beach",
+    "providerId": "skyline",
+    "title": "Pinamar - Playa (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -37.1146, "lon": -56.861 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/buenos-aires/pinamar/pinamar-beach.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["coast", "beach", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-claromeco-beach",
+    "providerId": "skyline",
+    "title": "Claromeco - Playa (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -38.8573, "lon": -60.0644 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Claromeco" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/buenos-aires/claromeco/claromeco.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["coast", "beach", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-las-grutas-bajada",
+    "providerId": "skyline",
+    "title": "Las Grutas - Bajada (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -40.8136, "lon": -65.0922 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Las Grutas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/rio-negro-province/las-grutas/playa-bajada.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["coast", "beach", "patagonia", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-cipolletti",
+    "providerId": "skyline",
+    "title": "Cipolletti - Ciudad (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -38.9339, "lon": -67.9903 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/rio-negro-province/cipolletti/cipolletti.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["city", "patagonia", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-villa-maria",
+    "providerId": "skyline",
+    "title": "Villa Maria - Ciudad (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -32.4075, "lon": -63.2402 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Villa Maria" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/departamento-general-san-martin/provincia-de-cordoba/villa-maria.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["city", "cordoba", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-07" }
   }
 ]
