@@ -112,6 +112,36 @@ type AlertPanelSection =
   | "timeline"
   | "operations";
 
+type NewsSearchScope = "local" | "regional" | "national";
+
+type NewsSearchPlan = {
+  scope: NewsSearchScope;
+  label: string;
+  query: string;
+  filterPlace: string;
+  days: number;
+  max: number;
+};
+
+type NewsSearchAttempt = {
+  scope: NewsSearchScope;
+  label: string;
+  query: string;
+  candidateCount: number;
+  keptCount: number;
+  discardedCount: number;
+  limited: boolean;
+};
+
+type NewsMetaState = {
+  query: string;
+  fetchedAt?: string;
+  placeUsed?: string;
+  scope?: NewsSearchScope;
+  scopeLabel?: string;
+  attempts?: NewsSearchAttempt[];
+};
+
 const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const PRODUCTION_API_BASE = "https://biopulse-weld.vercel.app";
 const FAV_KEY = "biopulse:followed-alerts";
@@ -1074,6 +1104,26 @@ function normalizePlaceForQuery(place: string) {
   return { locality, state, country, parts };
 }
 
+function newsHazardQueryFor(ev: EnvironmentalEvent) {
+  return ev.category === "fire"
+    ? "(incendio OR incendios OR wildfire OR wildfires OR fire OR forest fire OR bushfire)"
+    : ev.category === "flood"
+    ? "(inundacion OR inundaciones OR flood)"
+    : ev.category === "storm"
+    ? "(tormenta OR temporal OR storm)"
+    : ev.category === "heatwave"
+    ? "(calor OR \"ola de calor\" OR heatwave)"
+    : ev.category === "air-pollution"
+    ? "(humo OR contaminacion OR \"calidad del aire\" OR smoke OR pollution)"
+    : "(emergency OR disaster)";
+}
+
+function buildNewsQueryFromTerms(ev: EnvironmentalEvent, terms: string[]) {
+  const cleanTerms = terms.map((term) => String(term ?? "").trim()).filter(Boolean);
+  const placeBlock = cleanTerms.length ? cleanTerms.map((term) => `"${term}"`).join(" OR ") : "\"Argentina\"";
+  return `(${placeBlock}) AND ${newsHazardQueryFor(ev)}`;
+}
+
 function buildNewsQueryFromPlace(ev: EnvironmentalEvent, place: string) {
   const { country } = normalizePlaceForQuery(place);
 
@@ -1240,6 +1290,80 @@ function isNewsRelevantToEvent(ev: EnvironmentalEvent, place: string, item: News
   const hasEmergencySignal = isEvacuationRelevant(item);
 
   return hasHazardSignal || hasOfficialSignal || hasEmergencySignal;
+}
+
+function newsItemKey(item: NewsItem) {
+  return item.url || item.id || `${item.domain ?? "source"}:${item.title ?? "item"}`;
+}
+
+function normalizeNewsCandidates(items: NewsItem[]) {
+  const seen = new Set<string>();
+
+  return items
+    .filter((x) => x && (x.title || x.url))
+    .map((x) => ({
+      ...x,
+      title: x.title?.trim() ?? null,
+      summary: x.summary?.trim() ?? null,
+      image: x.image?.trim() ?? null,
+    }))
+    .filter((item) => {
+      const key = newsItemKey(item);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function buildNewsSearchPlans(ev: EnvironmentalEvent, place: string): NewsSearchPlan[] {
+  const eventPlace = normalizePlaceForQuery(ev.location || "");
+  const resolvedPlace = normalizePlaceForQuery(place || "");
+  const days = ev.category === "fire" ? 10 : 14;
+  const plans: NewsSearchPlan[] = [];
+
+  const localTerms = newsPlaceTermsFor(ev, place).slice(0, 5);
+  const localFallback = resolvedPlace.country || eventPlace.country || place || ev.location || "Argentina";
+  plans.push({
+    scope: localTerms.length ? "local" : "national",
+    label: localTerms.length ? "local" : "nacional",
+    query: buildNewsQueryFromPlace(ev, place),
+    filterPlace: localTerms.length ? place : localFallback,
+    days,
+    max: 12,
+  });
+
+  const regionalTerms = uniqueNewsTerms([resolvedPlace.state, eventPlace.state]).slice(0, 3);
+  const countryTerm = resolvedPlace.country || eventPlace.country || "Argentina";
+
+  if (regionalTerms.length > 0) {
+    const region = regionalTerms[0];
+    plans.push({
+      scope: "regional",
+      label: `regional: ${region}`,
+      query: buildNewsQueryFromTerms(ev, [region, countryTerm].filter(Boolean)),
+      filterPlace: [region, countryTerm].filter(Boolean).join(", "),
+      days,
+      max: 12,
+    });
+  }
+
+  if (countryTerm) {
+    plans.push({
+      scope: "national",
+      label: `nacional: ${countryTerm}`,
+      query: buildNewsQueryFromTerms(ev, [countryTerm]),
+      filterPlace: countryTerm,
+      days,
+      max: 12,
+    });
+  }
+
+  const seen = new Set<string>();
+  return plans.filter((plan) => {
+    if (seen.has(plan.query)) return false;
+    seen.add(plan.query);
+    return true;
+  });
 }
 
 function parseFRPFromDescription(desc?: string) {
@@ -2370,7 +2494,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsErr, setNewsErr] = useState<string | null>(null);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [newsMeta, setNewsMeta] = useState<{ query: string; fetchedAt?: string; placeUsed?: string } | null>(null);
+  const [newsMeta, setNewsMeta] = useState<NewsMetaState | null>(null);
   const [newsLimited, setNewsLimited] = useState(false);
   const [newsDiscardedCount, setNewsDiscardedCount] = useState(0);
   const [newsView, setNewsView] = useState<"main" | "official" | "regional">("main");
@@ -2489,32 +2613,68 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     try {
       const place = await ensureNewsPlace(event, controller.signal);
-      const query = buildNewsQueryFromPlace(event, place);
+      const plans = buildNewsSearchPlans(event, place);
+      const attempts: NewsSearchAttempt[] = [];
+      let selected:
+        | {
+            plan: NewsSearchPlan;
+            data: NewsResponse;
+            cleaned: NewsItem[];
+            limited: boolean;
+          }
+        | null = null;
+      let discardedTotal = 0;
 
-      const data = await fetchNewsFromWorker({
-        query,
-        days: event.category === "fire" ? 10 : 14,
-        max: 12,
-        signal: controller.signal,
-      });
+      for (const plan of plans) {
+        const data = await fetchNewsFromWorker({
+          query: plan.query,
+          days: plan.days,
+          max: plan.max,
+          signal: controller.signal,
+        });
 
-      if (controller.signal.aborted) return;
+        if (controller.signal.aborted) return;
 
-      const items = Array.isArray(data?.items) ? data.items : [];
-      const candidateItems = items
-        .filter((x) => x && (x.title || x.url))
-        .map((x) => ({
-          ...x,
-          title: x.title?.trim() ?? null,
-          summary: x.summary?.trim() ?? null,
-          image: x.image?.trim() ?? null,
-        }));
-      const cleaned = candidateItems.filter((item) => isNewsRelevantToEvent(event, place, item));
+        const candidateItems = normalizeNewsCandidates(Array.isArray(data?.items) ? data.items : []);
+        const cleaned = candidateItems.filter((item) => isNewsRelevantToEvent(event, plan.filterPlace, item));
+        const discardedCount = Math.max(0, candidateItems.length - cleaned.length);
+        const limited = data?.gdelt?.ok === false || Number(data?.gdelt?.status) === 429;
 
-      setNewsItems(cleaned);
-      setNewsDiscardedCount(Math.max(0, candidateItems.length - cleaned.length));
-      setNewsLimited(data?.gdelt?.ok === false || Number(data?.gdelt?.status) === 429);
-      setNewsMeta({ query: data.query ?? query, fetchedAt: data.fetched_at, placeUsed: place });
+        discardedTotal += discardedCount;
+        attempts.push({
+          scope: plan.scope,
+          label: plan.label,
+          query: data.query ?? plan.query,
+          candidateCount: candidateItems.length,
+          keptCount: cleaned.length,
+          discardedCount,
+          limited,
+        });
+
+        selected = { plan, data, cleaned, limited };
+
+        if (cleaned.length > 0 || limited) break;
+      }
+
+      const finalPlan = selected?.plan ?? plans[0] ?? null;
+      const finalData = selected?.data ?? null;
+      const finalItems = selected?.cleaned ?? [];
+
+      setNewsItems(finalItems);
+      setNewsDiscardedCount(discardedTotal);
+      setNewsLimited(Boolean(selected?.limited));
+      setNewsMeta(
+        finalPlan
+          ? {
+              query: finalData?.query ?? finalPlan.query,
+              fetchedAt: finalData?.fetched_at,
+              placeUsed: place,
+              scope: finalPlan.scope,
+              scopeLabel: finalPlan.label,
+              attempts,
+            }
+          : null
+      );
     } catch (e: any) {
       if (isAbortError(e)) return;
       setNewsItems([]);
@@ -3829,7 +3989,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
         : newsFilteredOut
         ? `${newsDiscardedCount} resultados descartados por vínculo débil.`
         : newsItems.length > 0
-        ? `${newsItems.length} referencias regionales recuperadas.`
+        ? `${newsItems.length} referencias recuperadas${newsMeta?.scopeLabel ? ` (${newsMeta.scopeLabel})` : ""}.`
         : "La consulta terminó sin resultados útiles.",
       actionLabel: "Abrir sección",
       onOpen: () => {
@@ -6875,6 +7035,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                 {newsMeta?.fetchedAt ? (
                   <div className="mt-4 text-[11px] text-white/35">
                     Actualizado: {new Date(newsMeta.fetchedAt).toUTCString().replace("GMT", "UTC")}
+                  </div>
+                ) : null}
+                {newsMeta?.scopeLabel ? (
+                  <div className="mt-1 text-[11px] text-white/32">
+                    Alcance: {newsMeta.scopeLabel}
+                    {newsMeta.attempts?.length ? ` - ${newsMeta.attempts.length} consulta${newsMeta.attempts.length === 1 ? "" : "s"}` : ""}
+                    {newsMeta.placeUsed ? ` - Lugar: ${newsMeta.placeUsed}` : ""}
                   </div>
                 ) : null}
               </div>

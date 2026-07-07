@@ -5,3 +5,5 @@ Este archivo de Figma Make incluye fotos de [Unsplash](https://unsplash.com) uti
 BioPulse usa referencias de camaras publicas provistas por [Windy Webcams](https://api.windy.com/webcams/docs) mediante API y enlaces externos.
 
 BioPulse enlaza paginas publicas de [SkylineWebcams](https://www.skylinewebcams.com/en/webcam/argentina.html) como fuente externa, sin copiar ni rehostear frames.
+
+BioPulse usa referencias informativas recuperadas mediante [GDELT](https://www.gdeltproject.org/) a traves del News Worker propio.
