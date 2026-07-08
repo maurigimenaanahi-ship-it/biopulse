@@ -8,6 +8,8 @@ BioPulse enlaza paginas publicas de [SkylineWebcams](https://www.skylinewebcams.
 
 BioPulse enlaza paginas publicas de [Webcamtaxi](https://www.webcamtaxi.com/en/argentina.html) como fuente externa, sin copiar ni rehostear frames.
 
+BioPulse enlaza paginas publicas de [WorldCam Argentina](https://worldcam.eu/webcams/south-america/argentina) como directorio externo de webcams, sin copiar ni rehostear frames.
+
 BioPulse enlaza paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes externas de montana, sin copiar ni rehostear frames.
 
 BioPulse usa referencias informativas recuperadas mediante [GDELT](https://www.gdeltproject.org/) a traves del News Worker propio.

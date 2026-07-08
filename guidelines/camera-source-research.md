@@ -22,6 +22,9 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - Webcamtaxi Argentina: aplicada como `external_page` para paginas que agregan cobertura nueva o una fuente alternativa de una escena ya registrada. BioPulse solo abre la fuente original; no copia frames, no descarga imagenes y no rehostea video.
   Fuentes: https://www.webcamtaxi.com/en/argentina.html y https://www.webcamtaxi.com/en/terms.html
 
+- WorldCam Argentina: aplicada como `external_page` para ampliar cobertura territorial con paginas individuales de camaras publicas y coordenadas. BioPulse omite entradas fuera de Argentina y solo abre la pagina original; no copia frames, no descarga imagenes y no rehostea video.
+  Fuentes: https://worldcam.eu/webcams/south-america/argentina y https://worldcam.eu/terms
+
 - Centros de montana y nieve con webcams oficiales: aplicados como `external_page` porque aportan observacion visual de cielo, visibilidad, nieve, viento visible y condiciones de montana cercanas a zonas de bosque/interfase. BioPulse no reutiliza los frames; abre la pagina original.
   Fuentes: https://catedralaltapatagonia.com/webcams/ , https://cerrobayo.com.ar/montana/camara/ , https://skilahoya.com/webcams/ , https://www.cerrocastor.com/es_ar/live.html
 
