@@ -1754,6 +1754,22 @@ function cameraDedupeKey(cam: CameraRegistryItem) {
   return `id:${cam.id}`;
 }
 
+function cameraGroupKey(cam: CameraRegistryItem) {
+  const groupKey = typeof cam.groupKey === "string" ? cam.groupKey.trim() : "";
+  return groupKey ? `group:${groupKey}` : cameraDedupeKey(cam);
+}
+
+function cameraSourceLabel(cam: CameraRegistryItem) {
+  const fetchInfo: any = cam.fetch;
+  const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
+
+  if (provider === "windy") return "Windy";
+  if (provider === "skyline") return "Skyline";
+  if (provider === "webcamtaxi") return "Webcamtaxi";
+  if (provider) return provider.charAt(0).toUpperCase() + provider.slice(1);
+  return "Fuente";
+}
+
 function mergeCameraRegistries(primary: CameraRegistryItem[], discovered: CameraRegistryItem[]) {
   const result: CameraRegistryItem[] = [];
   const seen = new Set<string>();
@@ -1766,6 +1782,33 @@ function mergeCameraRegistries(primary: CameraRegistryItem[], discovered: Camera
   });
 
   return result;
+}
+
+type LoadedCameraGroup = {
+  key: string;
+  primary: LoadedCamera;
+  alternatives: LoadedCamera[];
+  all: LoadedCamera[];
+};
+
+function groupLoadedCameras(cameras: LoadedCamera[]): LoadedCameraGroup[] {
+  const groups = new Map<string, LoadedCamera[]>();
+
+  cameras.forEach((camera) => {
+    const key = cameraGroupKey(camera);
+    const list = groups.get(key) ?? [];
+    list.push(camera);
+    groups.set(key, list);
+  });
+
+  return Array.from(groups.entries())
+    .map(([key, all]) => ({
+      key,
+      primary: all[0],
+      alternatives: all.slice(1),
+      all,
+    }))
+    .sort((a, b) => a.primary.distanceKm - b.primary.distanceKm);
 }
 
 function resolveCameraVisual(
@@ -3158,6 +3201,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     return list;
   }, [cameraCandidates, camRadiusKm]);
 
+  const cameraCandidateGroups = useMemo(() => groupLoadedCameras(cameraCandidates), [cameraCandidates]);
+  const nearbyCameraGroups = useMemo(() => groupLoadedCameras(nearbyCameras), [nearbyCameras]);
+  const displayCameras = useMemo(() => nearbyCameraGroups.map((group) => group.primary), [nearbyCameraGroups]);
+  const cameraSourceCount = combinedCameraRegistry.length;
+  const nearbyCameraSourceCount = nearbyCameras.length;
+  const cameraPointCount = cameraCandidateGroups.length;
+  const nearbyCameraPointCount = nearbyCameraGroups.length;
+
   const closestCameraOutsideRadius = useMemo(
     () => cameraCandidates.find((camera) => camera.distanceKm > camRadiusKm) ?? null,
     [cameraCandidates, camRadiusKm]
@@ -3171,14 +3222,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   );
 
   useEffect(() => {
-    if (nearbyCameras.length === 0) {
+    if (displayCameras.length === 0) {
       if (selectedCameraId) setSelectedCameraId(null);
       return;
     }
-    if (!selectedCameraId || !nearbyCameras.some((cam) => cam.id === selectedCameraId)) {
-      setSelectedCameraId(nearbyCameras[0].id);
+    if (!selectedCameraId || !displayCameras.some((cam) => cam.id === selectedCameraId)) {
+      setSelectedCameraId(displayCameras[0].id);
     }
-  }, [nearbyCameras, selectedCameraId]);
+  }, [displayCameras, selectedCameraId]);
 
   useEffect(() => {
     if (!event || nearbyCameras.length === 0) return;
@@ -3688,7 +3739,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     officialAlerts,
     weather,
     gwisFireDanger,
-    cameras: nearbyCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
+    cameras: displayCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
     fireHistory,
     ecosystemContext,
     protectedContext,
@@ -3784,11 +3835,22 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setActiveSection("cameras");
     if (!guardianPreparationComplete) setGuardianPreparationOpen(true);
   };
-  const primaryCamera = nearbyCameras[0] ?? null;
+  const primaryCamera = displayCameras[0] ?? null;
+  const primaryCameraGroup = primaryCamera
+    ? nearbyCameraGroups.find((group) => group.primary.id === primaryCamera.id) ?? null
+    : null;
   const primaryCameraVisual = primaryCamera
     ? resolveCameraVisual(primaryCamera, providerSnapshots[primaryCamera.id] ?? null, camRefreshTick)
     : null;
-  const activeCamera = nearbyCameras.find((cam) => cam.id === selectedCameraId) ?? primaryCamera;
+  const activeCamera = displayCameras.find((cam) => cam.id === selectedCameraId) ?? primaryCamera;
+  const activeCameraGroup = activeCamera
+    ? nearbyCameraGroups.find((group) => group.primary.id === activeCamera.id) ?? null
+    : null;
+  const activeCameraAlternatives =
+    activeCameraGroup?.alternatives.map((camera) => ({
+      camera,
+      visual: resolveCameraVisual(camera, providerSnapshots[camera.id] ?? null, camRefreshTick),
+    })) ?? [];
   const activeCameraVisual = activeCamera
     ? resolveCameraVisual(activeCamera, providerSnapshots[activeCamera.id] ?? null, camRefreshTick)
     : null;
@@ -3851,7 +3913,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       kind: "review_cameras",
       title: "Revisar cámaras cercanas",
       question: "¿Qué puede verificarse en las cámaras cercanas sin exceder lo que muestran las imágenes?",
-      available: nearbyCameras.length > 0,
+      available: nearbyCameraPointCount > 0,
       unavailableReason: `No hay cámaras dentro del radio actual de ${camRadiusKm} km.`,
     },
     {
@@ -3898,13 +3960,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       id: "cameras",
       label: "Cámaras",
       icon: <Camera className="h-4 w-4 text-white/75" />,
-      state: cameraDiscoveryLoading ? "loading" : camErr ? "limited" : combinedCameraRegistry.length > 0 ? "available" : "empty",
+      state: cameraDiscoveryLoading ? "loading" : camErr ? "limited" : cameraSourceCount > 0 ? "available" : "empty",
       detail: cameraDiscoveryLoading
         ? "Cargando registro de cámaras."
         : camErr
         ? "El registro de cámaras no está disponible."
-        : combinedCameraRegistry.length > 0
-        ? `${combinedCameraRegistry.length} disponibles · ${nearbyCameras.length} dentro de ${camRadiusKm} km`
+        : cameraSourceCount > 0
+        ? `${cameraSourceCount} fuentes · ${nearbyCameraPointCount} puntos en ${camRadiusKm} km`
         : "Registro cargado sin cámaras válidas.",
       actionLabel: "Ver cámaras",
       onOpen: openCameraObservation,
@@ -4099,7 +4161,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     },
     cameras: {
       title: "C\u00e1maras cercanas",
-      subtitle: `${event.location} · ${nearbyCameras.length} dentro de ${camRadiusKm} km · ${combinedCameraRegistry.length} disponibles`,
+      subtitle: `${event.location} · ${nearbyCameraPointCount} puntos en ${camRadiusKm} km · ${cameraSourceCount} fuentes`,
     },
     news: {
       title: "Noticias relacionadas",
@@ -4371,7 +4433,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const eventStoryUnknowns = [
     event.evacuationLevel == null ? "estado de evacuación oficial" : null,
     !eventPopulation ? "población afectada verificada" : null,
-    nearbyCameras.length === 0 ? "cámaras cercanas disponibles" : null,
+    nearbyCameraPointCount === 0 ? "cámaras cercanas disponibles" : null,
     newsItems.length === 0 ? "noticias o comunicados vinculados" : null,
   ].filter((item): item is string => Boolean(item));
 
@@ -4619,9 +4681,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   <div>
                     <div className="text-[11px] uppercase tracking-wide text-cyan-100/55">Cámaras en vivo</div>
                     <div className="mt-1 text-sm leading-relaxed text-white/62">
-                      {nearbyCameras.length > 1
-                        ? `Vista rápida de la cámara más cercana y acceso a ${nearbyCameras.length} cámaras disponibles de la zona.`
-                        : "Vista rápida de la cámara más cercana. Entrá para ver todas las cámaras disponibles de la zona."}
+                      {nearbyCameraPointCount > 1
+                        ? `Vista rápida del punto visual más cercano y acceso a ${nearbyCameraPointCount} puntos de la zona.`
+                        : "Vista rápida del punto visual más cercano. Entrá para ver todas las fuentes disponibles de la zona."}
                     </div>
                   </div>
                   <button
@@ -4684,9 +4746,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           </>
                         ) : null}
                       </div>
-                      {nearbyCameras.length > 1 ? (
+                      {displayCameras.length > 1 ? (
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {nearbyCameras.slice(0, 3).map((cam, index) => (
+                          {displayCameras.slice(0, 3).map((cam, index) => (
                             <span
                               key={cam.id}
                               className="inline-flex max-w-full rounded-full border border-white/10 bg-white/[0.045] px-2 py-0.5 text-[10px] font-medium text-white/45"
@@ -4694,11 +4756,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               {index + 1}. {cam.title ?? cam.id}
                             </span>
                           ))}
-                          {nearbyCameras.length > 3 ? (
+                          {displayCameras.length > 3 ? (
                             <span className="inline-flex rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-2 py-0.5 text-[10px] font-semibold text-cyan-100/65">
-                              +{nearbyCameras.length - 3} más
+                              +{displayCameras.length - 3} más
                             </span>
                           ) : null}
+                        </div>
+                      ) : null}
+                      {primaryCameraGroup && primaryCameraGroup.all.length > 1 ? (
+                        <div className="mt-2 text-[11px] text-cyan-100/50">
+                          {primaryCameraGroup.all.length} fuentes agrupadas para esta vista.
                         </div>
                       ) : null}
                     </div>
@@ -7397,6 +7464,29 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             ) : null}
                             {activeCameraVisual.attribution ? <span>{activeCameraVisual.attribution}</span> : null}
                           </div>
+                          {activeCameraAlternatives.length > 0 ? (
+                            <div>
+                              <div className="text-[11px] uppercase tracking-wide text-white/35">
+                                Fuentes alternativas
+                              </div>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {activeCameraAlternatives.map(({ camera, visual }) =>
+                                  visual.openUrl ? (
+                                    <a
+                                      key={camera.id}
+                                      href={visual.openUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.045] px-2 py-1 text-[11px] font-semibold text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                                    >
+                                      {cameraSourceLabel(camera)}
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  ) : null
+                                )}
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -7414,14 +7504,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40">Cámaras cercanas</div>
-                    <div className="mt-2 text-2xl font-semibold text-white/90">{nearbyCameras.length}</div>
-                    <div className="mt-1 text-xs text-white/35">Dentro del radio actual.</div>
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Puntos visuales</div>
+                    <div className="mt-2 text-2xl font-semibold text-white/90">{nearbyCameraPointCount}</div>
+                    <div className="mt-1 text-xs text-white/35">Agrupados dentro del radio actual.</div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <div className="text-[11px] uppercase tracking-wide text-white/40">Disponibles</div>
-                    <div className="mt-2 text-2xl font-semibold text-white/90">{combinedCameraRegistry.length}</div>
-                    <div className="mt-1 text-xs text-white/35">Cámaras cargadas en BioPulse.</div>
+                    <div className="text-[11px] uppercase tracking-wide text-white/40">Fuentes</div>
+                    <div className="mt-2 text-2xl font-semibold text-white/90">{cameraSourceCount}</div>
+                    <div className="mt-1 text-xs text-white/35">{cameraPointCount} puntos visuales cargados.</div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                     <div className="text-[11px] uppercase tracking-wide text-white/40">Reportes Guardian</div>
@@ -7472,7 +7562,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                   </div>
                 </div>
 
-                {nearbyCameras.length > 0 && !visualMediaAllowed ? (
+                {nearbyCameraPointCount > 0 && !visualMediaAllowed ? (
                   <div className="mt-4">
                     <VisualExposureGate
                       preference={guardianExposure}
@@ -7497,12 +7587,12 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <div className="text-xs text-white/40">Elegí una cámara para verla arriba como cámara activa.</div>
                   </div>
                   <div className="inline-flex w-fit rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/55">
-                    {nearbyCameras.length} dentro de {camRadiusKm} km
+                    {nearbyCameraPointCount} puntos · {nearbyCameraSourceCount} fuentes
                   </div>
                 </div>
 
                 <div className="mt-3 space-y-3">
-                  {cameraDiscoveryLoading && nearbyCameras.length === 0 ? (
+                  {cameraDiscoveryLoading && nearbyCameraPointCount === 0 ? (
                     <div className="space-y-3">
                       {Array.from({ length: 3 }).map((_, i) => (
                         <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3 animate-pulse">
@@ -7512,7 +7602,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         </div>
                       ))}
                     </div>
-                  ) : nearbyCameras.length === 0 ? (
+                  ) : nearbyCameraPointCount === 0 ? (
                     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                       <div className="text-sm font-semibold text-white/75">
                         No hay camaras dentro de {camRadiusKm} km.
@@ -7550,11 +7640,16 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                       )}
                     </div>
                   ) : (
-                    nearbyCameras.map((cam, index) => {
+                    nearbyCameraGroups.map((group, index) => {
+                      const cam = group.primary;
                       const isNearest = index === 0;
                       const isActiveCamera = activeCamera?.id === cam.id;
                       const providerSnapshot = providerSnapshots[cam.id] ?? null;
                       const cameraVisual = resolveCameraVisual(cam, providerSnapshot, camRefreshTick);
+                      const alternativeVisuals = group.alternatives.map((camera) => ({
+                        camera,
+                        visual: resolveCameraVisual(camera, providerSnapshots[camera.id] ?? null, camRefreshTick),
+                      }));
 
                       return (
                         <div
@@ -7588,6 +7683,11 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 {isNearest ? (
                                   <div className={cn("mb-1 inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-100/80", isActiveCamera && "ml-1")}>
                                     Cámara más cercana
+                                  </div>
+                                ) : null}
+                                {group.all.length > 1 ? (
+                                  <div className="mb-1 ml-1 inline-flex rounded-full border border-white/10 bg-white/[0.055] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/55">
+                                    {group.all.length} fuentes
                                   </div>
                                 ) : null}
                                 <div className="text-sm font-semibold text-white/90 line-clamp-2">{cameraVisual.title}</div>
@@ -7634,6 +7734,25 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 {cameraVisual.isWindyProvider && providerSnapshot?.status === "loading" ? (
                                   <div className="mt-2 text-[11px] text-white/35">Cargando snapshot...</div>
                                 ) : null}
+
+                                {alternativeVisuals.length > 0 ? (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {alternativeVisuals.map(({ camera, visual }) =>
+                                      visual.openUrl ? (
+                                        <a
+                                          key={camera.id}
+                                          href={visual.openUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-[11px] font-semibold text-white/55 transition-colors hover:bg-white/10 hover:text-white"
+                                        >
+                                          {cameraSourceLabel(camera)}
+                                          <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                      ) : null
+                                    )}
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
 
@@ -7662,7 +7781,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                     "px-3 py-2 rounded-xl border border-white/10 bg-black/20",
                                     "text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                                   )}
-                                  title={cameraVisual.isWindyProvider ? "Abrir fuente" : "Abrir snapshot"}
+                                  title={cameraVisual.isSnapshot ? "Abrir snapshot" : "Abrir fuente"}
                                 >
                                   <ExternalLink className="h-4 w-4" />
                                   <span className="text-xs font-medium">Abrir</span>

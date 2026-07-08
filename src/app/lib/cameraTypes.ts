@@ -2,6 +2,7 @@ export type CameraRegistryItem = {
   schema: "biopulse.camera.v1";
   id: string;
   providerId?: string;
+  groupKey?: string;
   title?: string;
   description?: string;
   geo: { lat: number; lon: number };

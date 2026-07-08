@@ -57,6 +57,7 @@ export type CameraRecordV1 = {
   id: string;                // global unique, estable
   providerId: string;        // referencia a provider
   providerCameraId?: string;
+  groupKey?: string;         // agrupa fuentes alternativas de una misma vista
 
   title: string;
   description?: string;

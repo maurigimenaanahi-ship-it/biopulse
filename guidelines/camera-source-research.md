@@ -19,8 +19,12 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - SkylineWebcams Argentina: aplicada como `external_page`. Sus terminos permiten ver y compartir mediante enlaces, pero restringen copiar, descargar o reproducir frames. Por eso BioPulse solo abre la pagina original.
   Fuentes: https://www.skylinewebcams.com/en/webcam/argentina.html y https://www.skylinewebcams.com/en/terms-of-use.html
 
-- Webcamtaxi Argentina: aplicada como `external_page` para paginas que agregan cobertura o un angulo no duplicado por el registro actual. BioPulse solo abre la fuente original; no copia frames, no descarga imagenes y no rehostea video.
+- Webcamtaxi Argentina: aplicada como `external_page` para paginas que agregan cobertura nueva o una fuente alternativa de una escena ya registrada. BioPulse solo abre la fuente original; no copia frames, no descarga imagenes y no rehostea video.
   Fuentes: https://www.webcamtaxi.com/en/argentina.html y https://www.webcamtaxi.com/en/terms.html
+
+## Fuentes alternativas
+
+Cuando dos proveedores muestran la misma escena o un punto visual equivalente, BioPulse conserva ambas fuentes pero comparte un `groupKey`. La interfaz muestra una tarjeta principal y enlaces alternativos, para aumentar cobertura sin duplicar falsamente la cantidad de camaras cercanas.
 
 ## Fuentes revisadas, no aplicadas aun
 

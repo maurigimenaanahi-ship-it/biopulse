@@ -255,6 +255,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-skyline-ushuaia-port",
     "providerId": "skyline",
+    "groupKey": "ar-ushuaia-port-panorama",
     "title": "Ushuaia - Puerto (SkylineWebcams)",
     "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
     "geo": { "lat": -54.807, "lon": -68.302 },
@@ -347,6 +348,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-skyline-buenos-aires-obelisco",
     "providerId": "skyline",
+    "groupKey": "ar-buenos-aires-obelisco",
     "title": "Buenos Aires - Obelisco (SkylineWebcams)",
     "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
     "geo": { "lat": -34.6037, "lon": -58.3816 },
@@ -393,6 +395,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-skyline-necochea-beach",
     "providerId": "skyline",
+    "groupKey": "ar-necochea-beach",
     "title": "Necochea - Playa (SkylineWebcams)",
     "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
     "geo": { "lat": -38.5545, "lon": -58.7396 },
@@ -416,6 +419,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-skyline-pinamar-beach",
     "providerId": "skyline",
+    "groupKey": "ar-pinamar-beach",
     "title": "Pinamar - Playa (SkylineWebcams)",
     "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
     "geo": { "lat": -37.1146, "lon": -56.861 },
@@ -485,6 +489,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-skyline-cipolletti",
     "providerId": "skyline",
+    "groupKey": "ar-cipolletti-city",
     "title": "Cipolletti - Ciudad (SkylineWebcams)",
     "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
     "geo": { "lat": -38.9339, "lon": -67.9903 },
@@ -508,6 +513,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-skyline-villa-maria",
     "providerId": "skyline",
+    "groupKey": "ar-villa-maria-city",
     "title": "Villa Maria - Ciudad (SkylineWebcams)",
     "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
     "geo": { "lat": -32.4075, "lon": -63.2402 },
@@ -618,5 +624,149 @@
     "tags": ["sea", "harbor", "patagonia", "external"],
     "priority": 1,
     "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-buenos-aires-obelisco",
+    "providerId": "webcamtaxi",
+    "groupKey": "ar-buenos-aires-obelisco",
+    "title": "Buenos Aires - Obelisco (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -34.6037, "lon": -58.3816 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/obelisco-livecam.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["city", "traffic", "square", "external"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-necochea-beach",
+    "providerId": "webcamtaxi",
+    "groupKey": "ar-necochea-beach",
+    "title": "Necochea - Playa (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -38.5545, "lon": -58.7396 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Necochea" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/necochea-livecam.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["coast", "beach", "traffic", "external"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-cipolletti-city",
+    "providerId": "webcamtaxi",
+    "groupKey": "ar-cipolletti-city",
+    "title": "Cipolletti - Ciudad (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -38.9339, "lon": -67.9903 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/rio-negro-province/cipolletti-city-cam.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["city", "patagonia", "external"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-pinamar-beach",
+    "providerId": "webcamtaxi",
+    "groupKey": "ar-pinamar-beach",
+    "title": "Pinamar - Playa (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -37.1077, "lon": -56.8615 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/pinamar-beach.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["coast", "beach", "external"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-villa-maria-city",
+    "providerId": "webcamtaxi",
+    "groupKey": "ar-villa-maria-city",
+    "title": "Villa Maria - Ciudad (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -32.4075, "lon": -63.2402 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Villa Maria" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/cordoba-province/villa-maria-city.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["city", "traffic", "cordoba", "external"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-webcamtaxi-ushuaia-panoramic-view",
+    "providerId": "webcamtaxi",
+    "groupKey": "ar-ushuaia-port-panorama",
+    "title": "Ushuaia - Vista panoramica (Webcamtaxi)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -54.807, "lon": -68.303 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "webcamtaxi",
+      "url": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-panoramic-view.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Webcamtaxi",
+      "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
+    },
+    "tags": ["sea", "harbor", "city", "patagonia", "external"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
   }
 ]
