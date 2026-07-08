@@ -768,5 +768,258 @@
     "tags": ["sea", "harbor", "city", "patagonia", "external"],
     "priority": 0,
     "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-potrero-de-los-funes",
+    "providerId": "skyline",
+    "title": "Potrero de los Funes - Lago (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -33.2158, "lon": -66.2295 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "Potrero de los Funes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/san-luis/potrero-de-los-funes/potrero-de-los-funes.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["lake", "landscape", "san-luis", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-skyline-tolhuin",
+    "providerId": "skyline",
+    "title": "Tolhuin - Tierra del Fuego (SkylineWebcams)",
+    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -54.5108, "lon": -67.1955 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Tolhuin" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "skyline",
+      "url": "https://www.skylinewebcams.com/en/webcam/argentina/tierra-del-fuego/tolhuin/tolhuin.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SkylineWebcams",
+      "termsUrl": "https://www.skylinewebcams.com/en/terms-of-use.html"
+    },
+    "tags": ["forest", "patagonia", "tierra-del-fuego", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via SkylineWebcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-punta-princesa-live",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Punta Princesa en vivo",
+    "description": "Pagina oficial externa con camara de montana en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "catedral",
+      "url": "https://catedralaltapatagonia.com/webcams/#punta-princesa"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catedral Alta Patagonia",
+      "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-diente-caballo-sur",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Diente de Caballo Sur",
+    "description": "Pagina oficial externa con camara de montana actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "catedral",
+      "url": "https://catedralaltapatagonia.com/webcams/#diente-caballo-sur"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catedral Alta Patagonia",
+      "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-centro-superior",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Centro superior",
+    "description": "Pagina oficial externa con camara de montana actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "catedral",
+      "url": "https://catedralaltapatagonia.com/webcams/#centro-superior"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catedral Alta Patagonia",
+      "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-pista-eventos",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Pista Eventos",
+    "description": "Pagina oficial externa con camara de base actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "catedral",
+      "url": "https://catedralaltapatagonia.com/webcams/#pista-eventos"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catedral Alta Patagonia",
+      "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-playpark-base",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Playpark base",
+    "description": "Pagina oficial externa con camara de base actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "catedral",
+      "url": "https://catedralaltapatagonia.com/webcams/#playpark-base"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catedral Alta Patagonia",
+      "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-plaza-catalina-reynal",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Plaza Catalina Reynal",
+    "description": "Pagina oficial externa con camara de base actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "catedral",
+      "url": "https://catedralaltapatagonia.com/webcams/#plaza-catalina-reynal"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catedral Alta Patagonia",
+      "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cerrobayo-camera-online",
+    "providerId": "cerrobayo",
+    "title": "Cerro Bayo - Camara online",
+    "description": "Pagina oficial externa con camara de montana. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -40.7622, "lon": -71.6069 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "cerrobayo",
+      "url": "https://cerrobayo.com.ar/montana/camara/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Cerro Bayo",
+      "termsUrl": "https://cerrobayo.com.ar/legales/condiciones-generales/"
+    },
+    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo camera page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-lahoya-webcams",
+    "providerId": "lahoya",
+    "title": "La Hoya - Webcams de montana",
+    "description": "Pagina oficial externa con webcams de montana. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -42.8295, "lon": -71.259 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Esquel" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "lahoya",
+      "url": "https://skilahoya.com/webcams/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: La Hoya",
+      "termsUrl": "https://skilahoya.com/"
+    },
+    "tags": ["mountain", "weather", "ski", "chubut", "external"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via La Hoya webcams page", "verifiedAt": "2026-07-08" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cerrocastor-live",
+    "providerId": "cerrocastor",
+    "title": "Cerro Castor - Live",
+    "description": "Pagina oficial externa con camara de montana en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -54.7239, "lon": -68.0167 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "cerrocastor",
+      "url": "https://www.cerrocastor.com/es_ar/live.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Cerro Castor",
+      "termsUrl": "https://www.cerrocastor.com/es_ar/terminos-y-condiciones.html"
+    },
+    "tags": ["mountain", "weather", "ski", "tierra-del-fuego", "external"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor live page", "verifiedAt": "2026-07-08" }
   }
 ]

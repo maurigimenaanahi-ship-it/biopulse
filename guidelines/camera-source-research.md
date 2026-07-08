@@ -1,6 +1,6 @@
 # BioPulse camera source research
 
-Fecha de corte: 2026-07-07.
+Fecha de corte: 2026-07-08.
 
 ## Decision MVP
 
@@ -21,6 +21,9 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 
 - Webcamtaxi Argentina: aplicada como `external_page` para paginas que agregan cobertura nueva o una fuente alternativa de una escena ya registrada. BioPulse solo abre la fuente original; no copia frames, no descarga imagenes y no rehostea video.
   Fuentes: https://www.webcamtaxi.com/en/argentina.html y https://www.webcamtaxi.com/en/terms.html
+
+- Centros de montana y nieve con webcams oficiales: aplicados como `external_page` porque aportan observacion visual de cielo, visibilidad, nieve, viento visible y condiciones de montana cercanas a zonas de bosque/interfase. BioPulse no reutiliza los frames; abre la pagina original.
+  Fuentes: https://catedralaltapatagonia.com/webcams/ , https://cerrobayo.com.ar/montana/camara/ , https://skilahoya.com/webcams/ , https://www.cerrocastor.com/es_ar/live.html
 
 ## Fuentes alternativas
 
