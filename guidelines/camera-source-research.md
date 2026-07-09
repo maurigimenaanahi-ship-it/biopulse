@@ -1,6 +1,6 @@
 # BioPulse camera source research
 
-Fecha de corte: 2026-07-08.
+Fecha de corte: 2026-07-09.
 
 ## Decision MVP
 
@@ -28,6 +28,9 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - Centros de montana y nieve con webcams oficiales: aplicados como `external_page` porque aportan observacion visual de cielo, visibilidad, nieve, viento visible y condiciones de montana cercanas a zonas de bosque/interfase. BioPulse no reutiliza los frames; abre la pagina original.
   Fuentes: https://catedralaltapatagonia.com/webcams/ , https://cerrobayo.com.ar/montana/camara/ , https://skilahoya.com/webcams/ , https://www.cerrocastor.com/es_ar/live.html
 
+- Fuentes oficiales nacionales y municipales argentinas: aplicadas como `external_page` cuando publican camaras visuales en paginas propias. Incluye AGP / Argentina.gob.ar para Via Navegable Troncal, Municipalidad de Neuquen Capital, Municipalidad de Las Heras Santa Cruz, Municipalidad de Tandil y Comodoro Turismo. Cuando una pagina agrupa varias camaras, BioPulse registra cada punto visual con URL hash para evitar deduplicacion tecnica y conservar distancia aproximada por punto.
+  Fuentes: https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia , https://www.argentina.gob.ar/administracion-general-de-puertos-se/via-navegable-troncal/mapa-de-estaciones-meteorologicas-camaras , https://camaras.neuquencapital.gov.ar/ , https://municipiolasherassantacruz.gob.ar/camara-en-vivo/ , https://tandil.gov.ar/camara-vivo , https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/
+
 ## Fuentes alternativas
 
 Cuando dos proveedores muestran la misma escena o un punto visual equivalente, BioPulse conserva ambas fuentes pero comparte un `groupKey`. La interfaz muestra una tarjeta principal y enlaces alternativos, para aumentar cobertura sin duplicar falsamente la cantidad de camaras cercanas.
@@ -39,6 +42,12 @@ Cuando dos proveedores muestran la misma escena o un punto visual equivalente, B
 
 - FAA WeatherCams y National Park Service: fuentes oficiales utiles como patron para camaras meteorologicas/parques, pero sin cobertura argentina para este MVP.
   Fuentes: https://weathercams.faa.gov/ y https://www.nps.gov/subjects/developer/api-documentation.htm
+
+- Vialidad Nacional / estado de rutas y SIG Vial: revisados como fuente vial oficial argentina. Aportan estado de rutas y mapas, pero no se encontro una red publica nacional de camaras visuales enlazable para el registro de Camaras.
+  Fuentes: https://www.argentina.gob.ar/transporte/vialidad-nacional/estado-de-rutas y https://www.argentina.gob.ar/transporte/vialidad-nacional/sig-vial
+
+- Municipalidad de Corrientes: revisada como posible fuente primaria para camaras de transito por referencias indirectas, pero la pagina oficial disponible no expone una pagina publica de camaras visuales; se mantiene la cobertura visual mediante WorldCam/Webcamtaxi hasta encontrar una fuente primaria estable.
+  Fuente: https://ciudaddecorrientes.gov.ar/
 
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 

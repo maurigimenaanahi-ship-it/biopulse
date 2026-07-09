@@ -2147,6 +2147,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-31631-comodoro-rivadavia",
         "providerId":  "worldcam",
+        "groupKey":  "ar-comodoro-rivadavia-nautico-centro",
         "title":  "Comodoro Rivadavia (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2549,6 +2550,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-33644-tigre-braga-parana-delta",
         "providerId":  "worldcam",
+        "groupKey":  "ar-agp-braga-parana-delta",
         "title":  "Tigre - Braga - Parana Delta (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2622,6 +2624,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-33666-paranacito-justo-jose-de-urquiza-bridge",
         "providerId":  "worldcam",
+        "groupKey":  "ar-agp-del-guazu-brazo-largo",
         "title":  "Paranacito - Justo Jose de Urquiza Bridge (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2845,6 +2848,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-34658-tandil-lago-del-fuerte",
         "providerId":  "worldcam",
+        "groupKey":  "ar-tandil-lago-del-fuerte",
         "title":  "Tandil - Lago del Fuerte (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3376,6 +3380,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35117-rosario-parana-river",
         "providerId":  "worldcam",
+        "groupKey":  "ar-agp-rosario-parana-river",
         "title":  "Rosario - Parana River (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -4270,4 +4275,858 @@
                            "verifiedAt":  "2026-07-08"
                        }
     }
+,
+{
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-bella-vista",
+    "providerId": "agp",
+    "title": "AGP - Bella Vista",
+    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -28.5085,
+      "lon": -59.0459
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Corrientes",
+      "locality": "Bella Vista"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "agp",
+      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#bella-vista"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-san-lorenzo",
+    "providerId": "agp",
+    "title": "AGP - San Lorenzo",
+    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -32.7442,
+      "lon": -60.7353
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Fe",
+      "locality": "San Lorenzo"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "agp",
+      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#san-lorenzo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-rosario",
+    "providerId": "agp",
+    "title": "AGP - Rosario",
+    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -32.943435,
+      "lon": -60.633291
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Fe",
+      "locality": "Rosario"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "agp",
+      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#rosario"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
+      "verifiedAt": "2026-07-09"
+    },
+    "groupKey": "ar-agp-rosario-parana-river"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-del-guazu-brazo-largo",
+    "providerId": "agp",
+    "title": "AGP - Del Guazu Brazo Largo",
+    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -33.902276,
+      "lon": -58.883997
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Entre Rios",
+      "locality": "Brazo Largo"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "agp",
+      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#del-guazu-brazo-largo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "bridge",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
+      "verifiedAt": "2026-07-09"
+    },
+    "groupKey": "ar-agp-del-guazu-brazo-largo"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-braga-parana-delta",
+    "providerId": "agp",
+    "title": "AGP - Braga / Delta del Parana",
+    "description": "Pagina oficial externa de AGP con mapa de estaciones meteorologicas, camaras y radares de la Via Navegable Troncal. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -34.334662,
+      "lon": -58.486293
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Delta del Parana"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "agp",
+      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/via-navegable-troncal/mapa-de-estaciones-meteorologicas-camaras#braga"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras map page",
+      "verifiedAt": "2026-07-09"
+    },
+    "groupKey": "ar-agp-braga-parana-delta"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-monumento-muni",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Monumento Municipalidad",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9517,
+      "lon": -68.0594
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#monumento-muni"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "traffic",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-monumento-calle",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Monumento calle",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9518,
+      "lon": -68.0592
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#monumento-calle"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "traffic",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-isla-132",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Isla 132",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9652,
+      "lon": -68.0342
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#isla-132"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "river",
+      "city",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-canal-7",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Canal 7",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9533,
+      "lon": -68.0715
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#canal-7"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-rotonda-rio-limay",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Rotonda Rio Limay",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9765,
+      "lon": -68.026
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#rotonda-rio-limay"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "river",
+      "traffic",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-monumento-piso-3",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Monumento piso 3",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9516,
+      "lon": -68.0595
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#monumento-piso-3"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-parque-central",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Parque Central",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9565,
+      "lon": -68.0599
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#parque-central"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "park",
+      "city",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-balcon-del-valle",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Balcon del Valle",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.9331,
+      "lon": -68.0765
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#balcon-del-valle"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "landscape",
+      "city",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-capital-puente-rio-limay",
+    "providerId": "neuquen-capital",
+    "title": "Neuquen Capital - Puente Rio Limay",
+    "description": "Portal municipal externo con camara HLS publica. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.982,
+      "lon": -68.017
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Neuquen"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "neuquen-capital",
+      "url": "https://camaras.neuquencapital.gov.ar/#puente-rio-limay"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Neuquen Capital"
+    },
+    "tags": [
+      "river",
+      "bridge",
+      "traffic",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Neuquen Capital camera portal",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-las-heras-plaza-san-martin",
+    "providerId": "las-heras-sc",
+    "title": "Las Heras - Plaza San Martin",
+    "description": "Pagina municipal externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -46.541,
+      "lon": -68.9373
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Cruz",
+      "locality": "Las Heras"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "las-heras-sc",
+      "url": "https://municipiolasherassantacruz.gob.ar/camara-en-vivo/#plaza-san-martin"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Las Heras Santa Cruz"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "patagonia",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Las Heras camera page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-las-heras-plazoleta-nuestro-mate",
+    "providerId": "las-heras-sc",
+    "title": "Las Heras - Plazoleta Nuestro Mate",
+    "description": "Pagina municipal externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -46.5379,
+      "lon": -68.9347
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Cruz",
+      "locality": "Las Heras"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "las-heras-sc",
+      "url": "https://municipiolasherassantacruz.gob.ar/camara-en-vivo/#plazoleta-nuestro-mate"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Las Heras Santa Cruz"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "patagonia",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Las Heras camera page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-las-heras-plaza-bicentenario",
+    "providerId": "las-heras-sc",
+    "title": "Las Heras - Plaza del Bicentenario",
+    "description": "Pagina municipal externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -46.5422,
+      "lon": -68.9388
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Cruz",
+      "locality": "Las Heras"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "las-heras-sc",
+      "url": "https://municipiolasherassantacruz.gob.ar/camara-en-vivo/#plaza-del-bicentenario"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Las Heras Santa Cruz"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "patagonia",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Las Heras camera page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-las-heras-entrada",
+    "providerId": "las-heras-sc",
+    "title": "Las Heras - Entrada a la ciudad",
+    "description": "Pagina municipal externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -46.5315,
+      "lon": -68.944
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Cruz",
+      "locality": "Las Heras"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "las-heras-sc",
+      "url": "https://municipiolasherassantacruz.gob.ar/camara-en-vivo/#entrada-a-las-heras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Las Heras Santa Cruz"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "traffic",
+      "patagonia",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Las Heras camera page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-las-heras-paseo-ferroviario",
+    "providerId": "las-heras-sc",
+    "title": "Las Heras - Paseo Ferroviario",
+    "description": "Pagina municipal externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -46.5394,
+      "lon": -68.9367
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Cruz",
+      "locality": "Las Heras"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "las-heras-sc",
+      "url": "https://municipiolasherassantacruz.gob.ar/camara-en-vivo/#paseo-ferroviario"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Las Heras Santa Cruz"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "patagonia",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Las Heras camera page",
+      "verifiedAt": "2026-07-09"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-tandil-camara-municipal",
+    "providerId": "tandil",
+    "title": "Tandil - Camara municipal en vivo",
+    "description": "Pagina municipal externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.346723,
+      "lon": -59.130919
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Tandil"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "tandil",
+      "url": "https://tandil.gov.ar/camara-vivo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Tandil"
+    },
+    "tags": [
+      "city",
+      "landscape",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Tandil camera page",
+      "verifiedAt": "2026-07-09"
+    },
+    "groupKey": "ar-tandil-lago-del-fuerte"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-comodoro-turismo-nautico-centro",
+    "providerId": "comodoro-turismo",
+    "title": "Comodoro Rivadavia - Nautico Centro en vivo",
+    "description": "Pagina oficial de Comodoro Turismo con camara en vivo 24/7. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -45.859089,
+      "lon": -67.474678
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Chubut",
+      "locality": "Comodoro Rivadavia"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "comodoro-turismo",
+      "url": "https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Comodoro Turismo"
+    },
+    "tags": [
+      "coast",
+      "city",
+      "tourism",
+      "municipal",
+      "external"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Comodoro Turismo live page",
+      "verifiedAt": "2026-07-09"
+    },
+    "groupKey": "ar-comodoro-rivadavia-nautico-centro"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-bariloche-org-cable-carril-inferior",
+    "providerId": "bariloche-org",
+    "title": "Cerro Catedral - Cable carril inferior (Bariloche.org)",
+    "description": "Pagina externa de Bariloche.org con imagenes de camaras en vivo que se renuevan periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -41.1689,
+      "lon": -71.4384
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Rio Negro",
+      "locality": "Cerro Catedral"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "bariloche-org",
+      "url": "https://bariloche.org/camaras-en-vivo-bariloche/#cable-carril-inferior"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Bariloche.org"
+    },
+    "tags": [
+      "mountain",
+      "weather",
+      "ski",
+      "bariloche",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Bariloche.org cameras page",
+      "verifiedAt": "2026-07-09"
+    }
+  }
 ]

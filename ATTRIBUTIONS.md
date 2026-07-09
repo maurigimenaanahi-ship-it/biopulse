@@ -12,4 +12,6 @@ BioPulse enlaza paginas publicas de [WorldCam Argentina](https://worldcam.eu/web
 
 BioPulse enlaza paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes externas de montana, sin copiar ni rehostear frames.
 
+BioPulse enlaza paginas publicas de [Administracion General de Puertos / Argentina.gob.ar](https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia), [Municipalidad de Neuquen Capital](https://camaras.neuquencapital.gov.ar/), [Municipalidad de Las Heras Santa Cruz](https://municipiolasherassantacruz.gob.ar/camara-en-vivo/), [Municipalidad de Tandil](https://tandil.gov.ar/camara-vivo), [Comodoro Turismo](https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/) y [Bariloche.org](https://bariloche.org/camaras-en-vivo-bariloche/) como fuentes externas verificadas, sin copiar ni rehostear frames.
+
 BioPulse usa referencias informativas recuperadas mediante [GDELT](https://www.gdeltproject.org/) a traves del News Worker propio.
