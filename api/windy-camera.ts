@@ -8,6 +8,7 @@ type WindyWebcamResponse = {
   images?: {
     current?: Record<string, string | null | undefined>;
   };
+  player?: string | Record<string, string | null | undefined> | null;
   urls?: {
     detail?: string;
   };
@@ -34,6 +35,24 @@ function pickSnapshotUrl(images?: WindyWebcamResponse["images"]) {
   }
 
   for (const value of Object.values(current)) {
+    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+  }
+
+  return null;
+}
+
+function pickPlayerUrl(player?: WindyWebcamResponse["player"]) {
+  if (typeof player === "string" && /^https?:\/\//i.test(player)) return player;
+  if (!player || typeof player !== "object") return null;
+
+  const preferred = ["day", "month", "year", "lifetime", "embed", "url"];
+
+  for (const key of preferred) {
+    const value = player[key];
+    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+  }
+
+  for (const value of Object.values(player)) {
     if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
   }
 
@@ -70,7 +89,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   const windyUrl =
     `https://api.windy.com/webcams/api/v3/webcams/${encodeURIComponent(cameraId)}` +
-    `?include=images,urls`;
+    `?include=images,urls,player`;
 
   try {
     const res = await fetch(windyUrl, {
@@ -93,6 +112,7 @@ export default async function handler(req: Request): Promise<Response> {
     const raw = await res.json();
     const data = ((raw as any)?.webcam ?? raw) as WindyWebcamResponse;
     const snapshotUrl = pickSnapshotUrl(data.images);
+    const playerUrl = pickPlayerUrl(data.player);
     const detailUrl = data.urls?.detail ?? `https://www.windy.com/webcams/${cameraId}`;
 
     return json({
@@ -101,6 +121,7 @@ export default async function handler(req: Request): Promise<Response> {
       status: data.status ?? null,
       title: data.title ?? null,
       snapshotUrl,
+      playerUrl,
       detailUrl,
       attributionText: "Webcams provided by Windy.com",
     });

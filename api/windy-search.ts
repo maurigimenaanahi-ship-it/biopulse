@@ -14,6 +14,7 @@ type WindyWebcam = {
   images?: {
     current?: Record<string, string | null | undefined>;
   };
+  player?: string | Record<string, string | null | undefined> | null;
   urls?: {
     detail?: string;
   };
@@ -40,6 +41,24 @@ function pickSnapshotUrl(images?: WindyWebcam["images"]) {
   }
 
   for (const value of Object.values(current)) {
+    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+  }
+
+  return null;
+}
+
+function pickPlayerUrl(player?: WindyWebcam["player"]) {
+  if (typeof player === "string" && /^https?:\/\//i.test(player)) return player;
+  if (!player || typeof player !== "object") return null;
+
+  const preferred = ["day", "month", "year", "lifetime", "embed", "url"];
+
+  for (const key of preferred) {
+    const value = player[key];
+    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+  }
+
+  for (const value of Object.values(player)) {
     if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
   }
 
@@ -97,7 +116,7 @@ export default async function handler(req: Request): Promise<Response> {
   const windyUrl =
     `https://api.windy.com/webcams/api/v3/webcams` +
     `?nearby=${encodeURIComponent(nearby)}` +
-    `&include=images,urls,location` +
+    `&include=images,urls,location,player` +
     `&limit=50`;
 
   try {
@@ -136,6 +155,7 @@ export default async function handler(req: Request): Promise<Response> {
         lat: Number.isFinite(webcam.location?.latitude) ? webcam.location!.latitude : null,
         lon: Number.isFinite(webcam.location?.longitude) ? webcam.location!.longitude : null,
         snapshotUrl: pickSnapshotUrl(webcam.images),
+        playerUrl: pickPlayerUrl(webcam.player),
         detailUrl:
           webcam.urls?.detail ??
           (webcamId == null ? null : `https://www.windy.com/webcams/${String(webcamId)}`),

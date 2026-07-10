@@ -27,6 +27,7 @@ export type LoadedCamera = CameraRegistryItem & { distanceKm: number };
 export type ProviderCameraSnapshot = {
   status: "loading" | "ready" | "error";
   snapshotUrl?: string | null;
+  playerUrl?: string | null;
   detailUrl?: string | null;
   attributionText?: string | null;
   message?: string;

@@ -341,6 +341,7 @@ async function fetchWindyCameraSnapshot(args: {
   return {
     status: "ready",
     snapshotUrl: typeof data?.snapshotUrl === "string" ? data.snapshotUrl : null,
+    playerUrl: typeof data?.playerUrl === "string" ? data.playerUrl : null,
     detailUrl: typeof data?.detailUrl === "string" ? data.detailUrl : null,
     attributionText: typeof data?.attributionText === "string" ? data.attributionText : null,
   };
@@ -352,6 +353,7 @@ type WindyNearbySearchItem = {
   status?: string | null;
   lat?: number | null;
   lon?: number | null;
+  playerUrl?: string | null;
   detailUrl?: string | null;
 };
 
@@ -1770,6 +1772,83 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   return "Fuente";
 }
 
+function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCameraSnapshot | null) {
+  const fetchInfo: any = cam.fetch;
+  const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
+  const isWindy = fetchInfo?.kind === "provider_api" && provider === "windy";
+  const hasPlayer = isWindy && !!providerSnapshot?.playerUrl;
+
+  if (hasPlayer) {
+    return {
+      label: "API + player",
+      detail:
+        "Uso por API de Windy con link/player oficial disponible. BioPulse mantiene atribucion y abre la vista del proveedor.",
+      className: "border-sky-300/20 bg-sky-400/10 text-sky-100/80",
+    };
+  }
+
+  if (isWindy) {
+    return {
+      label: "API autorizada",
+      detail:
+        "Uso por API de Windy. BioPulse muestra imagen provista por la API, mantiene atribucion y abre la fuente original.",
+      className: "border-sky-300/20 bg-sky-400/10 text-sky-100/80",
+    };
+  }
+
+  if (fetchInfo?.kind === "image_url") {
+    return {
+      label: "Imagen directa",
+      detail: "Imagen publica directa registrada con atribucion y enlace a la fuente cuando esta disponible.",
+      className: "border-white/10 bg-white/5 text-white/60",
+    };
+  }
+
+  if (fetchInfo?.kind === "external_page") {
+    if (provider === "youtube") {
+      return {
+        label: "Embed oficial",
+        detail: "Uso mediante reproductor oficial cuando el canal permite insercion. BioPulse conserva controles y fuente.",
+        className: "border-red-300/20 bg-red-400/10 text-red-100/80",
+      };
+    }
+
+    if (provider === "estadodelmar") {
+      return {
+        label: "Link externo",
+        detail:
+          "Se abre la pagina original de Estado del Mar. Para embeber video o snapshots dentro de BioPulse conviene pedir autorizacion.",
+        className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75",
+      };
+    }
+
+    return {
+      label: "Link externo",
+      detail:
+        "BioPulse comparte la fuente original con atribucion y no altera, descarga ni rehostea el contenido del proveedor.",
+      className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75",
+    };
+  }
+
+  return {
+    label: "Fuente",
+    detail: "Fuente registrada con modo de uso pendiente de clasificacion.",
+    className: "border-amber-300/20 bg-amber-400/10 text-amber-100/75",
+  };
+}
+
+function cameraDisplayDescription(cam: CameraRegistryItem, providerSnapshot?: ProviderCameraSnapshot | null) {
+  const usageMode = cameraUsageMode(cam, providerSnapshot);
+  const raw = String(cam.description ?? "").trim();
+  const cleaned = raw
+    .replace(/\s*BioPulse enlaza la fuente sin copiar ni rehostear contenido\./gi, "")
+    .replace(/\s*BioPulse enlaza la fuente sin copiar frames, descargar imagenes ni rehostear video\./gi, "")
+    .replace(/\s*BioPulse enlaza la fuente original\./gi, "")
+    .trim();
+
+  return cleaned || usageMode.detail;
+}
+
 function mergeCameraRegistries(primary: CameraRegistryItem[], discovered: CameraRegistryItem[]) {
   const result: CameraRegistryItem[] = [];
   const seen = new Set<string>();
@@ -1822,6 +1901,8 @@ function resolveCameraVisual(
   const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
   const isExternalPage = cam.fetch?.kind === "external_page" && typeof (cam.fetch as any)?.url === "string";
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
+  const usageMode = cameraUsageMode(cam, providerSnapshot);
+  const displayDescription = cameraDisplayDescription(cam, providerSnapshot);
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
   const snapUrl = snapUrlRaw
     ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
@@ -1830,17 +1911,19 @@ function resolveCameraVisual(
     : null;
   const providerDetailUrl =
     isWindyProvider && (cam.fetch as any)?.cameraKey
-      ? providerSnapshot?.detailUrl ?? `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
+      ? providerSnapshot?.playerUrl ??
+        providerSnapshot?.detailUrl ??
+        `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
       : null;
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
   const openUrl = snapUrlRaw ?? providerDetailUrl ?? externalPageUrl;
   const providerInfo =
     cam.fetch?.kind === "provider_api"
-      ? `Provider: ${(cam.fetch as any).provider}`
+      ? `Proveedor: ${(cam.fetch as any).provider}`
       : cam.fetch?.kind === "external_page" && (cam.fetch as any)?.provider
-      ? `Provider: ${(cam.fetch as any).provider}`
+      ? `Proveedor: ${(cam.fetch as any).provider}`
       : cam.providerId
-      ? `Provider: ${cam.providerId}`
+      ? `Proveedor: ${cam.providerId}`
       : null;
   const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
   const snapshotState = snapUrl
@@ -1848,7 +1931,7 @@ function resolveCameraVisual(
     : isWindyProvider && providerSnapshot?.status === "loading"
     ? "Consultando provider"
     : openUrl
-    ? "Fuente externa"
+    ? "Link externo"
     : "Sin snapshot";
   const snapshotStateClass = snapUrl
     ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
@@ -1867,6 +1950,8 @@ function resolveCameraVisual(
     isWindyProvider,
     snapUrl,
     openUrl,
+    usageMode,
+    displayDescription,
     providerInfo,
     attribution,
     snapshotState,
@@ -4731,11 +4816,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                         >
                           {primaryCameraVisual.snapshotState}
                         </span>
-                        {primaryCameraVisual.isWindyProvider ? (
-                          <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
-                            Windy API
-                          </span>
-                        ) : null}
+                        <span
+                          className={cn(
+                            "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                            primaryCameraVisual.usageMode.className
+                          )}
+                        >
+                          {primaryCameraVisual.usageMode.label}
+                        </span>
                       </div>
                       <div className="mt-1 text-[11px] text-white/45">
                         <span className="text-white/55">{primaryCameraVisual.dist}</span>
@@ -7351,7 +7439,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm font-semibold text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                           >
                             <ExternalLink className="h-4 w-4" />
-                            Fuente externa
+                            Abrir fuente
                           </a>
                         ) : null}
                         {guardianCanCaptureSource && activeCamera ? (
@@ -7425,19 +7513,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                           >
                             {activeCameraVisual.snapshotState}
                           </span>
-                          {activeCameraVisual.isWindyProvider ? (
-                            <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
-                              Windy API
-                            </span>
-                          ) : activeCameraVisual.isExternalPage ? (
-                            <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-100/75">
-                              PÃ¡gina externa
-                            </span>
-                          ) : activeCameraVisual.isSnapshot ? (
-                            <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
-                              Imagen directa
-                            </span>
-                          ) : null}
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                              activeCameraVisual.usageMode.className
+                            )}
+                          >
+                            {activeCameraVisual.usageMode.label}
+                          </span>
                         </div>
 
                         <div className="mt-4 space-y-3 text-sm">
@@ -7451,12 +7534,18 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                               <div className="mt-1 text-white/70">{activeCameraVisual.locality}</div>
                             </div>
                           ) : null}
-                          {activeCamera.description ? (
+                          {activeCameraVisual.displayDescription ? (
                             <div>
                               <div className="text-[11px] uppercase tracking-wide text-white/35">Descripción</div>
-                              <div className="mt-1 leading-relaxed text-white/58">{activeCamera.description}</div>
+                              <div className="mt-1 leading-relaxed text-white/58">
+                                {activeCameraVisual.displayDescription}
+                              </div>
                             </div>
                           ) : null}
+                          <div>
+                            <div className="text-[11px] uppercase tracking-wide text-white/35">Modo de uso</div>
+                            <div className="mt-1 leading-relaxed text-white/58">{activeCameraVisual.usageMode.detail}</div>
+                          </div>
                           <div className="text-[11px] leading-relaxed text-white/35">
                             {activeCameraVisual.providerInfo ? <span>{activeCameraVisual.providerInfo}</span> : null}
                             {activeCameraVisual.providerInfo && activeCameraVisual.attribution ? (
@@ -7695,19 +7784,14 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                   <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold", cameraVisual.snapshotStateClass)}>
                                     {cameraVisual.snapshotState}
                                   </span>
-                                  {cameraVisual.isWindyProvider ? (
-                                    <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-100/75">
-                                      Windy API
-                                    </span>
-                                  ) : cameraVisual.isExternalPage ? (
-                                    <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-100/75">
-                                      PÃ¡gina externa
-                                    </span>
-                                  ) : cameraVisual.isSnapshot ? (
-                                    <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/55">
-                                      Imagen directa
-                                    </span>
-                                  ) : null}
+                                  <span
+                                    className={cn(
+                                      "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                                      cameraVisual.usageMode.className
+                                    )}
+                                  >
+                                    {cameraVisual.usageMode.label}
+                                  </span>
                                 </div>
                                 <div className="mt-1 text-[11px] text-white/45">
                                   <span className="text-white/55">{cameraVisual.dist}</span>
@@ -7719,9 +7803,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                   ) : null}
                                 </div>
 
-                                {cam.description ? (
+                                {cameraVisual.displayDescription ? (
                                   <div className="mt-2 text-sm text-white/60 leading-relaxed line-clamp-2">
-                                    {cam.description}
+                                    {cameraVisual.displayDescription}
                                   </div>
                                 ) : null}
 
