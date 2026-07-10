@@ -1100,6 +1100,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-14872-buenos-aires-santa-teresita",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-santa-teresita",
         "title":  "Buenos Aires - Santa Teresita (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -1249,6 +1250,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-17721-villa-gesell-buenos-aires-y-playa",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-windy-villa-gesell",
         "title":  "Villa Gesell - Buenos Aires y Playa (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -1402,6 +1404,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-18624-villa-gesell-muelle",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-el-muelle",
         "title":  "Villa Gesell - Muelle (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -1440,6 +1443,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-18625-mar-del-plata-playa-biologia",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-playa-grande",
         "title":  "Mar del Plata - Playa Biologia (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -1478,6 +1482,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-18627-mar-del-plata-playa-mariano",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-mariano",
         "title":  "Mar del Plata - Playa Mariano (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -1554,6 +1559,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-18632-mar-del-plata-el-yacht",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-el-yacht",
         "title":  "Mar del Plata - El Yacht (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2886,6 +2892,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35028-mar-del-plata-el-torreon-hguerrero",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-hotel-guerrero",
         "title":  "Mar del Plata - El Torreon - H.Guerrero (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2924,6 +2931,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35029-mar-del-plata-playa-la-perla-balneario-alicante",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-alicante",
         "title":  "Mar del Plata - Playa La Perla - Balneario Alicante (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2963,6 +2971,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35099-pinamar-carilo-hemingway-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-hemingway",
         "title":  "Pinamar - Carilo - Hemingway beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3001,6 +3010,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35101-miramar-medanos-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-las-brusquitas",
         "title":  "Miramar - Medanos beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3077,6 +3087,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35103-mar-del-plata-chapadmalal-luna-roja-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-luna-roja",
         "title":  "Mar del Plata - Chapadmalal - Luna Roja Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3115,6 +3126,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35104-mar-del-plata-chapadmalal",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-chapadmalal",
         "title":  "Mar del Plata - Chapadmalal (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3153,6 +3165,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35105-santa-clara-del-mar-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-la-martina",
         "title":  "Santa Clara Del Mar - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3191,6 +3204,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35111-mar-del-plata-san-patricio-playa-pura-vida",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-playa-pura-vida",
         "title":  "Mar del Plata - San Patricio - Playa Pura Vida (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3229,6 +3243,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35113-mar-del-plata-sun-rider-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-sun-rider",
         "title":  "Mar del Plata - Sun Rider beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3267,6 +3282,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35114-camet-norte-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-camet-norte",
         "title":  "Camet Norte - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3305,6 +3321,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35115-mar-del-plata-waikiki-club-de-surf",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-waikiki-club-de-surf",
         "title":  "Mar del Plata - Waikiki Club de Surf (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3677,6 +3694,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37005-las-toninas-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-las-toninas",
         "title":  "Las Toninas - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3715,6 +3733,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37013-las-grutas-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-las-grutas",
         "title":  "Las Grutas - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3904,6 +3923,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37436-caleta-olivia-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-caleta-olivia-nautico",
         "title":  "Caleta Olivia - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3942,6 +3962,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37437-las-grutas-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-las-grutas",
         "title":  "Las Grutas - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3981,6 +4002,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37438-caleta-cordoba-harbour",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-comodoro",
         "title":  "Caleta Cordoba - Harbour (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -4018,6 +4040,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37753-mar-de-ajo-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-mar-de-ajo-sunset",
         "title":  "Mar de Ajo - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -4056,6 +4079,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-37754-mar-de-ajo-balneario-nias",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-mar-de-ajo-nias",
         "title":  "Mar de Ajo - Balneario nias (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -4095,6 +4119,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-40499-santa-clara-del-mar-el-chiringo",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-el-chiringo",
         "title":  "Santa Clara del Mar - El Chiringo (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -5127,6 +5152,2207 @@
       "status": "verified",
       "verifiedBy": "Codex via Bariloche.org cameras page",
       "verifiedAt": "2026-07-09"
+    }
+  }
+,
+{
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-acantilados",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-acantilados",
+    "title": "Acantilados - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.181,
+      "lon": -57.648
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/acantilados/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-alicante",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-alicante",
+    "title": "Alicante - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.988763,
+      "lon": -57.544724
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/alicante/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-bahia-faro",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-bahia-faro",
+    "title": "Bahia Faro - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.096,
+      "lon": -57.554
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/bahia-faro/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-balneario-cero",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-balneario-cero",
+    "title": "Balneario Cero - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.047,
+      "lon": -57.5355
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/balneario-cero/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-caleta-olivia-nautico",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-caleta-olivia-nautico",
+    "title": "Club Nautico - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -46.437771,
+      "lon": -67.514842
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Cruz",
+      "locality": "Caleta Olivia"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/caleta-olivia-nautico/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-california",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-california",
+    "title": "California - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.838677,
+      "lon": -57.499098
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Clara del Mar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/california/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-camet-norte",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-camet-norte",
+    "title": "Camet Norte - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.824902,
+      "lon": -57.489112
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Camet Norte"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/camet-norte/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-cardiel",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-cardiel",
+    "title": "Cardiel - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.9865,
+      "lon": -57.545
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/cardiel/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-chapadmalal-4",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-chapadmalal-4",
+    "title": "Chapadmalal 4 - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.214,
+      "lon": -57.704
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Chapadmalal"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/chapadmalal-4/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-chapadmalal-5",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-chapadmalal-5",
+    "title": "Chapadmalal 5 - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.22,
+      "lon": -57.714
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Chapadmalal"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/chapadmalal-5/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-chapadmalal",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-chapadmalal",
+    "title": "Chapadmalal 2 - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.207046,
+      "lon": -57.693891
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Chapadmalal"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/chapadmalal/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-comodoro",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-comodoro",
+    "title": "Caleta Cordova - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -45.753108,
+      "lon": -67.372065
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Chubut",
+      "locality": "Caleta Cordoba"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/comodoro/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-daprotis",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-daprotis",
+    "title": "Daprotis - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.977,
+      "lon": -57.543
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/daprotis/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-el-barco",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-el-barco",
+    "title": "El Barco - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.982,
+      "lon": -57.544
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/el-barco/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-el-chiringo",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-el-chiringo",
+    "title": "El Chiringo - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.842862,
+      "lon": -57.501949
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Clara del Mar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/el-chiringo/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-el-muelle",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-el-muelle",
+    "title": "El Muelle - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.27936,
+      "lon": -56.983121
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/el-muelle/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-el-nautico",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-el-nautico",
+    "title": "El Nautico - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.247399,
+      "lon": -57.785174
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Miramar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/el-nautico/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-el-torreon",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-el-torreon",
+    "title": "El Torreon - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.0006,
+      "lon": -57.5408
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/el-torreon/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-el-yacht",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-el-yacht",
+    "title": "El Yacht - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.030522,
+      "lon": -57.532663
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/el-yacht/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-hemingway",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-hemingway",
+    "title": "Hemingway-Carilo - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.163866,
+      "lon": -56.890344
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Carilo"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/hemingway/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-honores-viento-norte",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-honores-viento-norte",
+    "title": "Viento norte - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.252,
+      "lon": -57.802
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Miramar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/honores-viento-norte/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-honu-beach-norte",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-honu-beach-norte",
+    "title": "Honu Beach norte - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.104,
+      "lon": -57.571
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/honu-beach-norte/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-honu-beach",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-honu-beach",
+    "title": "Honu Beach - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.108,
+      "lon": -57.578
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/honu-beach/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-horizonte-del-sol",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-horizonte-del-sol",
+    "title": "Horizonte del Sol - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.111,
+      "lon": -57.582
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/horizonte-del-sol/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-hotel-guerrero",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-hotel-guerrero",
+    "title": "Hotel Guerrero - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.999663,
+      "lon": -57.541766
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/hotel-guerrero/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-indo-bar-costa-corvinas",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-indo-bar-costa-corvinas",
+    "title": "Indo Bar - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.833,
+      "lon": -57.495
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Clara del Mar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/indo-bar-costa-corvinas/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-la-40",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-la-40",
+    "title": "La 40 - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.965,
+      "lon": -57.539
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/la-40/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-la-martina",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-la-martina",
+    "title": "La Martina - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.835852,
+      "lon": -57.496783
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Clara del Mar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/la-martina/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-la-nativa",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-la-nativa",
+    "title": "La Nativa - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.129,
+      "lon": -57.603
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/la-nativa/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-la-normandina",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-la-normandina",
+    "title": "La Normandina - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.027,
+      "lon": -57.5322
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/la-normandina/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-la-pepita",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-la-pepita",
+    "title": "La Pepita - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.9959,
+      "lon": -57.5425
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/la-pepita/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-las-brusquitas",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-las-brusquitas",
+    "title": "Las Brusquitas - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.26785,
+      "lon": -57.823346
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Miramar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/las-brusquitas/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-las-grutas",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-las-grutas",
+    "title": "Las Grutas - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -40.813705,
+      "lon": -65.092144
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Rio Negro",
+      "locality": "Las Grutas"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/las-grutas/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-las-toninas",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-las-toninas",
+    "title": "Las Toninas - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -36.487413,
+      "lon": -56.692124
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Las Toninas"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/las-toninas/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-luna-roja",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-luna-roja",
+    "title": "Luna Roja - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.172784,
+      "lon": -57.639652
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Chapadmalal"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/luna-roja/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-mar-de-ajo-nias",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-mar-de-ajo-nias",
+    "title": "Mar de Ajo Nias - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -36.724121,
+      "lon": -56.673711
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar de Ajo"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/mar-de-ajo-nias/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-mar-de-ajo-sunset",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-mar-de-ajo-sunset",
+    "title": "Mar de Ajo Sunset - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -36.729488,
+      "lon": -56.67336
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar de Ajo"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/mar-de-ajo-sunset/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-mariano",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-mariano",
+    "title": "Mariano - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.083412,
+      "lon": -57.538786
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/mariano/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-mirasoles-el-muelle",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-mirasoles-el-muelle",
+    "title": "Mirasoles - El Muelle - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.1167,
+      "lon": -56.8549
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Pinamar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/mirasoles-el-muelle/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-paradise",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-paradise",
+    "title": "Paradise - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.194,
+      "lon": -57.676
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Chapadmalal"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/paradise/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-playa-grande",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-playa-grande",
+    "title": "Biologia - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.029164,
+      "lon": -57.532526
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/playa-grande/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-playa-pura-vida",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-playa-pura-vida",
+    "title": "Playa Pura Vida - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.113358,
+      "lon": -57.584143
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/playa-pura-vida/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-playa-serena-2",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-playa-serena-2",
+    "title": "Playa Serena - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.153,
+      "lon": -57.621
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/playa-serena-2/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-rambla-ostende",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-rambla-ostende",
+    "title": "La Rambla Ostende - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.13,
+      "lon": -56.873
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Ostende"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/rambla-ostende/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-san-bernardo-bottom",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-san-bernardo-bottom",
+    "title": "San Bernardo - Bottom - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -36.69,
+      "lon": -56.678
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "San Bernardo"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/san-bernardo-bottom/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-santa-teresita-camping-estancia",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-santa-teresita-camping-estancia",
+    "title": "Santa Teresita Estancia E.C - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -36.541628,
+      "lon": -56.688722
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Teresita"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/santa-teresita-camping-estancia/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-santa-teresita",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-santa-teresita",
+    "title": "Santa Teresita - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -36.543188,
+      "lon": -56.688872
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Teresita"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/santa-teresita/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-sun-rider",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-sun-rider",
+    "title": "Sun Rider - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.9579,
+      "lon": -57.5385
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/sun-rider/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-torreon-del-monje",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-torreon-del-monje",
+    "title": "Torreon del Monje - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.004,
+      "lon": -57.5365
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/torreon-del-monje/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-valeria-del-mar-la-pergola",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-valeria-del-mar-la-pergola",
+    "title": "Valeria del Mar - La Pergola - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.145,
+      "lon": -56.883
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Valeria del Mar"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/valeria-del-mar-la-pergola/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-varese",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-varese",
+    "title": "Varese - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.0106,
+      "lon": -57.5298
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/varese/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-waikiki-club-de-surf",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-waikiki-club-de-surf",
+    "title": "Punto Escondido Waikiki - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.0807,
+      "lon": -57.5381
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/waikiki-club-de-surf/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-waikiki",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-waikiki",
+    "title": "Waikiki - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.080463,
+      "lon": -57.538238
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/waikiki/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-waimea",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-waimea",
+    "title": "Waimea - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -38.023,
+      "lon": -57.532
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/waimea/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-edm-windy-villa-gesell",
+    "providerId": "estadodelmar",
+    "groupKey": "ar-edm-windy-villa-gesell",
+    "title": "Windy Villa Gesell - Estado del Mar",
+    "description": "Pagina externa de Estado del Mar con camara en vivo, pronostico de olas, mareas y clima. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": {
+      "lat": -37.257837,
+      "lon": -56.964078
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "estadodelmar",
+      "url": "https://estadodelmar.com.ar/camaras/windy-villa-gesell/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estado del Mar",
+      "termsUrl": "https://estadodelmar.com.ar/terminos-y-condiciones/"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "external"
+    ],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estado del Mar camera menu",
+      "verifiedAt": "2026-07-10"
     }
   }
 ]

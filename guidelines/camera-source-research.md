@@ -1,6 +1,6 @@
 # BioPulse camera source research
 
-Fecha de corte: 2026-07-09.
+Fecha de corte: 2026-07-10.
 
 ## Decision MVP
 
@@ -30,6 +30,9 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 
 - Fuentes oficiales nacionales y municipales argentinas: aplicadas como `external_page` cuando publican camaras visuales en paginas propias. Incluye AGP / Argentina.gob.ar para Via Navegable Troncal, Municipalidad de Neuquen Capital, Municipalidad de Las Heras Santa Cruz, Municipalidad de Tandil y Comodoro Turismo. Cuando una pagina agrupa varias camaras, BioPulse registra cada punto visual con URL hash para evitar deduplicacion tecnica y conservar distancia aproximada por punto.
   Fuentes: https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia , https://www.argentina.gob.ar/administracion-general-de-puertos-se/via-navegable-troncal/mapa-de-estaciones-meteorologicas-camaras , https://camaras.neuquencapital.gov.ar/ , https://municipiolasherassantacruz.gob.ar/camara-en-vivo/ , https://tandil.gov.ar/camara-vivo , https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/
+
+- Estado del Mar: aplicada como `external_page` para ampliar cobertura costera y meteorologica con camaras publicas en vivo de Mar del Plata, Costa Atlantica bonaerense, Caleta Olivia, Caleta Cordova y Las Grutas. BioPulse registra cada pagina original y agrupa los equivalentes ya existentes en WorldCam con `groupKey`, sin copiar frames, descargar imagenes ni rehostear video.
+  Fuentes: https://estadodelmar.com.ar/ y https://estadodelmar.com.ar/terminos-y-condiciones/
 
 ## Fuentes alternativas
 
