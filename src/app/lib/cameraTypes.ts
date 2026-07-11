@@ -11,6 +11,7 @@ export type CameraRegistryItem = {
   fetch:
     | { kind: "image_url"; url: string }
     | { kind: "external_page"; url: string; provider?: string }
+    | { kind: "html_embed"; url: string; provider?: string; sourceUrl?: string }
     | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string }
     | { kind: string; [key: string]: unknown };
   update?: { expectedIntervalSec?: number };

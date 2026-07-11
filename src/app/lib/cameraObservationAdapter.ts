@@ -59,6 +59,9 @@ function providerName(camera: LoadedCamera) {
   if (camera.fetch.kind === "external_page" && typeof camera.fetch.provider === "string") {
     return camera.fetch.provider;
   }
+  if (camera.fetch.kind === "html_embed" && typeof camera.fetch.provider === "string") {
+    return camera.fetch.provider;
+  }
   return camera.providerId || "camera_registry";
 }
 
@@ -70,7 +73,14 @@ function externalPageUrl(camera: LoadedCamera) {
   return camera.fetch.kind === "external_page" && typeof camera.fetch.url === "string" ? camera.fetch.url : null;
 }
 
+function embedSourceUrl(camera: LoadedCamera) {
+  if (camera.fetch.kind !== "html_embed") return null;
+  if (typeof camera.fetch.sourceUrl === "string") return camera.fetch.sourceUrl;
+  return typeof camera.fetch.url === "string" ? camera.fetch.url : null;
+}
+
 function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
+  if (providerSnapshot?.playerUrl) return providerSnapshot.playerUrl;
   if (providerSnapshot?.detailUrl) return providerSnapshot.detailUrl;
   if (camera.fetch.kind === "provider_api" && camera.fetch.provider === "windy" && camera.fetch.cameraKey) {
     return `https://www.windy.com/webcams/${camera.fetch.cameraKey}`;
@@ -79,7 +89,11 @@ function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCame
 }
 
 function externalUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
-  return directSnapshotUrl(camera) ?? providerDetailUrl(camera, providerSnapshot) ?? externalPageUrl(camera);
+  return directSnapshotUrl(camera) ?? embedSourceUrl(camera) ?? providerDetailUrl(camera, providerSnapshot) ?? externalPageUrl(camera);
+}
+
+function hasOfficialEmbed(camera: LoadedCamera) {
+  return camera.fetch.kind === "html_embed" && typeof camera.fetch.url === "string";
 }
 
 function snapshotUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
@@ -97,6 +111,8 @@ function summaryFor(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnaps
   const state =
     snapshotUrl(camera, providerSnapshot) != null
       ? "con snapshot disponible"
+      : hasOfficialEmbed(camera)
+      ? "con reproductor oficial disponible"
       : providerSnapshot?.status === "loading"
       ? "con snapshot en consulta"
       : providerSnapshot?.status === "error"
@@ -122,6 +138,7 @@ export function cameraToObservation(args: {
   addMeasurement(measurements, "mediaType", args.camera.mediaType);
   addMeasurement(measurements, "fetchKind", args.camera.fetch.kind);
   addMeasurement(measurements, "snapshotStatus", args.providerSnapshot?.status ?? (snapshot ? "ready" : "unknown"));
+  addMeasurement(measurements, "officialEmbed", hasOfficialEmbed(args.camera));
   addMeasurement(measurements, "cameraKey", args.camera.fetch.kind === "provider_api" ? args.camera.fetch.cameraKey : null);
   addMeasurement(measurements, "locality", args.camera.coverage?.locality);
   addMeasurement(measurements, "admin1", args.camera.coverage?.admin1);
@@ -158,7 +175,13 @@ export function cameraToObservation(args: {
       summary: summaryFor(args.camera, args.providerSnapshot),
       artifacts: [
         snapshot ? { kind: "snapshot" as const, url: snapshot, label: "Snapshot de cámara" } : null,
-        detail ? { kind: "link" as const, url: detail, label: "Abrir fuente externa" } : null,
+        detail
+          ? {
+              kind: "link" as const,
+              url: detail,
+              label: hasOfficialEmbed(args.camera) ? "Abrir fuente oficial" : "Abrir fuente externa",
+            }
+          : null,
       ].filter((item): item is { kind: "snapshot" | "link"; url: string; label: string } => Boolean(item)),
       measurements,
       limitations: [
@@ -174,10 +197,12 @@ export function cameraToObservation(args: {
       normalizedAt,
     },
     confidence: {
-      level: snapshot ? "medium" : "low",
-      basis: snapshot ? "visual_evidence" : "unverified_media",
+      level: snapshot || hasOfficialEmbed(args.camera) ? "medium" : "low",
+      basis: snapshot || hasOfficialEmbed(args.camera) ? "visual_evidence" : "unverified_media",
       notes: snapshot
         ? "Cámara cercana con snapshot o imagen disponible; requiere interpretación humana para describir lo visible."
+        : hasOfficialEmbed(args.camera)
+        ? "Cámara cercana con reproductor oficial disponible; requiere interpretación humana para describir lo visible."
         : "Cámara cercana sin snapshot disponible; se conserva como referencia externa contextual.",
     },
     provenance: {

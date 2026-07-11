@@ -1772,6 +1772,56 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   return "Fuente";
 }
 
+function youtubeEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+
+    if (host === "youtube-nocookie.com" && url.pathname.startsWith("/embed/")) {
+      return url.toString();
+    }
+
+    if (host !== "youtube.com" && host !== "youtu.be") return null;
+
+    if (url.pathname === "/embed/live_stream" && url.searchParams.get("channel")) {
+      return `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(
+        url.searchParams.get("channel") ?? ""
+      )}`;
+    }
+
+    if (url.pathname.startsWith("/embed/")) {
+      return `https://www.youtube.com${url.pathname}${url.search}`;
+    }
+
+    const videoId =
+      host === "youtu.be"
+        ? url.pathname.split("/").filter(Boolean)[0]
+        : url.pathname === "/watch"
+        ? url.searchParams.get("v")
+        : url.pathname.startsWith("/live/")
+        ? url.pathname.split("/").filter(Boolean)[1]
+        : null;
+
+    if (!videoId || !/^[a-zA-Z0-9_-]{6,}$/.test(videoId)) return null;
+
+    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?rel=0`;
+  } catch {
+    return null;
+  }
+}
+
+function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
+  const fetchInfo: any = cam.fetch;
+  const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
+
+  if (fetchInfo?.kind !== "html_embed") return null;
+  if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
+
+  return null;
+}
+
 function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCameraSnapshot | null) {
   const fetchInfo: any = cam.fetch;
   const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
@@ -1801,6 +1851,23 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
       label: "Imagen directa",
       detail: "Imagen publica directa registrada con atribucion y enlace a la fuente cuando esta disponible.",
       className: "border-white/10 bg-white/5 text-white/60",
+    };
+  }
+
+  if (fetchInfo?.kind === "html_embed") {
+    if (provider === "youtube") {
+      return {
+        label: "Embed oficial",
+        detail:
+          "Uso mediante reproductor oficial de YouTube cuando el canal permite insercion. BioPulse conserva controles, marca y fuente.",
+        className: "border-red-300/20 bg-red-400/10 text-red-100/80",
+      };
+    }
+
+    return {
+      label: "Embed autorizado",
+      detail: "Uso mediante iframe o reproductor oficial del proveedor registrado.",
+      className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80",
     };
   }
 
@@ -1901,6 +1968,7 @@ function resolveCameraVisual(
   const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
   const isExternalPage = cam.fetch?.kind === "external_page" && typeof (cam.fetch as any)?.url === "string";
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
+  const embedUrl = cameraTrustedEmbedUrl(cam);
   const usageMode = cameraUsageMode(cam, providerSnapshot);
   const displayDescription = cameraDisplayDescription(cam, providerSnapshot);
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
@@ -1916,7 +1984,8 @@ function resolveCameraVisual(
         `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
       : null;
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
-  const openUrl = snapUrlRaw ?? providerDetailUrl ?? externalPageUrl;
+  const embedSourceUrl = cam.fetch?.kind === "html_embed" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
+  const openUrl = embedSourceUrl ?? snapUrlRaw ?? providerDetailUrl ?? externalPageUrl;
   const providerInfo =
     cam.fetch?.kind === "provider_api"
       ? `Proveedor: ${(cam.fetch as any).provider}`
@@ -1928,6 +1997,8 @@ function resolveCameraVisual(
   const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
   const snapshotState = snapUrl
     ? "Snapshot disponible"
+    : embedUrl
+    ? "Embed disponible"
     : isWindyProvider && providerSnapshot?.status === "loading"
     ? "Consultando provider"
     : openUrl
@@ -1935,6 +2006,8 @@ function resolveCameraVisual(
     : "Sin snapshot";
   const snapshotStateClass = snapUrl
     ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
+    : embedUrl
+    ? "border-red-300/20 bg-red-400/10 text-red-100/80"
     : isWindyProvider && providerSnapshot?.status === "loading"
     ? "border-white/10 bg-white/5 text-white/60"
     : openUrl
@@ -1949,6 +2022,7 @@ function resolveCameraVisual(
     isExternalPage,
     isWindyProvider,
     snapUrl,
+    embedUrl,
     openUrl,
     usageMode,
     displayDescription,
@@ -7452,7 +7526,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                 sourceReference: activeCameraVisual?.openUrl ?? `Cámara ${activeCamera.id}`,
                                 observedAt: new Date().toISOString(),
                                 limitations:
-                                  "La referencia apunta a una cámara externa que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
+                                  "La referencia apunta a una fuente visual externa o reproductor oficial que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
                               })
                             }
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-100/85 transition-colors hover:bg-emerald-400/15 hover:text-emerald-50"
@@ -7474,7 +7548,17 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.45fr_0.55fr]">
                       <div className="min-h-[260px] bg-black/30">
                         {visualMediaAllowed ? (
-                          activeCameraVisual.snapUrl ? (
+                          activeCameraVisual.embedUrl ? (
+                            <iframe
+                              src={activeCameraVisual.embedUrl}
+                              title={activeCameraVisual.title}
+                              className="h-full max-h-[420px] min-h-[260px] w-full border-0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                              loading="lazy"
+                              referrerPolicy="strict-origin-when-cross-origin"
+                            />
+                          ) : activeCameraVisual.snapUrl ? (
                             <img
                               src={activeCameraVisual.snapUrl}
                               alt={activeCameraVisual.title}
@@ -7888,7 +7972,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                                     sourceReference: cameraVisual.openUrl ?? `Cámara ${cam.id}`,
                                     observedAt: new Date().toISOString(),
                                     limitations:
-                                      "La referencia apunta a una cámara externa que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
+                                      "La referencia apunta a una fuente visual externa o reproductor oficial que puede actualizarse o dejar de estar disponible. BioPulse no conserva el archivo visual; describir sólo lo visible al momento de observar.",
                                   })
                                 }
                               />

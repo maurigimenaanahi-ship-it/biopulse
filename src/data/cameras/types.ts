@@ -11,7 +11,7 @@ export type ValidationStatus = "pending" | "verified" | "rejected";
 export type FetchKind =
   | { kind: "image_url"; url: string }
   | { kind: "external_page"; url: string; provider?: string }
-  | { kind: "html_embed"; url: string; selectorHint?: string }
+  | { kind: "html_embed"; url: string; provider?: string; sourceUrl?: string; selectorHint?: string }
   | { kind: "stream_url"; url: string; protocol: StreamProtocol }
   | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string };
 
