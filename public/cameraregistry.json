@@ -1003,26 +1003,52 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-cerrocastor-live",
     "providerId": "cerrocastor",
-    "title": "Cerro Castor - Live",
-    "description": "Pagina oficial externa con camara de montana en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "title": "Cerro Castor - Camara base",
+    "description": "Reproductor oficial de YouTube embebido por Cerro Castor en su pagina live.",
     "geo": { "lat": -54.7239, "lon": -68.0167 },
     "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "cerrocastor",
-      "url": "https://www.cerrocastor.com/es_ar/live.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/RVuTqjTyrr0",
+      "sourceUrl": "https://www.cerrocastor.com/es_ar/live.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Cerro Castor",
+      "attributionText": "Fuente: Cerro Castor / YouTube",
       "termsUrl": "https://www.cerrocastor.com/es_ar/terminos-y-condiciones.html"
     },
-    "tags": ["mountain", "weather", "ski", "tierra-del-fuego", "external"],
+    "tags": ["mountain", "weather", "ski", "tierra-del-fuego", "embed", "youtube"],
+    "groupKey": "ar-cerrocastor-live",
     "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor live page", "verifiedAt": "2026-07-08" }
-  }
-,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor live page", "verifiedAt": "2026-07-11" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cerrocastor-cota-480",
+    "providerId": "cerrocastor",
+    "title": "Cerro Castor - Cota 480",
+    "description": "Reproductor oficial de YouTube embebido por Cerro Castor en su pagina live.",
+    "geo": { "lat": -54.7239, "lon": -68.0167 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/BN1BHGv52WU",
+      "sourceUrl": "https://www.cerrocastor.com/es_ar/live.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Cerro Castor / YouTube",
+      "termsUrl": "https://www.cerrocastor.com/es_ar/terminos-y-condiciones.html"
+    },
+    "tags": ["mountain", "weather", "ski", "tierra-del-fuego", "embed", "youtube"],
+    "groupKey": "ar-cerrocastor-live",
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor live page", "verifiedAt": "2026-07-11" }
+  },
 {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-11545-malargue-station",
