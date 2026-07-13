@@ -9,7 +9,7 @@ export type CameraRegistryItem = {
   coverage?: { countryISO2?: string; admin1?: string; locality?: string };
   mediaType?: "snapshot" | "video" | "stream" | "embed";
   fetch:
-    | { kind: "image_url"; url: string }
+    | { kind: "image_url"; url: string; sourceUrl?: string }
     | { kind: "external_page"; url: string; provider?: string }
     | { kind: "html_embed"; url: string; provider?: string; sourceUrl?: string }
     | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string }

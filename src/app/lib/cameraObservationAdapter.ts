@@ -69,6 +69,12 @@ function directSnapshotUrl(camera: LoadedCamera) {
   return camera.fetch.kind === "image_url" && typeof camera.fetch.url === "string" ? camera.fetch.url : null;
 }
 
+function snapshotSourceUrl(camera: LoadedCamera) {
+  if (camera.fetch.kind !== "image_url") return null;
+  if (typeof camera.fetch.sourceUrl === "string") return camera.fetch.sourceUrl;
+  return directSnapshotUrl(camera);
+}
+
 function externalPageUrl(camera: LoadedCamera) {
   return camera.fetch.kind === "external_page" && typeof camera.fetch.url === "string" ? camera.fetch.url : null;
 }
@@ -89,7 +95,7 @@ function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCame
 }
 
 function externalUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
-  return directSnapshotUrl(camera) ?? embedSourceUrl(camera) ?? providerDetailUrl(camera, providerSnapshot) ?? externalPageUrl(camera);
+  return snapshotSourceUrl(camera) ?? embedSourceUrl(camera) ?? providerDetailUrl(camera, providerSnapshot) ?? externalPageUrl(camera);
 }
 
 function hasOfficialEmbed(camera: LoadedCamera) {

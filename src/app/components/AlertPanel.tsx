@@ -1812,12 +1812,32 @@ function youtubeEmbedUrl(rawUrl: unknown) {
   }
 }
 
+function ipcamliveEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.toLowerCase();
+    const alias = url.searchParams.get("alias");
+
+    if (!/^g\d+\.ipcamlive\.com$/.test(host)) return null;
+    if (url.pathname !== "/player/player.php") return null;
+    if (!alias || !/^[a-zA-Z0-9_-]{6,}$/.test(alias)) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
 
   if (fetchInfo?.kind !== "html_embed") return null;
   if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
+  if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
 
   return null;
 }
@@ -1864,6 +1884,15 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
       };
     }
 
+    if (provider === "catedral" || provider === "ipcamlive") {
+      return {
+        label: "Player oficial",
+        detail:
+          "Uso mediante reproductor publicado por la fuente oficial. BioPulse conserva el iframe del proveedor y la atribucion.",
+        className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80",
+      };
+    }
+
     return {
       label: "Embed autorizado",
       detail: "Uso mediante iframe o reproductor oficial del proveedor registrado.",
@@ -1882,9 +1911,9 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
 
     if (provider === "estadodelmar") {
       return {
-        label: "Link externo",
+        label: "Permiso requerido",
         detail:
-          "Se abre la pagina original de Estado del Mar. Para embeber video o snapshots dentro de BioPulse conviene pedir autorizacion.",
+          "Se abre la pagina original de Estado del Mar. Sus terminos requieren aceptacion expresa para usar datos o servicios dentro de apps o paginas propias.",
         className: "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75",
       };
     }
@@ -1985,7 +2014,8 @@ function resolveCameraVisual(
       : null;
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
   const embedSourceUrl = cam.fetch?.kind === "html_embed" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
-  const openUrl = embedSourceUrl ?? snapUrlRaw ?? providerDetailUrl ?? externalPageUrl;
+  const snapshotSourceUrl = isSnapshot ? (cam.fetch as any).sourceUrl ?? snapUrlRaw : null;
+  const openUrl = embedSourceUrl ?? snapshotSourceUrl ?? providerDetailUrl ?? externalPageUrl;
   const providerInfo =
     cam.fetch?.kind === "provider_api"
       ? `Proveedor: ${(cam.fetch as any).provider}`

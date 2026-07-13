@@ -820,138 +820,144 @@
     "id": "ar-catedral-punta-princesa-live",
     "providerId": "catedral",
     "title": "Cerro Catedral - Punta Princesa en vivo",
-    "description": "Pagina oficial externa con camara de montana en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Streaming vivo publicado por Catedral Alta Patagonia en su pagina oficial de webcams.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "catedral",
-      "url": "https://catedralaltapatagonia.com/webcams/#punta-princesa"
+      "url": "https://g3.ipcamlive.com/player/player.php?alias=6a2c31a02eaf9&skin=white&autoplay=1&mute=1&disableautofullscreen=1&disablezoombutton=1&disableframecapture=1&disablestorageplayer=1&disabledownloadbutton=1&disableplaybackspeedbutton=1",
+      "sourceUrl": "https://catedralaltapatagonia.com/webcams/#punta-princesa"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Catedral Alta Patagonia",
       "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "tags": ["mountain", "weather", "ski", "bariloche", "embed"],
     "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-catedral-diente-caballo-sur",
     "providerId": "catedral",
     "title": "Cerro Catedral - Diente de Caballo Sur",
-    "description": "Pagina oficial externa con camara de montana actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Imagen oficial de webcam publicada por Catedral Alta Patagonia y actualizada aproximadamente cada 5 minutos.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
-    "mediaType": "embed",
+    "mediaType": "snapshot",
     "fetch": {
-      "kind": "external_page",
-      "provider": "catedral",
-      "url": "https://catedralaltapatagonia.com/webcams/#diente-caballo-sur"
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam008/latest.jpg",
+      "sourceUrl": "https://catedralaltapatagonia.com/webcams/#diente-caballo-sur"
     },
+    "update": { "expectedIntervalSec": 300 },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Catedral Alta Patagonia",
       "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-catedral-centro-superior",
     "providerId": "catedral",
     "title": "Cerro Catedral - Centro superior",
-    "description": "Pagina oficial externa con camara de montana actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Imagen oficial de webcam publicada por Catedral Alta Patagonia y actualizada aproximadamente cada 5 minutos.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
-    "mediaType": "embed",
+    "mediaType": "snapshot",
     "fetch": {
-      "kind": "external_page",
-      "provider": "catedral",
-      "url": "https://catedralaltapatagonia.com/webcams/#centro-superior"
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam006/latest.jpg",
+      "sourceUrl": "https://catedralaltapatagonia.com/webcams/#centro-superior"
     },
+    "update": { "expectedIntervalSec": 300 },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Catedral Alta Patagonia",
       "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-catedral-pista-eventos",
     "providerId": "catedral",
     "title": "Cerro Catedral - Pista Eventos",
-    "description": "Pagina oficial externa con camara de base actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Imagen oficial de webcam publicada por Catedral Alta Patagonia y actualizada aproximadamente cada 5 minutos.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
-    "mediaType": "embed",
+    "mediaType": "snapshot",
     "fetch": {
-      "kind": "external_page",
-      "provider": "catedral",
-      "url": "https://catedralaltapatagonia.com/webcams/#pista-eventos"
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam005/latest.jpg",
+      "sourceUrl": "https://catedralaltapatagonia.com/webcams/#pista-eventos"
     },
+    "update": { "expectedIntervalSec": 300 },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Catedral Alta Patagonia",
       "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-catedral-playpark-base",
     "providerId": "catedral",
     "title": "Cerro Catedral - Playpark base",
-    "description": "Pagina oficial externa con camara de base actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Imagen oficial de webcam publicada por Catedral Alta Patagonia y actualizada aproximadamente cada 5 minutos.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
-    "mediaType": "embed",
+    "mediaType": "snapshot",
     "fetch": {
-      "kind": "external_page",
-      "provider": "catedral",
-      "url": "https://catedralaltapatagonia.com/webcams/#playpark-base"
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam002/latest.jpg",
+      "sourceUrl": "https://catedralaltapatagonia.com/webcams/#playpark-base"
     },
+    "update": { "expectedIntervalSec": 300 },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Catedral Alta Patagonia",
       "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-catedral-plaza-catalina-reynal",
     "providerId": "catedral",
     "title": "Cerro Catedral - Plaza Catalina Reynal",
-    "description": "Pagina oficial externa con camara de base actualizada periodicamente. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Imagen oficial de webcam publicada por Catedral Alta Patagonia y actualizada aproximadamente cada 5 minutos.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
-    "mediaType": "embed",
+    "mediaType": "snapshot",
     "fetch": {
-      "kind": "external_page",
-      "provider": "catedral",
-      "url": "https://catedralaltapatagonia.com/webcams/#plaza-catalina-reynal"
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam003/latest.jpg",
+      "sourceUrl": "https://catedralaltapatagonia.com/webcams/#plaza-catalina-reynal"
     },
+    "update": { "expectedIntervalSec": 300 },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Catedral Alta Patagonia",
       "termsUrl": "https://catedralaltapatagonia.com/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "bariloche", "external"],
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",

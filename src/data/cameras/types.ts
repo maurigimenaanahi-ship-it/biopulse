@@ -9,7 +9,7 @@ export type CameraStatus = "active" | "degraded" | "down" | "unknown" | "retired
 export type ValidationStatus = "pending" | "verified" | "rejected";
 
 export type FetchKind =
-  | { kind: "image_url"; url: string }
+  | { kind: "image_url"; url: string; sourceUrl?: string }
   | { kind: "external_page"; url: string; provider?: string }
   | { kind: "html_embed"; url: string; provider?: string; sourceUrl?: string; selectorHint?: string }
   | { kind: "stream_url"; url: string; protocol: StreamProtocol }
