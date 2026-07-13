@@ -6,13 +6,13 @@ BioPulse usa referencias de camaras publicas provistas por [Windy Webcams](https
 
 BioPulse enlaza paginas publicas de [SkylineWebcams](https://www.skylinewebcams.com/en/webcam/argentina.html) como fuente externa, sin copiar ni rehostear frames.
 
-BioPulse enlaza paginas publicas de [Webcamtaxi](https://www.webcamtaxi.com/en/argentina.html) como fuente externa, sin copiar ni rehostear frames.
+BioPulse usa paginas publicas de [Webcamtaxi](https://www.webcamtaxi.com/en/argentina.html) como fuente original y muestra reproductores de YouTube cuando esas paginas los publican, sin copiar ni rehostear frames.
 
 BioPulse enlaza paginas publicas de [WorldCam Argentina](https://worldcam.eu/webcams/south-america/argentina) como directorio externo de webcams, sin copiar ni rehostear frames.
 
-BioPulse enlaza paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes externas de montana, sin copiar ni rehostear frames.
+BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
 
-BioPulse enlaza paginas publicas de [Administracion General de Puertos / Argentina.gob.ar](https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia), [Municipalidad de Neuquen Capital](https://camaras.neuquencapital.gov.ar/), [Municipalidad de Las Heras Santa Cruz](https://municipiolasherassantacruz.gob.ar/camara-en-vivo/), [Municipalidad de Tandil](https://tandil.gov.ar/camara-vivo), [Comodoro Turismo](https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/) y [Bariloche.org](https://bariloche.org/camaras-en-vivo-bariloche/) como fuentes externas verificadas, sin copiar ni rehostear frames.
+BioPulse usa paginas publicas de [Administracion General de Puertos / Argentina.gob.ar](https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia), [Municipalidad de Neuquen Capital](https://camaras.neuquencapital.gov.ar/), [Municipalidad de Las Heras Santa Cruz](https://municipiolasherassantacruz.gob.ar/camara-en-vivo/), [Municipalidad de Tandil](https://tandil.gov.ar/camara-vivo), [Comodoro Turismo](https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/) y [Bariloche.org](https://bariloche.org/camaras-en-vivo-bariloche/) como fuentes verificadas mediante streams, reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
 
 BioPulse enlaza paginas publicas de [Estado del Mar](https://estadodelmar.com.ar/) como fuente externa de camaras costeras, pronostico de olas, mareas y clima, sin copiar ni rehostear frames.
 

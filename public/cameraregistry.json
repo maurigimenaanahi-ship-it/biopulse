@@ -257,7 +257,7 @@
     "providerId": "skyline",
     "groupKey": "ar-ushuaia-port-panorama",
     "title": "Ushuaia - Puerto (SkylineWebcams)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para Avenida 9 de Julio.",
     "geo": { "lat": -54.807, "lon": -68.302 },
     "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
     "mediaType": "embed",
@@ -543,87 +543,91 @@
     "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/july-9-avenue.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/rqBfiegG5qU?autoplay=1",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/buenos-aires/july-9-avenue.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["city", "traffic", "external"],
+    "tags": ["city", "traffic", "embed", "youtube"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-rio-grande-cams",
     "providerId": "webcamtaxi",
     "title": "Rio Grande - Camaras urbanas (Webcamtaxi)",
-    "description": "Pagina publica externa con camaras en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para camaras urbanas de Rio Grande.",
     "geo": { "lat": -53.786, "lon": -67.701 },
     "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Rio Grande" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/rio-grande-cams.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/gRDLM93KZUE?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/rio-grande-cams.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["city", "traffic", "tierra-del-fuego", "external"],
+    "tags": ["city", "traffic", "tierra-del-fuego", "embed", "youtube"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-puente-gral-belgrano",
     "providerId": "webcamtaxi",
     "title": "Puente General Belgrano - Corrientes/Chaco (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para el Puente General Belgrano.",
     "geo": { "lat": -27.466, "lon": -58.854 },
     "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/corrientes-province/puentegeneral-manuelbelgrano-bridge.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC2RkL2eATR1V6H8g4eNfA5Q",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/corrientes-province/puentegeneral-manuelbelgrano-bridge.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["bridge", "river", "traffic", "external"],
+    "tags": ["bridge", "river", "traffic", "embed", "youtube"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-beagle-channel-ushuaia",
     "providerId": "webcamtaxi",
     "title": "Ushuaia - Canal Beagle (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para el Canal Beagle.",
     "geo": { "lat": -54.807, "lon": -68.303 },
     "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-beaglechannel.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCuR9Gx3rZA_eaJV9tF8l8HQ&autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-beaglechannel.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["sea", "harbor", "patagonia", "external"],
+    "tags": ["sea", "harbor", "patagonia", "embed", "youtube"],
     "priority": 1,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-07" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -631,23 +635,24 @@
     "providerId": "webcamtaxi",
     "groupKey": "ar-buenos-aires-obelisco",
     "title": "Buenos Aires - Obelisco (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para el Obelisco.",
     "geo": { "lat": -34.6037, "lon": -58.3816 },
     "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/obelisco-livecam.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/GC6ntWkgFQU?autoplay=1&mute=0&rel=0",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/buenos-aires/obelisco-livecam.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["city", "traffic", "square", "external"],
+    "tags": ["city", "traffic", "square", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -655,23 +660,24 @@
     "providerId": "webcamtaxi",
     "groupKey": "ar-necochea-beach",
     "title": "Necochea - Playa (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para la playa de Necochea.",
     "geo": { "lat": -38.5545, "lon": -58.7396 },
     "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Necochea" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/necochea-livecam.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/I2VvSE0fyz4?autoplay=1&fs=0&mute=1",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/buenos-aires/necochea-livecam.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["coast", "beach", "traffic", "external"],
+    "tags": ["coast", "beach", "traffic", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -679,23 +685,24 @@
     "providerId": "webcamtaxi",
     "groupKey": "ar-cipolletti-city",
     "title": "Cipolletti - Ciudad (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para Cipolletti.",
     "geo": { "lat": -38.9339, "lon": -67.9903 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/rio-negro-province/cipolletti-city-cam.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/5gpfKRSGtyU?autoplay=1&mute=1",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/rio-negro-province/cipolletti-city-cam.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["city", "patagonia", "external"],
+    "tags": ["city", "patagonia", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -703,23 +710,24 @@
     "providerId": "webcamtaxi",
     "groupKey": "ar-pinamar-beach",
     "title": "Pinamar - Playa (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para Pinamar.",
     "geo": { "lat": -37.1077, "lon": -56.8615 },
     "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/buenos-aires/pinamar-beach.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCjeImUhRB1SLqN-svqDRJJw&autoplay=1",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/buenos-aires/pinamar-beach.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["coast", "beach", "external"],
+    "tags": ["coast", "beach", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -727,23 +735,24 @@
     "providerId": "webcamtaxi",
     "groupKey": "ar-villa-maria-city",
     "title": "Villa Maria - Ciudad (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para Villa Maria.",
     "geo": { "lat": -32.4075, "lon": -63.2402 },
     "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Villa Maria" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/cordoba-province/villa-maria-city.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCl5P2zJoH1gBdf38AiYALKA&autoplay=1",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/cordoba-province/villa-maria-city.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["city", "traffic", "cordoba", "external"],
+    "tags": ["city", "traffic", "cordoba", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -751,23 +760,24 @@
     "providerId": "webcamtaxi",
     "groupKey": "ar-ushuaia-port-panorama",
     "title": "Ushuaia - Vista panoramica (Webcamtaxi)",
-    "description": "Pagina publica externa con camara en vivo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para la vista panoramica de Ushuaia.",
     "geo": { "lat": -54.807, "lon": -68.303 },
     "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
-      "provider": "webcamtaxi",
-      "url": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-panoramic-view.html"
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/9nAmQgXzC2Y?autoplay=1&mute=1",
+      "sourceUrl": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-panoramic-view.html"
     },
     "usage": {
       "isPublic": true,
-      "attributionText": "Fuente: Webcamtaxi",
+      "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["sea", "harbor", "city", "patagonia", "external"],
+    "tags": ["sea", "harbor", "city", "patagonia", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi page", "verifiedAt": "2026-07-08" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
