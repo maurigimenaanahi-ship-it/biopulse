@@ -561,6 +561,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-rio-grande-cams",
     "providerId": "webcamtaxi",
+    "groupKey": "ar-rio-grande-city-cameras",
     "title": "Rio Grande - Camaras urbanas (Webcamtaxi)",
     "description": "Reproductor publico de YouTube embebido por Webcamtaxi para camaras urbanas de Rio Grande.",
     "geo": { "lat": -53.786, "lon": -67.701 },
@@ -758,16 +759,16 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-ushuaia-panoramic-view",
     "providerId": "webcamtaxi",
-    "groupKey": "ar-ushuaia-port-panorama",
-    "title": "Ushuaia - Vista panoramica (Webcamtaxi)",
-    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para la vista panoramica de Ushuaia.",
+    "groupKey": "ar-ushuaia-city-cameras",
+    "title": "Ushuaia - Camaras urbanas (Webcamtaxi)",
+    "description": "Reproductor publico de YouTube para camaras urbanas de Ushuaia referenciado por Webcamtaxi.",
     "geo": { "lat": -54.807, "lon": -68.303 },
     "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
     "mediaType": "embed",
     "fetch": {
       "kind": "html_embed",
       "provider": "youtube",
-      "url": "https://www.youtube.com/embed/9nAmQgXzC2Y?autoplay=1&mute=1",
+      "url": "https://www.youtube.com/embed/M21hM0Epa6M?autoplay=1&mute=1&rel=0",
       "sourceUrl": "https://www.webcamtaxi.com/en/argentina/tierra-del-fuego/ushuaia-panoramic-view.html"
     },
     "usage": {
@@ -777,7 +778,7 @@
     },
     "tags": ["sea", "harbor", "city", "patagonia", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube oEmbed title", "verifiedAt": "2026-07-13" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -1642,8 +1643,9 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-18724-ushuaia",
         "providerId":  "worldcam",
+        "groupKey":  "ar-ushuaia-city-cameras",
         "title":  "Ushuaia (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube de Tierra del Fuego Live referenciado por WorldCam para Ushuaia.",
         "geo":  {
                     "lat":  -54.807498,
                     "lon":  -68.303165
@@ -1654,24 +1656,28 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18724-ushuaia"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/M21hM0Epa6M?autoplay=1&mute=1&rel=0",
+                      "sourceUrl":  "https://worldcam.eu/webcams/south-america/argentina/18724-ushuaia"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / Tierra del Fuego Live / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "city",
+                     "patagonia",
+                     "embed",
+                     "youtube"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam source link and YouTube oEmbed title",
+                           "verifiedAt":  "2026-07-13"
                        }
     },
     {
@@ -2489,8 +2495,9 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-33267-tolhuin-park",
         "providerId":  "worldcam",
+        "groupKey":  "ar-tolhuin-town-cameras",
         "title":  "Tolhuin - Park (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube de Tierra del Fuego Live referenciado por WorldCam para Tolhuin.",
         "geo":  {
                     "lat":  -54.507645,
                     "lon":  -67.194773
@@ -2501,33 +2508,37 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/33267-tolhuin-park"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/9nAmQgXzC2Y?autoplay=1&mute=1&rel=0",
+                      "sourceUrl":  "https://worldcam.eu/webcams/south-america/argentina/33267-tolhuin-park"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / Tierra del Fuego Live / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
-                     "landscape"
+                     "landscape",
+                     "patagonia",
+                     "embed",
+                     "youtube"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam source link and YouTube oEmbed title",
+                           "verifiedAt":  "2026-07-13"
                        }
     },
     {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-33268-rio-grande",
         "providerId":  "worldcam",
+        "groupKey":  "ar-rio-grande-city-cameras",
         "title":  "Rio Grande (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube de Tierra del Fuego Live referenciado por WorldCam para Rio Grande.",
         "geo":  {
                     "lat":  -53.773173,
                     "lon":  -67.704207
@@ -2538,25 +2549,28 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/33268-rio-grande"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/gRDLM93KZUE?autoplay=1&mute=1&rel=0",
+                      "sourceUrl":  "https://worldcam.eu/webcams/south-america/argentina/33268-rio-grande"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / Tierra del Fuego Live / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
-                     "water"
+                     "water",
+                     "patagonia",
+                     "embed",
+                     "youtube"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam source link and YouTube oEmbed title",
+                           "verifiedAt":  "2026-07-13"
                        }
     },
     {

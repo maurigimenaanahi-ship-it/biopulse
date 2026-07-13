@@ -25,6 +25,9 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - WorldCam Argentina: aplicada como `external_page` para ampliar cobertura territorial con paginas individuales de camaras publicas y coordenadas. Cuando la pagina de WorldCam referencia una fuente primaria de YouTube publica, especifica y embebible, BioPulse registra `html_embed` usando el reproductor oficial de YouTube con atribucion WorldCam / YouTube. En el resto de los casos solo abre la pagina original; no copia frames, no descarga imagenes y no rehostea video.
   Fuentes: https://worldcam.eu/webcams/south-america/argentina y https://worldcam.eu/terms
 
+- Tierra del Fuego Live / YouTube: aplicada como `html_embed` para camaras publicas de Ushuaia, Tolhuin y Rio Grande cuando los titulos de oEmbed/feed identifican la localidad especifica. BioPulse usa el iframe oficial de YouTube con atribucion y no copia ni rehostea video.
+  Fuente: https://www.youtube.com/@UshuaiaLive
+
 - Centros de montana y nieve con webcams oficiales: aplicados como `html_embed` cuando publican un reproductor oficial, como `image_url` cuando exponen una imagen directa estable, o como `external_page` cuando solo corresponde abrir la fuente original. Aportan observacion visual de cielo, visibilidad, nieve, viento visible y condiciones de montana cercanas a zonas de bosque/interfase.
   Fuentes: https://catedralaltapatagonia.com/webcams/ , https://cerrobayo.com.ar/montana/camara/ , https://skilahoya.com/webcams/ , https://www.cerrocastor.com/es_ar/live.html
 
