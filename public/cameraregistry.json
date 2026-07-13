@@ -3405,7 +3405,7 @@
         "id":  "ar-worldcam-35116-resistencia-traffic",
         "providerId":  "worldcam",
         "title":  "Resistencia - Traffic (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube referenciado por WorldCam para transito en Resistencia.",
         "geo":  {
                     "lat":  -27.45045,
                     "lon":  -58.988262
@@ -3416,25 +3416,27 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/35116-resistencia-traffic"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/live_stream?channel=UCftan3cVkKKfxXpRN9JUX7A",
+                      "sourceUrl":  "https://worldcam.eu/webcams/south-america/argentina/35116-resistencia-traffic"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
+                     "embed",
+                     "youtube",
                      "traffic"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam YouTube source link",
+                           "verifiedAt":  "2026-07-13"
                        }
     },
     {
@@ -3592,7 +3594,7 @@
         "id":  "ar-worldcam-35657-buenos-aires-avenida-9-de-julio",
         "providerId":  "worldcam",
         "title":  "Buenos Aires - Avenida 9 de Julio (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube referenciado por WorldCam para Avenida 9 de Julio.",
         "geo":  {
                     "lat":  -34.617574,
                     "lon":  -58.381512
@@ -3603,24 +3605,28 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/35657-buenos-aires-avenida-9-de-julio"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/live_stream?channel=UCJbgNz5VfETvD_wd4KiF2yQ",
+                      "sourceUrl":  "https://worldcam.eu/webcams/south-america/argentina/35657-buenos-aires-avenida-9-de-julio"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "city",
+                     "traffic",
+                     "embed",
+                     "youtube"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam YouTube source link",
+                           "verifiedAt":  "2026-07-13"
                        }
     },
     {
@@ -3779,7 +3785,7 @@
         "providerId":  "worldcam",
         "groupKey":  "ar-edm-las-grutas",
         "title":  "Las Grutas - Beach (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube referenciado por WorldCam para playa de Las Grutas.",
         "geo":  {
                     "lat":  -40.81131,
                     "lon":  -65.088175
@@ -3790,27 +3796,29 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/37013-las-grutas-beach"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/live_stream?channel=UCHl3vUTOQ-CjsI5anQo34jg",
+                      "sourceUrl":  "https://worldcam.eu/webcams/south-america/argentina/37013-las-grutas-beach"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
                      "coast",
                      "beach",
-                     "water"
+                     "water",
+                     "embed",
+                     "youtube"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam YouTube source link",
+                           "verifiedAt":  "2026-07-13"
                        }
     },
     {

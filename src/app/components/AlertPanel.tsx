@@ -1852,6 +1852,26 @@ function cameraGroupKey(cam: CameraRegistryItem) {
   return groupKey ? `group:${groupKey}` : cameraDedupeKey(cam);
 }
 
+function cameraVisualRank(cam: CameraRegistryItem) {
+  const kind = cam.fetch?.kind;
+  if (kind === "stream_url" || kind === "html_embed" || kind === "image_url" || kind === "provider_api") {
+    return 0;
+  }
+  return 1;
+}
+
+function sortCameraGroupSources(cameras: LoadedCamera[]) {
+  return [...cameras].sort((a, b) => {
+    const visualRank = cameraVisualRank(a) - cameraVisualRank(b);
+    if (visualRank !== 0) return visualRank;
+
+    const priority = (b.priority ?? 0) - (a.priority ?? 0);
+    if (priority !== 0) return priority;
+
+    return a.distanceKm - b.distanceKm;
+  });
+}
+
 function cameraSourceLabel(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
@@ -2102,12 +2122,15 @@ function groupLoadedCameras(cameras: LoadedCamera[]): LoadedCameraGroup[] {
   });
 
   return Array.from(groups.entries())
-    .map(([key, all]) => ({
-      key,
-      primary: all[0],
-      alternatives: all.slice(1),
-      all,
-    }))
+    .map(([key, groupCameras]) => {
+      const all = sortCameraGroupSources(groupCameras);
+      return {
+        key,
+        primary: all[0],
+        alternatives: all.slice(1),
+        all,
+      };
+    })
     .sort((a, b) => a.primary.distanceKm - b.primary.distanceKm);
 }
 

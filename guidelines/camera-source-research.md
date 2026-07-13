@@ -22,7 +22,7 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - Webcamtaxi Argentina: aplicada como `html_embed` cuando la pagina publica expone un reproductor de YouTube ya embebido, y como `external_page` si no hay reproductor reutilizable. BioPulse usa el iframe oficial de YouTube con atribucion y enlace a la pagina original; no copia frames, no descarga imagenes y no rehostea video.
   Fuentes: https://www.webcamtaxi.com/en/argentina.html y https://www.webcamtaxi.com/en/terms.html
 
-- WorldCam Argentina: aplicada como `external_page` para ampliar cobertura territorial con paginas individuales de camaras publicas y coordenadas. BioPulse omite entradas fuera de Argentina y solo abre la pagina original; no copia frames, no descarga imagenes y no rehostea video.
+- WorldCam Argentina: aplicada como `external_page` para ampliar cobertura territorial con paginas individuales de camaras publicas y coordenadas. Cuando la pagina de WorldCam referencia una fuente primaria de YouTube publica, especifica y embebible, BioPulse registra `html_embed` usando el reproductor oficial de YouTube con atribucion WorldCam / YouTube. En el resto de los casos solo abre la pagina original; no copia frames, no descarga imagenes y no rehostea video.
   Fuentes: https://worldcam.eu/webcams/south-america/argentina y https://worldcam.eu/terms
 
 - Centros de montana y nieve con webcams oficiales: aplicados como `html_embed` cuando publican un reproductor oficial, como `image_url` cuando exponen una imagen directa estable, o como `external_page` cuando solo corresponde abrir la fuente original. Aportan observacion visual de cielo, visibilidad, nieve, viento visible y condiciones de montana cercanas a zonas de bosque/interfase.
@@ -57,6 +57,7 @@ Cuando dos proveedores muestran la misma escena o un punto visual equivalente, B
 ## Regla de implementacion
 
 - `provider_api`: cuando hay API documentada y permiso de uso.
+- `html_embed`: cuando la fuente primaria publica un reproductor oficial embebible compatible con sus terminos.
 - `image_url`: cuando existe una imagen publica directa y el uso esta permitido.
 - `external_page`: cuando la camara es publica para observar, pero no se deben copiar frames ni embeber contenido.
 - `pending`: cuando falta revisar terminos, estabilidad tecnica o cobertura territorial.
