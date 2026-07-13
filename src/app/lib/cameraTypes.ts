@@ -12,6 +12,7 @@ export type CameraRegistryItem = {
     | { kind: "image_url"; url: string; sourceUrl?: string }
     | { kind: "external_page"; url: string; provider?: string }
     | { kind: "html_embed"; url: string; provider?: string; sourceUrl?: string }
+    | { kind: "stream_url"; url: string; protocol?: string; provider?: string; sourceUrl?: string }
     | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string }
     | { kind: string; [key: string]: unknown };
   update?: { expectedIntervalSec?: number };

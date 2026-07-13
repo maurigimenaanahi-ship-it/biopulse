@@ -62,6 +62,9 @@ function providerName(camera: LoadedCamera) {
   if (camera.fetch.kind === "html_embed" && typeof camera.fetch.provider === "string") {
     return camera.fetch.provider;
   }
+  if (camera.fetch.kind === "stream_url" && typeof camera.fetch.provider === "string") {
+    return camera.fetch.provider;
+  }
   return camera.providerId || "camera_registry";
 }
 
@@ -85,6 +88,12 @@ function embedSourceUrl(camera: LoadedCamera) {
   return typeof camera.fetch.url === "string" ? camera.fetch.url : null;
 }
 
+function streamSourceUrl(camera: LoadedCamera) {
+  if (camera.fetch.kind !== "stream_url") return null;
+  if (typeof camera.fetch.sourceUrl === "string") return camera.fetch.sourceUrl;
+  return typeof camera.fetch.url === "string" ? camera.fetch.url : null;
+}
+
 function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
   if (providerSnapshot?.playerUrl) return providerSnapshot.playerUrl;
   if (providerSnapshot?.detailUrl) return providerSnapshot.detailUrl;
@@ -95,11 +104,21 @@ function providerDetailUrl(camera: LoadedCamera, providerSnapshot?: ProviderCame
 }
 
 function externalUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
-  return snapshotSourceUrl(camera) ?? embedSourceUrl(camera) ?? providerDetailUrl(camera, providerSnapshot) ?? externalPageUrl(camera);
+  return (
+    snapshotSourceUrl(camera) ??
+    embedSourceUrl(camera) ??
+    streamSourceUrl(camera) ??
+    providerDetailUrl(camera, providerSnapshot) ??
+    externalPageUrl(camera)
+  );
 }
 
 function hasOfficialEmbed(camera: LoadedCamera) {
   return camera.fetch.kind === "html_embed" && typeof camera.fetch.url === "string";
+}
+
+function hasOfficialStream(camera: LoadedCamera) {
+  return camera.fetch.kind === "stream_url" && typeof camera.fetch.url === "string";
 }
 
 function snapshotUrl(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnapshot | null) {
@@ -119,6 +138,8 @@ function summaryFor(camera: LoadedCamera, providerSnapshot?: ProviderCameraSnaps
       ? "con snapshot disponible"
       : hasOfficialEmbed(camera)
       ? "con reproductor oficial disponible"
+      : hasOfficialStream(camera)
+      ? "con stream HLS disponible"
       : providerSnapshot?.status === "loading"
       ? "con snapshot en consulta"
       : providerSnapshot?.status === "error"
@@ -145,6 +166,7 @@ export function cameraToObservation(args: {
   addMeasurement(measurements, "fetchKind", args.camera.fetch.kind);
   addMeasurement(measurements, "snapshotStatus", args.providerSnapshot?.status ?? (snapshot ? "ready" : "unknown"));
   addMeasurement(measurements, "officialEmbed", hasOfficialEmbed(args.camera));
+  addMeasurement(measurements, "officialStream", hasOfficialStream(args.camera));
   addMeasurement(measurements, "cameraKey", args.camera.fetch.kind === "provider_api" ? args.camera.fetch.cameraKey : null);
   addMeasurement(measurements, "locality", args.camera.coverage?.locality);
   addMeasurement(measurements, "admin1", args.camera.coverage?.admin1);
@@ -185,7 +207,7 @@ export function cameraToObservation(args: {
           ? {
               kind: "link" as const,
               url: detail,
-              label: hasOfficialEmbed(args.camera) ? "Abrir fuente oficial" : "Abrir fuente externa",
+              label: hasOfficialEmbed(args.camera) || hasOfficialStream(args.camera) ? "Abrir fuente oficial" : "Abrir fuente externa",
             }
           : null,
       ].filter((item): item is { kind: "snapshot" | "link"; url: string; label: string } => Boolean(item)),

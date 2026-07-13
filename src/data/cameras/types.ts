@@ -12,7 +12,7 @@ export type FetchKind =
   | { kind: "image_url"; url: string; sourceUrl?: string }
   | { kind: "external_page"; url: string; provider?: string }
   | { kind: "html_embed"; url: string; provider?: string; sourceUrl?: string; selectorHint?: string }
-  | { kind: "stream_url"; url: string; protocol: StreamProtocol }
+  | { kind: "stream_url"; url: string; protocol: StreamProtocol; provider?: string; sourceUrl?: string }
   | { kind: "provider_api"; provider: string; cameraKey: string; endpoint?: string };
 
 export type UsagePolicy = {

@@ -1738,6 +1738,93 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [state, setState] = useState<"loading" | "ready" | "error" | "unsupported">("loading");
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let hls: { destroy: () => void } | null = null;
+    let mounted = true;
+
+    const markReady = () => {
+      if (mounted) setState("ready");
+    };
+    const markError = () => {
+      if (mounted) setState("error");
+    };
+
+    setState("loading");
+    video.addEventListener("loadedmetadata", markReady);
+    video.addEventListener("canplay", markReady);
+    video.addEventListener("error", markError);
+
+    async function attachStream() {
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+        return;
+      }
+
+      const { default: Hls } = await import("hls.js");
+      if (!mounted) return;
+
+      if (!Hls.isSupported()) {
+        setState("unsupported");
+        return;
+      }
+
+      const instance = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+      });
+      hls = instance;
+      instance.loadSource(src);
+      instance.attachMedia(video);
+      instance.on(Hls.Events.MANIFEST_PARSED, markReady);
+      instance.on(Hls.Events.ERROR, (_event, data) => {
+        if (data.fatal) markError();
+      });
+    }
+
+    attachStream().catch(markError);
+
+    return () => {
+      mounted = false;
+      video.removeEventListener("loadedmetadata", markReady);
+      video.removeEventListener("canplay", markReady);
+      video.removeEventListener("error", markError);
+      if (hls) hls.destroy();
+      video.removeAttribute("src");
+      video.load();
+    };
+  }, [src]);
+
+  return (
+    <div className="relative h-full min-h-[260px] bg-black">
+      <video
+        ref={videoRef}
+        title={title}
+        className="h-full max-h-[420px] min-h-[260px] w-full bg-black object-contain"
+        controls
+        muted
+        playsInline
+        autoPlay
+      />
+      {state !== "ready" ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t border-white/10 bg-black/65 px-3 py-2 text-xs text-white/65">
+          {state === "loading"
+            ? "Conectando stream HLS..."
+            : state === "unsupported"
+            ? "Este navegador no soporta reproduccion HLS en esta vista."
+            : "El stream no respondio en este momento."}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function cameraDedupeKey(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
 
@@ -1751,6 +1838,10 @@ function cameraDedupeKey(cam: CameraRegistryItem) {
 
   if (fetchInfo?.kind === "image_url" && typeof fetchInfo.url === "string") {
     return `image:${fetchInfo.url}`;
+  }
+
+  if (fetchInfo?.kind === "stream_url" && typeof fetchInfo.url === "string") {
+    return `stream:${fetchInfo.url}`;
   }
 
   return `id:${cam.id}`;
@@ -1831,6 +1922,32 @@ function ipcamliveEmbedUrl(rawUrl: unknown) {
   }
 }
 
+function trustedHlsStreamUrl(cam: CameraRegistryItem) {
+  const fetchInfo: any = cam.fetch;
+  if (fetchInfo?.kind !== "stream_url") return null;
+  if (String(fetchInfo.protocol ?? "").toLowerCase() !== "hls") return null;
+  if (typeof fetchInfo.url !== "string" || !/^https:\/\//i.test(fetchInfo.url)) return null;
+
+  try {
+    const url = new URL(fetchInfo.url);
+    const host = url.hostname.toLowerCase();
+
+    if (host === "camaras.neuquencapital.gov.ar") {
+      if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    if (host === "hidrografia2.agpse.gob.ar" && url.port === "8443") {
+      if (!/^\/stream\/[a-f0-9-]+\/channel\/0\/hlsll\/live\/index\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
@@ -1896,6 +2013,14 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
     return {
       label: "Embed autorizado",
       detail: "Uso mediante iframe o reproductor oficial del proveedor registrado.",
+      className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80",
+    };
+  }
+
+  if (fetchInfo?.kind === "stream_url") {
+    return {
+      label: "Stream HLS",
+      detail: "Stream HLS publico de la fuente oficial reproducido en BioPulse con atribucion y enlace al origen.",
       className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80",
     };
   }
@@ -1998,6 +2123,7 @@ function resolveCameraVisual(
   const isExternalPage = cam.fetch?.kind === "external_page" && typeof (cam.fetch as any)?.url === "string";
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
   const embedUrl = cameraTrustedEmbedUrl(cam);
+  const streamUrl = trustedHlsStreamUrl(cam);
   const usageMode = cameraUsageMode(cam, providerSnapshot);
   const displayDescription = cameraDisplayDescription(cam, providerSnapshot);
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
@@ -2015,7 +2141,9 @@ function resolveCameraVisual(
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
   const embedSourceUrl = cam.fetch?.kind === "html_embed" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
   const snapshotSourceUrl = isSnapshot ? (cam.fetch as any).sourceUrl ?? snapUrlRaw : null;
-  const openUrl = embedSourceUrl ?? snapshotSourceUrl ?? providerDetailUrl ?? externalPageUrl;
+  const streamSourceUrl =
+    cam.fetch?.kind === "stream_url" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
+  const openUrl = embedSourceUrl ?? snapshotSourceUrl ?? streamSourceUrl ?? providerDetailUrl ?? externalPageUrl;
   const providerInfo =
     cam.fetch?.kind === "provider_api"
       ? `Proveedor: ${(cam.fetch as any).provider}`
@@ -2027,6 +2155,8 @@ function resolveCameraVisual(
   const attribution = providerSnapshot?.attributionText ?? cam.usage?.attributionText ?? null;
   const snapshotState = snapUrl
     ? "Snapshot disponible"
+    : streamUrl
+    ? "Stream disponible"
     : embedUrl
     ? "Embed disponible"
     : isWindyProvider && providerSnapshot?.status === "loading"
@@ -2035,6 +2165,8 @@ function resolveCameraVisual(
     ? "Link externo"
     : "Sin snapshot";
   const snapshotStateClass = snapUrl
+    ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
+    : streamUrl
     ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
     : embedUrl
     ? "border-red-300/20 bg-red-400/10 text-red-100/80"
@@ -2052,6 +2184,7 @@ function resolveCameraVisual(
     isExternalPage,
     isWindyProvider,
     snapUrl,
+    streamUrl,
     embedUrl,
     openUrl,
     usageMode,
@@ -7578,7 +7711,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
                     <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.45fr_0.55fr]">
                       <div className="min-h-[260px] bg-black/30">
                         {visualMediaAllowed ? (
-                          activeCameraVisual.embedUrl ? (
+                          activeCameraVisual.streamUrl ? (
+                            <HlsCameraPlayer src={activeCameraVisual.streamUrl} title={activeCameraVisual.title} />
+                          ) : activeCameraVisual.embedUrl ? (
                             <iframe
                               src={activeCameraVisual.embedUrl}
                               title={activeCameraVisual.title}
