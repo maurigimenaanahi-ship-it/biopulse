@@ -684,10 +684,10 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-cipolletti-city",
     "providerId": "webcamtaxi",
-    "groupKey": "ar-cipolletti-city",
-    "title": "Cipolletti - Ciudad (Webcamtaxi)",
-    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para Cipolletti.",
-    "geo": { "lat": -38.9339, "lon": -67.9903 },
+    "groupKey": "ar-cipolletti-rotonda-ciudad",
+    "title": "Cipolletti - Rotonda de la Ciudad (Webcamtaxi)",
+    "description": "Reproductor publico de YouTube embebido por Webcamtaxi para Rotonda de la Ciudad de Cipolletti.",
+    "geo": { "lat": -38.942775, "lon": -68.009762 },
     "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
     "mediaType": "embed",
     "fetch": {
@@ -701,9 +701,155 @@
       "attributionText": "Fuente: Webcamtaxi / YouTube",
       "termsUrl": "https://www.webcamtaxi.com/en/terms.html"
     },
-    "tags": ["city", "patagonia", "embed", "youtube"],
+    "tags": ["city", "traffic", "patagonia", "embed", "youtube"],
     "priority": 0,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Webcamtaxi YouTube iframe", "verifiedAt": "2026-07-13" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube oEmbed title", "verifiedAt": "2026-07-14" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-rotonda-mariano-moreno-mengelle",
+    "providerId": "innovacion-cipolletti",
+    "title": "Cipolletti - Rotonda Mariano Moreno y Mengelle",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para la rotonda Mariano Moreno y Mengelle.",
+    "geo": { "lat": -38.936701, "lon": -68.001202 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/_VNOH6YvpyA?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=_VNOH6YvpyA"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["city", "traffic", "patagonia", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube channel feed and oEmbed title", "verifiedAt": "2026-07-14" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-rotonda-tercer-puente",
+    "providerId": "innovacion-cipolletti",
+    "title": "Cipolletti - Rotonda Tercer Puente",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para la rotonda Tercer Puente.",
+    "geo": { "lat": -38.916672, "lon": -68.018695 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/QqutgWGfF2M?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=QqutgWGfF2M"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["city", "traffic", "patagonia", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube channel feed and oEmbed title", "verifiedAt": "2026-07-14" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-ciudad",
+    "providerId": "innovacion-cipolletti",
+    "groupKey": "ar-cipolletti-city",
+    "title": "Cipolletti - Ciudad",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para vista urbana de la ciudad.",
+    "geo": { "lat": -38.9339, "lon": -67.9903 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/Rb3OLErsqLI?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=Rb3OLErsqLI"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["city", "patagonia", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube channel feed and oEmbed title", "verifiedAt": "2026-07-14" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-complejo-cultural",
+    "providerId": "innovacion-cipolletti",
+    "title": "Cipolletti - Complejo Cultural",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para el Complejo Cultural Cipolletti.",
+    "geo": { "lat": -38.9409, "lon": -68.000237 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/4BPRcxzPW9I?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=4BPRcxzPW9I"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["city", "culture", "patagonia", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube channel feed and oEmbed title", "verifiedAt": "2026-07-14" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-rotonda-ciudad",
+    "providerId": "innovacion-cipolletti",
+    "groupKey": "ar-cipolletti-rotonda-ciudad",
+    "title": "Cipolletti - Rotonda de la Ciudad",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para Rotonda de la Ciudad.",
+    "geo": { "lat": -38.942775, "lon": -68.009762 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/sJBDRvQBXYI?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=sJBDRvQBXYI"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["city", "traffic", "patagonia", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube channel feed and oEmbed title", "verifiedAt": "2026-07-14" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-paseo-ferrocarril",
+    "providerId": "innovacion-cipolletti",
+    "title": "Cipolletti - Paseo del Ferrocarril",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para el Paseo del Ferrocarril.",
+    "geo": { "lat": -38.941741, "lon": -67.995062 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/IIN_oraf4sw?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=IIN_oraf4sw"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["city", "rail", "patagonia", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via YouTube channel feed and oEmbed title", "verifiedAt": "2026-07-14" }
   },
   {
     "schema": "biopulse.camera.v1",

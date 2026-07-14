@@ -1874,12 +1874,24 @@ function sortCameraGroupSources(cameras: LoadedCamera[]) {
 
 function cameraSourceLabel(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
-  const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
+  const fetchProvider = String(fetchInfo?.provider ?? "").trim().toLowerCase();
+  const registryProvider = String(cam.providerId ?? "").trim().toLowerCase();
+  const provider = fetchProvider === "youtube" && registryProvider ? registryProvider : fetchProvider || registryProvider;
 
   if (provider === "windy") return "Windy";
   if (provider === "skyline") return "Skyline";
   if (provider === "webcamtaxi") return "Webcamtaxi";
-  if (provider) return provider.charAt(0).toUpperCase() + provider.slice(1);
+  if (provider === "worldcam") return "WorldCam";
+  if (provider === "cerrocastor") return "Cerro Castor";
+  if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
+  if (provider === "youtube") return "YouTube";
+  if (provider) {
+    return provider
+      .split("-")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
   return "Fuente";
 }
 
