@@ -347,6 +347,32 @@ async function fetchWindyCameraSnapshot(args: {
   };
 }
 
+async function fetchChapelcoCameraSnapshot(args: {
+  cameraKey: string;
+  endpoint?: string;
+  signal?: AbortSignal;
+}): Promise<ProviderCameraSnapshot> {
+  const endpoint = args.endpoint?.startsWith("/api/")
+    ? apiUrl(args.endpoint)
+    : args.endpoint || apiUrl("/api/chapelco-camera");
+  const url = `${endpoint}?cameraKey=${encodeURIComponent(args.cameraKey)}`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data: any = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.error || `Chapelco camera error ${res.status}`);
+  }
+
+  return {
+    status: "ready",
+    snapshotUrl: typeof data?.snapshotUrl === "string" ? data.snapshotUrl : null,
+    playerUrl: null,
+    detailUrl: typeof data?.detailUrl === "string" ? data.detailUrl : null,
+    attributionText: typeof data?.attributionText === "string" ? data.attributionText : null,
+  };
+}
+
 type WindyNearbySearchItem = {
   webcamId?: string | number | null;
   title?: string | null;
@@ -1886,6 +1912,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "skyline") return "Skyline";
   if (provider === "webcamtaxi") return "Webcamtaxi";
   if (provider === "worldcam") return "WorldCam";
+  if (provider === "chapelco") return "Chapelco";
   if (provider === "cerrocastor") return "Cerro Castor";
   if (provider === "canal79") return "Canal 79";
   if (provider === "laslenas") return "Las Lenas";
@@ -2093,6 +2120,15 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
     };
   }
 
+  if (fetchInfo?.kind === "provider_api") {
+    return {
+      label: "Snapshot dinamico",
+      detail:
+        "BioPulse consulta la fuente original para resolver la imagen publica mas reciente, con atribucion y enlace al origen.",
+      className: "border-sky-300/20 bg-sky-400/10 text-sky-100/80",
+    };
+  }
+
   if (fetchInfo?.kind === "image_url") {
     return {
       label: "Imagen directa",
@@ -2244,6 +2280,7 @@ function resolveCameraVisual(
   const isSnapshot = cam.fetch?.kind === "image_url" && typeof (cam.fetch as any)?.url === "string";
   const isExternalPage = cam.fetch?.kind === "external_page" && typeof (cam.fetch as any)?.url === "string";
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
+  const isChapelcoProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "chapelco";
   const embedUrl = cameraTrustedEmbedUrl(cam);
   const streamUrl = trustedHlsStreamUrl(cam);
   const usageMode = cameraUsageMode(cam, providerSnapshot);
@@ -2251,7 +2288,7 @@ function resolveCameraVisual(
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
   const snapUrl = snapUrlRaw
     ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
-    : isWindyProvider && providerSnapshot?.snapshotUrl
+    : (isWindyProvider || isChapelcoProvider) && providerSnapshot?.snapshotUrl
     ? `${providerSnapshot.snapshotUrl}${providerSnapshot.snapshotUrl.includes("?") ? "&" : "?"}t=${camRefreshTick}`
     : null;
   const providerDetailUrl =
@@ -2259,6 +2296,9 @@ function resolveCameraVisual(
       ? providerSnapshot?.playerUrl ??
         providerSnapshot?.detailUrl ??
         `https://www.windy.com/webcams/${(cam.fetch as any).cameraKey}`
+      : isChapelcoProvider && (cam.fetch as any)?.cameraKey
+      ? providerSnapshot?.detailUrl ??
+        `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent((cam.fetch as any).cameraKey)}`
       : null;
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
   const embedSourceUrl = cam.fetch?.kind === "html_embed" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
@@ -3683,18 +3723,31 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
 
     nearbyCameras.forEach((cam) => {
       const fetchInfo: any = cam.fetch;
-      if (fetchInfo?.kind !== "provider_api" || fetchInfo?.provider !== "windy" || !fetchInfo?.cameraKey) return;
+      if (fetchInfo?.kind !== "provider_api" || !fetchInfo?.provider || !fetchInfo?.cameraKey) return;
+
+      const provider = String(fetchInfo.provider).toLowerCase();
+      if (provider !== "windy" && provider !== "chapelco") return;
 
       setProviderSnapshots((prev) => ({
         ...prev,
         [cam.id]: {
           status: "loading",
-          detailUrl: `https://www.windy.com/webcams/${fetchInfo.cameraKey}`,
-          attributionText: cam.usage?.attributionText ?? "Webcams provided by Windy.com",
+          detailUrl:
+            provider === "windy"
+              ? `https://www.windy.com/webcams/${fetchInfo.cameraKey}`
+              : `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent(String(fetchInfo.cameraKey))}`,
+          attributionText:
+            cam.usage?.attributionText ??
+            (provider === "windy" ? "Webcams provided by Windy.com" : "Fuente: Chapelco / Varitech"),
         },
       }));
 
-      fetchWindyCameraSnapshot({
+      const loader =
+        provider === "windy"
+          ? fetchWindyCameraSnapshot
+          : fetchChapelcoCameraSnapshot;
+
+      loader({
         cameraKey: String(fetchInfo.cameraKey),
         endpoint: typeof fetchInfo.endpoint === "string" ? fetchInfo.endpoint : undefined,
         signal: controller.signal,
@@ -3709,8 +3762,13 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
             ...prev,
             [cam.id]: {
               status: "error",
-              detailUrl: `https://www.windy.com/webcams/${fetchInfo.cameraKey}`,
-              attributionText: cam.usage?.attributionText ?? "Webcams provided by Windy.com",
+              detailUrl:
+                provider === "windy"
+                  ? `https://www.windy.com/webcams/${fetchInfo.cameraKey}`
+                  : `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent(String(fetchInfo.cameraKey))}`,
+              attributionText:
+                cam.usage?.attributionText ??
+                (provider === "windy" ? "Webcams provided by Windy.com" : "Fuente: Chapelco / Varitech"),
               message: err?.message ? String(err.message) : "No se pudo cargar snapshot.",
             },
           }));

@@ -1192,6 +1192,81 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-chapelco-rancho-grande",
+    "providerId": "chapelco",
+    "title": "Chapelco - Rancho Grande",
+    "description": "Snapshot dinamico de la camara oficial de Chapelco en Desenganche Silla Rancho Grande, hacia la cordillera.",
+    "geo": { "lat": -40.2272, "lon": -71.2548 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "San Martin de los Andes" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "chapelco",
+      "cameraKey": "cam018",
+      "endpoint": "/api/chapelco-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Chapelco / Varitech",
+      "termsUrl": "https://chapelco.com.ar/camaras/"
+    },
+    "tags": ["mountain", "weather", "ski", "neuquen", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Chapelco camera page and latest-image resolver", "verifiedAt": "2026-07-17" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-chapelco-pradera-del-puma",
+    "providerId": "chapelco",
+    "title": "Chapelco - Pradera del Puma",
+    "description": "Snapshot dinamico de la camara oficial de Chapelco en Pradera del Puma / Silla del Mocho.",
+    "geo": { "lat": -40.2272, "lon": -71.2548 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "San Martin de los Andes" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "chapelco",
+      "cameraKey": "cam016",
+      "endpoint": "/api/chapelco-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Chapelco / Varitech",
+      "termsUrl": "https://chapelco.com.ar/camaras/"
+    },
+    "tags": ["mountain", "weather", "ski", "neuquen", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Chapelco camera page and latest-image resolver", "verifiedAt": "2026-07-17" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-chapelco-lift-del-puente",
+    "providerId": "chapelco",
+    "title": "Chapelco - Lift del Puente",
+    "description": "Snapshot dinamico de la camara oficial de Chapelco en Desenganche Lift del Puente.",
+    "geo": { "lat": -40.2272, "lon": -71.2548 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "San Martin de los Andes" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "chapelco",
+      "cameraKey": "cam017",
+      "endpoint": "/api/chapelco-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Chapelco / Varitech",
+      "termsUrl": "https://chapelco.com.ar/camaras/"
+    },
+    "tags": ["mountain", "weather", "ski", "neuquen", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Chapelco camera page and latest-image resolver", "verifiedAt": "2026-07-17" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-cerrocastor-live",
     "providerId": "cerrocastor",
     "title": "Cerro Castor - Camara base",

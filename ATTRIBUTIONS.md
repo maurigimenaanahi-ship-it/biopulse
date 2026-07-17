@@ -28,7 +28,7 @@ BioPulse muestra la camara publica de [LU24 Radio Tres Arroyos](https://www.lu24
 
 BioPulse reproduce senales publicas de [El Diario de Pringles](https://eldiariodepringles.com.ar/) mediante HLS publicado en su seccion de camaras para Coronel Pringles, Monte Hermoso, Sierra de la Ventana y Necochea, sin copiar ni rehostear video.
 
-BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
+BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Chapelco](https://chapelco.com.ar/camaras/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas, snapshots dinamicos o enlaces externos segun corresponda.
 
 BioPulse muestra la webcam oficial de [ESA Ground Stations Live](https://www.esa.int/Enabling_Support/Operations/ESA_Ground_Stations/ESA_Ground_Stations_Live) para la estacion MLG1 / DSA-3 de Malargue con credito a ESA, bajo sus terminos de uso informativo/editorial de imagenes.
 
