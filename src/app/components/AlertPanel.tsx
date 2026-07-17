@@ -1888,6 +1888,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
+  if (provider === "gesell") return "Gesell";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "youtube") return "YouTube";
@@ -2009,6 +2010,11 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (host === "encoder-1a.reltid.com.ar" || host === "encoder-1b.montevision.com.ar") {
       if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    if (/^cam[a-z0-9-]*\.gesell\.com\.ar$/i.test(host)) {
+      if (url.pathname !== "/playlist.m3u8") return null;
       return url.toString();
     }
 

@@ -1715,6 +1715,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-18631-miramar-hijos-del-mar",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-el-nautico",
         "title":  "Miramar - Hijos del Mar (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2243,6 +2244,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-29514-villa-gesell-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-windy-villa-gesell",
         "title":  "Villa Gesell - Beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -2973,6 +2975,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-33862-villa-gesell-bosque-historico",
         "providerId":  "worldcam",
+        "groupKey":  "ar-gesell-bosque-historico",
         "title":  "Villa Gesell - Bosque Historico (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3010,6 +3013,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-33863-villa-gesell-church-of-the-immaculate-conception",
         "providerId":  "worldcam",
+        "groupKey":  "ar-gesell-parroquia-inmaculada",
         "title":  "Villa Gesell - Church of the Immaculate Conception (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3280,6 +3284,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35102-mar-del-plata-la-perla-beach",
         "providerId":  "worldcam",
+        "groupKey":  "ar-edm-la-pepita",
         "title":  "Mar del Plata - La Perla beach (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -7870,6 +7875,558 @@
     "validation": {
       "status": "verified",
       "verifiedBy": "Codex via El Diario de Pringles HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-av-104-3-norte",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Av. 104 y Av. 3 norte",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Av. 104 y Av. 3 con vista norte.",
+    "geo": {
+      "lat": -37.2584,
+      "lon": -56.9708
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cam104.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cam104.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-av-104-3-sur",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Av. 104 y Av. 3 sur",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Av. 104 y Av. 3 con vista sur.",
+    "geo": {
+      "lat": -37.2584,
+      "lon": -56.9708
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cam104y3.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cam104y3.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-av-107-3-norte",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Av. 107 y Av. 3 norte",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Av. 107 y Av. 3 con vista norte.",
+    "geo": {
+      "lat": -37.2618,
+      "lon": -56.9709
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cam107norte.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cam107norte.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-av-107-3-sur",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Av. 107 y Av. 3 sur",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Av. 107 y Av. 3 con vista sur.",
+    "geo": {
+      "lat": -37.2618,
+      "lon": -56.9709
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cam107sur.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cam107sur.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-aeropuerto",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Aeropuerto",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara del aeropuerto de Villa Gesell.",
+    "geo": {
+      "lat": -37.235,
+      "lon": -57.029
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://camaeropuerto.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://camaeropuerto.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "airport",
+      "weather",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-acceso-norte-ciudad",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Acceso Norte hacia ciudad",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara del Acceso Norte hacia la ciudad.",
+    "geo": {
+      "lat": -37.248,
+      "lon": -57.02
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://camarco.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://camarco.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-acceso-norte-rp11",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Acceso Norte hacia RP 11",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara del Acceso Norte hacia la Ruta Provincial 11.",
+    "geo": {
+      "lat": -37.248,
+      "lon": -57.02
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://camarco2.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://camarco2.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-bosque-historico",
+    "providerId": "gesell",
+    "groupKey": "ar-gesell-bosque-historico",
+    "title": "Villa Gesell - Bosque Historico",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara del Bosque Historico.",
+    "geo": {
+      "lat": -37.252136,
+      "lon": -56.964518
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cambosque.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cambosque.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "forest",
+      "city",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-buenos-aires-playa",
+    "providerId": "gesell",
+    "groupKey": "ar-edm-windy-villa-gesell",
+    "title": "Villa Gesell - Buenos Aires y Playa",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Buenos Aires y Playa.",
+    "geo": {
+      "lat": -37.25535,
+      "lon": -56.965545
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cambsasyplaya.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cambsasyplaya.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "city",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-faro-querandi",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Faro Querandi",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara del Faro Querandi.",
+    "geo": {
+      "lat": -37.471,
+      "lon": -57.113
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://camfaro.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://camfaro.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-muelle",
+    "providerId": "gesell",
+    "groupKey": "ar-edm-el-muelle",
+    "title": "Villa Gesell - Muelle",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara del muelle de Villa Gesell.",
+    "geo": {
+      "lat": -37.27936,
+      "lon": -56.983121
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cammuelle.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cammuelle.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-muelle-olas",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Muelle Olas",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de olas del muelle de Villa Gesell.",
+    "geo": {
+      "lat": -37.27936,
+      "lon": -56.983121
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cammuelle2.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cammuelle2.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-parroquia-inmaculada",
+    "providerId": "gesell",
+    "groupKey": "ar-gesell-parroquia-inmaculada",
+    "title": "Villa Gesell - Parroquia Inmaculada Concepcion",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de la Parroquia Inmaculada Concepcion.",
+    "geo": {
+      "lat": -37.251591,
+      "lon": -56.967129
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://camparroquia.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://camparroquia.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "landmark",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-plaza-carlos-gesell",
+    "providerId": "gesell",
+    "title": "Villa Gesell - Plaza Carlos Gesell",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Plaza Carlos Gesell.",
+    "geo": {
+      "lat": -37.2639,
+      "lon": -56.9705
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://camplaza111.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://camplaza111.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "city",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
       "verifiedAt": "2026-07-17"
     }
   }
