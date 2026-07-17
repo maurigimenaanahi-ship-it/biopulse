@@ -2390,7 +2390,7 @@
         "id":  "ar-worldcam-31635-villa-maza",
         "providerId":  "worldcam",
         "title":  "Villa Maza (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Senal publica de Canal 79 para Villa Maza, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
         "geo":  {
                     "lat":  -36.799808,
                     "lon":  -63.338171
@@ -2399,26 +2399,29 @@
                          "countryISO2":  "AR",
                          "locality":  "Villa Maza"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/31635-villa-maza"
+                      "kind":  "stream_url",
+                      "provider":  "canal79",
+                      "protocol":  "hls",
+                      "url":  "https://streamconex.com:19360/villamaza/villamaza.m3u8",
+                      "sourceUrl":  "https://canal79tv.com.ar/villa-maza/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / Canal 79"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "canal79",
+                     "weather",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Canal 79 page HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -2426,7 +2429,7 @@
         "id":  "ar-worldcam-31636-mar-del-plata-coast",
         "providerId":  "worldcam",
         "title":  "Mar del Plata - Coast (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Senal publica de Canal 79 para Mar del Plata, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
         "geo":  {
                     "lat":  -37.999753,
                     "lon":  -57.542592
@@ -2435,28 +2438,31 @@
                          "countryISO2":  "AR",
                          "locality":  "Mar del Plata"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/31636-mar-del-plata-coast"
+                      "kind":  "stream_url",
+                      "provider":  "canal79",
+                      "protocol":  "hls",
+                      "url":  "https://streamconex.com:19360/mardelplata/mardelplata.m3u8",
+                      "sourceUrl":  "https://canal79tv.com.ar/mardelplatas/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / Canal 79"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
                      "coast",
-                     "beach"
+                     "beach",
+                     "canal79",
+                     "weather",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Canal 79 page HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -2464,7 +2470,7 @@
         "id":  "ar-worldcam-31637-la-costa-santa-teresita",
         "providerId":  "worldcam",
         "title":  "La Costa - Santa Teresita (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Senal publica de Canal 79 para La Costa, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
         "geo":  {
                     "lat":  -36.543188,
                     "lon":  -56.688872
@@ -2473,26 +2479,30 @@
                          "countryISO2":  "AR",
                          "locality":  "La Costa"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/31637-la-costa-santa-teresita"
+                      "kind":  "stream_url",
+                      "provider":  "canal79",
+                      "protocol":  "hls",
+                      "url":  "https://streamconex.com:19360/lacosta/lacosta.m3u8",
+                      "sourceUrl":  "https://canal79tv.com.ar/la-costa/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / Canal 79"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "coast",
+                     "canal79",
+                     "weather",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Canal 79 page HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -2500,7 +2510,7 @@
         "id":  "ar-worldcam-31639-puan",
         "providerId":  "worldcam",
         "title":  "Puan (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Senal publica de Canal 79 para Puan, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
         "geo":  {
                     "lat":  -37.54561,
                     "lon":  -62.765984
@@ -2509,26 +2519,29 @@
                          "countryISO2":  "AR",
                          "locality":  "Puan"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/31639-puan"
+                      "kind":  "stream_url",
+                      "provider":  "canal79",
+                      "protocol":  "hls",
+                      "url":  "https://streamconex.com:19360/puan/puan.m3u8",
+                      "sourceUrl":  "https://canal79tv.com.ar/puan/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / Canal 79"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "canal79",
+                     "weather",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Canal 79 page HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -2536,7 +2549,7 @@
         "id":  "ar-worldcam-31640-santa-clara-del-mar",
         "providerId":  "worldcam",
         "title":  "Santa Clara del Mar (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Senal publica de Canal 79 para Santa Clara del Mar, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
         "geo":  {
                     "lat":  -37.838677,
                     "lon":  -57.499098
@@ -2545,26 +2558,30 @@
                          "countryISO2":  "AR",
                          "locality":  "Santa Clara del Mar"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/31640-santa-clara-del-mar"
+                      "kind":  "stream_url",
+                      "provider":  "canal79",
+                      "protocol":  "hls",
+                      "url":  "https://streamconex.com:19360/santaclara-1/santaclara-1.m3u8",
+                      "sourceUrl":  "https://canal79tv.com.ar/santa-clara-del-mar/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / Canal 79"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "coast",
+                     "canal79",
+                     "weather",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Canal 79 page HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -4488,7 +4505,7 @@
         "id":  "ar-worldcam-6926-las-lenas",
         "providerId":  "worldcam",
         "title":  "Las Lenas (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Camara oficial en vivo de Las Lenas, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
         "geo":  {
                     "lat":  -35.146407,
                     "lon":  -70.08153
@@ -4497,27 +4514,29 @@
                          "countryISO2":  "AR",
                          "locality":  "Las Lenas"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/6926-las-lenas"
+                      "kind":  "stream_url",
+                      "provider":  "laslenas",
+                      "protocol":  "hls",
+                      "url":  "https://tv.streamcasthd.com:3895/live/laslenaslive.m3u8",
+                      "sourceUrl":  "https://laslenas.com/camara-en-vivo/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / Las Lenas / StreamCastHD"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
-                     "mountain"
+                     "mountain",
+                     "snow",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Las Lenas official camera page HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     }
 ,

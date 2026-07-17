@@ -1883,6 +1883,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "webcamtaxi") return "Webcamtaxi";
   if (provider === "worldcam") return "WorldCam";
   if (provider === "cerrocastor") return "Cerro Castor";
+  if (provider === "canal79") return "Canal 79";
+  if (provider === "laslenas") return "Las Lenas";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "youtube") return "YouTube";
@@ -1972,6 +1974,16 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (host === "hidrografia2.agpse.gob.ar" && url.port === "8443") {
       if (!/^\/stream\/[a-f0-9-]+\/channel\/0\/hlsll\/live\/index\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    if (host === "streamconex.com" && url.port === "19360") {
+      if (!/^\/[a-z0-9-]+\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    if (host === "tv.streamcasthd.com" && url.port === "3895") {
+      if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
       return url.toString();
     }
 
