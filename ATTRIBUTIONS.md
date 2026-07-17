@@ -30,6 +30,8 @@ BioPulse reproduce senales publicas de [El Diario de Pringles](https://eldiariod
 
 BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
 
+BioPulse muestra la webcam oficial de [ESA Ground Stations Live](https://www.esa.int/Enabling_Support/Operations/ESA_Ground_Stations/ESA_Ground_Stations_Live) para la estacion MLG1 / DSA-3 de Malargue con credito a ESA, bajo sus terminos de uso informativo/editorial de imagenes.
+
 BioPulse usa paginas publicas de [Administracion General de Puertos / Argentina.gob.ar](https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia), [Municipalidad de Neuquen Capital](https://camaras.neuquencapital.gov.ar/), [Municipalidad de Las Heras Santa Cruz](https://municipiolasherassantacruz.gob.ar/camara-en-vivo/), [Municipalidad de Tandil](https://tandil.gov.ar/camara-vivo), [Comodoro Turismo](https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/) y [Bariloche.org](https://bariloche.org/camaras-en-vivo-bariloche/) como fuentes verificadas mediante streams, reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
 
 BioPulse reproduce senales publicas de [Gesell.com.ar](https://gesell.com.ar/) mediante HLS publicado por sus paginas oficiales de camaras en vivo, con CORS verificado, sin copiar ni rehostear video.

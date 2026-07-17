@@ -1888,6 +1888,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
+  if (provider === "esa") return "ESA";
   if (provider === "gesell") return "Gesell";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";

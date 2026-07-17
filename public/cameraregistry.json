@@ -1166,6 +1166,31 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-esa-malargue-station",
+    "providerId": "esa",
+    "groupKey": "ar-esa-malargue-station",
+    "title": "Malargue - ESA Ground Station",
+    "description": "Imagen publica oficial de la webcam exterior de la estacion MLG1 / DSA-3 de ESA en Malargue, actualizada frecuentemente.",
+    "geo": { "lat": -35.775886, "lon": -69.397974 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Malargue" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://download.esa.int/webcam/mlg/mlg.jpg",
+      "sourceUrl": "https://www.esa.int/Enabling_Support/Operations/ESA_Ground_Stations/ESA_Ground_Stations_Live"
+    },
+    "update": { "expectedIntervalSec": 60 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: ESA",
+      "termsUrl": "https://www.esa.int/ESA_Multimedia/Terms_and_conditions_of_use_of_images_and_videos_available_on_the_esa_website"
+    },
+    "tags": ["weather", "mendoza", "official", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via ESA Ground Stations Live page, direct image HEAD and ESA image terms", "verifiedAt": "2026-07-17" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-cerrocastor-live",
     "providerId": "cerrocastor",
     "title": "Cerro Castor - Camara base",
@@ -1218,6 +1243,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-11545-malargue-station",
         "providerId":  "worldcam",
+        "groupKey":  "ar-esa-malargue-station",
         "title":  "Malargue Station (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
