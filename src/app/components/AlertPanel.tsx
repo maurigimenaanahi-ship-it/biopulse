@@ -1884,6 +1884,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "worldcam") return "WorldCam";
   if (provider === "cerrocastor") return "Cerro Castor";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
+  if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "youtube") return "YouTube";
   if (provider) {
     return provider

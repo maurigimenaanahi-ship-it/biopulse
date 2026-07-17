@@ -7589,5 +7589,128 @@
       "verifiedBy": "Codex via Estado del Mar camera menu",
       "verifiedAt": "2026-07-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-paseos-turismo-buenos-aires-live",
+    "providerId": "paseos-turismo",
+    "title": "Buenos Aires - Ciudad en vivo (Paseos y Turismo)",
+    "description": "Reproductor publico de YouTube publicado por Paseos y Turismo para una camara en vivo de la Ciudad de Buenos Aires.",
+    "geo": {
+      "lat": -34.6037,
+      "lon": -58.3816
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "CABA",
+      "locality": "Buenos Aires"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/urwuIKd8eEo?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=urwuIKd8eEo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Paseos y Turismo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "embed",
+      "youtube"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via YouTube feed, oEmbed title and public video description",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-paseos-turismo-mendoza-ciudad",
+    "providerId": "paseos-turismo",
+    "title": "Mendoza - Ciudad en vivo (Paseos y Turismo)",
+    "description": "Reproductor publico de YouTube publicado por Paseos y Turismo para una camara urbana en vivo de la Ciudad de Mendoza.",
+    "geo": {
+      "lat": -32.889724,
+      "lon": -68.844498
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Mendoza",
+      "locality": "Mendoza"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/yBc6hEB3MNU?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=yBc6hEB3MNU"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Paseos y Turismo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "weather",
+      "mendoza",
+      "embed",
+      "youtube"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via YouTube feed, oEmbed title and public video description",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-paseos-turismo-mar-de-las-pampas",
+    "providerId": "paseos-turismo",
+    "title": "Mar de las Pampas - En vivo (Paseos y Turismo)",
+    "description": "Reproductor publico de YouTube publicado por Paseos y Turismo para una camara en vivo de Mar de las Pampas.",
+    "geo": {
+      "lat": -37.326557,
+      "lon": -57.024088
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar de las Pampas"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/rFd-cQy3KKQ?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=rFd-cQy3KKQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Paseos y Turismo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "embed",
+      "youtube"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via YouTube feed, oEmbed title and public video description",
+      "verifiedAt": "2026-07-17"
+    }
   }
 ]
