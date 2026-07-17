@@ -1879,6 +1879,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   const provider = fetchProvider === "youtube" && registryProvider ? registryProvider : fetchProvider || registryProvider;
 
   if (provider === "windy") return "Windy";
+  if (provider === "agp") return "AGP";
   if (provider === "skyline") return "Skyline";
   if (provider === "webcamtaxi") return "Webcamtaxi";
   if (provider === "worldcam") return "WorldCam";

@@ -4550,7 +4550,7 @@
     "id": "ar-agp-bella-vista",
     "providerId": "agp",
     "title": "AGP - Bella Vista",
-    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. Stream HLS detectado, pendiente por certificado TLS expirado del host de video.",
+  "description": "Camara oficial de AGP / Via Navegable Troncal para Bella Vista, reproducida mediante stream HLS publicado por la fuente.",
     "geo": {
       "lat": -28.5085,
       "lon": -59.0459
@@ -4560,11 +4560,13 @@
       "admin1": "Corrientes",
       "locality": "Bella Vista"
     },
-    "mediaType": "embed",
-    "fetch": {
-      "kind": "external_page",
-      "provider": "agp",
-      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#bella-vista"
+  "mediaType": "stream",
+  "fetch": {
+    "kind": "stream_url",
+    "provider": "agp",
+    "protocol": "hls",
+    "url": "https://hidrografia2.agpse.gob.ar:8443/stream/47c1584f-73e1-43e5-811e-7ffd8c061540/channel/0/hlsll/live/index.m3u8",
+    "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/BellaVista.html"
     },
     "usage": {
       "isPublic": true,
@@ -4575,14 +4577,14 @@
       "river",
       "waterway",
       "national",
-      "weather",
-      "external"
+    "weather",
+    "stream"
     ],
     "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
-      "verifiedAt": "2026-07-13"
+    "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS and CORS check",
+    "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-bella-vista"
   },
@@ -4591,7 +4593,7 @@
     "id": "ar-agp-san-lorenzo",
     "providerId": "agp",
     "title": "AGP - San Lorenzo",
-    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. Stream HLS detectado, pendiente por certificado TLS expirado del host de video.",
+  "description": "Camara oficial de AGP / Via Navegable Troncal para San Lorenzo, reproducida mediante stream HLS publicado por la fuente.",
     "geo": {
       "lat": -32.7442,
       "lon": -60.7353
@@ -4601,11 +4603,13 @@
       "admin1": "Santa Fe",
       "locality": "San Lorenzo"
     },
-    "mediaType": "embed",
-    "fetch": {
-      "kind": "external_page",
-      "provider": "agp",
-      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#san-lorenzo"
+  "mediaType": "stream",
+  "fetch": {
+    "kind": "stream_url",
+    "provider": "agp",
+    "protocol": "hls",
+    "url": "https://hidrografia2.agpse.gob.ar:8443/stream/ea06c29a-ce3a-41a2-b901-03d6aa3e2158/channel/0/hlsll/live/index.m3u8",
+    "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/SanLorenzo.html"
     },
     "usage": {
       "isPublic": true,
@@ -4616,14 +4620,14 @@
       "river",
       "waterway",
       "national",
-      "weather",
-      "external"
+    "weather",
+    "stream"
     ],
     "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
-      "verifiedAt": "2026-07-13"
+    "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS and CORS check",
+    "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-san-lorenzo"
   },
@@ -4632,7 +4636,7 @@
     "id": "ar-agp-rosario",
     "providerId": "agp",
     "title": "AGP - Rosario",
-    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. Stream HLS detectado, pendiente por certificado TLS expirado del host de video.",
+  "description": "Camara oficial de AGP / Via Navegable Troncal para Rosario, reproducida mediante stream HLS publicado por la fuente.",
     "geo": {
       "lat": -32.943435,
       "lon": -60.633291
@@ -4642,11 +4646,13 @@
       "admin1": "Santa Fe",
       "locality": "Rosario"
     },
-    "mediaType": "embed",
-    "fetch": {
-      "kind": "external_page",
-      "provider": "agp",
-      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#rosario"
+  "mediaType": "stream",
+  "fetch": {
+    "kind": "stream_url",
+    "provider": "agp",
+    "protocol": "hls",
+    "url": "https://hidrografia2.agpse.gob.ar:8443/stream/afc2f6c2-06b3-4224-8cfe-c65972280382/channel/0/hlsll/live/index.m3u8",
+    "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/Rosario.html"
     },
     "usage": {
       "isPublic": true,
@@ -4657,14 +4663,14 @@
       "river",
       "waterway",
       "national",
-      "weather",
-      "external"
+    "weather",
+    "stream"
     ],
     "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
-      "verifiedAt": "2026-07-13"
+    "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS and CORS check",
+    "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-rosario-parana-river"
   },
@@ -4673,7 +4679,7 @@
     "id": "ar-agp-del-guazu-brazo-largo",
     "providerId": "agp",
     "title": "AGP - Del Guazu Brazo Largo",
-    "description": "Pagina oficial externa de AGP con camara de vigilancia de la Via Navegable Troncal. Stream HLS detectado, pendiente por certificado TLS expirado del host de video.",
+  "description": "Camara oficial de AGP / Via Navegable Troncal para Del Guazu - Brazo Largo, reproducida mediante stream HLS publicado por la fuente.",
     "geo": {
       "lat": -33.902276,
       "lon": -58.883997
@@ -4683,11 +4689,13 @@
       "admin1": "Entre Rios",
       "locality": "Brazo Largo"
     },
-    "mediaType": "embed",
-    "fetch": {
-      "kind": "external_page",
-      "provider": "agp",
-      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia#del-guazu-brazo-largo"
+  "mediaType": "stream",
+  "fetch": {
+    "kind": "stream_url",
+    "provider": "agp",
+    "protocol": "hls",
+    "url": "https://hidrografia2.agpse.gob.ar:8443/stream/d8190a0b-ff41-4f8b-ad33-b91d66d95800/channel/0/hlsll/live/index.m3u8",
+    "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/DelGuazu.html"
     },
     "usage": {
       "isPublic": true,
@@ -4698,14 +4706,14 @@
       "river",
       "waterway",
       "national",
-      "bridge",
-      "external"
+    "bridge",
+    "stream"
     ],
     "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras page",
-      "verifiedAt": "2026-07-13"
+    "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS and CORS check",
+    "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-del-guazu-brazo-largo"
   },
@@ -4714,7 +4722,7 @@
     "id": "ar-agp-braga-parana-delta",
     "providerId": "agp",
     "title": "AGP - Braga / Delta del Parana",
-    "description": "Pagina oficial externa de AGP con mapa de estaciones meteorologicas, camaras y radares de la Via Navegable Troncal. Stream HLS detectado, pendiente por certificado TLS expirado del host de video.",
+  "description": "Camara oficial de AGP / Via Navegable Troncal para Braga / Delta del Parana, reproducida mediante stream HLS publicado por la fuente.",
     "geo": {
       "lat": -34.334662,
       "lon": -58.486293
@@ -4724,11 +4732,13 @@
       "admin1": "Buenos Aires",
       "locality": "Delta del Parana"
     },
-    "mediaType": "embed",
-    "fetch": {
-      "kind": "external_page",
-      "provider": "agp",
-      "url": "https://www.argentina.gob.ar/administracion-general-de-puertos-se/via-navegable-troncal/mapa-de-estaciones-meteorologicas-camaras#braga"
+  "mediaType": "stream",
+  "fetch": {
+    "kind": "stream_url",
+    "provider": "agp",
+    "protocol": "hls",
+    "url": "https://hidrografia2.agpse.gob.ar:8443/stream/26c88c42-42a7-4f7b-b40b-83992a625d4c/channel/0/hlsll/live/index.m3u8",
+    "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/Braga.html"
     },
     "usage": {
       "isPublic": true,
@@ -4739,14 +4749,14 @@
       "river",
       "waterway",
       "national",
-      "weather",
-      "external"
+    "weather",
+    "stream"
     ],
     "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Argentina.gob.ar AGP cameras map page",
-      "verifiedAt": "2026-07-13"
+    "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS and CORS check",
+    "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-braga-parana-delta"
   },
