@@ -1876,7 +1876,10 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   const fetchProvider = String(fetchInfo?.provider ?? "").trim().toLowerCase();
   const registryProvider = String(cam.providerId ?? "").trim().toLowerCase();
-  const provider = fetchProvider === "youtube" && registryProvider ? registryProvider : fetchProvider || registryProvider;
+  const provider =
+    (fetchProvider === "youtube" || fetchProvider === "twitch") && registryProvider
+      ? registryProvider
+      : fetchProvider || registryProvider;
 
   if (provider === "windy") return "Windy";
   if (provider === "agp") return "AGP";
@@ -1890,8 +1893,10 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
   if (provider === "esa") return "ESA";
   if (provider === "gesell") return "Gesell";
+  if (provider === "nautica-news") return "Nautica News";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
+  if (provider === "twitch") return "Twitch";
   if (provider === "youtube") return "YouTube";
   if (provider) {
     return provider
@@ -1979,6 +1984,32 @@ function lu24EmbedUrl(rawUrl: unknown) {
   }
 }
 
+function twitchEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.toLowerCase();
+    const channel = url.searchParams.get("channel");
+
+    if (host !== "player.twitch.tv") return null;
+    if (url.pathname !== "/") return null;
+    if (!channel || !/^[a-zA-Z0-9_]{3,30}$/.test(channel)) return null;
+
+    const parent =
+      typeof window !== "undefined" && window.location?.hostname ? window.location.hostname : "localhost";
+
+    const embed = new URL("https://player.twitch.tv/");
+    embed.searchParams.set("channel", channel);
+    embed.searchParams.set("parent", parent);
+    embed.searchParams.set("muted", "true");
+    embed.searchParams.set("autoplay", "true");
+    return embed.toString();
+  } catch {
+    return null;
+  }
+}
+
 function trustedHlsStreamUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   if (fetchInfo?.kind !== "stream_url") return null;
@@ -2031,6 +2062,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
 
   if (fetchInfo?.kind !== "html_embed") return null;
   if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
+  if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
 
@@ -2076,6 +2108,15 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
         detail:
           "Uso mediante reproductor oficial de YouTube cuando el canal permite insercion. BioPulse conserva controles, marca y fuente.",
         className: "border-red-300/20 bg-red-400/10 text-red-100/80",
+      };
+    }
+
+    if (provider === "twitch") {
+      return {
+        label: "Embed oficial",
+        detail:
+          "Uso mediante reproductor oficial de Twitch publicado por la fuente. BioPulse conserva controles, marca y fuente.",
+        className: "border-purple-300/20 bg-purple-400/10 text-purple-100/80",
       };
     }
 

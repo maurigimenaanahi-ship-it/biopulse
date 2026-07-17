@@ -24,6 +24,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-windy-olivos-1577126865",
     "providerId": "windy",
+    "groupKey": "ar-nautica-olivos-rio-de-la-plata-1",
     "title": "Olivos - Vicente Lopez norte (Windy)",
     "description": "Camara publica activa consultada via Windy Webcams.",
     "geo": { "lat": -34.50528, "lon": -58.47482 },
@@ -3854,6 +3855,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-36023-olivos-rio-de-la-plata",
         "providerId":  "worldcam",
+        "groupKey":  "ar-nautica-olivos-rio-de-la-plata-1",
         "title":  "Olivos - Rio de la Plata (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -3891,6 +3893,7 @@
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-36024-san-isidro-rio-de-la-plata",
         "providerId":  "worldcam",
+        "groupKey":  "ar-nautica-san-isidro-rio-de-la-plata-1",
         "title":  "San Isidro - Rio de la Plata (WorldCam)",
         "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
         "geo":  {
@@ -8453,6 +8456,213 @@
     "validation": {
       "status": "verified",
       "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nautica-olivos-rio-de-la-plata-1",
+    "providerId": "nautica-news",
+    "groupKey": "ar-nautica-olivos-rio-de-la-plata-1",
+    "title": "Olivos - Rio de la Plata 1 (Nautica News)",
+    "description": "Reproductor publico de Twitch publicado por Nautica News para camara en vivo del Rio de la Plata en Olivos.",
+    "geo": {
+      "lat": -34.503954,
+      "lon": -58.475408
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Olivos"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=nauticanews25",
+      "sourceUrl": "https://nautica.news/es/camaras-en-vivo-del-rio-de-la-plata/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nautica News / Twitch",
+      "termsUrl": "https://dev.twitch.tv/docs/embed/"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "embed",
+      "twitch"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Nautica News iframe mapping, Twitch preview check and Twitch embed docs",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nautica-olivos-rio-de-la-plata-2",
+    "providerId": "nautica-news",
+    "title": "Olivos - Rio de la Plata 2 (Nautica News)",
+    "description": "Reproductor publico de Twitch publicado por Nautica News para una segunda vista en vivo del Rio de la Plata en Olivos.",
+    "geo": {
+      "lat": -34.503954,
+      "lon": -58.475408
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Olivos"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=news25nautica",
+      "sourceUrl": "https://nautica.news/es/camaras-en-vivo-del-rio-de-la-plata/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nautica News / Twitch",
+      "termsUrl": "https://dev.twitch.tv/docs/embed/"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "embed",
+      "twitch"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Nautica News iframe mapping, Twitch preview check and Twitch embed docs",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nautica-san-isidro-rio-de-la-plata-1",
+    "providerId": "nautica-news",
+    "groupKey": "ar-nautica-san-isidro-rio-de-la-plata-1",
+    "title": "San Isidro - Rio de la Plata 1 (Nautica News)",
+    "description": "Reproductor publico de Twitch publicado por Nautica News para camara en vivo del Rio de la Plata en San Isidro.",
+    "geo": {
+      "lat": -34.471873,
+      "lon": -58.49187
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "San Isidro"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=nauticanews24",
+      "sourceUrl": "https://nautica.news/es/camaras-en-vivo-del-rio-de-la-plata/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nautica News / Twitch",
+      "termsUrl": "https://dev.twitch.tv/docs/embed/"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "embed",
+      "twitch"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Nautica News iframe mapping, Twitch preview check and Twitch embed docs",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nautica-san-isidro-rio-de-la-plata-2",
+    "providerId": "nautica-news",
+    "title": "San Isidro - Rio de la Plata 2 (Nautica News)",
+    "description": "Reproductor publico de Twitch publicado por Nautica News para una segunda vista en vivo del Rio de la Plata en San Isidro.",
+    "geo": {
+      "lat": -34.471873,
+      "lon": -58.49187
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "San Isidro"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=nauticanewsok",
+      "sourceUrl": "https://nautica.news/es/camaras-en-vivo-del-rio-de-la-plata/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nautica News / Twitch",
+      "termsUrl": "https://dev.twitch.tv/docs/embed/"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "embed",
+      "twitch"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Nautica News iframe mapping, Twitch preview check and Twitch embed docs",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nautica-yca-darsena-norte",
+    "providerId": "nautica-news",
+    "title": "Buenos Aires - YCA Darsena Norte (Nautica News)",
+    "description": "Reproductor publico de Twitch publicado por Nautica News para camara en vivo del Rio de la Plata en Yacht Club Argentino / Darsena Norte.",
+    "geo": {
+      "lat": -34.5907,
+      "lon": -58.3639
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "CABA",
+      "locality": "Buenos Aires"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=nauticanews27",
+      "sourceUrl": "https://nautica.news/es/camaras-en-vivo-del-rio-de-la-plata/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nautica News / Twitch",
+      "termsUrl": "https://dev.twitch.tv/docs/embed/"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "embed",
+      "twitch"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Nautica News iframe mapping, Twitch preview check and Twitch embed docs",
       "verifiedAt": "2026-07-17"
     }
   }
