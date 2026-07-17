@@ -18,6 +18,8 @@ BioPulse muestra reproductores publicos de [Paseos y Turismo](https://www.youtub
 
 BioPulse muestra el reproductor publico de [Ciudad Segura - Municipalidad de Corrientes](https://ciudaddecorrientes.gov.ar/ciudadsegura) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
 
+BioPulse muestra reproductores publicos de [Portal 5900](https://5900.com.ar/5900-tv/) y [IngenieroWhite.com](https://www.ingenierowhite.com/camara-en-vivo/) mediante el iframe oficial de YouTube para la camara meteorologica de Villa Maria y la camara de Ingeniero White, sin copiar ni rehostear video.
+
 BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
 
 BioPulse usa paginas publicas de [Administracion General de Puertos / Argentina.gob.ar](https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia), [Municipalidad de Neuquen Capital](https://camaras.neuquencapital.gov.ar/), [Municipalidad de Las Heras Santa Cruz](https://municipiolasherassantacruz.gob.ar/camara-en-vivo/), [Municipalidad de Tandil](https://tandil.gov.ar/camara-vivo), [Comodoro Turismo](https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/) y [Bariloche.org](https://bariloche.org/camaras-en-vivo-bariloche/) como fuentes verificadas mediante streams, reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.

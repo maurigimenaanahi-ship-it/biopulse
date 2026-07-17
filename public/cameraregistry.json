@@ -1368,7 +1368,7 @@
         "providerId":  "worldcam",
         "groupKey":  "ar-villa-maria-city",
         "title":  "Villa Maria - Puente Velez Sarsfield (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Camara meteorologica publica de Portal 5900 en Villa Maria, registrada desde la referencia WorldCam y mostrada mediante el reproductor oficial de YouTube.",
         "geo":  {
                     "lat":  -32.418981,
                     "lon":  -63.254484
@@ -1379,25 +1379,28 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/16439-villa-maria-puente-velez-sarsfield"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/live_stream?channel=UCl5P2zJoH1gBdf38AiYALKA",
+                      "sourceUrl":  "https://5900.com.ar/5900-tv/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
+                      "attributionText":  "Fuente: WorldCam / Portal 5900 / YouTube",
                       "termsUrl":  "https://worldcam.eu/terms"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
-                     "traffic"
+                     "traffic",
+                     "weather",
+                     "embed",
+                     "youtube"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Portal 5900 camera page and YouTube live metadata",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -3022,7 +3025,7 @@
         "id":  "ar-worldcam-34367-ingeniero-white-roundabout",
         "providerId":  "worldcam",
         "title":  "Ingeniero White - Roundabout (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Camara publica de Ingeniero White enfocada en la rotonda de Dasso y San Martin, registrada desde la referencia WorldCam y mostrada mediante el reproductor oficial de YouTube.",
         "geo":  {
                     "lat":  -38.779967,
                     "lon":  -62.269888
@@ -3033,25 +3036,27 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/34367-ingeniero-white-roundabout"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/live_stream?channel=UCvwdxz9GeP4-CeSLhr_AyQQ",
+                      "sourceUrl":  "https://www.ingenierowhite.com/camara-en-vivo/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / IngenieroWhite.com / Amigos de White / YouTube",
+                      "termsUrl":  "https://www.ingenierowhite.com/camara-en-vivo/"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
-                     "traffic"
+                     "traffic",
+                     "embed",
+                     "youtube"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via IngenieroWhite.com camera page and YouTube live metadata",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
