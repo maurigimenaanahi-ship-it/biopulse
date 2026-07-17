@@ -1885,6 +1885,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "cerrocastor") return "Cerro Castor";
   if (provider === "canal79") return "Canal 79";
   if (provider === "laslenas") return "Las Lenas";
+  if (provider === "lu24") return "LU24";
+  if (provider === "eldiariodepringles") return "El Diario de Pringles";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "youtube") return "YouTube";
@@ -1957,6 +1959,23 @@ function ipcamliveEmbedUrl(rawUrl: unknown) {
   }
 }
 
+function lu24EmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.toLowerCase();
+
+    if (host !== "videostream.shockmedia.com.ar" || url.port !== "2000") return null;
+    if (url.pathname !== "/VideoPlayer/lu24am") return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function trustedHlsStreamUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   if (fetchInfo?.kind !== "stream_url") return null;
@@ -1987,6 +2006,11 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
       return url.toString();
     }
 
+    if (host === "encoder-1a.reltid.com.ar" || host === "encoder-1b.montevision.com.ar") {
+      if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
     return null;
   } catch {
     return null;
@@ -2000,6 +2024,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (fetchInfo?.kind !== "html_embed") return null;
   if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
+  if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
 
   return null;
 }

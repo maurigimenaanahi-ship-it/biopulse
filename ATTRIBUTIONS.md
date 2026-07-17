@@ -24,6 +24,10 @@ BioPulse reproduce senales publicas de [Canal 79](https://canal79tv.com.ar/) med
 
 BioPulse reproduce la camara oficial de [Las Lenas](https://laslenas.com/camara-en-vivo/) mediante HLS publicado por su reproductor StreamCastHD, sin copiar ni rehostear video.
 
+BioPulse muestra la camara publica de [LU24 Radio Tres Arroyos](https://www.lu24.com.ar/camara-en-vivo/) mediante el reproductor oficial Shockmedia publicado por la fuente, sin copiar ni rehostear video.
+
+BioPulse reproduce senales publicas de [El Diario de Pringles](https://eldiariodepringles.com.ar/) mediante HLS publicado en su seccion de camaras para Coronel Pringles, Monte Hermoso, Sierra de la Ventana y Necochea, sin copiar ni rehostear video.
+
 BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.
 
 BioPulse usa paginas publicas de [Administracion General de Puertos / Argentina.gob.ar](https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia), [Municipalidad de Neuquen Capital](https://camaras.neuquencapital.gov.ar/), [Municipalidad de Las Heras Santa Cruz](https://municipiolasherassantacruz.gob.ar/camara-en-vivo/), [Municipalidad de Tandil](https://tandil.gov.ar/camara-vivo), [Comodoro Turismo](https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/) y [Bariloche.org](https://bariloche.org/camaras-en-vivo-bariloche/) como fuentes verificadas mediante streams, reproductores oficiales, imagenes directas publicadas o enlaces externos segun corresponda.

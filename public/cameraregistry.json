@@ -2205,7 +2205,7 @@
         "id":  "ar-worldcam-27848-monte-hermoso-beach",
         "providerId":  "worldcam",
         "title":  "Monte Hermoso - Beach (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Senal publica de Montevision publicada por El Diario de Pringles para Monte Hermoso, registrada desde WorldCam y reproducida mediante stream HLS.",
         "geo":  {
                     "lat":  -38.989198,
                     "lon":  -61.286941
@@ -2214,28 +2214,29 @@
                          "countryISO2":  "AR",
                          "locality":  "Monte Hermoso"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/27848-monte-hermoso-beach"
+                      "kind":  "stream_url",
+                      "provider":  "eldiariodepringles",
+                      "protocol":  "hls",
+                      "url":  "https://encoder-1b.montevision.com.ar/live/monte.m3u8",
+                      "sourceUrl":  "https://eldiariodepringles.com.ar/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / El Diario de Pringles / Montevision"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
                      "coast",
-                     "beach"
+                     "beach",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via El Diario de Pringles HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -2589,7 +2590,7 @@
         "id":  "ar-worldcam-32774-coronel-pringles",
         "providerId":  "worldcam",
         "title":  "Coronel Pringles (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Camara publica de Coronel Pringles publicada por El Diario de Pringles, registrada desde WorldCam y reproducida mediante stream HLS.",
         "geo":  {
                     "lat":  -37.984809,
                     "lon":  -61.34982
@@ -2598,26 +2599,28 @@
                          "countryISO2":  "AR",
                          "locality":  "Coronel Pringles"
                      },
-        "mediaType":  "embed",
+        "mediaType":  "stream",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/32774-coronel-pringles"
+                      "kind":  "stream_url",
+                      "provider":  "eldiariodepringles",
+                      "protocol":  "hls",
+                      "url":  "https://encoder-1a.reltid.com.ar/live/pringles.m3u8",
+                      "sourceUrl":  "https://eldiariodepringles.com.ar/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / El Diario de Pringles / RELTID"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "city",
+                     "stream"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via El Diario de Pringles HLS and CORS check",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -2819,7 +2822,7 @@
         "id":  "ar-worldcam-33660-tres-arroyos-radio-lu24",
         "providerId":  "worldcam",
         "title":  "Tres Arroyos - Radio LU24 (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Camara publica del estudio de LU24 en Tres Arroyos, registrada desde WorldCam y mostrada mediante el reproductor oficial publicado por LU24.",
         "geo":  {
                     "lat":  -38.373414,
                     "lon":  -60.271488
@@ -2830,24 +2833,26 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/33660-tres-arroyos-radio-lu24"
+                      "kind":  "html_embed",
+                      "provider":  "lu24",
+                      "url":  "https://videostream.shockmedia.com.ar:2000/VideoPlayer/lu24am",
+                      "sourceUrl":  "https://www.lu24.com.ar/camara-en-vivo/"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: WorldCam / LU24 / Shockmedia"
                   },
         "tags":  [
-                     "external",
-                     "worldcam"
+                     "worldcam",
+                     "radio",
+                     "studio",
+                     "embed"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via LU24 official camera page iframe",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
@@ -7737,6 +7742,124 @@
     "validation": {
       "status": "verified",
       "verifiedBy": "Codex via YouTube feed, oEmbed title and public video description",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-eldiariodepringles-monte-hermoso-peatonal",
+    "providerId": "eldiariodepringles",
+    "title": "Monte Hermoso - Peatonal (El Diario de Pringles)",
+    "description": "Senal publica de Montevision publicada por El Diario de Pringles para la zona peatonal de Monte Hermoso.",
+    "geo": {
+      "lat": -38.9828,
+      "lon": -61.2945
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Monte Hermoso"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "eldiariodepringles",
+      "protocol": "hls",
+      "url": "https://encoder-1b.montevision.com.ar/live/monte2.m3u8",
+      "sourceUrl": "https://eldiariodepringles.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Diario de Pringles / Montevision"
+    },
+    "tags": [
+      "city",
+      "coast",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Diario de Pringles HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-eldiariodepringles-sierra-de-la-ventana",
+    "providerId": "eldiariodepringles",
+    "title": "Sierra de la Ventana (El Diario de Pringles)",
+    "description": "Senal publica de Sierra de la Ventana publicada por El Diario de Pringles mediante stream HLS.",
+    "geo": {
+      "lat": -38.1355,
+      "lon": -61.796
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Sierra de la Ventana"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "eldiariodepringles",
+      "protocol": "hls",
+      "url": "https://encoder-1a.reltid.com.ar/live/sierra.m3u8",
+      "sourceUrl": "https://eldiariodepringles.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Diario de Pringles / RELTID"
+    },
+    "tags": [
+      "mountain",
+      "city",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Diario de Pringles HLS and CORS check",
+      "verifiedAt": "2026-07-17"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-eldiariodepringles-necochea",
+    "providerId": "eldiariodepringles",
+    "groupKey": "ar-necochea-beach",
+    "title": "Necochea (El Diario de Pringles)",
+    "description": "Senal publica de Necochea publicada por El Diario de Pringles mediante stream HLS.",
+    "geo": {
+      "lat": -38.5545,
+      "lon": -58.7396
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Necochea"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "eldiariodepringles",
+      "protocol": "hls",
+      "url": "https://encoder-1a.reltid.com.ar/live/neco.m3u8",
+      "sourceUrl": "https://eldiariodepringles.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Diario de Pringles / RELTID"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Diario de Pringles HLS and CORS check",
       "verifiedAt": "2026-07-17"
     }
   }
