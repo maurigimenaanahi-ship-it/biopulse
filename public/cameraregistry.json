@@ -977,6 +977,7 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-catedral-punta-princesa-live",
     "providerId": "catedral",
+    "groupKey": "ar-catedral-punta-princesa",
     "title": "Cerro Catedral - Punta Princesa en vivo",
     "description": "Streaming vivo publicado por Catedral Alta Patagonia en su pagina oficial de webcams.",
     "geo": { "lat": -41.1689, "lon": -71.4384 },
@@ -996,6 +997,31 @@
     "tags": ["mountain", "weather", "ski", "bariloche", "embed"],
     "priority": 2,
     "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-punta-princesa-varitech",
+    "providerId": "catedral",
+    "groupKey": "ar-catedral-punta-princesa",
+    "title": "Cerro Catedral - Punta Princesa snapshot",
+    "description": "Imagen actualizada por Varitech para Punta Princesa en Cerro Catedral, util como respaldo del reproductor en vivo.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam001/latest.jpg",
+      "sourceUrl": "https://varitech.ar/camara/cam001"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Varitech / Cerro Catedral",
+      "termsUrl": "https://varitech.ar/terminos"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Varitech press/detail pages and latest image HEAD", "verifiedAt": "2026-07-17" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -1068,6 +1094,30 @@
     "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
     "priority": 1,
     "validation": { "status": "verified", "verifiedBy": "Codex via Catedral Alta Patagonia webcams page", "verifiedAt": "2026-07-13" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catedral-cable-carril-inferior",
+    "providerId": "catedral",
+    "title": "Cerro Catedral - Cable carril inferior",
+    "description": "Imagen actualizada por Varitech para la camara Cable carril inferior de Cerro Catedral.",
+    "geo": { "lat": -41.1689, "lon": -71.4384 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cerro Catedral" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam004/latest.jpg",
+      "sourceUrl": "https://varitech.ar/camara/cam004"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Varitech / Cerro Catedral",
+      "termsUrl": "https://varitech.ar/terminos"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Varitech press/detail pages and latest image HEAD", "verifiedAt": "2026-07-17" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -1164,6 +1214,30 @@
     "tags": ["mountain", "weather", "ski", "chubut", "snapshot"],
     "priority": 2,
     "validation": { "status": "verified", "verifiedBy": "Codex via La Hoya webcams page", "verifiedAt": "2026-07-13" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-lahoya-plateau",
+    "providerId": "lahoya",
+    "title": "La Hoya - Plateau",
+    "description": "Imagen oficial de webcam de montana publicada por Varitech para La Hoya Plateau.",
+    "geo": { "lat": -42.8295, "lon": -71.259 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Esquel" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://varitech.ar/cameras/cam032/latest.jpg",
+      "sourceUrl": "https://varitech.ar/camara/cam032"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Varitech / La Hoya",
+      "termsUrl": "https://varitech.ar/terminos"
+    },
+    "tags": ["mountain", "weather", "ski", "chubut", "snapshot"],
+    "priority": 2,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Varitech press/detail pages and latest image HEAD", "verifiedAt": "2026-07-17" }
   },
   {
     "schema": "biopulse.camera.v1",

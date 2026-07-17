@@ -30,6 +30,8 @@ BioPulse reproduce senales publicas de [El Diario de Pringles](https://eldiariod
 
 BioPulse usa paginas publicas de [Catedral Alta Patagonia](https://catedralaltapatagonia.com/webcams/), [Chapelco](https://chapelco.com.ar/camaras/), [Cerro Bayo](https://cerrobayo.com.ar/montana/camara/), [La Hoya](https://skilahoya.com/webcams/) y [Cerro Castor](https://www.cerrocastor.com/es_ar/live.html) como fuentes de montana mediante reproductores oficiales, imagenes directas publicadas, snapshots dinamicos o enlaces externos segun corresponda.
 
+BioPulse muestra imagenes publicas de [Varitech](https://varitech.ar/prensa) para camaras de Cerro Catedral y La Hoya con atribucion al centro de esqui y a Varitech, usando URLs `latest.jpg` publicadas para integracion informativa.
+
 BioPulse muestra la webcam oficial de [ESA Ground Stations Live](https://www.esa.int/Enabling_Support/Operations/ESA_Ground_Stations/ESA_Ground_Stations_Live) para la estacion MLG1 / DSA-3 de Malargue con credito a ESA, bajo sus terminos de uso informativo/editorial de imagenes.
 
 BioPulse muestra reproductores publicos de [Nautica News](https://nautica.news/es/camaras-en-vivo-del-rio-de-la-plata/) mediante el iframe oficial de [Twitch](https://dev.twitch.tv/docs/embed/) para camaras del Rio de la Plata en Olivos, San Isidro y Darsena Norte, sin copiar ni rehostear video.
