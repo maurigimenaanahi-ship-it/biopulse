@@ -3679,7 +3679,7 @@
         "id":  "ar-worldcam-35119-corrientes-traffic",
         "providerId":  "worldcam",
         "title":  "Corrientes - Traffic (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+        "description":  "Reproductor publico de YouTube publicado por Municipalidad de Corrientes / SISE Argentina y referenciado por WorldCam.",
         "geo":  {
                     "lat":  -27.468481,
                     "lon":  -58.83024
@@ -3690,25 +3690,28 @@
                      },
         "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/35119-corrientes-traffic"
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/live_stream?channel=UCOd6_VOOaOvbYIoc8rFgaVQ&autoplay=1",
+                      "sourceUrl":  "https://ciudaddecorrientes.gov.ar/ciudadsegura"
                   },
         "usage":  {
                       "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
+                      "attributionText":  "Fuente: Municipalidad de Corrientes / SISE Argentina / YouTube",
+                      "termsUrl":  "https://ciudaddecorrientes.gov.ar/ciudadsegura"
                   },
         "tags":  [
-                     "external",
                      "worldcam",
-                     "traffic"
+                     "city",
+                     "traffic",
+                     "embed",
+                     "youtube"
                  ],
-        "priority":  0,
+        "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via Municipalidad de Corrientes Ciudad Segura iframe",
+                           "verifiedAt":  "2026-07-17"
                        }
     },
     {
