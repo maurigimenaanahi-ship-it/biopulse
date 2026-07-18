@@ -1,6 +1,6 @@
 # BioPulse camera source research
 
-Fecha de corte: 2026-07-17.
+Fecha de corte: 2026-07-18.
 
 ## Decision MVP
 
@@ -14,7 +14,10 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 ## Fuentes aplicadas
 
 - Windy Webcams API: integrada como `provider_api`. La API requiere `x-windy-api-key` y sus URLs de imagen expiran, por eso BioPulse refresca snapshots mediante `/api/windy-camera` y descubre camaras cercanas mediante `/api/windy-search`.
-  Fuente: https://api.windy.com/webcams/docs
+  Fuente: https://api.windy.com/webcams/docs y https://api.windy.com/webcams/terms
+
+- OpenCCTV como indice de descubrimiento Windy: usado solo para localizar camaras argentinas actualmente indexadas con metadatos publicos (`data-camera-id="windy-..."`, coordenadas y preview). Cuando la camara pertenece a Windy, BioPulse no consume OpenCCTV como proveedor final: registra `provider_api` de Windy para respetar API, atribucion y enlaces del proveedor. En esta tanda se aplicaron Chivilcoy, Alejandro Korn, Acassuso y Cordoba - Boulevard Poniente. Buta Ranquil / Volcan Tromen y Dock Sud se revisaron pero no se aplicaron porque devolvieron placeholder o imagen no usable al momento de validacion.
+  Fuente: https://opencctv.org/es/cameras/argentina
 
 - SkylineWebcams Argentina: aplicada como `external_page`. Sus terminos permiten ver y compartir mediante enlaces, pero restringen copiar, descargar o reproducir frames. Por eso BioPulse solo abre la pagina original.
   Fuentes: https://www.skylinewebcams.com/en/webcam/argentina.html y https://www.skylinewebcams.com/en/terms-of-use.html
@@ -90,6 +93,9 @@ Cuando dos proveedores muestran la misma escena o un punto visual equivalente, B
 
 - Vialidad Nacional / estado de rutas y SIG Vial: revisados como fuente vial oficial argentina. Aportan estado de rutas y mapas, pero no se encontro una red publica nacional de camaras visuales enlazable para el registro de Camaras.
   Fuentes: https://www.argentina.gob.ar/transporte/vialidad-nacional/estado-de-rutas y https://www.argentina.gob.ar/transporte/vialidad-nacional/sig-vial
+
+- Administracion General de Vialidad Provincial de Santa Cruz / monitoreo meteorologico: revisada como fuente oficial provincial con estaciones EM01-EM25 e iframes `https://www.agvp.gob.ar/estaciones/EMxx/EMxx.html`. Las paginas arman fotos horarias en `Fotos/EMxx-AAAAMMDDHH.jpg`, pero la muestra activa revisada el 2026-07-18 devolvio placeholders o imagen no util para varias estaciones, por eso no se aplico aun como camara visual. Queda pendiente revalidar en horario diurno o construir proveedor dinamico solo si aparecen capturas reales.
+  Fuente: https://www.agvp.gob.ar/servicios/monitoreo-meteorologico/
 
 - Mar del Sud / YouTube: revisado como candidato costero municipal/cooperativo por nota publica sobre stream de camaras. El canal `UCBeVyugrRCdu9TYwQlf1aLQ` no mostro `isLiveNow` activo al momento de validacion, por eso no se aplico como `html_embed` todavia.
   Fuentes: https://eldiariodemiramar.com.ar/2026/04/mar-del-sud-inauguro-su-centro-de-monitoreo-y-habilito-un-stream-con-imagenes-de-la-ciudad/ , https://www.youtube.com/@MarDelSud-2026

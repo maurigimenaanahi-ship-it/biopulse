@@ -8814,5 +8814,175 @@
       "verifiedBy": "Codex via Nautica News iframe mapping, Twitch preview check and Twitch embed docs",
       "verifiedAt": "2026-07-17"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-chivilcoy-ciudad-1368147781",
+    "providerId": "windy",
+    "title": "Chivilcoy - Ciudad / clima (Windy)",
+    "description": "Camara climatica publica de Chivilcoy registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -34.90307,
+      "lon": -60.00211
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Chivilcoy"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1368147781",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "city",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-alejandro-korn-1579385444",
+    "providerId": "windy",
+    "title": "Alejandro Korn - estacion meteorologica (Windy)",
+    "description": "Camara meteorologica publica de Alejandro Korn registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -35.00534,
+      "lon": -58.3626
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Alejandro Korn"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1579385444",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "city",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-acassuso-north-east-1735938641",
+    "providerId": "windy",
+    "title": "Acassuso - costa norte (Windy)",
+    "description": "Camara publica costera/meteo de Acassuso - San Isidro registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -34.47186,
+      "lon": -58.49155
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Acassuso"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1735938641",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-boulevard-poniente-1664650790",
+    "providerId": "windy",
+    "title": "Cordoba - Boulevard Poniente (Windy)",
+    "description": "Camara publica urbana de Cordoba con imagen de monitoreo municipal, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.42189,
+      "lon": -64.18199
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664650790",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
   }
 ]

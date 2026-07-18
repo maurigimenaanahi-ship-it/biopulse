@@ -2,7 +2,7 @@ Este archivo de Figma Make incluye componentes de [shadcn/ui](https://ui.shadcn.
 
 Este archivo de Figma Make incluye fotos de [Unsplash](https://unsplash.com) utilizadas con licencia de [licencia](https://unsplash.com/license).
 
-BioPulse usa referencias de camaras publicas provistas por [Windy Webcams](https://api.windy.com/webcams/docs) mediante API y enlaces externos.
+BioPulse usa referencias de camaras publicas provistas por [Windy Webcams](https://api.windy.com/webcams/docs) mediante API y enlaces externos, con atribucion y enlaces conforme a sus [terminos de uso](https://api.windy.com/webcams/terms).
 
 BioPulse enlaza paginas publicas de [SkylineWebcams](https://www.skylinewebcams.com/en/webcam/argentina.html) como fuente externa, sin copiar ni rehostear frames.
 
