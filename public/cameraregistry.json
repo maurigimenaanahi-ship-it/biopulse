@@ -9549,5 +9549,349 @@
       "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
       "verifiedAt": "2026-07-18"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-terminal-omnibus-1664650968",
+    "providerId": "windy",
+    "title": "Cordoba - Terminal de Omnibus (Windy)",
+    "description": "Camara publica urbana de Cordoba sobre la Terminal de Omnibus, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.42183,
+      "lon": -64.17552
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664650968",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-la-carmencita-south-east-1711900633",
+    "providerId": "windy",
+    "title": "La Carmencita - sureste (Windy)",
+    "description": "Camara publica vial y arbolada en La Carmencita, registrada como angulo independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.23801,
+      "lon": -56.97963
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "La Carmencita"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1711900633",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "road",
+      "vegetation",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-la-carmencita-north-west-1711900856",
+    "providerId": "windy",
+    "title": "La Carmencita - noroeste (Windy)",
+    "description": "Camara publica vial y arbolada en La Carmencita, registrada como angulo independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.23799,
+      "lon": -56.97969
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "La Carmencita"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1711900856",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "road",
+      "vegetation",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-la-carmencita-south-west-1711899819",
+    "providerId": "windy",
+    "title": "La Carmencita - suroeste (Windy)",
+    "description": "Camara publica vial y arbolada en La Carmencita, registrada como angulo independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.23406,
+      "lon": -57.02024
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "La Carmencita"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1711899819",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "road",
+      "vegetation",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-monte-hermoso-costa-1608043519",
+    "providerId": "windy",
+    "title": "Monte Hermoso - costa (Windy)",
+    "description": "Camara publica costera de Monte Hermoso, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -38.9888,
+      "lon": -61.28654
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Monte Hermoso"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1608043519",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-santa-teresita-playa-1793869087",
+    "providerId": "windy",
+    "title": "Santa Teresita - playa (Windy)",
+    "description": "Camara publica costera de Santa Teresita, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -36.52645,
+      "lon": -56.6894
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Teresita"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793869087",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-santa-clara-del-mar-el-chiringo-1793901762",
+    "providerId": "windy",
+    "title": "Santa Clara del Mar - El Chiringo (Windy)",
+    "description": "Camara publica costera de Santa Clara del Mar hacia El Chiringo, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.84322,
+      "lon": -57.50177
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Santa Clara del Mar"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793901762",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-de-ajo-east-1793900086",
+    "providerId": "windy",
+    "title": "Mar de Ajo - este (Windy)",
+    "description": "Camara publica costera de Mar de Ajo hacia el este, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -36.72417,
+      "lon": -56.67361
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar de Ajo"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793900086",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
   }
 ]
