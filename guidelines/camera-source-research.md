@@ -19,7 +19,7 @@ Para acelerar la captura de camaras Windy indexadas en OpenCCTV, usar:
 npm run cameras:discover
 ```
 
-El script `scripts/discover-windy-cameras.mjs` recorre raices de OpenCCTV Argentina, detecta `cameraKey` Windy, compara contra `public/cameraregistry.json`, valida que la preview sea una imagen real por tipo y tamano minimo, y escribe un reporte en `.camera-reports/windy-candidates.json`. El reporte incluye `ready`, `existing`, `rejected` y un `registrySnippet` para cada candidata lista. No modifica el registry automaticamente: las camaras deben revisarse visualmente antes de agregarse.
+El script `scripts/discover-windy-cameras.mjs` recorre raices de OpenCCTV Argentina, detecta `cameraKey` Windy, compara contra `public/cameraregistry.json`, valida que la preview sea una imagen real por tipo y tamano minimo, y escribe reportes ignorados por git en `.camera-reports/`: `windy-candidates.json` con `ready`, `existing` y `rejected`; `windy-ready-registry-snippets.json` con solo los bloques listos para copiar al registry; y `windy-review-checklist.md` para revision visual. No modifica el registry automaticamente: las camaras deben revisarse visualmente antes de agregarse.
 
 ## Fuentes aplicadas
 

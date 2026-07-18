@@ -25,6 +25,8 @@ const ROOT_PRESETS = {
 
 const DEFAULT_ROOTS = Object.keys(ROOT_PRESETS);
 const DEFAULT_OUT = ".camera-reports/windy-candidates.json";
+const DEFAULT_SNIPPETS_OUT = ".camera-reports/windy-ready-registry-snippets.json";
+const DEFAULT_REVIEW_OUT = ".camera-reports/windy-review-checklist.md";
 
 function parseArgs(argv) {
   const args = {
@@ -35,6 +37,8 @@ function parseArgs(argv) {
     roots: DEFAULT_ROOTS,
     registry: "public/cameraregistry.json",
     out: DEFAULT_OUT,
+    snippetsOut: DEFAULT_SNIPPETS_OUT,
+    reviewOut: DEFAULT_REVIEW_OUT,
     includeExisting: false,
     noWrite: false,
   };
@@ -56,6 +60,8 @@ function parseArgs(argv) {
     else if (flag === "--limit") args.limit = positiveInt(value, "limit");
     else if (flag === "--registry") args.registry = value;
     else if (flag === "--out") args.out = value;
+    else if (flag === "--snippets-out") args.snippetsOut = value;
+    else if (flag === "--review-out") args.reviewOut = value;
     else if (flag === "--roots") args.roots = value.split(",").map((item) => item.trim()).filter(Boolean);
     else if (flag === "--help" || flag === "-h") {
       printHelp();
@@ -92,8 +98,10 @@ Options:
   --limit=N              Stop after N candidate detail pages. Default: 0, no limit
   --registry=PATH        Camera registry path. Default: public/cameraregistry.json
   --out=PATH             JSON report path. Default: .camera-reports/windy-candidates.json
+  --snippets-out=PATH    Ready registry snippets path. Default: .camera-reports/windy-ready-registry-snippets.json
+  --review-out=PATH      Markdown review checklist path. Default: .camera-reports/windy-review-checklist.md
   --include-existing     Include cameraKeys already present in the registry
-  --no-write             Print summary only, do not write report
+  --no-write             Print summary only, do not write report/snippets/checklist
 `);
 }
 
@@ -149,6 +157,15 @@ async function main() {
     await mkdir(path.dirname(args.out), { recursive: true });
     await writeFile(args.out, `${JSON.stringify(report, null, 2)}\n`, "utf8");
     console.log(`Report written to ${args.out}`);
+
+    const snippets = ready.map((item) => item.registrySnippet);
+    await mkdir(path.dirname(args.snippetsOut), { recursive: true });
+    await writeFile(args.snippetsOut, `${JSON.stringify(snippets, null, 2)}\n`, "utf8");
+    console.log(`Ready registry snippets written to ${args.snippetsOut}`);
+
+    await mkdir(path.dirname(args.reviewOut), { recursive: true });
+    await writeFile(args.reviewOut, makeReviewChecklist(report), "utf8");
+    console.log(`Review checklist written to ${args.reviewOut}`);
   }
 }
 
@@ -460,6 +477,52 @@ function printSummary(report) {
   for (const item of report.ready.slice(0, 20)) {
     console.log(`+ ${item.cameraKey} | ${item.title} | ${item.previewBytes} bytes | ${item.sourceUrl}`);
   }
+}
+
+function makeReviewChecklist(report) {
+  const lines = [
+    "# Windy Camera Review Checklist",
+    "",
+    `Generated at: ${report.generatedAt}`,
+    "",
+    `Ready new: ${report.summary.readyNew}`,
+    `Existing: ${report.summary.existing}`,
+    `Rejected: ${report.summary.rejected}`,
+    "",
+    "## Ready",
+    "",
+    "| Use | cameraKey | Title | Location | Preview | Source |",
+    "| --- | --- | --- | --- | --- | --- |",
+  ];
+
+  for (const item of report.ready) {
+    lines.push(
+      `| [ ] | ${md(item.cameraKey)} | ${md(item.title)} | ${md(item.location)} | [preview](${item.previewUrl}) | [source](${item.sourceUrl}) |`
+    );
+  }
+
+  lines.push("", "## Rejected", "", "| cameraKey/source | Reason | Preview bytes | Source |", "| --- | --- | --- | --- |");
+
+  for (const item of report.rejected) {
+    lines.push(
+      `| ${md(item.cameraKey ?? "unknown")} | ${md(item.reason)} | ${item.previewBytes ?? 0} | [source](${item.sourceUrl}) |`
+    );
+  }
+
+  lines.push("", "## Existing", "", "| cameraKey | Existing ID | Source |", "| --- | --- | --- |");
+
+  for (const item of report.existing) {
+    lines.push(`| ${md(item.cameraKey)} | ${md(item.existingId)} | [source](${item.sourceUrl}) |`);
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+function md(value) {
+  return String(value ?? "")
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n/g, " ")
+    .trim();
 }
 
 main().catch((err) => {
