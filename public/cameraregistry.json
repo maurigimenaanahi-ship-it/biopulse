@@ -8984,5 +8984,222 @@
       "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
       "verifiedAt": "2026-07-18"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-buta-ranquil-volcan-tromen-1732836014",
+    "providerId": "windy",
+    "title": "Buta Ranquil - Volcan Tromen (Windy)",
+    "description": "Camara meteorologica publica hacia el Volcan Tromen, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.05154,
+      "lon": -69.88625
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Buta Ranquil"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1732836014",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "volcano",
+      "mountain",
+      "rural",
+      "patagonia",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-saladillo-south-1668732744",
+    "providerId": "windy",
+    "title": "Saladillo - vista sur / clima (Windy)",
+    "description": "Camara climatica publica de Saladillo registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -35.64497,
+      "lon": -59.77573
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Saladillo"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1668732744",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "city",
+      "interior",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-martinez-north-west-1745449788",
+    "providerId": "windy",
+    "title": "Martinez - costa norte (Windy)",
+    "description": "Camara publica costera/meteo de Martinez registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -34.50251,
+      "lon": -58.47396
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Martinez"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1745449788",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-martinez-rio-de-la-plata-1601563134",
+    "providerId": "windy",
+    "title": "Martinez - Rio de la Plata (Windy)",
+    "description": "Camara publica sobre el Rio de la Plata en Martinez registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -34.48468,
+      "lon": -58.48044
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Martinez"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1601563134",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "river",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-de-ajo-playa-bajada-nautica-1793900085",
+    "providerId": "windy",
+    "title": "Mar de Ajo - Playa Bajada Nautica (Windy)",
+    "description": "Camara publica costera de Mar de Ajo registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -36.72944,
+      "lon": -56.67333
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar de Ajo"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793900085",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
   }
 ]
