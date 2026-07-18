@@ -9893,5 +9893,437 @@
       "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
       "verifiedAt": "2026-07-18"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-de-las-pampas-avenida-el-lucero-1608324245",
+    "providerId": "windy",
+    "title": "Mar de las Pampas - Avenida El Lucero (Windy)",
+    "description": "Camara publica en zona arbolada y urbana de Mar de las Pampas, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.32617,
+      "lon": -57.02235
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar de las Pampas"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1608324245",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "city",
+      "road",
+      "vegetation",
+      "coast",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-south-east-point-surf-waikiki-1741309651",
+    "providerId": "windy",
+    "title": "Mar del Plata - Point Surf Waikiki (Windy)",
+    "description": "Camara publica costera de Mar del Plata / Point Surf Waikiki, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -38.08076,
+      "lon": -57.53839
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1741309651",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-azul-1678845955",
+    "providerId": "windy",
+    "title": "Mar Azul - costa (Windy)",
+    "description": "Camara publica costera de Mar Azul, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.4635,
+      "lon": -57.11236
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar Azul"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1678845955",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-south-east-1709767473",
+    "providerId": "windy",
+    "title": "Mar del Plata - sudeste (Windy)",
+    "description": "Camara publica costera de Mar del Plata hacia el sudeste, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -38.02618,
+      "lon": -57.53024
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1709767473",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-east-1742788359",
+    "providerId": "windy",
+    "title": "Mar del Plata - este 1 (Windy)",
+    "description": "Camara publica costera de Mar del Plata hacia el este, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.99918,
+      "lon": -57.54136
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1742788359",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-coronel-pringles-buenos-aires-1460420273",
+    "providerId": "windy",
+    "title": "Coronel Pringles - vista urbana (Windy)",
+    "description": "Camara publica urbana de Coronel Pringles, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.97584,
+      "lon": -61.34797
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Coronel Pringles"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1460420273",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "city",
+      "interior",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-pinamar-posta-del-mar-barbados-1793898668",
+    "providerId": "windy",
+    "title": "Pinamar - La Posta del Mar / Barbados (Windy)",
+    "description": "Camara publica costera de Pinamar / La Posta del Mar - Balneario Barbados, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.1167,
+      "lon": -56.85505
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Pinamar"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793898668",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-east-1741569283",
+    "providerId": "windy",
+    "title": "Mar del Plata - este 2 (Windy)",
+    "description": "Camara publica costera de Mar del Plata hacia el este, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -38.08446,
+      "lon": -57.54154
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1741569283",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-villa-gesell-avenida-costanera-1606510217",
+    "providerId": "windy",
+    "title": "Villa Gesell - Avenida Costanera (Windy)",
+    "description": "Camara publica costera de Villa Gesell / Avenida Costanera, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.2795,
+      "lon": -56.98255
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1606510217",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-mar-del-plata-museo-mar-1741309831",
+    "providerId": "windy",
+    "title": "Mar del Plata - Museo MAR (Windy)",
+    "description": "Camara publica costera de Mar del Plata cerca del Museo MAR, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -37.97417,
+      "lon": -57.54348
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Mar del Plata"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1741309831",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "coast",
+      "beach",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via camera discovery report, OpenCCTV metadata and visual preview check",
+      "verifiedAt": "2026-07-18"
+    }
   }
 ]
