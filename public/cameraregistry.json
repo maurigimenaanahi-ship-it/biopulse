@@ -9201,5 +9201,266 @@
       "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
       "verifiedAt": "2026-07-18"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-varvarco-volcan-domuyo-1699544301",
+    "providerId": "windy",
+    "title": "Varvarco - Volcan Domuyo (Windy)",
+    "description": "Camara meteorologica publica hacia el Volcan Domuyo, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -36.72357,
+      "lon": -70.61909
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Varvarco"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1699544301",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "weather",
+      "volcano",
+      "mountain",
+      "rural",
+      "patagonia",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-villa-la-angostura-cumbre-1800-1757516197",
+    "providerId": "windy",
+    "title": "Villa La Angostura - Cumbre 1800 (Windy)",
+    "description": "Camara publica de montana en Cumbre 1800 / Villa La Angostura, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -40.74244,
+      "lon": -71.6113
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Villa La Angostura"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1757516197",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "mountain",
+      "weather",
+      "ski",
+      "patagonia",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-emilio-olmos-boulevard-guzman-1664939978",
+    "providerId": "windy",
+    "title": "Cordoba - Emilio Olmos y Boulevard Guzman (Windy)",
+    "description": "Camara publica urbana de Cordoba en Avenida Emilio Olmos y Boulevard Guzman, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.41581,
+      "lon": -64.17604
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664939978",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-boulevard-guzman-1671043962",
+    "providerId": "windy",
+    "title": "Cordoba - Boulevard Guzman norte (Windy)",
+    "description": "Camara publica urbana de Cordoba sobre Boulevard Guzman, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.41249,
+      "lon": -64.17529
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1671043962",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-boulevard-guzman-1671044073",
+    "providerId": "windy",
+    "title": "Cordoba - Boulevard Guzman sur (Windy)",
+    "description": "Camara publica urbana de Cordoba sobre Boulevard Guzman, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.41215,
+      "lon": -64.1754
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1671044073",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-puente-sarmiento-1664647008",
+    "providerId": "windy",
+    "title": "Cordoba - Puente Sarmiento (Windy)",
+    "description": "Camara publica urbana de Cordoba en Puente Sarmiento / Domingo F. Sarmiento, registrada para consulta mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.41233,
+      "lon": -64.17441
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664647008",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
   }
 ]
