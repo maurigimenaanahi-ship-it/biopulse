@@ -16,7 +16,7 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 - Windy Webcams API: integrada como `provider_api`. La API requiere `x-windy-api-key` y sus URLs de imagen expiran, por eso BioPulse refresca snapshots mediante `/api/windy-camera` y descubre camaras cercanas mediante `/api/windy-search`.
   Fuente: https://api.windy.com/webcams/docs y https://api.windy.com/webcams/terms
 
-- OpenCCTV como indice de descubrimiento Windy: usado solo para localizar camaras argentinas actualmente indexadas con metadatos publicos (`data-camera-id="windy-..."`, coordenadas y preview). Cuando la camara pertenece a Windy, BioPulse no consume OpenCCTV como proveedor final: registra `provider_api` de Windy para respetar API, atribucion y enlaces del proveedor. Se aplicaron Chivilcoy, Alejandro Korn, Acassuso, Cordoba - Boulevard Poniente, Buta Ranquil / Volcan Tromen, Saladillo, Martinez - costa norte, Martinez - Rio de la Plata, Mar de Ajo, Volcan Domuyo / Varvarco, Villa La Angostura - Cumbre 1800, Cordoba - Emilio Olmos / Boulevard Guzman, Cordoba - Boulevard Guzman y Cordoba - Puente Sarmiento. Dock Sud y Santa Teresita se revisaron pero no se aplicaron porque devolvieron placeholder o imagen no usable al momento de validacion; Las Lenas Windy se omitio porque ya existe stream HLS oficial mejor; Cordoba Bv Poniente / Illia se mantuvo pendiente como posible alternativa de una camara ya aplicada en el mismo punto.
+- OpenCCTV como indice de descubrimiento Windy: usado solo para localizar camaras argentinas actualmente indexadas con metadatos publicos (`data-camera-id="windy-..."`, coordenadas y preview). Cuando la camara pertenece a Windy, BioPulse no consume OpenCCTV como proveedor final: registra `provider_api` de Windy para respetar API, atribucion y enlaces del proveedor. Se aplicaron Chivilcoy, Alejandro Korn, Acassuso, Cordoba - Boulevard Poniente, Buta Ranquil / Volcan Tromen, Saladillo, Martinez - costa norte, Martinez - Rio de la Plata, Mar de Ajo, Volcan Domuyo / Varvarco, Villa La Angostura - Cumbre 1800, Cordoba - Emilio Olmos / Boulevard Guzman, Cordoba - Boulevard Guzman, Cordoba - Puente Sarmiento, Cordoba - Bv Poniente / Illia y Las Lenas Windy. Dock Sud y Santa Teresita se revisaron pero no se aplicaron porque devolvieron placeholder o imagen no usable al momento de validacion.
   Fuente: https://opencctv.org/es/cameras/argentina
 
 - SkylineWebcams Argentina: aplicada como `external_page`. Sus terminos permiten ver y compartir mediante enlaces, pero restringen copiar, descargar o reproducir frames. Por eso BioPulse solo abre la pagina original.
@@ -81,7 +81,7 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 
 ## Fuentes alternativas
 
-Cuando dos proveedores muestran la misma escena o un punto visual equivalente, BioPulse conserva ambas fuentes pero comparte un `groupKey`. La interfaz muestra una tarjeta principal y enlaces alternativos, para aumentar cobertura sin duplicar falsamente la cantidad de camaras cercanas.
+Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos cercanos, BioPulse debe conservarlas como observaciones independientes: esos angulos multiples ayudan a interpretar humo, visibilidad, viento, transito y contexto territorial. `groupKey` queda reservado para duplicados tecnicos o el mismo feed exacto servido por mas de una fuente, no para escenas parecidas.
 
 ## Fuentes revisadas, no aplicadas aun
 

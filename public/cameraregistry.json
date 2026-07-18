@@ -9462,5 +9462,92 @@
       "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
       "verifiedAt": "2026-07-18"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-bv-poniente-illia-1671043464",
+    "providerId": "windy",
+    "title": "Cordoba - Bv Poniente e Illia (Windy)",
+    "description": "Camara publica urbana de Cordoba en Bv Poniente / Umberto Arturo Illia, registrada como observacion independiente mediante Windy Webcams API.",
+    "geo": {
+      "lat": -31.4219,
+      "lon": -64.18203
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Cordoba",
+      "locality": "Cordoba"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1671043464",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "city",
+      "traffic",
+      "municipal",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-las-lenas-camera-1-1273888979",
+    "providerId": "windy",
+    "title": "Las Lenas - Camera 1 (Windy)",
+    "description": "Camara publica de montana en Las Lenas, registrada como observacion independiente mediante Windy Webcams API aunque exista stream oficial de la zona.",
+    "geo": {
+      "lat": -35.14686,
+      "lon": -70.08247
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Mendoza",
+      "locality": "Las Lenas"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1273888979",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": [
+      "mountain",
+      "weather",
+      "ski",
+      "mendoza",
+      "snapshot"
+    ],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV metadata and Windy preview HEAD/visual check",
+      "verifiedAt": "2026-07-18"
+    }
   }
 ]
