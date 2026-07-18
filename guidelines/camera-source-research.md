@@ -11,6 +11,16 @@ La seccion Camaras usa dos capas:
 
 BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas externas salvo que exista una API o URL de imagen permitida. Si una plataforma publica camaras pero no autoriza reutilizacion de frames, se registra como `external_page` y se abre la fuente original.
 
+## Herramienta de descubrimiento
+
+Para acelerar la captura de camaras Windy indexadas en OpenCCTV, usar:
+
+```bash
+npm run cameras:discover
+```
+
+El script `scripts/discover-windy-cameras.mjs` recorre raices de OpenCCTV Argentina, detecta `cameraKey` Windy, compara contra `public/cameraregistry.json`, valida que la preview sea una imagen real por tipo y tamano minimo, y escribe un reporte en `.camera-reports/windy-candidates.json`. El reporte incluye `ready`, `existing`, `rejected` y un `registrySnippet` para cada candidata lista. No modifica el registry automaticamente: las camaras deben revisarse visualmente antes de agregarse.
+
 ## Fuentes aplicadas
 
 - Windy Webcams API: integrada como `provider_api`. La API requiere `x-windy-api-key` y sus URLs de imagen expiran, por eso BioPulse refresca snapshots mediante `/api/windy-camera` y descubre camaras cercanas mediante `/api/windy-search`.
