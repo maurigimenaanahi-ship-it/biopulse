@@ -13,8 +13,11 @@ import { PlanetObservationView } from "./components/PlanetObservationView";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import type { OfficialAlertsResponse } from "./lib/officialAlertTypes";
+import { officialAlertMentionsEvacuation } from "./lib/officialEvacuationSignals";
 import {
   OFFICIAL_PRIORITY_MARKERS_CHANGED_EVENT,
+  officialPriorityMarkerFromAlert,
   readOfficialPriorityMarkers,
   upsertOfficialPriorityMarker,
   type OfficialPriorityMarker,
@@ -23,6 +26,81 @@ import { SlidersHorizontal, CornerUpLeft, Bell, ShieldCheck, Globe2 } from "luci
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const GEO_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
+const PRODUCTION_API_BASE = "https://biopulse-weld.vercel.app";
+
+function apiUrl(path: string) {
+  const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
+  if (configuredBase) return `${configuredBase}${path}`;
+
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return `${PRODUCTION_API_BASE}${path}`;
+    }
+  }
+
+  return path;
+}
+
+function eventSeverityRank(ev: EnvironmentalEvent) {
+  if (ev.severity === "critical") return 4;
+  if (ev.severity === "high") return 3;
+  if (ev.severity === "moderate") return 2;
+  return 1;
+}
+
+function officialPriorityScanKey(ev: EnvironmentalEvent, cellDeg = 1.6) {
+  const latCell = Math.floor((ev.latitude + 90) / cellDeg);
+  const lonCell = Math.floor((ev.longitude + 180) / cellDeg);
+  return `${latCell}:${lonCell}`;
+}
+
+function selectOfficialPriorityScanEvents(events: EnvironmentalEvent[], max = 72) {
+  const cells = new Map<string, EnvironmentalEvent>();
+
+  events
+    .filter((ev) => Number.isFinite(ev.latitude) && Number.isFinite(ev.longitude))
+    .forEach((ev) => {
+      const key = officialPriorityScanKey(ev);
+      const current = cells.get(key);
+      if (!current || eventSeverityRank(ev) > eventSeverityRank(current)) {
+        cells.set(key, ev);
+      }
+    });
+
+  const spread = Array.from(cells.values()).sort((a, b) => a.latitude - b.latitude || a.longitude - b.longitude);
+  if (spread.length <= max) return spread;
+
+  const topSeverity = [...spread]
+    .sort((a, b) => eventSeverityRank(b) - eventSeverityRank(a) || (b.focusCount ?? 0) - (a.focusCount ?? 0))
+    .slice(0, Math.min(18, max));
+  const selected = new Map(topSeverity.map((ev) => [ev.id, ev]));
+  const remainingSlots = max - selected.size;
+
+  for (let i = 0; i < remainingSlots; i += 1) {
+    const index = Math.floor((i * spread.length) / Math.max(1, remainingSlots));
+    const ev = spread[index];
+    if (ev) selected.set(ev.id, ev);
+  }
+
+  return Array.from(selected.values()).slice(0, max);
+}
+
+async function fetchOfficialAlertsForEvent(
+  event: EnvironmentalEvent,
+  signal?: AbortSignal
+): Promise<OfficialAlertsResponse | null> {
+  const url =
+    `${apiUrl("/api/official-alerts")}?lat=${encodeURIComponent(String(event.latitude))}` +
+    `&lon=${encodeURIComponent(String(event.longitude))}` +
+    `&category=${encodeURIComponent(event.category)}` +
+    `&radiusKm=250&days=180`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  const data = (await res.json().catch(() => null)) as OfficialAlertsResponse | null;
+  if (!res.ok || !data || !Array.isArray(data.alerts)) return null;
+  return data;
+}
 
 type AppStage = "splash" | "guardian" | "setup" | "dashboard";
 
@@ -187,6 +265,61 @@ export default function App() {
   const handleOfficialPrioritySignal = useCallback((marker: OfficialPriorityMarker) => {
     setOfficialPriorityMarkers(upsertOfficialPriorityMarker(marker));
   }, []);
+
+  useEffect(() => {
+    if (stage !== "dashboard" || selectedCategory !== "fire" || events.length === 0) return;
+
+    const candidates = selectOfficialPriorityScanEvents(events);
+    if (candidates.length === 0) return;
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    const runScan = async () => {
+      const found: OfficialPriorityMarker[] = [];
+      const seen = new Set(readOfficialPriorityMarkers().map((marker) => marker.id));
+      let cursor = 0;
+
+      const worker = async () => {
+        while (!cancelled && cursor < candidates.length) {
+          const event = candidates[cursor];
+          cursor += 1;
+
+          try {
+            const response = await fetchOfficialAlertsForEvent(event, controller.signal);
+            if (!response) continue;
+
+            response.alerts
+              .filter((alert) => alert.status === "active" && officialAlertMentionsEvacuation(alert))
+              .forEach((alert) => {
+                const marker = officialPriorityMarkerFromAlert({ event, alert, fetchedAt: response.fetchedAt });
+                if (seen.has(marker.id)) return;
+                seen.add(marker.id);
+                found.push(marker);
+              });
+          } catch (error) {
+            if ((error as any)?.name === "AbortError") return;
+          }
+        }
+      };
+
+      await Promise.all(Array.from({ length: Math.min(4, candidates.length) }, () => worker()));
+      if (cancelled || found.length === 0) return;
+
+      let latest = readOfficialPriorityMarkers();
+      found.forEach((marker) => {
+        latest = upsertOfficialPriorityMarker(marker);
+      });
+      setOfficialPriorityMarkers(latest);
+    };
+
+    runScan();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [events, selectedCategory, selectedRegionKey, stage]);
 
   const openSetup = () => {
     setSelectedEvent(null);
@@ -597,6 +730,7 @@ export default function App() {
                 totalEvents={stats.total}
                 criticalEvents={stats.critical}
                 affectedRegions={stats.regions}
+                officialPriorityAlerts={officialPriorityMarkers.length}
                 collapsed={isExploring || isAlertOpen}
               />
             </div>

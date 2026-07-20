@@ -1,27 +1,42 @@
 import { useMemo, useState } from "react";
-import { Activity, AlertTriangle, MapPin } from "lucide-react";
+import { Activity, AlertTriangle, MapPin, Siren } from "lucide-react";
 
 type Props = {
   totalEvents: number;
   criticalEvents: number;
   affectedRegions: number;
+  officialPriorityAlerts?: number;
   collapsed?: boolean; // true cuando estás explorando (zoom-in)
 };
+
+type StatKey = "official" | "total" | "critical" | "regions";
 
 export function StatsPanel({
   totalEvents,
   criticalEvents,
   affectedRegions,
+  officialPriorityAlerts = 0,
   collapsed = false,
 }: Props) {
   // si el usuario toca un pictograma, puede “expandir” momentáneamente aun estando colapsado
-  const [manualOpen, setManualOpen] = useState<null | "total" | "critical" | "regions">(null);
+  const [manualOpen, setManualOpen] = useState<null | StatKey>(null);
 
   // Desktop: colapsa si "collapsed" y NO hay manualOpen
   const isCollapsedDesktop = collapsed && manualOpen === null;
 
   const items = useMemo(
     () => [
+      ...(officialPriorityAlerts > 0
+        ? [
+            {
+              key: "official" as const,
+              title: "OFFICIAL EVAC",
+              value: officialPriorityAlerts,
+              icon: Siren,
+              color: "text-red-300",
+            },
+          ]
+        : []),
       {
         key: "total" as const,
         title: "ACTIVE EVENTS",
@@ -44,7 +59,7 @@ export function StatsPanel({
         color: "text-amber-300",
       },
     ],
-    [totalEvents, criticalEvents, affectedRegions]
+    [totalEvents, criticalEvents, affectedRegions, officialPriorityAlerts]
   );
 
   const Card = (p: {
@@ -78,7 +93,7 @@ export function StatsPanel({
     );
   };
 
-  const Pict = (p: { itemKey: "total" | "critical" | "regions"; value: number; icon: any; color: string }) => {
+  const Pict = (p: { itemKey: StatKey; value: number; icon: any; color: string }) => {
     const Icon = p.icon;
     return (
       <button
@@ -105,7 +120,7 @@ export function StatsPanel({
     </div>
   );
 
-  const getItem = (k: "total" | "critical" | "regions") => items.find((x) => x.key === k)!;
+  const getItem = (k: StatKey) => items.find((x) => x.key === k)!;
 
   return (
     <div className="fixed right-4 md:right-6 z-[9998] top-[calc(env(safe-area-inset-top)+72px)] md:top-24 pointer-events-auto">

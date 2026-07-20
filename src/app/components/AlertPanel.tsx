@@ -37,6 +37,11 @@ import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import type { GwisFireDangerResponse } from "@/app/lib/gwisTypes";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
 import type { OfficialAlertRecord, OfficialAlertsResponse } from "@/app/lib/officialAlertTypes";
+import {
+  officialAlertLooksMandatoryEvacuation,
+  officialAlertMentionsEvacuation,
+  textMentionsEvacuation,
+} from "@/app/lib/officialEvacuationSignals";
 import type { WeatherCurrent, WeatherResponse } from "@/app/lib/weatherTypes";
 import {
   prepareGuardianEvent,
@@ -54,7 +59,7 @@ import {
   GUARDIAN_PREPARATION_VERSION,
 } from "@/app/lib/guardianStore";
 import type { NarrativeFragment, Observation } from "@/app/lib/observations";
-import type { OfficialPriorityMarker } from "@/app/lib/officialPriorityMarkers";
+import { officialPriorityMarkerFromAlert, type OfficialPriorityMarker } from "@/app/lib/officialPriorityMarkers";
 import {
   X,
   CornerUpLeft,
@@ -1521,50 +1526,8 @@ const OFFICIAL_TEXT_KEYWORDS = [
   "comite de emergencia",
 ];
 
-const EVACUATION_ALERT_KEYWORDS = [
-  "evacuacion",
-  "orden de evacuacion",
-  "evacuacion obligatoria",
-  "evacuacion preventiva",
-  "evacuacion inmediata",
-  "alerta de evacuacion",
-  "evacuar",
-  "evacue",
-  "evacuen",
-  "evacuado",
-  "evacuada",
-  "evacuados",
-  "evacuadas",
-  "autoevacuado",
-  "autoevacuados",
-  "auto evacuado",
-  "auto evacuados",
-  "desalojo preventivo",
-  "desalojar",
-  "centro de evacuados",
-  "centros de evacuados",
-  "refugio para evacuados",
-  "albergue de evacuados",
-];
-
-const MANDATORY_EVACUATION_KEYWORDS = [
-  "orden de evacuacion",
-  "evacuacion obligatoria",
-  "evacuacion inmediata",
-  "evacuar",
-  "evacue",
-  "evacuen",
-  "desalojar",
-];
-
 function safeLower(s: string | null | undefined) {
   return String(s ?? "").toLowerCase();
-}
-
-function normalizedSearchText(s: string | null | undefined) {
-  return safeLower(s)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function domainIsOfficial(domain: string | null) {
@@ -1590,45 +1553,7 @@ function textLooksOfficial(title: string | null, summary: string | null) {
 }
 
 function isEvacuationRelevant(it: NewsItem) {
-  const blob = `${normalizedSearchText(it.title)} ${normalizedSearchText(it.summary)}`.trim();
-  if (!blob) return false;
-  return EVACUATION_ALERT_KEYWORDS.some((k) => blob.includes(k));
-}
-
-function officialAlertMentionsEvacuation(alert: OfficialAlertRecord) {
-  if (alert.isLocalOfficialOrder) return true;
-  const blob = [
-    alert.title,
-    alert.eventTypeLabel,
-    alert.description,
-    alert.instruction,
-    alert.areaDesc,
-    alert.urgency,
-    alert.certainty,
-  ]
-    .map((value) => normalizedSearchText(value))
-    .join(" ")
-    .trim();
-
-  if (!blob) return false;
-  return EVACUATION_ALERT_KEYWORDS.some((keyword) => blob.includes(keyword));
-}
-
-function officialAlertLooksMandatoryEvacuation(alert: OfficialAlertRecord) {
-  if (alert.isLocalOfficialOrder) return true;
-  const blob = [
-    alert.title,
-    alert.eventTypeLabel,
-    alert.description,
-    alert.instruction,
-    alert.areaDesc,
-  ]
-    .map((value) => normalizedSearchText(value))
-    .join(" ")
-    .trim();
-
-  if (!blob) return false;
-  return MANDATORY_EVACUATION_KEYWORDS.some((keyword) => blob.includes(keyword));
+  return textMentionsEvacuation(it.title, it.summary);
 }
 
 // ---------- Guardian climate insight (heurística) ----------
@@ -3868,29 +3793,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     const alert = activeAlerts.find((item) => officialAlertMentionsEvacuation(item)) ?? null;
     if (!alert) return;
 
-    const alertLat = Number(alert.lat);
-    const alertLon = Number(alert.lon);
-    const hasAlertPoint =
-      Number.isFinite(alertLat) &&
-      Number.isFinite(alertLon) &&
-      alertLat >= -90 &&
-      alertLat <= 90 &&
-      alertLon >= -180 &&
-      alertLon <= 180;
-
-    onOfficialPrioritySignal({
-      id: `official-evacuation:${alert.id}`,
-      eventId: event.id,
-      lat: hasAlertPoint ? alertLat : event.latitude,
-      lon: hasAlertPoint ? alertLon : event.longitude,
-      title: alert.title || "Alerta oficial de evacuacion",
-      source: officialAlertProviderLabel(alert),
-      detail: alert.instruction?.trim() || alert.description?.trim() || undefined,
-      level: "official_evacuation",
-      observedAt: alert.fromDate || officialAlerts.fetchedAt || new Date().toISOString(),
-      expiresAt: alert.toDate ?? null,
-      reportUrl: alert.reportUrl ?? alert.detailsUrl ?? null,
-    });
+    onOfficialPrioritySignal(officialPriorityMarkerFromAlert({ event, alert, fetchedAt: officialAlerts.fetchedAt }));
   }, [event, officialAlerts, onOfficialPrioritySignal]);
 
   if (!event) return null;
