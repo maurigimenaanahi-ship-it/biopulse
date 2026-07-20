@@ -123,3 +123,14 @@ export function upsertOfficialPriorityMarker(marker: OfficialPriorityMarker) {
   const withoutCurrent = current.filter((item) => item.id !== normalized.id);
   return writeOfficialPriorityMarkers([normalized, ...withoutCurrent]);
 }
+
+export function upsertOfficialPriorityMarkers(markers: OfficialPriorityMarker[]) {
+  const normalized = markers
+    .map(normalizeMarker)
+    .filter((marker): marker is OfficialPriorityMarker => Boolean(marker));
+  if (normalized.length === 0) return readOfficialPriorityMarkers();
+
+  const nextById = new Map(readOfficialPriorityMarkers().map((marker) => [marker.id, marker]));
+  normalized.forEach((marker) => nextById.set(marker.id, marker));
+  return writeOfficialPriorityMarkers(Array.from(nextById.values()));
+}

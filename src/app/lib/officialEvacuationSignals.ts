@@ -1,4 +1,4 @@
-import type { OfficialAlertRecord } from "@/app/lib/officialAlertTypes";
+import type { OfficialAlertRecord } from "./officialAlertTypes";
 
 const EVACUATION_ALERT_KEYWORDS = [
   "evacuacion",

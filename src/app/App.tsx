@@ -13,6 +13,10 @@ import { PlanetObservationView } from "./components/PlanetObservationView";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import type {
+  OfficialEvacuationPrioritiesResponse,
+  OfficialEvacuationPriority,
+} from "./lib/officialEvacuationPriorityTypes";
 import type { OfficialAlertsResponse } from "./lib/officialAlertTypes";
 import { officialAlertMentionsEvacuation } from "./lib/officialEvacuationSignals";
 import {
@@ -20,6 +24,7 @@ import {
   officialPriorityMarkerFromAlert,
   readOfficialPriorityMarkers,
   upsertOfficialPriorityMarker,
+  upsertOfficialPriorityMarkers,
   type OfficialPriorityMarker,
 } from "./lib/officialPriorityMarkers";
 import { SlidersHorizontal, CornerUpLeft, Bell, ShieldCheck, Globe2 } from "lucide-react";
@@ -84,6 +89,63 @@ function selectOfficialPriorityScanEvents(events: EnvironmentalEvent[], max = 72
   }
 
   return Array.from(selected.values()).slice(0, max);
+}
+
+function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number) {
+  const earthRadiusKm = 6371;
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLon = toRad(bLon - aLon);
+  const lat1 = toRad(aLat);
+  const lat2 = toRad(bLat);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function nearestEventForPriority(priority: OfficialEvacuationPriority, events: EnvironmentalEvent[], maxKm = 300) {
+  let best: { event: EnvironmentalEvent; distanceKm: number } | null = null;
+
+  events.forEach((event) => {
+    if (!Number.isFinite(event.latitude) || !Number.isFinite(event.longitude)) return;
+    const distanceKm = haversineKm(priority.lat, priority.lon, event.latitude, event.longitude);
+    if (distanceKm > maxKm) return;
+    if (!best || distanceKm < best.distanceKm) best = { event, distanceKm };
+  });
+
+  return best;
+}
+
+function markerFromOfficialPriority(
+  priority: OfficialEvacuationPriority,
+  events: EnvironmentalEvent[]
+): OfficialPriorityMarker {
+  const nearest = nearestEventForPriority(priority, events);
+
+  return {
+    id: priority.id,
+    eventId: nearest?.event.id ?? priority.id,
+    lat: priority.lat,
+    lon: priority.lon,
+    title: priority.title || "Alerta oficial de evacuacion",
+    source: priority.source || priority.provider || "Fuente oficial",
+    detail: priority.detail,
+    level: "official_evacuation",
+    observedAt: priority.observedAt,
+    expiresAt: priority.expiresAt ?? null,
+    reportUrl: priority.reportUrl ?? priority.detailsUrl ?? null,
+  };
+}
+
+async function fetchOfficialEvacuationPriorities(
+  signal?: AbortSignal
+): Promise<OfficialEvacuationPrioritiesResponse | null> {
+  const url = `${apiUrl("/api/official-evacuation-priorities")}?country=AR&days=180&maxItems=100`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  const data = (await res.json().catch(() => null)) as OfficialEvacuationPrioritiesResponse | null;
+  if (!res.ok || !data || !Array.isArray(data.priorities)) return null;
+  return data;
 }
 
 async function fetchOfficialAlertsForEvent(
@@ -269,13 +331,28 @@ export default function App() {
   useEffect(() => {
     if (stage !== "dashboard" || selectedCategory !== "fire" || events.length === 0) return;
 
-    const candidates = selectOfficialPriorityScanEvents(events);
-    if (candidates.length === 0) return;
-
     const controller = new AbortController();
     let cancelled = false;
 
     const runScan = async () => {
+      try {
+        const response = await fetchOfficialEvacuationPriorities(controller.signal);
+        if (cancelled) return;
+
+        if (response) {
+          if (response.priorities.length > 0) {
+            const markers = response.priorities.map((priority) => markerFromOfficialPriority(priority, events));
+            setOfficialPriorityMarkers(upsertOfficialPriorityMarkers(markers));
+          }
+          return;
+        }
+      } catch (error) {
+        if ((error as any)?.name === "AbortError") return;
+      }
+
+      const candidates = selectOfficialPriorityScanEvents(events);
+      if (candidates.length === 0) return;
+
       const found: OfficialPriorityMarker[] = [];
       const seen = new Set(readOfficialPriorityMarkers().map((marker) => marker.id));
       let cursor = 0;
@@ -306,11 +383,7 @@ export default function App() {
       await Promise.all(Array.from({ length: Math.min(4, candidates.length) }, () => worker()));
       if (cancelled || found.length === 0) return;
 
-      let latest = readOfficialPriorityMarkers();
-      found.forEach((marker) => {
-        latest = upsertOfficialPriorityMarker(marker);
-      });
-      setOfficialPriorityMarkers(latest);
+      setOfficialPriorityMarkers(upsertOfficialPriorityMarkers(found));
     };
 
     runScan();
