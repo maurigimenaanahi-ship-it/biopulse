@@ -54,6 +54,7 @@ import {
   GUARDIAN_PREPARATION_VERSION,
 } from "@/app/lib/guardianStore";
 import type { NarrativeFragment, Observation } from "@/app/lib/observations";
+import type { OfficialPriorityMarker } from "@/app/lib/officialPriorityMarkers";
 import {
   X,
   CornerUpLeft,
@@ -96,6 +97,7 @@ import {
 type AlertPanelProps = {
   event: EnvironmentalEvent | null;
   onClose: () => void;
+  onOfficialPrioritySignal?: (marker: OfficialPriorityMarker) => void;
 };
 
 type AlertPanelSection =
@@ -3032,7 +3034,7 @@ function OfficialAlertCard({ alert, compact = false }: { alert: OfficialAlertRec
   );
 }
 
-export function AlertPanel({ event, onClose }: AlertPanelProps) {
+export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const guardianObservationRef = useRef<HTMLDivElement | null>(null);
   const newsAbortRef = useRef<AbortController | null>(null);
@@ -3857,6 +3859,40 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     };
   }, [nearbyCameras, camRefreshTick, event?.id]);
 
+  useEffect(() => {
+    if (!event || !officialAlerts || !onOfficialPrioritySignal) return;
+
+    const activeAlerts = Array.isArray(officialAlerts.alerts)
+      ? officialAlerts.alerts.filter((alert) => alert.status === "active")
+      : [];
+    const alert = activeAlerts.find((item) => officialAlertMentionsEvacuation(item)) ?? null;
+    if (!alert) return;
+
+    const alertLat = Number(alert.lat);
+    const alertLon = Number(alert.lon);
+    const hasAlertPoint =
+      Number.isFinite(alertLat) &&
+      Number.isFinite(alertLon) &&
+      alertLat >= -90 &&
+      alertLat <= 90 &&
+      alertLon >= -180 &&
+      alertLon <= 180;
+
+    onOfficialPrioritySignal({
+      id: `official-evacuation:${alert.id}`,
+      eventId: event.id,
+      lat: hasAlertPoint ? alertLat : event.latitude,
+      lon: hasAlertPoint ? alertLon : event.longitude,
+      title: alert.title || "Alerta oficial de evacuacion",
+      source: officialAlertProviderLabel(alert),
+      detail: alert.instruction?.trim() || alert.description?.trim() || undefined,
+      level: "official_evacuation",
+      observedAt: alert.fromDate || officialAlerts.fetchedAt || new Date().toISOString(),
+      expiresAt: alert.toDate ?? null,
+      reportUrl: alert.reportUrl ?? alert.detailsUrl ?? null,
+    });
+  }, [event, officialAlerts, onOfficialPrioritySignal]);
+
   if (!event) return null;
 
   const chip = sevChip(event.severity);
@@ -3975,6 +4011,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     ? "Alerta oficial detectada"
     : "Estado de evacuacion detectado";
   const sirenActive = officialEvacuationSignal;
+
   const eventEcosystems = Array.isArray(event.ecosystems)
     ? event.ecosystems.filter((item) => typeof item === "string" && item.trim().length > 0)
     : [];

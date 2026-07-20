@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Map, { Layer, Source } from "react-map-gl/maplibre";
 import type { MapRef, MapLayerMouseEvent } from "react-map-gl/maplibre";
 import type { EnvironmentalEvent } from "@/data/events";
+import type { OfficialPriorityMarker } from "@/app/lib/officialPriorityMarkers";
 
 type MapSceneProps = {
   events: EnvironmentalEvent[];
   bbox?: string | null; // "west,south,east,north"
+  officialPriorityMarkers?: OfficialPriorityMarker[];
   onEventClick: (e: EnvironmentalEvent) => void;
 
   // extras que ya veníamos usando
@@ -53,6 +55,7 @@ function getExploreZoomThreshold(width: number) {
 export function MapScene({
   events,
   bbox,
+  officialPriorityMarkers = [],
   onEventClick,
   resetKey,
   onZoomedInChange,
@@ -169,6 +172,28 @@ export function MapScene({
     };
   }, [events]);
 
+  const officialPriorityGeo = useMemo(() => {
+    return {
+      type: "FeatureCollection" as const,
+      features: officialPriorityMarkers.map((marker) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [marker.lon, marker.lat],
+        },
+        properties: {
+          priorityMarker: 1,
+          markerId: marker.id,
+          eventId: marker.eventId,
+          title: marker.title,
+          source: marker.source,
+          level: marker.level,
+          sevRank: 4,
+        },
+      })),
+    };
+  }, [officialPriorityMarkers]);
+
   // GeoJSON hover/active/ripple
   const hoverGeo = useMemo(() => {
     if (!hovered) return { type: "FeatureCollection" as const, features: [] as any[] };
@@ -236,10 +261,58 @@ export function MapScene({
   const CLUSTERS_LAYER_ID = "clusters";
   const CLUSTER_COUNT_LAYER_ID = "cluster-count";
   const UNCLUSTERED_LAYER_ID = "unclustered-point";
+  const PRIORITY_HALO_LAYER_ID = "official-priority-halo";
+  const PRIORITY_POINT_LAYER_ID = "official-priority-point";
+  const PRIORITY_SYMBOL_LAYER_ID = "official-priority-symbol";
 
   const FX_HOVER_ID = "fx-hover";
   const FX_ACTIVE_ID = "fx-active";
   const FX_RIPPLE_ID = "fx-ripple";
+
+  const officialPriorityHaloLayer: any = {
+    id: PRIORITY_HALO_LAYER_ID,
+    type: "circle",
+    source: "official-priority",
+    paint: {
+      "circle-color": "rgba(239,68,68,0.24)",
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 18, 5, 28, 9, 40],
+      "circle-blur": 0.65,
+      "circle-opacity": 1,
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "rgba(254,202,202,0.36)",
+    },
+  };
+
+  const officialPriorityPointLayer: any = {
+    id: PRIORITY_POINT_LAYER_ID,
+    type: "circle",
+    source: "official-priority",
+    paint: {
+      "circle-color": "#ef4444",
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 7, 5, 10, 9, 14],
+      "circle-opacity": 0.96,
+      "circle-stroke-width": 2.5,
+      "circle-stroke-color": "rgba(255,255,255,0.86)",
+    },
+  };
+
+  const officialPrioritySymbolLayer: any = {
+    id: PRIORITY_SYMBOL_LAYER_ID,
+    type: "symbol",
+    source: "official-priority",
+    layout: {
+      "text-field": "!",
+      "text-size": ["interpolate", ["linear"], ["zoom"], 1, 12, 5, 15, 9, 18],
+      "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
+    },
+    paint: {
+      "text-color": "#ffffff",
+      "text-halo-color": "rgba(127,29,29,0.7)",
+      "text-halo-width": 1,
+    },
+  };
 
   const clusterLayer: any = {
     id: CLUSTERS_LAYER_ID,
@@ -376,7 +449,7 @@ export function MapScene({
     if (!map) return null;
 
     const feats = map.queryRenderedFeatures(e.point, {
-      layers: [CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID],
+      layers: [PRIORITY_SYMBOL_LAYER_ID, PRIORITY_POINT_LAYER_ID, PRIORITY_HALO_LAYER_ID, CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID],
     });
 
     if (!feats?.length) return null;
@@ -399,6 +472,16 @@ export function MapScene({
 
     const sev = Number(props.maxSev ?? props.sevRank ?? 0);
     setRipple({ lng, lat, t: Date.now(), sev });
+
+    if (props.priorityMarker) {
+      const id = String(props.eventId ?? "");
+      const ev = events.find((x) => String(x.id) === id);
+      if (ev) {
+        setActive({ lng, lat, sev, id });
+        onEventClick(ev);
+      }
+      return;
+    }
 
     if (props.cluster) {
       const clusterId = props.cluster_id;
@@ -460,7 +543,13 @@ export function MapScene({
         maxZoom={10}
         dragRotate={false}
         pitchWithRotate={false}
-        interactiveLayerIds={[CLUSTERS_LAYER_ID, UNCLUSTERED_LAYER_ID]}
+        interactiveLayerIds={[
+          PRIORITY_SYMBOL_LAYER_ID,
+          PRIORITY_POINT_LAYER_ID,
+          PRIORITY_HALO_LAYER_ID,
+          CLUSTERS_LAYER_ID,
+          UNCLUSTERED_LAYER_ID,
+        ]}
         onClick={handleClick}
         onMouseMove={handleMove}
         onMouseLeave={() => setHovered(null)}
@@ -504,6 +593,12 @@ export function MapScene({
           <Layer {...clusterLayer} />
           <Layer {...clusterCountLayer} />
           <Layer {...unclusteredLayer} />
+        </Source>
+
+        <Source id="official-priority" type="geojson" data={officialPriorityGeo as any}>
+          <Layer {...officialPriorityHaloLayer} />
+          <Layer {...officialPriorityPointLayer} />
+          <Layer {...officialPrioritySymbolLayer} />
         </Source>
       </Map>
     </div>

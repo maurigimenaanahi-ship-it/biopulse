@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MapScene } from "./components/MapScene";
 import { Header } from "./components/Header";
 import { AlertPanel } from "./components/AlertPanel";
@@ -13,6 +13,12 @@ import { PlanetObservationView } from "./components/PlanetObservationView";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
+import {
+  OFFICIAL_PRIORITY_MARKERS_CHANGED_EVENT,
+  readOfficialPriorityMarkers,
+  upsertOfficialPriorityMarker,
+  type OfficialPriorityMarker,
+} from "./lib/officialPriorityMarkers";
 import { SlidersHorizontal, CornerUpLeft, Bell, ShieldCheck, Globe2 } from "lucide-react";
 
 const FIRMS_PROXY = "https://square-frost-5487.maurigimenaanahi.workers.dev";
@@ -156,9 +162,31 @@ export default function App() {
   const [showFollowed, setShowFollowed] = useState(false);
   const [showGuardianActivity, setShowGuardianActivity] = useState(false);
   const [showPlanetObservation, setShowPlanetObservation] = useState(false);
+  const [officialPriorityMarkers, setOfficialPriorityMarkers] = useState<OfficialPriorityMarker[]>([]);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
+
+  const refreshOfficialPriorityMarkers = useCallback(() => {
+    setOfficialPriorityMarkers(readOfficialPriorityMarkers());
+  }, []);
+
+  useEffect(() => {
+    refreshOfficialPriorityMarkers();
+
+    const onMarkersChanged = () => refreshOfficialPriorityMarkers();
+    window.addEventListener(OFFICIAL_PRIORITY_MARKERS_CHANGED_EVENT, onMarkersChanged);
+    window.addEventListener("storage", onMarkersChanged);
+
+    return () => {
+      window.removeEventListener(OFFICIAL_PRIORITY_MARKERS_CHANGED_EVENT, onMarkersChanged);
+      window.removeEventListener("storage", onMarkersChanged);
+    };
+  }, [refreshOfficialPriorityMarkers]);
+
+  const handleOfficialPrioritySignal = useCallback((marker: OfficialPriorityMarker) => {
+    setOfficialPriorityMarkers(upsertOfficialPriorityMarker(marker));
+  }, []);
 
   const openSetup = () => {
     setSelectedEvent(null);
@@ -433,6 +461,7 @@ export default function App() {
             <MapScene
               events={events}
               bbox={selectedRegion?.bbox ?? null}
+              officialPriorityMarkers={officialPriorityMarkers}
               onEventClick={(ev) => {
                 setSelectedEvent(ev);
                 ensureSelectedEventHasLocation(ev);
@@ -577,7 +606,11 @@ export default function App() {
             </div>
 
             <div className="pointer-events-auto">
-              <AlertPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+              <AlertPanel
+                event={selectedEvent}
+                onClose={() => setSelectedEvent(null)}
+                onOfficialPrioritySignal={handleOfficialPrioritySignal}
+              />
             </div>
 
             {!isAlertOpen && (
