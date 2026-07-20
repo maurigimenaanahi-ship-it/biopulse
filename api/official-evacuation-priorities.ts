@@ -178,7 +178,7 @@ function json(data: unknown, init: ResponseInit = {}) {
     headers: {
       "content-type": "application/json; charset=utf-8",
       "access-control-allow-origin": "*",
-      "cache-control": "public, s-maxage=900, stale-while-revalidate=1800",
+      "cache-control": "public, s-maxage=120, stale-while-revalidate=300",
       ...(init.headers ?? {}),
     },
   });
