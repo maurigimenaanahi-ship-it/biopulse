@@ -145,7 +145,7 @@ type NewsMetaState = {
 const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const PRODUCTION_API_BASE = "https://biopulse-weld.vercel.app";
 const FAV_KEY = "biopulse:followed-alerts";
-const CAMERA_RADIUS_OPTIONS = [60, 100, 250, 500];
+const CAMERA_RADIUS_OPTIONS = [60, 100, 120, 250, 500];
 
 function apiUrl(path: string) {
   const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
@@ -1519,26 +1519,50 @@ const OFFICIAL_TEXT_KEYWORDS = [
   "comite de emergencia",
 ];
 
-const SIREN_KEYWORDS = [
-  "evacuación",
+const EVACUATION_ALERT_KEYWORDS = [
+  "evacuacion",
+  "orden de evacuacion",
+  "evacuacion obligatoria",
+  "evacuacion preventiva",
+  "evacuacion inmediata",
+  "alerta de evacuacion",
   "evacuar",
   "evacue",
   "evacuen",
-  "orden de evacuación",
-  "orden de evacuacion",
-  "alerta roja",
-  "alerta naranja",
-  "emergencia",
-  "desalojo",
-  "refugio",
+  "evacuado",
+  "evacuada",
+  "evacuados",
+  "evacuadas",
+  "autoevacuado",
+  "autoevacuados",
+  "auto evacuado",
+  "auto evacuados",
+  "desalojo preventivo",
+  "desalojar",
   "centro de evacuados",
-  "crecida",
-  "desborde",
-  "inminente",
+  "centros de evacuados",
+  "refugio para evacuados",
+  "albergue de evacuados",
+];
+
+const MANDATORY_EVACUATION_KEYWORDS = [
+  "orden de evacuacion",
+  "evacuacion obligatoria",
+  "evacuacion inmediata",
+  "evacuar",
+  "evacue",
+  "evacuen",
+  "desalojar",
 ];
 
 function safeLower(s: string | null | undefined) {
   return String(s ?? "").toLowerCase();
+}
+
+function normalizedSearchText(s: string | null | undefined) {
+  return safeLower(s)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function domainIsOfficial(domain: string | null) {
@@ -1564,9 +1588,9 @@ function textLooksOfficial(title: string | null, summary: string | null) {
 }
 
 function isEvacuationRelevant(it: NewsItem) {
-  const blob = `${safeLower(it.title)} ${safeLower(it.summary)}`.trim();
+  const blob = `${normalizedSearchText(it.title)} ${normalizedSearchText(it.summary)}`.trim();
   if (!blob) return false;
-  return SIREN_KEYWORDS.some((k) => blob.includes(k));
+  return EVACUATION_ALERT_KEYWORDS.some((k) => blob.includes(k));
 }
 
 function officialAlertMentionsEvacuation(alert: OfficialAlertRecord) {
@@ -1580,12 +1604,29 @@ function officialAlertMentionsEvacuation(alert: OfficialAlertRecord) {
     alert.urgency,
     alert.certainty,
   ]
-    .map((value) => safeLower(value))
+    .map((value) => normalizedSearchText(value))
     .join(" ")
     .trim();
 
   if (!blob) return false;
-  return SIREN_KEYWORDS.some((keyword) => blob.includes(keyword));
+  return EVACUATION_ALERT_KEYWORDS.some((keyword) => blob.includes(keyword));
+}
+
+function officialAlertLooksMandatoryEvacuation(alert: OfficialAlertRecord) {
+  if (alert.isLocalOfficialOrder) return true;
+  const blob = [
+    alert.title,
+    alert.eventTypeLabel,
+    alert.description,
+    alert.instruction,
+    alert.areaDesc,
+  ]
+    .map((value) => normalizedSearchText(value))
+    .join(" ")
+    .trim();
+
+  if (!blob) return false;
+  return MANDATORY_EVACUATION_KEYWORDS.some((keyword) => blob.includes(keyword));
 }
 
 // ---------- Guardian climate insight (heurística) ----------
@@ -2331,7 +2372,7 @@ function resolveCameraVisual(
     : streamUrl
     ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
     : embedUrl
-    ? "border-red-300/20 bg-red-400/10 text-red-100/80"
+    ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
     : isWindyProvider && providerSnapshot?.status === "loading"
     ? "border-white/10 bg-white/5 text-white/60"
     : openUrl
@@ -2356,6 +2397,37 @@ function resolveCameraVisual(
     snapshotState,
     snapshotStateClass,
   };
+}
+
+function cameraVisualUtilityRank(visual: ReturnType<typeof resolveCameraVisual>) {
+  if (visual.streamUrl) return 0;
+  if (visual.embedUrl) return 1;
+  if (visual.snapUrl) return 2;
+  if (visual.openUrl) return 3;
+  return 4;
+}
+
+function pickPrimaryVisualCamera(
+  cameras: LoadedCamera[],
+  providerSnapshots: Record<string, ProviderCameraSnapshot>,
+  camRefreshTick: number
+) {
+  if (cameras.length === 0) return null;
+
+  return [...cameras].sort((a, b) => {
+    const visualA = resolveCameraVisual(a, providerSnapshots[a.id] ?? null, camRefreshTick);
+    const visualB = resolveCameraVisual(b, providerSnapshots[b.id] ?? null, camRefreshTick);
+    const rankDelta = cameraVisualUtilityRank(visualA) - cameraVisualUtilityRank(visualB);
+    if (rankDelta !== 0) return rankDelta;
+
+    const distanceDelta = a.distanceKm - b.distanceKm;
+    if (Math.abs(distanceDelta) > 1) return distanceDelta;
+
+    const priorityDelta = (b.priority ?? 0) - (a.priority ?? 0);
+    if (priorityDelta !== 0) return priorityDelta;
+
+    return a.id.localeCompare(b.id);
+  })[0];
 }
 
 function VisualExposureGate({
@@ -3688,6 +3760,10 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
   const cameraCandidateGroups = useMemo(() => groupLoadedCameras(cameraCandidates), [cameraCandidates]);
   const nearbyCameraGroups = useMemo(() => groupLoadedCameras(nearbyCameras), [nearbyCameras]);
   const displayCameras = useMemo(() => nearbyCameraGroups.map((group) => group.primary), [nearbyCameraGroups]);
+  const preferredVisualCamera = useMemo(
+    () => pickPrimaryVisualCamera(displayCameras, providerSnapshots, camRefreshTick),
+    [displayCameras, providerSnapshots, camRefreshTick]
+  );
   const cameraSourceCount = combinedCameraRegistry.length;
   const nearbyCameraSourceCount = nearbyCameras.length;
   const cameraPointCount = cameraCandidateGroups.length;
@@ -3711,9 +3787,9 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
       return;
     }
     if (!selectedCameraId || !displayCameras.some((cam) => cam.id === selectedCameraId)) {
-      setSelectedCameraId(displayCameras[0].id);
+      setSelectedCameraId((preferredVisualCamera ?? displayCameras[0]).id);
     }
-  }, [displayCameras, selectedCameraId]);
+  }, [displayCameras, preferredVisualCamera, selectedCameraId]);
 
   useEffect(() => {
     if (!event || nearbyCameras.length === 0) return;
@@ -3865,14 +3941,20 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     event.evacuationLevel === "mandatory" || event.evacuationLevel === "recommended";
   const officialEvacuationSignal = eventHasEvacuationSignal || Boolean(officialEvacuationAlert);
   const officialEvacuationTone =
-    event.evacuationLevel === "mandatory" || officialEvacuationAlert?.isLocalOfficialOrder ? "mandatory" : "recommended";
+    officialEvacuationAlert && officialAlertLooksMandatoryEvacuation(officialEvacuationAlert)
+      ? "mandatory"
+      : event.evacuationLevel === "mandatory"
+      ? "mandatory"
+      : officialEvacuationAlert
+      ? "mandatory"
+      : "recommended";
   const officialEvacuationTitle =
-    event.evacuationLevel === "mandatory"
+    officialEvacuationAlert
+      ? "Alerta oficial de evacuacion en la zona"
+      : event.evacuationLevel === "mandatory"
       ? "Evacuacion obligatoria"
       : event.evacuationLevel === "recommended"
       ? "Evacuacion recomendada"
-      : officialEvacuationAlert
-      ? "Alerta oficial con mencion de evacuacion"
       : "Alerta oficial";
   const officialEvacuationSource = officialEvacuationAlert
     ? officialAlertProviderLabel(officialEvacuationAlert)
@@ -3882,7 +3964,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     officialEvacuationAlert?.description?.trim() ||
     (eventHasEvacuationSignal
       ? "El evento trae un estado de evacuacion. BioPulse lo muestra como prioridad, pero conserva por separado la fuente oficial cuando este disponible."
-      : "BioPulse conserva esta senal como prioridad operativa mientras separa fuente, evidencia e interpretacion.");
+      : "BioPulse detecto una alerta de evacuacion para la zona. Se muestra como prioridad maxima aunque la senal observada sea de otra categoria o intensidad.");
   const officialEvacuationMeta =
     officialEvacuationAlert != null
       ? `Vigencia: ${officialAlertWindowLabel(officialEvacuationAlert)}`
@@ -4337,7 +4419,7 @@ export function AlertPanel({ event, onClose }: AlertPanelProps) {
     setActiveSection("cameras");
     if (!guardianPreparationComplete) setGuardianPreparationOpen(true);
   };
-  const primaryCamera = displayCameras[0] ?? null;
+  const primaryCamera = preferredVisualCamera ?? displayCameras[0] ?? null;
   const primaryCameraGroup = primaryCamera
     ? nearbyCameraGroups.find((group) => group.primary.id === primaryCamera.id) ?? null
     : null;
