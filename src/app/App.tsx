@@ -10,6 +10,7 @@ import { SetupPanel, REGION_GROUPS } from "./components/SetupPanel";
 import { FollowedAlertsPanel } from "./components/FollowedAlertsPanel";
 import { GuardianActivityPanel } from "./components/GuardianActivityPanel";
 import { PlanetObservationView } from "./components/PlanetObservationView";
+import { OfficialPriorityPanel } from "./components/OfficialPriorityPanel";
 import { mockEvents } from "@/data/events";
 import type { EnvironmentalEvent, EventCategory, EventStatus } from "@/data/events";
 import { clusterFiresDBSCAN, type FirePoint } from "./lib/clusterFires";
@@ -303,6 +304,15 @@ export default function App() {
   const [showGuardianActivity, setShowGuardianActivity] = useState(false);
   const [showPlanetObservation, setShowPlanetObservation] = useState(false);
   const [officialPriorityMarkers, setOfficialPriorityMarkers] = useState<OfficialPriorityMarker[]>([]);
+  const [selectedOfficialPriorityMarkerId, setSelectedOfficialPriorityMarkerId] = useState<string | null>(null);
+  const [mapFocus, setMapFocus] = useState<{
+    lng: number;
+    lat: number;
+    zoom?: number;
+    id?: string;
+    sevRank?: number;
+    nonce?: number;
+  } | null>(null);
 
   const selectedRegion =
     REGION_GROUPS.flatMap((g) => g.regions).find((r) => r.key === selectedRegionKey) ?? null;
@@ -327,6 +337,59 @@ export default function App() {
   const handleOfficialPrioritySignal = useCallback((marker: OfficialPriorityMarker) => {
     setOfficialPriorityMarkers(upsertOfficialPriorityMarker(marker));
   }, []);
+
+  const selectedOfficialPriorityMarkerIndex = useMemo(
+    () =>
+      selectedOfficialPriorityMarkerId
+        ? officialPriorityMarkers.findIndex((marker) => marker.id === selectedOfficialPriorityMarkerId)
+        : -1,
+    [officialPriorityMarkers, selectedOfficialPriorityMarkerId]
+  );
+
+  const selectedOfficialPriorityMarker =
+    selectedOfficialPriorityMarkerIndex >= 0 ? officialPriorityMarkers[selectedOfficialPriorityMarkerIndex] : null;
+
+  const linkedOfficialPriorityEvent = useMemo(() => {
+    if (!selectedOfficialPriorityMarker) return null;
+    return events.find((event) => String(event.id) === selectedOfficialPriorityMarker.eventId) ?? null;
+  }, [events, selectedOfficialPriorityMarker]);
+
+  const focusOfficialPriorityMarker = useCallback(
+    (marker?: OfficialPriorityMarker | null) => {
+      const target = marker ?? officialPriorityMarkers[0];
+      if (!target) return;
+
+      setSelectedEvent(null);
+      setShowFollowed(false);
+      setShowGuardianActivity(false);
+      setShowPlanetObservation(false);
+      setSelectedOfficialPriorityMarkerId(target.id);
+      setMapFocus({
+        lng: target.lon,
+        lat: target.lat,
+        zoom: 7,
+        id: target.id,
+        sevRank: 4,
+        nonce: Date.now(),
+      });
+    },
+    [officialPriorityMarkers]
+  );
+
+  const focusNextOfficialPriorityMarker = useCallback(() => {
+    if (officialPriorityMarkers.length === 0) return;
+    const nextIndex =
+      selectedOfficialPriorityMarkerIndex >= 0
+        ? (selectedOfficialPriorityMarkerIndex + 1) % officialPriorityMarkers.length
+        : 0;
+    focusOfficialPriorityMarker(officialPriorityMarkers[nextIndex]);
+  }, [focusOfficialPriorityMarker, officialPriorityMarkers, selectedOfficialPriorityMarkerIndex]);
+
+  useEffect(() => {
+    if (!selectedOfficialPriorityMarkerId) return;
+    if (officialPriorityMarkers.some((marker) => marker.id === selectedOfficialPriorityMarkerId)) return;
+    setSelectedOfficialPriorityMarkerId(null);
+  }, [officialPriorityMarkers, selectedOfficialPriorityMarkerId]);
 
   useEffect(() => {
     if (stage !== "dashboard" || selectedCategory !== "fire" || events.length === 0) return;
@@ -396,6 +459,7 @@ export default function App() {
 
   const openSetup = () => {
     setSelectedEvent(null);
+    setSelectedOfficialPriorityMarkerId(null);
     setIsExploring(false);
     setStage("setup");
   };
@@ -430,6 +494,7 @@ export default function App() {
     setScanError(null);
     setSelectedCategory(args.category);
     setSelectedRegionKey(args.region.key);
+    setSelectedOfficialPriorityMarkerId(null);
 
     if (args.category === "fire") {
       try {
@@ -668,10 +733,12 @@ export default function App() {
               events={events}
               bbox={selectedRegion?.bbox ?? null}
               officialPriorityMarkers={officialPriorityMarkers}
+              focus={mapFocus}
               onEventClick={(ev) => {
                 setSelectedEvent(ev);
                 ensureSelectedEventHasLocation(ev);
               }}
+              onOfficialPriorityMarkerClick={focusOfficialPriorityMarker}
               resetKey={resetKey}
               onZoomedInChange={setIsExploring}
               onZoomChange={setMapZoom}
@@ -804,9 +871,28 @@ export default function App() {
                 criticalEvents={stats.critical}
                 affectedRegions={stats.regions}
                 officialPriorityAlerts={officialPriorityMarkers.length}
+                onOfficialPriorityClick={() => focusOfficialPriorityMarker()}
                 collapsed={isExploring || isAlertOpen}
               />
             </div>
+
+            {!isAlertOpen && selectedOfficialPriorityMarker && (
+              <div className="pointer-events-auto">
+                <OfficialPriorityPanel
+                  marker={selectedOfficialPriorityMarker}
+                  linkedEvent={linkedOfficialPriorityEvent}
+                  index={selectedOfficialPriorityMarkerIndex}
+                  count={officialPriorityMarkers.length}
+                  onClose={() => setSelectedOfficialPriorityMarkerId(null)}
+                  onNext={focusNextOfficialPriorityMarker}
+                  onOpenLinkedEvent={(ev) => {
+                    setSelectedOfficialPriorityMarkerId(null);
+                    setSelectedEvent(ev);
+                    ensureSelectedEventHasLocation(ev);
+                  }}
+                />
+              </div>
+            )}
 
             <div className="pointer-events-auto">
               <Timeline currentTime={currentTime} onTimeChange={setCurrentTime} />

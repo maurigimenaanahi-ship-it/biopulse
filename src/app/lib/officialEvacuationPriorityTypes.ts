@@ -28,9 +28,12 @@ export type OfficialEvacuationPrioritiesResponse = {
   fetchedCapCount?: number;
   supplementalCount?: number;
   fetchedOfficialNoticeCount?: number;
+  curatedCount?: number;
+  fetchedCuratedNoticeCount?: number;
   sourceUrl: string;
   apiSourceUrl?: string;
   supplementalSourceUrls?: string[];
+  curatedSourceUrl?: string;
   attributionText: string;
   limitations: string[];
   fetchedAt: string;

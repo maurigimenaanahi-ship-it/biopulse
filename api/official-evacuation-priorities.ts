@@ -42,15 +42,57 @@ type KnownNoticeLocation = {
   aliases: string[];
 };
 
+type OfficialCriticalNoticeRegistrySource = {
+  id?: string;
+  name?: string;
+  url?: string;
+  scope?: string;
+};
+
+type OfficialCriticalNoticeRecord = {
+  id?: string;
+  kind?: string;
+  status?: string;
+  provider?: string;
+  source?: string;
+  title?: string;
+  detail?: string;
+  country?: string;
+  lat?: number;
+  lon?: number;
+  observedAt?: string;
+  expiresAt?: string | null;
+  reportUrl?: string | null;
+  detailsUrl?: string | null;
+  areaDesc?: string | null;
+  alertLevel?: string | null;
+  urgency?: string | null;
+  certainty?: string | null;
+  verification?: {
+    status?: string;
+    verifiedAt?: string;
+    verifiedBy?: string;
+  };
+};
+
+type OfficialCriticalNoticeRegistry = {
+  schema?: string;
+  updatedAt?: string;
+  sources?: OfficialCriticalNoticeRegistrySource[];
+  notices?: OfficialCriticalNoticeRecord[];
+};
+
 const ALERT_HUB_ARGENTINA_RSS_URL = "https://cap-alerts.s3.amazonaws.com/country-ar-lang-en/rss.xml";
 const SMN_ALERTS_URL = "https://www.smn.gob.ar/alertas";
 const NEUQUEN_SECURITY_POSTS_API_URL = "https://seguridad.neuquen.gob.ar/wp-json/wp/v2/posts";
 const NEUQUEN_SECURITY_SOURCE_URL = "https://seguridad.neuquen.gob.ar/";
+const CURATED_CRITICAL_NOTICES_PATH = "/official-critical-notices.json";
 const DEFAULT_DAYS = 180;
 const MAX_DAYS = 730;
 const DEFAULT_MAX_ITEMS = 80;
 const MAX_CAP_ITEMS = 120;
 const LOCAL_NOTICE_ACTIVE_DAYS = 21;
+const CURATED_NOTICE_FALLBACK_ACTIVE_HOURS = 72;
 
 const NEUQUEN_NOTICE_SEARCH_TERMS = [
   "evacuacion",
@@ -365,6 +407,72 @@ function postDateIso(post: NeuquenOfficialPost): string | null {
   );
 }
 
+function curatedNoticeIsActive(notice: OfficialCriticalNoticeRecord, now: Date, days: number) {
+  const status = normalizedSearchText(notice.status ?? "active");
+  if (status && status !== "active") return false;
+
+  const observedAt = validIso(notice.observedAt);
+  if (!observedAt || !isWithinDays(observedAt, now, days)) return false;
+
+  const expiresAt = validIso(notice.expiresAt);
+  if (expiresAt) {
+    const expires = new Date(expiresAt);
+    return Number.isFinite(expires.getTime()) && expires.getTime() >= now.getTime();
+  }
+
+  const observed = new Date(observedAt);
+  if (!Number.isFinite(observed.getTime())) return false;
+  const fallbackActiveMs = CURATED_NOTICE_FALLBACK_ACTIVE_HOURS * 60 * 60 * 1000;
+  return now.getTime() - observed.getTime() <= fallbackActiveMs;
+}
+
+function priorityFromCuratedNotice(
+  notice: OfficialCriticalNoticeRecord,
+  fetchedAt: string,
+  now: Date,
+  days: number
+): OfficialEvacuationPriority | null {
+  const id = cleanText(notice.id, 160);
+  const lat = finiteNumber(notice.lat);
+  const lon = finiteNumber(notice.lon);
+  if (!id || lat === null || lon === null || !validCoordinate(lat, -90, 90) || !validCoordinate(lon, -180, 180)) {
+    return null;
+  }
+
+  if (!curatedNoticeIsActive(notice, now, days)) return null;
+
+  const title = cleanText(notice.title, 220) ?? "Comunicado oficial de evacuacion";
+  const detail = cleanText(notice.detail, 900);
+  const kind = normalizedSearchText(notice.kind);
+  const text = [title, detail, notice.areaDesc, notice.alertLevel, notice.urgency].filter(Boolean).join(" ");
+  if (kind !== "official_evacuation" && !noticeLooksLikeEvacuationPriority(text)) return null;
+
+  const provider = cleanText(notice.provider, 160) ?? "Fuente oficial";
+  const observedAt = validIso(notice.observedAt) ?? fetchedAt;
+  const expiresAt = validIso(notice.expiresAt);
+  const source = cleanText(notice.source, 160) ?? provider;
+
+  return {
+    id: `official-evacuation:curated:${id}`,
+    sourceAlertId: id,
+    sourceId: "curated-official-critical-notices",
+    provider,
+    title,
+    source,
+    detail: detail ?? undefined,
+    lat,
+    lon,
+    observedAt,
+    expiresAt,
+    reportUrl: cleanText(notice.reportUrl, 700) ?? cleanText(notice.detailsUrl, 700) ?? null,
+    detailsUrl: cleanText(notice.detailsUrl, 700) ?? cleanText(notice.reportUrl, 700) ?? null,
+    areaDesc: cleanText(notice.areaDesc, 260),
+    alertLevel: cleanText(notice.alertLevel, 80) ?? "Official curated notice",
+    urgency: cleanText(notice.urgency, 80) ?? "Immediate",
+    certainty: cleanText(notice.certainty, 80) ?? "Observed",
+  };
+}
+
 function priorityFromNeuquenPost(
   post: NeuquenOfficialPost,
   fetchedAt: string,
@@ -613,6 +721,44 @@ async function fetchNeuquenSecurityEvacuationPriorities(args: {
   };
 }
 
+async function fetchCuratedOfficialCriticalNotices(args: {
+  registryUrl: string;
+  days: number;
+  now: Date;
+}) {
+  const response = await fetch(args.registryUrl, {
+    headers: {
+      Accept: "application/json",
+      "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
+      "User-Agent": CAP_REQUEST_HEADERS["User-Agent"],
+    },
+  });
+
+  if (!response.ok) {
+    return {
+      priorities: [] as OfficialEvacuationPriority[],
+      registryCount: 0,
+      sourceCount: 0,
+      sourceUrl: args.registryUrl,
+    };
+  }
+
+  const registry = (await response.json().catch(() => null)) as OfficialCriticalNoticeRegistry | null;
+  const notices = Array.isArray(registry?.notices) ? registry.notices : [];
+  const sources = Array.isArray(registry?.sources) ? registry.sources : [];
+  const fetchedAt = args.now.toISOString();
+  const priorities = notices
+    .map((notice) => priorityFromCuratedNotice(notice, fetchedAt, args.now, args.days))
+    .filter((priority): priority is OfficialEvacuationPriority => Boolean(priority));
+
+  return {
+    priorities,
+    registryCount: notices.length,
+    sourceCount: sources.length,
+    sourceUrl: args.registryUrl,
+  };
+}
+
 function dedupePriorities(priorities: OfficialEvacuationPriority[]) {
   const seen = new Set<string>();
   return priorities
@@ -648,6 +794,7 @@ export default async function handler(req: Request): Promise<Response> {
   const days = Number(url.searchParams.get("days") ?? String(DEFAULT_DAYS));
   const maxItems = Number(url.searchParams.get("maxItems") ?? String(DEFAULT_MAX_ITEMS));
   const now = new Date();
+  const curatedRegistryUrl = new URL(CURATED_CRITICAL_NOTICES_PATH, url.origin).toString();
 
   if (country !== "AR") {
     const response: OfficialEvacuationPrioritiesResponse = {
@@ -685,7 +832,18 @@ export default async function handler(req: Request): Promise<Response> {
       now,
     }).catch(() => ({ priorities: [] as OfficialEvacuationPriority[], upstreamCount: 0, fetchedPostCount: 0 }));
 
-    if (!capResult.ok && localResult.priorities.length === 0) {
+    const curatedResult = await fetchCuratedOfficialCriticalNotices({
+      registryUrl: curatedRegistryUrl,
+      days: Math.floor(days),
+      now,
+    }).catch(() => ({
+      priorities: [] as OfficialEvacuationPriority[],
+      registryCount: 0,
+      sourceCount: 0,
+      sourceUrl: curatedRegistryUrl,
+    }));
+
+    if (!capResult.ok && localResult.priorities.length === 0 && curatedResult.priorities.length === 0) {
       return errorJson(
         {
           error: "Official evacuation source temporarily unavailable",
@@ -699,6 +857,7 @@ export default async function handler(req: Request): Promise<Response> {
     const priorities = dedupePriorities([
       ...(capResult.ok ? capResult.priorities : []),
       ...localResult.priorities,
+      ...curatedResult.priorities,
     ]);
 
     const response: OfficialEvacuationPrioritiesResponse = {
@@ -707,17 +866,21 @@ export default async function handler(req: Request): Promise<Response> {
       country: "AR",
       priorities,
       count: priorities.length,
-      upstreamCount: (capResult.ok ? capResult.upstreamCount : 0) + localResult.upstreamCount,
+      upstreamCount: (capResult.ok ? capResult.upstreamCount : 0) + localResult.upstreamCount + curatedResult.registryCount,
       fetchedCapCount: capResult.ok ? capResult.fetchedCapCount : 0,
-      supplementalCount: localResult.priorities.length,
-      fetchedOfficialNoticeCount: localResult.fetchedPostCount,
-      attributionText: "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen",
+      supplementalCount: localResult.priorities.length + curatedResult.priorities.length,
+      fetchedOfficialNoticeCount: localResult.fetchedPostCount + curatedResult.registryCount,
+      curatedCount: curatedResult.priorities.length,
+      fetchedCuratedNoticeCount: curatedResult.registryCount,
+      attributionText: "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen; BioPulse official critical notice registry",
       sourceUrl: SMN_ALERTS_URL,
       apiSourceUrl: ALERT_HUB_ARGENTINA_RSS_URL,
-      supplementalSourceUrls: [NEUQUEN_SECURITY_SOURCE_URL, NEUQUEN_SECURITY_POSTS_API_URL],
+      supplementalSourceUrls: [NEUQUEN_SECURITY_SOURCE_URL, NEUQUEN_SECURITY_POSTS_API_URL, curatedRegistryUrl],
+      curatedSourceUrl: curatedRegistryUrl,
       limitations: [
         "BioPulse normalizes public CAP alerts from Argentina through Alert-Hub and filters only explicit evacuation language.",
         "BioPulse also checks selected public official local notices from the Ministerio de Seguridad de Neuquen and only promotes recent posts with evacuation language, emergency context and a recognized location.",
+        "BioPulse can also promote manually curated official critical notices from its public registry when they have active validity windows and verified official source links.",
         "This endpoint is a priority signal for the map, not a replacement for local authorities, Defensa Civil, firefighters or emergency services.",
         "The marker position is derived from official CAP geometry or a local-notice location match and can be approximate.",
         "Absence of a marker means BioPulse did not detect explicit evacuation language in the connected feed; it does not prove absence of risk.",

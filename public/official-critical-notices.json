@@ -1,0 +1,13 @@
+{
+  "schema": "biopulse.official-critical-notices.v1",
+  "updatedAt": "2026-07-20T00:00:00.000Z",
+  "sources": [
+    {
+      "id": "neuquen-seguridad",
+      "name": "Ministerio de Seguridad de Neuquen",
+      "url": "https://seguridad.neuquen.gob.ar/",
+      "scope": "Provincia de Neuquen"
+    }
+  ],
+  "notices": []
+}

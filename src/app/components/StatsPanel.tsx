@@ -6,16 +6,27 @@ type Props = {
   criticalEvents: number;
   affectedRegions: number;
   officialPriorityAlerts?: number;
+  onOfficialPriorityClick?: () => void;
   collapsed?: boolean; // true cuando estás explorando (zoom-in)
 };
 
 type StatKey = "official" | "total" | "critical" | "regions";
+
+type StatItem = {
+  key: StatKey;
+  title: string;
+  value: number;
+  icon: any;
+  color: string;
+  onClick?: () => void;
+};
 
 export function StatsPanel({
   totalEvents,
   criticalEvents,
   affectedRegions,
   officialPriorityAlerts = 0,
+  onOfficialPriorityClick,
   collapsed = false,
 }: Props) {
   // si el usuario toca un pictograma, puede “expandir” momentáneamente aun estando colapsado
@@ -24,7 +35,7 @@ export function StatsPanel({
   // Desktop: colapsa si "collapsed" y NO hay manualOpen
   const isCollapsedDesktop = collapsed && manualOpen === null;
 
-  const items = useMemo(
+  const items = useMemo<StatItem[]>(
     () => [
       ...(officialPriorityAlerts > 0
         ? [
@@ -34,6 +45,7 @@ export function StatsPanel({
               value: officialPriorityAlerts,
               icon: Siren,
               color: "text-red-300",
+              onClick: onOfficialPriorityClick,
             },
           ]
         : []),
@@ -59,7 +71,7 @@ export function StatsPanel({
         color: "text-amber-300",
       },
     ],
-    [totalEvents, criticalEvents, affectedRegions, officialPriorityAlerts]
+    [totalEvents, criticalEvents, affectedRegions, officialPriorityAlerts, onOfficialPriorityClick]
   );
 
   const Card = (p: {
@@ -70,16 +82,13 @@ export function StatsPanel({
     onClick?: () => void;
   }) => {
     const Icon = p.icon;
-    return (
-      <div
-        onClick={p.onClick}
-        className={[
-          "rounded-2xl border border-white/10 bg-black/35 backdrop-blur-md",
-          "shadow-xl",
-          "px-5 py-4",
-          p.onClick ? "cursor-pointer hover:bg-black/45 transition-colors" : "",
-        ].join(" ")}
-      >
+    const className = [
+      "rounded-2xl border border-white/10 bg-black/35 backdrop-blur-md",
+      "shadow-xl",
+      "px-5 py-4",
+      p.onClick ? "cursor-pointer hover:bg-black/45 transition-colors text-left w-full" : "",
+    ].join(" ");
+    const content = (
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-white/45 text-[11px] tracking-wider">{p.title}</div>
@@ -89,15 +98,29 @@ export function StatsPanel({
             <Icon className={["h-5 w-5", p.color].join(" ")} />
           </div>
         </div>
-      </div>
+    );
+
+    return p.onClick ? (
+      <button type="button" onClick={p.onClick} className={className} aria-label={`Open ${p.title}`}>
+        {content}
+      </button>
+    ) : (
+      <div className={className}>{content}</div>
     );
   };
 
   const Pict = (p: { itemKey: StatKey; value: number; icon: any; color: string }) => {
     const Icon = p.icon;
+    const item = getItem(p.itemKey);
     return (
       <button
-        onClick={() => setManualOpen(p.itemKey)}
+        onClick={() => {
+          if (item.onClick) {
+            item.onClick();
+            return;
+          }
+          setManualOpen(p.itemKey);
+        }}
         className={[
           "w-[54px] rounded-2xl border border-white/10",
           "bg-black/40 backdrop-blur-md shadow-lg",
@@ -195,7 +218,7 @@ export function StatsPanel({
                     value={it.value}
                     icon={it.icon}
                     color={it.color}
-                    onClick={collapsed ? () => setManualOpen(it.key) : undefined}
+                    onClick={it.onClick ?? (collapsed ? () => setManualOpen(it.key) : undefined)}
                   />
                 ))}
                 {livePill}

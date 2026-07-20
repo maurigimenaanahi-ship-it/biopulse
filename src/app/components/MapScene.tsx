@@ -9,6 +9,7 @@ type MapSceneProps = {
   bbox?: string | null; // "west,south,east,north"
   officialPriorityMarkers?: OfficialPriorityMarker[];
   onEventClick: (e: EnvironmentalEvent) => void;
+  onOfficialPriorityMarkerClick?: (marker: OfficialPriorityMarker) => void;
 
   // extras que ya veníamos usando
   resetKey?: number;
@@ -18,7 +19,7 @@ type MapSceneProps = {
   onZoomChange?: (zoom: number) => void;
 
   // ✅ NUEVO: foco externo (deep link / follow list / etc)
-  focus?: { lng: number; lat: number; zoom?: number; id?: string; sevRank?: number } | null;
+  focus?: { lng: number; lat: number; zoom?: number; id?: string; sevRank?: number; nonce?: number } | null;
 };
 
 // Mapa oscuro (sin keys)
@@ -57,6 +58,7 @@ export function MapScene({
   bbox,
   officialPriorityMarkers = [],
   onEventClick,
+  onOfficialPriorityMarkerClick,
   resetKey,
   onZoomedInChange,
   onZoomChange,
@@ -122,7 +124,7 @@ export function MapScene({
         id: String(focus.id),
       });
     }
-  }, [focus?.lng, focus?.lat, focus?.zoom, focus?.id, focus?.sevRank]);
+  }, [focus?.lng, focus?.lat, focus?.zoom, focus?.id, focus?.sevRank, focus?.nonce]);
 
   // Ajustar vista al bbox
   useEffect(() => {
@@ -474,12 +476,10 @@ export function MapScene({
     setRipple({ lng, lat, t: Date.now(), sev });
 
     if (props.priorityMarker) {
-      const id = String(props.eventId ?? "");
-      const ev = events.find((x) => String(x.id) === id);
-      if (ev) {
-        setActive({ lng, lat, sev, id });
-        onEventClick(ev);
-      }
+      const markerId = String(props.markerId ?? "");
+      const marker = officialPriorityMarkers.find((item) => item.id === markerId);
+      setActive({ lng, lat, sev, id: markerId });
+      if (marker) onOfficialPriorityMarkerClick?.(marker);
       return;
     }
 
