@@ -7,7 +7,8 @@
     "build": "vite build",
     "dev": "vite",
     "cameras:discover": "node scripts/discover-windy-cameras.mjs",
-    "notices:validate": "node scripts/validate-official-critical-notices.mjs"
+    "notices:validate": "node scripts/validate-official-critical-notices.mjs",
+    "sources:validate": "node scripts/validate-official-source-registry.mjs"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

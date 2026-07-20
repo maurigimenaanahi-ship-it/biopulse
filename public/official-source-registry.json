@@ -1,0 +1,424 @@
+{
+  "schema": "biopulse.official-source-registry.v1",
+  "updatedAt": "2026-07-20T00:00:00.000Z",
+  "scope": {
+    "country": "AR",
+    "province": "Neuquen",
+    "priorityArea": "Departamento Anelo"
+  },
+  "sources": [
+    {
+      "id": "ar-smn-cap-alert-hub",
+      "name": "Servicio Meteorologico Nacional - Alert-Hub CAP",
+      "authority": "national",
+      "jurisdiction": {
+        "country": "AR"
+      },
+      "status": "connected",
+      "criticalNoticeUse": "auto_feed",
+      "canAutoPromote": true,
+      "topics": [
+        "weather_alert",
+        "evacuation_keyword_scan"
+      ],
+      "access": [
+        {
+          "type": "rss",
+          "url": "https://cap-alerts.s3.amazonaws.com/country-ar-lang-en/rss.xml",
+          "automation": "connected",
+          "notes": "BioPulse filters Argentina SMN CAP items and explicit evacuation language."
+        },
+        {
+          "type": "web",
+          "url": "https://www.smn.gob.ar/alertas",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Official weather alerts",
+        "CAP status, scope, severity, urgency and certainty",
+        "CAP geometry when available"
+      ],
+      "doesNotProvide": [
+        "Local evacuation orders unless explicitly stated"
+      ],
+      "currentUse": "Connected by /api/official-evacuation-priorities.",
+      "nextStep": "Keep as national baseline; combine with local operational sources."
+    },
+    {
+      "id": "neuquen-seguridad-wp",
+      "name": "Ministerio de Seguridad de Neuquen",
+      "authority": "provincial",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen"
+      },
+      "status": "connected",
+      "criticalNoticeUse": "auto_feed",
+      "canAutoPromote": true,
+      "topics": [
+        "evacuation",
+        "fire",
+        "weather_alert",
+        "road_closure",
+        "civil_protection"
+      ],
+      "access": [
+        {
+          "type": "rss",
+          "url": "https://seguridad.neuquen.gob.ar/feed",
+          "automation": "connected"
+        },
+        {
+          "type": "api",
+          "url": "https://seguridad.neuquen.gob.ar/wp-json/wp/v2/posts",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://seguridad.neuquen.gob.ar/direcciones-provinciales/",
+          "automation": "manual_verification"
+        },
+        {
+          "type": "social",
+          "url": "https://www.facebook.com/minsegneuquen",
+          "automation": "manual_verification"
+        },
+        {
+          "type": "social",
+          "url": "https://www.instagram.com/minsegneuquen",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Official security and emergency communications",
+        "Provincial contacts and emergency lines",
+        "Public posts searchable by keyword"
+      ],
+      "doesNotProvide": [
+        "Guaranteed municipal-level evacuation orders"
+      ],
+      "currentUse": "Connected by /api/official-evacuation-priorities as supplemental Neuquen official notices.",
+      "nextStep": "Add source-specific keyword plans for evacuation, fire, route closure and shelter language."
+    },
+    {
+      "id": "neuquen-emergencias-riesgos",
+      "name": "Secretaria de Emergencias y Gestion de Riesgos de Neuquen",
+      "authority": "provincial",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen"
+      },
+      "status": "planned",
+      "criticalNoticeUse": "manual_verification",
+      "canAutoPromote": false,
+      "topics": [
+        "civil_protection",
+        "fire",
+        "road_safety",
+        "risk_management"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://emergenciasyriesgos.neuquen.gov.ar/web/",
+          "automation": "candidate",
+          "notes": "Portal lists Proteccion Civil, Manejo del Fuego, Seguridad Vial and Gestion de Riesgos."
+        }
+      ],
+      "provides": [
+        "Official emergency management areas",
+        "Portal links such as GIRO, Operativo Nieve and Gran REPO"
+      ],
+      "doesNotProvide": [
+        "Stable public RSS or API confirmed yet"
+      ],
+      "currentUse": "Source reference only.",
+      "nextStep": "Inspect Portal GIRO and Gran REPO for public endpoints before automation."
+    },
+    {
+      "id": "neuquen-informa-rss",
+      "name": "Neuquen Informa - Agencia oficial de noticias",
+      "authority": "provincial",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen"
+      },
+      "status": "planned",
+      "criticalNoticeUse": "candidate_feed",
+      "canAutoPromote": false,
+      "topics": [
+        "official_press",
+        "security",
+        "weather_alert",
+        "road_closure",
+        "coe"
+      ],
+      "access": [
+        {
+          "type": "rss",
+          "url": "https://www.neuqueninforma.gob.ar/rss/seguridad/",
+          "automation": "candidate"
+        },
+        {
+          "type": "rss",
+          "url": "https://www.neuqueninforma.gob.ar/rss/alerta-meteorologica/",
+          "automation": "candidate"
+        },
+        {
+          "type": "rss",
+          "url": "https://www.neuqueninforma.gob.ar/rss/noticias/",
+          "automation": "candidate"
+        },
+        {
+          "type": "web",
+          "url": "https://www.neuqueninforma.gob.ar/rss",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Official government news agency RSS channels",
+        "COE, security and risk communications"
+      ],
+      "doesNotProvide": [
+        "Structured CAP geometry",
+        "Guaranteed local evacuation order feed"
+      ],
+      "currentUse": "Not connected to endpoint yet.",
+      "nextStep": "Connect RSS seguridad and alerta meteorologica with strict official-critical keyword filters."
+    },
+    {
+      "id": "neuquen-dpv-routes",
+      "name": "Direccion Provincial de Vialidad de Neuquen",
+      "authority": "provincial",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen"
+      },
+      "status": "planned",
+      "criticalNoticeUse": "candidate_feed",
+      "canAutoPromote": false,
+      "topics": [
+        "road_status",
+        "road_closure",
+        "evacuation_route"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://www.dpvneuquen.gov.ar/servicios/",
+          "automation": "candidate"
+        },
+        {
+          "type": "web",
+          "url": "https://w2.dpvneuquen.gov.ar/distritos.php",
+          "automation": "manual_verification"
+        },
+        {
+          "type": "phone",
+          "value": "2942 15 572138",
+          "automation": "manual_verification",
+          "notes": "Daily road status contact listed by DPV."
+        }
+      ],
+      "provides": [
+        "Daily road status",
+        "Route closure and traffic prevention context",
+        "DPV district contacts"
+      ],
+      "doesNotProvide": [
+        "Evacuation order authority"
+      ],
+      "currentUse": "Not connected.",
+      "nextStep": "Connect Estado de Rutas page or report as road-context source for fire incidents."
+    },
+    {
+      "id": "neuquen-dpv-distrito-anelo",
+      "name": "DPV Neuquen Distrito 1 Anelo",
+      "authority": "provincial",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen",
+        "department": "Anelo"
+      },
+      "status": "manual",
+      "criticalNoticeUse": "manual_verification",
+      "canAutoPromote": false,
+      "topics": [
+        "road_status",
+        "evacuation_route",
+        "field_contact"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://w2.dpvneuquen.gov.ar/distritos.php",
+          "automation": "manual_verification"
+        },
+        {
+          "type": "phone",
+          "value": "0299-4904005",
+          "automation": "manual_verification"
+        },
+        {
+          "type": "email",
+          "value": "dpvdistrito1@neuquen.gov.ar",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Local route maintenance/contact for northeast Neuquen and oil zones"
+      ],
+      "doesNotProvide": [
+        "Public machine-readable feed"
+      ],
+      "currentUse": "Reference only.",
+      "nextStep": "Use as manual verification/contact source for route accessibility around Anelo."
+    },
+    {
+      "id": "anelo-municipality",
+      "name": "Municipalidad de Anelo",
+      "authority": "municipal",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen",
+        "department": "Anelo",
+        "municipality": "Anelo"
+      },
+      "status": "watchlist",
+      "criticalNoticeUse": "manual_verification",
+      "canAutoPromote": false,
+      "topics": [
+        "municipal_notice",
+        "evacuation",
+        "shelter",
+        "local_road"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://munianelo.neuquen.gob.ar/",
+          "automation": "manual_verification",
+          "notes": "Candidate official municipal website; direct source should be rechecked before active notice use."
+        },
+        {
+          "type": "phone",
+          "value": "0299-4904000",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Potential local municipal notices and contacts"
+      ],
+      "doesNotProvide": [
+        "Verified RSS or API yet"
+      ],
+      "currentUse": "Watchlist only.",
+      "nextStep": "Verify official website and social URLs directly, then add any public feed or manual intake rule."
+    },
+    {
+      "id": "aic-hydromet",
+      "name": "Autoridad Interjurisdiccional de Cuencas",
+      "authority": "interjurisdictional",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen"
+      },
+      "status": "planned",
+      "criticalNoticeUse": "context_only",
+      "canAutoPromote": false,
+      "topics": [
+        "hydrometeorology",
+        "storm_alert",
+        "river_flow",
+        "fire_weather_support"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://www.aic.gob.ar/sitio/laaic",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Hydrometeorological forecasts and alerts",
+        "River/reservoir monitoring context",
+        "Meteorological support for fires"
+      ],
+      "doesNotProvide": [
+        "Local evacuation order authority"
+      ],
+      "currentUse": "Reference only.",
+      "nextStep": "Identify public AIC alert/feed endpoints and connect as weather/risk context."
+    },
+    {
+      "id": "ar-snmf",
+      "name": "Servicio Nacional de Manejo del Fuego",
+      "authority": "national",
+      "jurisdiction": {
+        "country": "AR"
+      },
+      "status": "planned",
+      "criticalNoticeUse": "candidate_feed",
+      "canAutoPromote": false,
+      "topics": [
+        "fire",
+        "fire_report",
+        "fire_danger",
+        "resources_deployed"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-manejo-del-fuego",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Daily fire situation reports",
+        "Fire danger map and early warning products",
+        "National resource context"
+      ],
+      "doesNotProvide": [
+        "Municipal evacuation orders"
+      ],
+      "currentUse": "Not connected.",
+      "nextStep": "Find current report endpoints or PDF index and parse incidents affecting Neuquen."
+    },
+    {
+      "id": "apn-lanin",
+      "name": "Parque Nacional Lanin",
+      "authority": "national",
+      "jurisdiction": {
+        "country": "AR",
+        "province": "Neuquen"
+      },
+      "status": "planned",
+      "criticalNoticeUse": "manual_verification",
+      "canAutoPromote": false,
+      "topics": [
+        "protected_area",
+        "fire",
+        "visitor_alert",
+        "access_closure"
+      ],
+      "access": [
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin",
+          "automation": "manual_verification"
+        }
+      ],
+      "provides": [
+        "Protected area official notices",
+        "Visitor/access alerts",
+        "Official contact and social links"
+      ],
+      "doesNotProvide": [
+        "Alerts outside park jurisdiction"
+      ],
+      "currentUse": "Reference only.",
+      "nextStep": "Connect APN/Lanin official news or social alerts for park-access and fire context."
+    }
+  ]
+}
