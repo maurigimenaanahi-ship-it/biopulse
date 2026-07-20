@@ -7,6 +7,14 @@
    - No activar sirena por textos genericos como "emergencia", "alerta naranja", "refugio", "crecida" o recomendaciones de mochila.
    - Exigir lenguaje explicito: evacuacion, evacuar, orden de evacuacion, desalojo preventivo, centro de evacuados o equivalentes.
    - Mantener separadas fuente oficial, evidencia satelital e interpretacion BioPulse.
+   - Paso fijado antes de avanzar a Noticias/Radios: conectar un feed normalizado de evacuaciones oficiales criticas que alimente el mapa sin abrir eventos uno por uno.
+   - Alcance minimo de ese feed:
+     - Alert-Hub / SMN CAP Argentina como base ya conectada.
+     - Fuentes provinciales/municipales de Defensa Civil o gobiernos locales cuando tengan RSS, API, HTML estable o comunicados parseables.
+     - Parques Nacionales, Vialidad Nacional/Provincial y municipios solo cuando emitan evacuacion, cortes por emergencia o centros de evacuados.
+     - Dedupe por fuente, id, vigencia, zona y texto para no duplicar una misma orden.
+     - Salida unica: marcadores `official_evacuation` en el mapa, contador OFFICIAL EVAC, enlace a fuente, vigencia y limitaciones.
+   - Criterio de avance: no considerar completa la seccion de alertas oficiales hasta que BioPulse pueda mostrar esas senales criticas antes de que el usuario encuentre cada evento manualmente.
 
 2. Camaras en vivo
    - Priorizar video o visual util por sobre cercania pura.
