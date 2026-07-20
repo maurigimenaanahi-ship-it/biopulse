@@ -1,5 +1,5 @@
 import type { OfficialAlertRecord } from "../src/app/lib/officialAlertTypes";
-import { officialAlertMentionsEvacuation } from "../src/app/lib/officialEvacuationSignals";
+import { officialAlertMentionsEvacuation, textMentionsEvacuation } from "../src/app/lib/officialEvacuationSignals";
 import type {
   OfficialEvacuationPrioritiesResponse,
   OfficialEvacuationPriority,
@@ -24,12 +24,147 @@ type CapCandidate = {
   publishedAt: string | null;
 };
 
+type NeuquenOfficialPost = {
+  id: number;
+  date?: string;
+  date_gmt?: string;
+  modified_gmt?: string;
+  link?: string;
+  title?: { rendered?: string };
+  excerpt?: { rendered?: string };
+  content?: { rendered?: string };
+};
+
+type KnownNoticeLocation = {
+  label: string;
+  lat: number;
+  lon: number;
+  aliases: string[];
+};
+
 const ALERT_HUB_ARGENTINA_RSS_URL = "https://cap-alerts.s3.amazonaws.com/country-ar-lang-en/rss.xml";
 const SMN_ALERTS_URL = "https://www.smn.gob.ar/alertas";
+const NEUQUEN_SECURITY_POSTS_API_URL = "https://seguridad.neuquen.gob.ar/wp-json/wp/v2/posts";
+const NEUQUEN_SECURITY_SOURCE_URL = "https://seguridad.neuquen.gob.ar/";
 const DEFAULT_DAYS = 180;
 const MAX_DAYS = 730;
 const DEFAULT_MAX_ITEMS = 80;
 const MAX_CAP_ITEMS = 120;
+const LOCAL_NOTICE_ACTIVE_DAYS = 21;
+
+const NEUQUEN_NOTICE_SEARCH_TERMS = [
+  "evacuacion",
+  "evacuación",
+  "evacuar",
+  "evacuados",
+  "evacuadas",
+  "incendio",
+  "alerta meteorologica",
+  "alerta meteorológica",
+];
+
+const EMERGENCY_CONTEXT_KEYWORDS = [
+  "alerta",
+  "emergencia",
+  "incendio",
+  "fuego",
+  "igne",
+  "forestal",
+  "rural",
+  "temporal",
+  "lluvia",
+  "inundacion",
+  "inundación",
+  "desborde",
+  "crecida",
+  "viento",
+  "nevadas",
+  "riesgo",
+  "explosion",
+  "explosión",
+  "gas",
+  "derrame",
+  "proteccion civil",
+  "protección civil",
+  "defensa civil",
+  "bomberos",
+  "brigadistas",
+];
+
+const NEUQUEN_KNOWN_LOCATIONS: KnownNoticeLocation[] = [
+  {
+    label: "Añelo, Neuquén",
+    lat: -38.354,
+    lon: -68.789,
+    aliases: ["añelo", "anelo", "departamento añelo", "departamento anelo"],
+  },
+  {
+    label: "Rincón de los Sauces, Neuquén",
+    lat: -37.3906,
+    lon: -68.9268,
+    aliases: ["rincon de los sauces", "rincón de los sauces"],
+  },
+  {
+    label: "San Patricio del Chañar, Neuquén",
+    lat: -38.6297,
+    lon: -68.3014,
+    aliases: ["san patricio del chañar", "san patricio del chanar", "el chañar", "el chanar"],
+  },
+  {
+    label: "Neuquén capital",
+    lat: -38.9516,
+    lon: -68.0591,
+    aliases: ["neuquen capital", "neuquén capital", "ciudad de neuquen", "ciudad de neuquén"],
+  },
+  {
+    label: "Cutral Co, Neuquén",
+    lat: -38.9367,
+    lon: -69.2417,
+    aliases: ["cutral co", "cutral-co"],
+  },
+  {
+    label: "Plaza Huincul, Neuquén",
+    lat: -38.926,
+    lon: -69.2086,
+    aliases: ["plaza huincul"],
+  },
+  {
+    label: "Zapala, Neuquén",
+    lat: -38.8992,
+    lon: -70.0544,
+    aliases: ["zapala", "departamento zapala"],
+  },
+  {
+    label: "San Martín de los Andes, Neuquén",
+    lat: -40.1579,
+    lon: -71.3534,
+    aliases: ["san martin de los andes", "san martín de los andes"],
+  },
+  {
+    label: "Villa La Angostura, Neuquén",
+    lat: -40.7624,
+    lon: -71.6463,
+    aliases: ["villa la angostura"],
+  },
+  {
+    label: "Aluminé, Neuquén",
+    lat: -39.2364,
+    lon: -70.9197,
+    aliases: ["alumine", "aluminé"],
+  },
+  {
+    label: "Chos Malal, Neuquén",
+    lat: -37.3783,
+    lon: -70.2709,
+    aliases: ["chos malal"],
+  },
+  {
+    label: "Caviahue-Copahue, Neuquén",
+    lat: -37.8695,
+    lon: -71.0543,
+    aliases: ["caviahue", "copahue", "caviahue-copahue"],
+  },
+];
 
 const CAP_REQUEST_HEADERS = {
   Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
@@ -81,6 +216,18 @@ function decodeXml(value: string) {
     .replace(/&apos;/g, "'");
 }
 
+function stripHtml(value: unknown, max = 1200): string | null {
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  return cleanText(decodeXml(String(value).replace(/<[^>]+>/g, " ")), max);
+}
+
+function normalizedSearchText(value: unknown) {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -121,6 +268,13 @@ function isWithinDays(value: string | null, now: Date, days: number) {
   if (!Number.isFinite(date.getTime())) return true;
   const maxAgeMs = Math.max(1, days) * 24 * 60 * 60 * 1000;
   return now.getTime() - date.getTime() <= maxAgeMs;
+}
+
+function addDays(value: string, days: number) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString();
 }
 
 function alertStatus(toDate: string | null, now: Date): OfficialAlertStatus {
@@ -183,6 +337,71 @@ function severityScore(value: string | null) {
 function providerLabel(alert: OfficialAlertRecord) {
   if (alert.sourceId === "smn-cap-alert-hub") return "Servicio Meteorologico Nacional";
   return alert.provider || "Fuente oficial";
+}
+
+function noticeHasEmergencyContext(text: string) {
+  const normalized = normalizedSearchText(text);
+  return EMERGENCY_CONTEXT_KEYWORDS.some((keyword) => normalized.includes(normalizedSearchText(keyword)));
+}
+
+function noticeLooksLikeEvacuationPriority(text: string) {
+  return textMentionsEvacuation(text) && noticeHasEmergencyContext(text);
+}
+
+function findKnownNoticeLocation(text: string): KnownNoticeLocation | null {
+  const normalized = normalizedSearchText(text);
+  return (
+    NEUQUEN_KNOWN_LOCATIONS.find((location) =>
+      location.aliases.some((alias) => normalized.includes(normalizedSearchText(alias)))
+    ) ?? null
+  );
+}
+
+function postDateIso(post: NeuquenOfficialPost): string | null {
+  return (
+    validIso(post.date_gmt ? `${post.date_gmt}Z` : null) ??
+    validIso(post.date) ??
+    validIso(post.modified_gmt ? `${post.modified_gmt}Z` : null)
+  );
+}
+
+function priorityFromNeuquenPost(
+  post: NeuquenOfficialPost,
+  fetchedAt: string,
+  now: Date,
+  maxAgeDays: number
+): OfficialEvacuationPriority | null {
+  const title = stripHtml(post.title?.rendered, 180);
+  const excerpt = stripHtml(post.excerpt?.rendered, 600);
+  const content = stripHtml(post.content?.rendered, 1200);
+  const text = [title, excerpt, content].filter(Boolean).join(" ");
+  if (!noticeLooksLikeEvacuationPriority(text)) return null;
+
+  const observedAt = postDateIso(post);
+  if (!isWithinDays(observedAt, now, maxAgeDays)) return null;
+
+  const location = findKnownNoticeLocation(text);
+  if (!location) return null;
+
+  return {
+    id: `official-evacuation:neuquen-security:${post.id}`,
+    sourceAlertId: String(post.id),
+    sourceId: "neuquen-security-wp",
+    provider: "Ministerio de Seguridad de Neuquen",
+    title: title || "Comunicado oficial de evacuacion",
+    source: "Ministerio de Seguridad de Neuquen",
+    detail: excerpt || content || undefined,
+    lat: location.lat,
+    lon: location.lon,
+    observedAt: observedAt || fetchedAt,
+    expiresAt: observedAt ? addDays(observedAt, LOCAL_NOTICE_ACTIVE_DAYS) : null,
+    reportUrl: post.link ?? NEUQUEN_SECURITY_SOURCE_URL,
+    detailsUrl: post.link ?? NEUQUEN_SECURITY_SOURCE_URL,
+    areaDesc: location.label,
+    alertLevel: "Official local notice",
+    urgency: "Immediate",
+    certainty: "Observed",
+  };
 }
 
 function priorityFromAlert(alert: OfficialAlertRecord, fetchedAt: string): OfficialEvacuationPriority {
@@ -346,6 +565,70 @@ async function fetchArgentinaEvacuationPriorities(args: { days: number; maxItems
   };
 }
 
+async function fetchNeuquenSecurityEvacuationPriorities(args: {
+  days: number;
+  maxItems: number;
+  now: Date;
+}) {
+  const fetchedAt = args.now.toISOString();
+  const activeDays = Math.min(args.days, LOCAL_NOTICE_ACTIVE_DAYS);
+  const perPage = Math.min(20, args.maxItems);
+  const postMap = new Map<number, NeuquenOfficialPost>();
+
+  await Promise.all(
+    NEUQUEN_NOTICE_SEARCH_TERMS.map(async (term) => {
+      const url = new URL(NEUQUEN_SECURITY_POSTS_API_URL);
+      url.searchParams.set("search", term);
+      url.searchParams.set("per_page", String(perPage));
+      url.searchParams.set("orderby", "date");
+      url.searchParams.set("order", "desc");
+      url.searchParams.set("_fields", "id,date,date_gmt,modified_gmt,link,title,excerpt,content");
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          Accept: "application/json",
+          "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
+          "User-Agent": CAP_REQUEST_HEADERS["User-Agent"],
+        },
+      });
+
+      if (!response.ok) return;
+      const posts = (await response.json().catch(() => [])) as NeuquenOfficialPost[];
+      if (!Array.isArray(posts)) return;
+
+      posts.forEach((post) => {
+        if (typeof post?.id === "number") postMap.set(post.id, post);
+      });
+    })
+  );
+
+  const priorities = Array.from(postMap.values())
+    .map((post) => priorityFromNeuquenPost(post, fetchedAt, args.now, activeDays))
+    .filter((priority): priority is OfficialEvacuationPriority => Boolean(priority));
+
+  return {
+    priorities,
+    upstreamCount: postMap.size,
+    fetchedPostCount: postMap.size,
+  };
+}
+
+function dedupePriorities(priorities: OfficialEvacuationPriority[]) {
+  const seen = new Set<string>();
+  return priorities
+    .filter((priority) => {
+      const key = `${priority.sourceId}:${priority.sourceAlertId}:${priority.expiresAt ?? ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => {
+      const aTime = new Date(a.observedAt).getTime();
+      const bTime = new Date(b.observedAt).getTime();
+      return (Number.isFinite(bTime) ? bTime : 0) - (Number.isFinite(aTime) ? aTime : 0);
+    });
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -375,7 +658,7 @@ export default async function handler(req: Request): Promise<Response> {
       count: 0,
       attributionText: "BioPulse",
       sourceUrl: "",
-      limitations: ["This MVP endpoint currently normalizes Argentina official CAP alerts only."],
+      limitations: ["This MVP endpoint currently normalizes Argentina official CAP alerts and selected public official local notices only."],
       fetchedAt: now.toISOString(),
     };
     return json(response);
@@ -390,38 +673,53 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const result = await fetchArgentinaEvacuationPriorities({
+    const capResult = await fetchArgentinaEvacuationPriorities({
       days: Math.floor(days),
       maxItems: Math.floor(maxItems),
       now,
     });
 
-    if (!result.ok) {
+    const localResult = await fetchNeuquenSecurityEvacuationPriorities({
+      days: Math.floor(days),
+      maxItems: Math.floor(maxItems),
+      now,
+    }).catch(() => ({ priorities: [] as OfficialEvacuationPriority[], upstreamCount: 0, fetchedPostCount: 0 }));
+
+    if (!capResult.ok && localResult.priorities.length === 0) {
       return errorJson(
         {
           error: "Official evacuation source temporarily unavailable",
-          status: result.status,
-          message: result.message,
+          status: capResult.status,
+          message: capResult.message,
         },
         502
       );
     }
 
+    const priorities = dedupePriorities([
+      ...(capResult.ok ? capResult.priorities : []),
+      ...localResult.priorities,
+    ]);
+
     const response: OfficialEvacuationPrioritiesResponse = {
       provider: "BioPulse official evacuation priorities",
-      status: result.priorities.length > 0 ? "ok" : "no_active_evacuation_priorities",
+      status: priorities.length > 0 ? "ok" : "no_active_evacuation_priorities",
       country: "AR",
-      priorities: result.priorities,
-      count: result.priorities.length,
-      upstreamCount: result.upstreamCount,
-      fetchedCapCount: result.fetchedCapCount,
-      attributionText: "Servicio Meteorologico Nacional, via Alert-Hub",
+      priorities,
+      count: priorities.length,
+      upstreamCount: (capResult.ok ? capResult.upstreamCount : 0) + localResult.upstreamCount,
+      fetchedCapCount: capResult.ok ? capResult.fetchedCapCount : 0,
+      supplementalCount: localResult.priorities.length,
+      fetchedOfficialNoticeCount: localResult.fetchedPostCount,
+      attributionText: "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen",
       sourceUrl: SMN_ALERTS_URL,
       apiSourceUrl: ALERT_HUB_ARGENTINA_RSS_URL,
+      supplementalSourceUrls: [NEUQUEN_SECURITY_SOURCE_URL, NEUQUEN_SECURITY_POSTS_API_URL],
       limitations: [
         "BioPulse normalizes public CAP alerts from Argentina through Alert-Hub and filters only explicit evacuation language.",
+        "BioPulse also checks selected public official local notices from the Ministerio de Seguridad de Neuquen and only promotes recent posts with evacuation language, emergency context and a recognized location.",
         "This endpoint is a priority signal for the map, not a replacement for local authorities, Defensa Civil, firefighters or emergency services.",
-        "The marker position is derived from the official CAP geometry centroid or circle center and can be approximate.",
+        "The marker position is derived from official CAP geometry or a local-notice location match and can be approximate.",
         "Absence of a marker means BioPulse did not detect explicit evacuation language in the connected feed; it does not prove absence of risk.",
       ],
       fetchedAt: now.toISOString(),
