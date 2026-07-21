@@ -53,6 +53,11 @@ type NeuquenInformaRssItem = {
   pubDate?: string | null;
 };
 
+type MunicipalPostEntry = {
+  post: NeuquenOfficialPost;
+  matchedTerms: Set<string>;
+};
+
 type KnownNoticeLocation = {
   label: string;
   lat: number;
@@ -123,6 +128,9 @@ const NEUQUEN_INFORMA_RSS_FEEDS: NeuquenInformaRssFeed[] = [
     url: "https://www.neuqueninforma.gob.ar/rss/noticias/",
   },
 ];
+const ANELO_MUNICIPALITY_POSTS_API_URL = "https://munianelo.neuquen.gob.ar/wp-json/wp/v2/posts";
+const ANELO_MUNICIPALITY_SOURCE_URL = "https://munianelo.neuquen.gob.ar/";
+const ANELO_MUNICIPALITY_FEED_URL = "https://munianelo.neuquen.gob.ar/feed/";
 const CURATED_CRITICAL_NOTICES_PATH = "/official-critical-notices.json";
 const DEFAULT_DAYS = 180;
 const MAX_DAYS = 730;
@@ -140,6 +148,18 @@ const NEUQUEN_NOTICE_SEARCH_TERMS = [
   "incendio",
   "alerta meteorologica",
   "alerta meteorológica",
+];
+
+const ANELO_MUNICIPALITY_NOTICE_SEARCH_TERMS = [
+  "evacuacion",
+  "evacuar",
+  "evacuados",
+  "evacuadas",
+  "incendio",
+  "emergencia",
+  "alerta",
+  "defensa civil",
+  "proteccion civil",
 ];
 
 const EMERGENCY_CONTEXT_KEYWORDS = [
@@ -169,6 +189,13 @@ const EMERGENCY_CONTEXT_KEYWORDS = [
   "bomberos",
   "brigadistas",
 ];
+
+const ANELO_MUNICIPALITY_LOCATION: KnownNoticeLocation = {
+  label: "Anelo, Neuquen",
+  lat: -38.354,
+  lon: -68.789,
+  aliases: ["anelo", "departamento anelo"],
+};
 
 const NEUQUEN_KNOWN_LOCATIONS: KnownNoticeLocation[] = [
   {
@@ -599,6 +626,45 @@ function priorityFromNeuquenInformaItem(
   };
 }
 
+function priorityFromAneloMunicipalPost(
+  entry: MunicipalPostEntry,
+  fetchedAt: string,
+  now: Date,
+  maxAgeDays: number
+): OfficialEvacuationPriority | null {
+  const post = entry.post;
+  const title = stripHtml(post.title?.rendered, 180);
+  const excerpt = stripHtml(post.excerpt?.rendered, 700);
+  const matchedTerms = Array.from(entry.matchedTerms).join(" ");
+  const text = [title, excerpt, matchedTerms].filter(Boolean).join(" ");
+  if (!noticeLooksLikeEvacuationPriority(text)) return null;
+
+  const observedAt = postDateIso(post);
+  if (!isWithinDays(observedAt, now, maxAgeDays)) return null;
+
+  const location = findKnownNoticeLocation(text) ?? ANELO_MUNICIPALITY_LOCATION;
+
+  return {
+    id: `official-evacuation:anelo-municipality:${post.id}`,
+    sourceAlertId: String(post.id),
+    sourceId: "anelo-municipality",
+    provider: "Municipalidad de Anelo",
+    title: title || "Comunicado municipal critico",
+    source: "Municipalidad de Anelo",
+    detail: excerpt || undefined,
+    lat: location.lat,
+    lon: location.lon,
+    observedAt: observedAt || fetchedAt,
+    expiresAt: observedAt ? addDays(observedAt, LOCAL_NOTICE_ACTIVE_DAYS) : null,
+    reportUrl: post.link ?? ANELO_MUNICIPALITY_SOURCE_URL,
+    detailsUrl: post.link ?? ANELO_MUNICIPALITY_SOURCE_URL,
+    areaDesc: location.label,
+    alertLevel: "Official municipal notice",
+    urgency: "Immediate",
+    certainty: "Observed",
+  };
+}
+
 function priorityFromAlert(alert: OfficialAlertRecord, fetchedAt: string): OfficialEvacuationPriority {
   return {
     id: `official-evacuation:${alert.id}`,
@@ -679,6 +745,57 @@ async function fetchNeuquenInformaEvacuationPriorities(args: {
     priorities,
     upstreamCount: itemMap.size,
     fetchedItemCount: itemMap.size,
+  };
+}
+
+async function fetchAneloMunicipalityEvacuationPriorities(args: {
+  days: number;
+  maxItems: number;
+  now: Date;
+}) {
+  const fetchedAt = args.now.toISOString();
+  const activeDays = Math.min(args.days, LOCAL_NOTICE_ACTIVE_DAYS);
+  const perPage = Math.min(10, args.maxItems);
+  const postMap = new Map<number, MunicipalPostEntry>();
+
+  await Promise.all(
+    ANELO_MUNICIPALITY_NOTICE_SEARCH_TERMS.map(async (term) => {
+      const url = new URL(ANELO_MUNICIPALITY_POSTS_API_URL);
+      url.searchParams.set("search", term);
+      url.searchParams.set("per_page", String(perPage));
+      url.searchParams.set("orderby", "date");
+      url.searchParams.set("order", "desc");
+      url.searchParams.set("_fields", "id,date,date_gmt,modified_gmt,link,title,excerpt");
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          Accept: "application/json",
+          "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
+          "User-Agent": CAP_REQUEST_HEADERS["User-Agent"],
+        },
+      });
+
+      if (!response.ok) return;
+      const posts = (await response.json().catch(() => [])) as NeuquenOfficialPost[];
+      if (!Array.isArray(posts)) return;
+
+      posts.forEach((post) => {
+        if (typeof post?.id !== "number") return;
+        const entry = postMap.get(post.id) ?? { post, matchedTerms: new Set<string>() };
+        entry.matchedTerms.add(term);
+        postMap.set(post.id, entry);
+      });
+    })
+  );
+
+  const priorities = Array.from(postMap.values())
+    .map((entry) => priorityFromAneloMunicipalPost(entry, fetchedAt, args.now, activeDays))
+    .filter((priority): priority is OfficialEvacuationPriority => Boolean(priority));
+
+  return {
+    priorities,
+    upstreamCount: postMap.size,
+    fetchedPostCount: postMap.size,
   };
 }
 
@@ -986,6 +1103,12 @@ export default async function handler(req: Request): Promise<Response> {
       now,
     }).catch(() => ({ priorities: [] as OfficialEvacuationPriority[], upstreamCount: 0, fetchedItemCount: 0 }));
 
+    const aneloMunicipalityResult = await fetchAneloMunicipalityEvacuationPriorities({
+      days: Math.floor(days),
+      maxItems: Math.floor(maxItems),
+      now,
+    }).catch(() => ({ priorities: [] as OfficialEvacuationPriority[], upstreamCount: 0, fetchedPostCount: 0 }));
+
     const curatedResult = await fetchCuratedOfficialCriticalNotices({
       registryUrl: curatedRegistryUrl,
       days: Math.floor(days),
@@ -1001,6 +1124,7 @@ export default async function handler(req: Request): Promise<Response> {
       !capResult.ok &&
       localResult.priorities.length === 0 &&
       neuquenInformaResult.priorities.length === 0 &&
+      aneloMunicipalityResult.priorities.length === 0 &&
       curatedResult.priorities.length === 0
     ) {
       return errorJson(
@@ -1017,6 +1141,7 @@ export default async function handler(req: Request): Promise<Response> {
       ...(capResult.ok ? capResult.priorities : []),
       ...localResult.priorities,
       ...neuquenInformaResult.priorities,
+      ...aneloMunicipalityResult.priorities,
       ...curatedResult.priorities,
     ]);
 
@@ -1030,16 +1155,23 @@ export default async function handler(req: Request): Promise<Response> {
         (capResult.ok ? capResult.upstreamCount : 0) +
         localResult.upstreamCount +
         neuquenInformaResult.upstreamCount +
+        aneloMunicipalityResult.upstreamCount +
         curatedResult.registryCount,
       fetchedCapCount: capResult.ok ? capResult.fetchedCapCount : 0,
       supplementalCount:
-        localResult.priorities.length + neuquenInformaResult.priorities.length + curatedResult.priorities.length,
+        localResult.priorities.length +
+        neuquenInformaResult.priorities.length +
+        aneloMunicipalityResult.priorities.length +
+        curatedResult.priorities.length,
       fetchedOfficialNoticeCount:
-        localResult.fetchedPostCount + neuquenInformaResult.fetchedItemCount + curatedResult.registryCount,
+        localResult.fetchedPostCount +
+        neuquenInformaResult.fetchedItemCount +
+        aneloMunicipalityResult.fetchedPostCount +
+        curatedResult.registryCount,
       curatedCount: curatedResult.priorities.length,
       fetchedCuratedNoticeCount: curatedResult.registryCount,
       attributionText:
-        "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen; Neuquen Informa; BioPulse official critical notice registry",
+        "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen; Neuquen Informa; Municipalidad de Anelo; BioPulse official critical notice registry",
       sourceUrl: SMN_ALERTS_URL,
       apiSourceUrl: ALERT_HUB_ARGENTINA_RSS_URL,
       supplementalSourceUrls: [
@@ -1047,6 +1179,9 @@ export default async function handler(req: Request): Promise<Response> {
         NEUQUEN_SECURITY_POSTS_API_URL,
         NEUQUEN_INFORMA_SOURCE_URL,
         ...NEUQUEN_INFORMA_RSS_FEEDS.map((feed) => feed.url),
+        ANELO_MUNICIPALITY_SOURCE_URL,
+        ANELO_MUNICIPALITY_FEED_URL,
+        ANELO_MUNICIPALITY_POSTS_API_URL,
         curatedRegistryUrl,
       ],
       curatedSourceUrl: curatedRegistryUrl,
@@ -1054,6 +1189,7 @@ export default async function handler(req: Request): Promise<Response> {
         "BioPulse normalizes public CAP alerts from Argentina through Alert-Hub and filters only explicit evacuation language.",
         "BioPulse also checks selected public official local notices from the Ministerio de Seguridad de Neuquen and only promotes recent posts with evacuation language, emergency context and a recognized location.",
         "BioPulse checks selected Neuquen Informa RSS channels and only promotes recent official posts with evacuation language, emergency context and a recognized Neuquen location.",
+        "BioPulse checks the Municipalidad de Anelo public WordPress API and only promotes recent municipal posts with evacuation language and emergency context; the marker defaults to Anelo when the post does not name a more specific known location.",
         "BioPulse can also promote manually curated official critical notices from its public registry when they have active validity windows and verified official source links.",
         "This endpoint is a priority signal for the map, not a replacement for local authorities, Defensa Civil, firefighters or emergency services.",
         "The marker position is derived from official CAP geometry or a local-notice location match and can be approximate.",

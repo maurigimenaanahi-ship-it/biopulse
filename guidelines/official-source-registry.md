@@ -21,11 +21,11 @@ This file is the operating map for the next integrations. It is different from `
 
 ## Current Neuquen/Anelo Priority
 
-1. Keep SMN CAP, Ministerio de Seguridad Neuquen and Neuquen Informa RSS as `auto_feed` sources with strict filters.
-2. Monitor Neuquen Informa false positives before adding more RSS sections.
+1. Keep SMN CAP, Ministerio de Seguridad Neuquen, Neuquen Informa RSS and Municipalidad de Anelo WordPress as `auto_feed` sources with strict filters.
+2. Monitor Neuquen Informa and Municipalidad de Anelo false positives before adding more sections.
 3. Keep DPV Neuquen connected as road-status context, not as evacuation authority.
-4. Inspect Secretaria de Emergencias y Riesgos public portals for stable endpoints before automation.
-5. Verify Municipalidad de Anelo official web/social channels directly before promoting from `watchlist`.
+4. Keep Secretaria de Emergencias y Riesgos as manual verification until an explicit public alert endpoint or authorization exists.
+5. Verify Municipalidad de Anelo official social channels before adding them.
 6. Add SNMF reports and AIC hydrometeorological products as fire/weather context.
 7. Add APN Lanin for protected-area fire/access notices in Neuquen.
 

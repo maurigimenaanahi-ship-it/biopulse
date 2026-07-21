@@ -109,7 +109,7 @@
         "country": "AR",
         "province": "Neuquen"
       },
-      "status": "planned",
+      "status": "manual",
       "criticalNoticeUse": "manual_verification",
       "canAutoPromote": false,
       "topics": [
@@ -122,8 +122,20 @@
         {
           "type": "web",
           "url": "https://emergenciasyriesgos.neuquen.gov.ar/web/",
-          "automation": "candidate",
+          "automation": "manual_verification",
           "notes": "Portal lists Proteccion Civil, Manejo del Fuego, Seguridad Vial and Gestion de Riesgos."
+        },
+        {
+          "type": "app",
+          "url": "https://emergenciasyriesgos.neuquen.gov.ar/giro/",
+          "automation": "manual_verification",
+          "notes": "GIRO is a public web app shell, but its operational API endpoints are not connected pending explicit open-data/authorization review."
+        },
+        {
+          "type": "web",
+          "url": "https://emergenciasyriesgos.neuquen.gov.ar/repo/",
+          "automation": "manual_verification",
+          "notes": "GRAN-Repo is a Moodle repository; public REST access is blocked."
         }
       ],
       "provides": [
@@ -131,10 +143,11 @@
         "Portal links such as GIRO, Operativo Nieve and Gran REPO"
       ],
       "doesNotProvide": [
-        "Stable public RSS or API confirmed yet"
+        "Stable public RSS confirmed yet",
+        "Authorized public operational API confirmed yet"
       ],
-      "currentUse": "Source reference only.",
-      "nextStep": "Inspect Portal GIRO and Gran REPO for public endpoints before automation."
+      "currentUse": "Manual verification/source reference only. BioPulse does not ingest GIRO operational endpoints without explicit open-data authorization.",
+      "nextStep": "Request or identify an official public alert endpoint before automation."
     },
     {
       "id": "neuquen-informa-rss",
@@ -300,9 +313,9 @@
         "department": "Anelo",
         "municipality": "Anelo"
       },
-      "status": "watchlist",
-      "criticalNoticeUse": "manual_verification",
-      "canAutoPromote": false,
+      "status": "partial",
+      "criticalNoticeUse": "auto_feed",
+      "canAutoPromote": true,
       "topics": [
         "municipal_notice",
         "evacuation",
@@ -314,7 +327,19 @@
           "type": "web",
           "url": "https://munianelo.neuquen.gob.ar/",
           "automation": "manual_verification",
-          "notes": "Candidate official municipal website; direct source should be rechecked before active notice use."
+          "notes": "Official municipal website verified as public WordPress site."
+        },
+        {
+          "type": "rss",
+          "url": "https://munianelo.neuquen.gob.ar/feed/",
+          "automation": "connected",
+          "notes": "Connected by /api/official-evacuation-priorities with municipal evacuation/emergency filters."
+        },
+        {
+          "type": "api",
+          "url": "https://munianelo.neuquen.gob.ar/wp-json/wp/v2/posts",
+          "automation": "connected",
+          "notes": "Connected by /api/official-evacuation-priorities using WordPress search with strict promotion rules."
         },
         {
           "type": "phone",
@@ -323,13 +348,15 @@
         }
       ],
       "provides": [
-        "Potential local municipal notices and contacts"
+        "Potential local municipal notices and contacts",
+        "Public WordPress posts searchable by keyword"
       ],
       "doesNotProvide": [
-        "Verified RSS or API yet"
+        "Structured CAP geometry",
+        "Guaranteed active evacuation order feed"
       ],
-      "currentUse": "Watchlist only.",
-      "nextStep": "Verify official website and social URLs directly, then add any public feed or manual intake rule."
+      "currentUse": "Connected by /api/official-evacuation-priorities as official municipal Anelo notice source.",
+      "nextStep": "Monitor false positives and add official social channels if verified."
     },
     {
       "id": "aic-hydromet",
