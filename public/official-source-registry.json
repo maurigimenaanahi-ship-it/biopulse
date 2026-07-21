@@ -198,8 +198,8 @@
         "country": "AR",
         "province": "Neuquen"
       },
-      "status": "planned",
-      "criticalNoticeUse": "candidate_feed",
+      "status": "connected",
+      "criticalNoticeUse": "context_only",
       "canAutoPromote": false,
       "topics": [
         "road_status",
@@ -210,7 +210,19 @@
         {
           "type": "web",
           "url": "https://www.dpvneuquen.gov.ar/servicios/",
-          "automation": "candidate"
+          "automation": "manual_verification"
+        },
+        {
+          "type": "api",
+          "url": "https://w2.dpvneuquen.gov.ar/parteopendata/api/parte",
+          "automation": "connected",
+          "notes": "Connected by /api/access-routes as official Neuquen road-status context by matched route number."
+        },
+        {
+          "type": "api",
+          "url": "https://w2.dpvneuquen.gov.ar/parteopendata/api/openapi.json",
+          "automation": "manual_verification",
+          "notes": "Official OpenAPI specification for DPV daily and historical road-status endpoints."
         },
         {
           "type": "web",
@@ -232,8 +244,8 @@
       "doesNotProvide": [
         "Evacuation order authority"
       ],
-      "currentUse": "Not connected.",
-      "nextStep": "Connect Estado de Rutas page or report as road-context source for fire incidents."
+      "currentUse": "Connected by /api/access-routes as Neuquen official road-status context. It does not generate evacuation priority markers.",
+      "nextStep": "Improve segment matching beyond route number when DPV exposes or BioPulse curates segment geometry."
     },
     {
       "id": "neuquen-dpv-distrito-anelo",

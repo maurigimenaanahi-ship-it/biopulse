@@ -23,7 +23,7 @@ This file is the operating map for the next integrations. It is different from `
 
 1. Keep SMN CAP, Ministerio de Seguridad Neuquen and Neuquen Informa RSS as `auto_feed` sources with strict filters.
 2. Monitor Neuquen Informa false positives before adding more RSS sections.
-3. Connect DPV Neuquen route state as road/evacuation-route context, not as evacuation authority.
+3. Keep DPV Neuquen connected as road-status context, not as evacuation authority.
 4. Inspect Secretaria de Emergencias y Riesgos public portals for stable endpoints before automation.
 5. Verify Municipalidad de Anelo official web/social channels directly before promoting from `watchlist`.
 6. Add SNMF reports and AIC hydrometeorological products as fire/weather context.

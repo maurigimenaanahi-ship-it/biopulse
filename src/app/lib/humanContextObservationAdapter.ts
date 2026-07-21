@@ -252,11 +252,16 @@ export function accessRoutesToObservation(args: {
 
   const normalizedAt = args.normalizedAt ?? new Date().toISOString();
   const routes = Array.isArray(args.context.routes) ? args.context.routes : [];
+  const officialStatuses = Array.isArray(args.context.officialRoadStatuses) ? args.context.officialRoadStatuses : [];
   const measurements: Record<string, MeasurementValue> = {};
 
   addMeasurement(measurements, "routeCount", routes.length);
+  addMeasurement(measurements, "officialRoadStatusCount", officialStatuses.length);
   addMeasurement(measurements, "radiusKm", args.context.radiusKm);
   addMeasurement(measurements, "sourceName", args.context.source.name);
+  if (args.context.officialRoadStatusSource?.name) {
+    addMeasurement(measurements, "officialRoadStatusSourceName", args.context.officialRoadStatusSource.name);
+  }
 
   return {
     schema: "biopulse.observation.v1",
@@ -287,16 +292,19 @@ export function accessRoutesToObservation(args: {
     evidence: {
       summary:
         routes.length > 0
-          ? `${routes.length} ruta${routes.length === 1 ? "" : "s"} o acceso${routes.length === 1 ? "" : "s"} cartografiado${routes.length === 1 ? "" : "s"} cerca del evento.`
+          ? `${routes.length} ruta${routes.length === 1 ? "" : "s"} o acceso${routes.length === 1 ? "" : "s"} cartografiado${routes.length === 1 ? "" : "s"} cerca del evento${officialStatuses.length > 0 ? `, con ${officialStatuses.length} tramo${officialStatuses.length === 1 ? "" : "s"} oficial${officialStatuses.length === 1 ? "" : "es"} DPV asociado${officialStatuses.length === 1 ? "" : "s"}` : ""}.`
           : "No se detectaron rutas o accesos principales en la fuente conectada.",
-      artifacts: routes
-        .slice(0, 5)
-        .map((route) => ({ kind: "link" as const, url: route.sourceUrl, label: route.name }))
-        .filter((item) => Boolean(item.url)),
+      artifacts: [
+        ...routes.slice(0, 5).map((route) => ({ kind: "link" as const, url: route.sourceUrl, label: route.name })),
+        ...officialStatuses
+          .slice(0, 3)
+          .map((status) => ({ kind: "link" as const, url: status.sourceUrl, label: `${status.routeLabel}: ${status.statusLabel}` })),
+      ].filter((item) => Boolean(item.url)),
       measurements,
       limitations: [
-        "Contexto vial cartografiado; no confirma cortes, transitabilidad, congestión, evacuación ni estado operativo.",
-        "La fuente abierta puede estar incompleta o desactualizada.",
+        "Contexto vial cartografiado y, en Neuquen, estado vial oficial DPV asociado por numero de ruta cuando existe coincidencia.",
+        "No confirma evacuacion, via segura, congestion en tiempo real ni decision operativa.",
+        "La coincidencia DPV se hace por numero de ruta; puede incluir tramos de la misma ruta que no sean los mas cercanos al evento.",
       ],
     },
     raw: {

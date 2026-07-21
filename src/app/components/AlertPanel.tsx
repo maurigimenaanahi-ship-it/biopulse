@@ -25,6 +25,7 @@ import type {
   EcosystemFeature,
   NearbyCommunitiesResponse,
   NearbyCommunity,
+  OfficialRoadStatus,
   PopulationContextResponse,
   ProtectedArea,
   SettlementPopulation,
@@ -569,6 +570,7 @@ async function fetchAccessRoutes(lat: number, lon: number, signal?: AbortSignal)
   return {
     ...data,
     routes: Array.isArray(data.routes) ? data.routes : [],
+    officialRoadStatuses: Array.isArray(data.officialRoadStatuses) ? data.officialRoadStatuses : [],
   };
 }
 
@@ -2764,11 +2766,15 @@ function PopulationContextSummary({
 
 function AccessRouteSummary({
   items,
+  officialStatuses,
+  officialUnavailable,
   loading,
   error,
   loaded,
 }: {
   items: AccessRoute[];
+  officialStatuses: OfficialRoadStatus[];
+  officialUnavailable: boolean;
   loading: boolean;
   error: boolean;
   loaded: boolean;
@@ -2817,8 +2823,36 @@ function AccessRouteSummary({
           </a>
         ))}
       </div>
+      {officialStatuses.length > 0 ? (
+        <div className="mt-3 border-t border-white/10 pt-2">
+          <div className="text-[11px] font-medium text-white/55">Estado oficial DPV Neuquen</div>
+          <div className="mt-1.5 space-y-1.5">
+            {officialStatuses.slice(0, 3).map((status) => (
+              <a
+                key={status.id}
+                href={status.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-sm border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[11px] text-white/60 hover:text-white/80"
+              >
+                <span className="block truncate text-cyan-100/70">
+                  {status.routeLabel} - {status.statusLabel}
+                </span>
+                <span className="mt-0.5 block truncate text-white/40">{status.segment}</span>
+                {status.observation ? (
+                  <span className="mt-0.5 block line-clamp-2 text-white/35">{status.observation}</span>
+                ) : null}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : officialUnavailable ? (
+        <div className="mt-2 text-[11px] leading-relaxed text-amber-100/55">
+          DPV Neuquen no respondio para estado vial oficial.
+        </div>
+      ) : null}
       <div className="mt-2 text-[11px] leading-relaxed text-white/35">
-        No confirma cortes, tránsito, evacuación ni vía segura.
+        No confirma evacuacion ni via segura; usar DPV y autoridades para decision operativa.
       </div>
     </div>
   );
@@ -3965,6 +3999,9 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     ? populationContext!.knownPopulationCount
     : 0;
   const nearbyAccessRoutes = Array.isArray(accessRoutes?.routes) ? accessRoutes.routes : [];
+  const officialRoadStatuses = Array.isArray(accessRoutes?.officialRoadStatuses)
+    ? accessRoutes.officialRoadStatuses
+    : [];
   const humanGeoSource =
     criticalInfrastructure?.source ?? nearbyCommunitiesContext?.source ?? populationContext?.source ?? accessRoutes?.source ?? null;
   const humanEvacuationLabel =
@@ -4141,7 +4178,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
           : "empty"
         : "pending",
       detail: accessRoutes
-        ? `${nearbyAccessRoutes.length} ${nearbyAccessRoutes.length === 1 ? "acceso cercano" : "accesos cercanos"} en ${accessRoutes.radiusKm} km · ${accessRoutes.source.name}. No confirma transitabilidad.`
+        ? `${nearbyAccessRoutes.length} ${nearbyAccessRoutes.length === 1 ? "acceso cercano" : "accesos cercanos"} en ${accessRoutes.radiusKm} km · ${accessRoutes.source.name}${officialRoadStatuses.length > 0 ? ` + ${officialRoadStatuses.length} tramos DPV` : ""}. No confirma evacuacion ni via segura.`
         : accessRoutesLoading
         ? "Consultando rutas y accesos cartografiados cerca del evento."
         : accessRoutesErr
@@ -6926,6 +6963,8 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
                         <div className="text-sm font-medium text-white/75">Rutas y accesos</div>
                         <AccessRouteSummary
                           items={nearbyAccessRoutes}
+                          officialStatuses={officialRoadStatuses}
+                          officialUnavailable={Boolean(accessRoutes?.officialRoadStatusUnavailable)}
                           loading={accessRoutesLoading}
                           error={Boolean(accessRoutesErr)}
                           loaded={Boolean(accessRoutes)}

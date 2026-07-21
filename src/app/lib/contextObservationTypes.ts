@@ -84,10 +84,34 @@ export type AccessRoute = {
   sourceUrl: string;
 };
 
+export type OfficialRoadStatus = {
+  id: string;
+  routeNumber: number;
+  routeLabel: string;
+  segment: string;
+  statusCode: string;
+  statusLabel: string;
+  section: string | null;
+  observation: string | null;
+  lengthKm: number | null;
+  surface: string | null;
+  sourceUrl: string;
+};
+
 export type AccessRoutesResponse = {
   center: { lat: number; lon: number };
   radiusKm: number;
   routes: AccessRoute[];
+  officialRoadStatuses?: OfficialRoadStatus[];
+  officialRoadStatusSource?: {
+    name: string;
+    attribution: string;
+    attributionUrl: string;
+    apiUrl?: string;
+    observedAt?: string | null;
+    matchedRouteNumbers?: number[];
+  } | null;
+  officialRoadStatusUnavailable?: boolean;
   source: { name: string; attribution: string; attributionUrl: string };
   interpretation: string;
 };
