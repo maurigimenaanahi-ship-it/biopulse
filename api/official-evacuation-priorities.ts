@@ -35,6 +35,24 @@ type NeuquenOfficialPost = {
   content?: { rendered?: string };
 };
 
+type NeuquenInformaRssFeed = {
+  id: string;
+  label: string;
+  url: string;
+};
+
+type NeuquenInformaRssItem = {
+  id: string;
+  sourceAlertId: string;
+  feedLabel: string;
+  feedUrl: string;
+  title?: string | null;
+  description?: string | null;
+  content?: string | null;
+  link?: string | null;
+  pubDate?: string | null;
+};
+
 type KnownNoticeLocation = {
   label: string;
   lat: number;
@@ -86,6 +104,25 @@ const ALERT_HUB_ARGENTINA_RSS_URL = "https://cap-alerts.s3.amazonaws.com/country
 const SMN_ALERTS_URL = "https://www.smn.gob.ar/alertas";
 const NEUQUEN_SECURITY_POSTS_API_URL = "https://seguridad.neuquen.gob.ar/wp-json/wp/v2/posts";
 const NEUQUEN_SECURITY_SOURCE_URL = "https://seguridad.neuquen.gob.ar/";
+const NEUQUEN_INFORMA_SOURCE_ID = "neuquen-informa-rss";
+const NEUQUEN_INFORMA_SOURCE_URL = "https://www.neuqueninforma.gob.ar/rss";
+const NEUQUEN_INFORMA_RSS_FEEDS: NeuquenInformaRssFeed[] = [
+  {
+    id: "seguridad",
+    label: "Seguridad",
+    url: "https://www.neuqueninforma.gob.ar/rss/seguridad/",
+  },
+  {
+    id: "alerta-meteorologica",
+    label: "Alerta Meteorologica",
+    url: "https://www.neuqueninforma.gob.ar/rss/alerta-meteorologica/",
+  },
+  {
+    id: "noticias",
+    label: "Ultimas noticias",
+    url: "https://www.neuqueninforma.gob.ar/rss/noticias/",
+  },
+];
 const CURATED_CRITICAL_NOTICES_PATH = "/official-critical-notices.json";
 const DEFAULT_DAYS = 180;
 const MAX_DAYS = 730;
@@ -319,6 +356,13 @@ function addDays(value: string, days: number) {
   return date.toISOString();
 }
 
+function stableIdPart(value: unknown, max = 120) {
+  const normalized = normalizedSearchText(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return (normalized || "item").slice(0, max);
+}
+
 function alertStatus(toDate: string | null, now: Date): OfficialAlertStatus {
   if (!toDate) return "active";
   const date = new Date(toDate);
@@ -405,6 +449,10 @@ function postDateIso(post: NeuquenOfficialPost): string | null {
     validIso(post.date) ??
     validIso(post.modified_gmt ? `${post.modified_gmt}Z` : null)
   );
+}
+
+function rssItemDateIso(item: NeuquenInformaRssItem): string | null {
+  return validIso(item.pubDate);
 }
 
 function curatedNoticeIsActive(notice: OfficialCriticalNoticeRecord, now: Date, days: number) {
@@ -512,6 +560,45 @@ function priorityFromNeuquenPost(
   };
 }
 
+function priorityFromNeuquenInformaItem(
+  item: NeuquenInformaRssItem,
+  fetchedAt: string,
+  now: Date,
+  maxAgeDays: number
+): OfficialEvacuationPriority | null {
+  const title = cleanText(item.title, 180);
+  const description = cleanText(item.description, 700);
+  const content = cleanText(item.content, 1200);
+  const text = [title, description, content].filter(Boolean).join(" ");
+  if (!noticeLooksLikeEvacuationPriority(text)) return null;
+
+  const observedAt = rssItemDateIso(item);
+  if (!isWithinDays(observedAt, now, maxAgeDays)) return null;
+
+  const location = findKnownNoticeLocation(text);
+  if (!location) return null;
+
+  return {
+    id: `official-evacuation:neuquen-informa:${item.id}`,
+    sourceAlertId: item.sourceAlertId,
+    sourceId: NEUQUEN_INFORMA_SOURCE_ID,
+    provider: "Neuquen Informa",
+    title: title || "Comunicado oficial critico",
+    source: `Neuquen Informa - ${item.feedLabel}`,
+    detail: description || content || undefined,
+    lat: location.lat,
+    lon: location.lon,
+    observedAt: observedAt || fetchedAt,
+    expiresAt: observedAt ? addDays(observedAt, LOCAL_NOTICE_ACTIVE_DAYS) : null,
+    reportUrl: item.link ?? item.feedUrl,
+    detailsUrl: item.link ?? item.feedUrl,
+    areaDesc: location.label,
+    alertLevel: "Official provincial notice",
+    urgency: "Immediate",
+    certainty: "Observed",
+  };
+}
+
 function priorityFromAlert(alert: OfficialAlertRecord, fetchedAt: string): OfficialEvacuationPriority {
   return {
     id: `official-evacuation:${alert.id}`,
@@ -531,6 +618,67 @@ function priorityFromAlert(alert: OfficialAlertRecord, fetchedAt: string): Offic
     alertLevel: alert.alertLevel ?? null,
     urgency: alert.urgency ?? null,
     certainty: alert.certainty ?? null,
+  };
+}
+
+async function fetchNeuquenInformaEvacuationPriorities(args: {
+  days: number;
+  maxItems: number;
+  now: Date;
+}) {
+  const fetchedAt = args.now.toISOString();
+  const activeDays = Math.min(args.days, LOCAL_NOTICE_ACTIVE_DAYS);
+  const perFeed = Math.max(1, Math.min(30, args.maxItems));
+  const itemMap = new Map<string, NeuquenInformaRssItem>();
+
+  await Promise.all(
+    NEUQUEN_INFORMA_RSS_FEEDS.map(async (feed) => {
+      const response = await fetch(feed.url, {
+        headers: {
+          Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+          "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
+          "User-Agent": CAP_REQUEST_HEADERS["User-Agent"],
+        },
+      });
+
+      if (!response.ok) return;
+
+      const xml = await response.text();
+      rssItems(xml)
+        .slice(0, perFeed)
+        .forEach((rssItem, index) => {
+          const title = tagValue(rssItem, "title", 220);
+          const link = tagValue(rssItem, "link", 700);
+          const guid = tagValue(rssItem, "guid", 700);
+          const pubDate = tagValue(rssItem, "pubDate", 120);
+          const description = tagValue(rssItem, "description", 1200);
+          const content = tagValue(rssItem, "content:encoded", 1600);
+          const sourceAlertId = `${feed.id}:${guid ?? link ?? title ?? index}`;
+          const id = `${feed.id}:${stableIdPart(guid ?? link ?? title ?? index)}`;
+
+          itemMap.set(sourceAlertId, {
+            id,
+            sourceAlertId,
+            feedLabel: feed.label,
+            feedUrl: feed.url,
+            title,
+            description,
+            content,
+            link,
+            pubDate,
+          });
+        });
+    })
+  );
+
+  const priorities = Array.from(itemMap.values())
+    .map((item) => priorityFromNeuquenInformaItem(item, fetchedAt, args.now, activeDays))
+    .filter((priority): priority is OfficialEvacuationPriority => Boolean(priority));
+
+  return {
+    priorities,
+    upstreamCount: itemMap.size,
+    fetchedItemCount: itemMap.size,
   };
 }
 
@@ -832,6 +980,12 @@ export default async function handler(req: Request): Promise<Response> {
       now,
     }).catch(() => ({ priorities: [] as OfficialEvacuationPriority[], upstreamCount: 0, fetchedPostCount: 0 }));
 
+    const neuquenInformaResult = await fetchNeuquenInformaEvacuationPriorities({
+      days: Math.floor(days),
+      maxItems: Math.floor(maxItems),
+      now,
+    }).catch(() => ({ priorities: [] as OfficialEvacuationPriority[], upstreamCount: 0, fetchedItemCount: 0 }));
+
     const curatedResult = await fetchCuratedOfficialCriticalNotices({
       registryUrl: curatedRegistryUrl,
       days: Math.floor(days),
@@ -843,7 +997,12 @@ export default async function handler(req: Request): Promise<Response> {
       sourceUrl: curatedRegistryUrl,
     }));
 
-    if (!capResult.ok && localResult.priorities.length === 0 && curatedResult.priorities.length === 0) {
+    if (
+      !capResult.ok &&
+      localResult.priorities.length === 0 &&
+      neuquenInformaResult.priorities.length === 0 &&
+      curatedResult.priorities.length === 0
+    ) {
       return errorJson(
         {
           error: "Official evacuation source temporarily unavailable",
@@ -857,6 +1016,7 @@ export default async function handler(req: Request): Promise<Response> {
     const priorities = dedupePriorities([
       ...(capResult.ok ? capResult.priorities : []),
       ...localResult.priorities,
+      ...neuquenInformaResult.priorities,
       ...curatedResult.priorities,
     ]);
 
@@ -866,20 +1026,34 @@ export default async function handler(req: Request): Promise<Response> {
       country: "AR",
       priorities,
       count: priorities.length,
-      upstreamCount: (capResult.ok ? capResult.upstreamCount : 0) + localResult.upstreamCount + curatedResult.registryCount,
+      upstreamCount:
+        (capResult.ok ? capResult.upstreamCount : 0) +
+        localResult.upstreamCount +
+        neuquenInformaResult.upstreamCount +
+        curatedResult.registryCount,
       fetchedCapCount: capResult.ok ? capResult.fetchedCapCount : 0,
-      supplementalCount: localResult.priorities.length + curatedResult.priorities.length,
-      fetchedOfficialNoticeCount: localResult.fetchedPostCount + curatedResult.registryCount,
+      supplementalCount:
+        localResult.priorities.length + neuquenInformaResult.priorities.length + curatedResult.priorities.length,
+      fetchedOfficialNoticeCount:
+        localResult.fetchedPostCount + neuquenInformaResult.fetchedItemCount + curatedResult.registryCount,
       curatedCount: curatedResult.priorities.length,
       fetchedCuratedNoticeCount: curatedResult.registryCount,
-      attributionText: "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen; BioPulse official critical notice registry",
+      attributionText:
+        "Servicio Meteorologico Nacional via Alert-Hub; Ministerio de Seguridad de Neuquen; Neuquen Informa; BioPulse official critical notice registry",
       sourceUrl: SMN_ALERTS_URL,
       apiSourceUrl: ALERT_HUB_ARGENTINA_RSS_URL,
-      supplementalSourceUrls: [NEUQUEN_SECURITY_SOURCE_URL, NEUQUEN_SECURITY_POSTS_API_URL, curatedRegistryUrl],
+      supplementalSourceUrls: [
+        NEUQUEN_SECURITY_SOURCE_URL,
+        NEUQUEN_SECURITY_POSTS_API_URL,
+        NEUQUEN_INFORMA_SOURCE_URL,
+        ...NEUQUEN_INFORMA_RSS_FEEDS.map((feed) => feed.url),
+        curatedRegistryUrl,
+      ],
       curatedSourceUrl: curatedRegistryUrl,
       limitations: [
         "BioPulse normalizes public CAP alerts from Argentina through Alert-Hub and filters only explicit evacuation language.",
         "BioPulse also checks selected public official local notices from the Ministerio de Seguridad de Neuquen and only promotes recent posts with evacuation language, emergency context and a recognized location.",
+        "BioPulse checks selected Neuquen Informa RSS channels and only promotes recent official posts with evacuation language, emergency context and a recognized Neuquen location.",
         "BioPulse can also promote manually curated official critical notices from its public registry when they have active validity windows and verified official source links.",
         "This endpoint is a priority signal for the map, not a replacement for local authorities, Defensa Civil, firefighters or emergency services.",
         "The marker position is derived from official CAP geometry or a local-notice location match and can be approximate.",

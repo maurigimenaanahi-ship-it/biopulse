@@ -1,6 +1,6 @@
 {
   "schema": "biopulse.official-source-registry.v1",
-  "updatedAt": "2026-07-20T00:00:00.000Z",
+  "updatedAt": "2026-07-21T00:00:00.000Z",
   "scope": {
     "country": "AR",
     "province": "Neuquen",
@@ -144,9 +144,9 @@
         "country": "AR",
         "province": "Neuquen"
       },
-      "status": "planned",
-      "criticalNoticeUse": "candidate_feed",
-      "canAutoPromote": false,
+      "status": "partial",
+      "criticalNoticeUse": "auto_feed",
+      "canAutoPromote": true,
       "topics": [
         "official_press",
         "security",
@@ -158,17 +158,20 @@
         {
           "type": "rss",
           "url": "https://www.neuqueninforma.gob.ar/rss/seguridad/",
-          "automation": "candidate"
+          "automation": "connected",
+          "notes": "Connected by /api/official-evacuation-priorities with evacuation, emergency-context and known-location filters."
         },
         {
           "type": "rss",
           "url": "https://www.neuqueninforma.gob.ar/rss/alerta-meteorologica/",
-          "automation": "candidate"
+          "automation": "connected",
+          "notes": "Connected by /api/official-evacuation-priorities with evacuation, emergency-context and known-location filters."
         },
         {
           "type": "rss",
           "url": "https://www.neuqueninforma.gob.ar/rss/noticias/",
-          "automation": "candidate"
+          "automation": "connected",
+          "notes": "Connected by /api/official-evacuation-priorities with evacuation, emergency-context and known-location filters."
         },
         {
           "type": "web",
@@ -184,8 +187,8 @@
         "Structured CAP geometry",
         "Guaranteed local evacuation order feed"
       ],
-      "currentUse": "Not connected to endpoint yet.",
-      "nextStep": "Connect RSS seguridad and alerta meteorologica with strict official-critical keyword filters."
+      "currentUse": "Connected by /api/official-evacuation-priorities as supplemental Neuquen official notices.",
+      "nextStep": "Monitor false positives and add source-specific parser tests before expanding to more sections."
     },
     {
       "id": "neuquen-dpv-routes",
