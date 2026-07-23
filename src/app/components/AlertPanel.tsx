@@ -15,6 +15,7 @@ import { GuardianReportPanel } from "@/app/components/GuardianReportPanel";
 import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline";
 import { GuardianSessionClosePanel } from "@/app/components/GuardianSessionClosePanel";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
+import type { AicHydrometContextResponse } from "@/app/lib/aicHydrometContextTypes";
 import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
 import type {
   AccessRoute,
@@ -157,6 +158,7 @@ const FAV_KEY = "biopulse:followed-alerts";
 const CAMERA_RADIUS_OPTIONS = [60, 100, 120, 250, 500];
 const SNMF_HOME_URL =
   "https://www.argentina.gob.ar/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-manejo-del-fuego";
+const AIC_HOME_URL = "https://www.aic.gob.ar/Sitio/home";
 
 function apiUrl(path: string) {
   const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
@@ -303,6 +305,33 @@ async function fetchCurrentWeather(lat: number, lon: number, signal?: AbortSigna
 
   const data = (await res.json()) as WeatherResponse;
   return normalizeWeatherCurrent(data);
+}
+
+async function fetchAicHydrometContext(args: {
+  lat: number;
+  lon: number;
+  signal?: AbortSignal;
+}): Promise<AicHydrometContextResponse> {
+  const url =
+    `${apiUrl("/api/aic-hydromet-context")}?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as
+    | AicHydrometContextResponse
+    | { error?: string; message?: string }
+    | null;
+
+  if (!res.ok) {
+    const message =
+      data && "error" in data && data.error
+        ? data.message
+          ? `${data.error}: ${data.message}`
+          : data.error
+        : `Contexto AIC no disponible (${res.status}).`;
+    throw new Error(message);
+  }
+
+  return data as AicHydrometContextResponse;
 }
 
 // ---------- Camera registry loader ----------
@@ -3028,6 +3057,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const guardianObservationRef = useRef<HTMLDivElement | null>(null);
   const newsAbortRef = useRef<AbortController | null>(null);
   const weatherAbortRef = useRef<AbortController | null>(null);
+  const aicHydrometContextAbortRef = useRef<AbortController | null>(null);
   const cameraAbortRef = useRef<AbortController | null>(null);
   const windySearchAbortRef = useRef<AbortController | null>(null);
   const protectedContextAbortRef = useRef<AbortController | null>(null);
@@ -3095,6 +3125,11 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherErr, setWeatherErr] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherCurrent | null>(null);
+
+  // ====== AIC HYDROMET CONTEXT state ======
+  const [aicHydrometContextLoading, setAicHydrometContextLoading] = useState(false);
+  const [aicHydrometContextErr, setAicHydrometContextErr] = useState<string | null>(null);
+  const [aicHydrometContext, setAicHydrometContext] = useState<AicHydrometContextResponse | null>(null);
 
   // ====== PROTECTED CONTEXT state ======
   const [protectedContextLoading, setProtectedContextLoading] = useState(false);
@@ -3302,6 +3337,40 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
       setWeatherErr(e?.message ? String(e.message) : "No se pudo cargar clima.");
     } finally {
       if (!controller.signal.aborted) setWeatherLoading(false);
+    }
+  };
+
+  const loadAicHydrometContext = async () => {
+    if (!event) {
+      aicHydrometContextAbortRef.current?.abort();
+      setAicHydrometContextLoading(false);
+      setAicHydrometContextErr(null);
+      setAicHydrometContext(null);
+      return;
+    }
+
+    aicHydrometContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    aicHydrometContextAbortRef.current = controller;
+
+    setAicHydrometContextLoading(true);
+    setAicHydrometContextErr(null);
+    setAicHydrometContext(null);
+
+    try {
+      const context = await fetchAicHydrometContext({
+        lat: event.latitude,
+        lon: event.longitude,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setAicHydrometContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setAicHydrometContext(null);
+      setAicHydrometContextErr(e?.message ? String(e.message) : "No se pudo consultar contexto AIC.");
+    } finally {
+      if (!controller.signal.aborted) setAicHydrometContextLoading(false);
     }
   };
 
@@ -3659,6 +3728,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     setWindyNearbyErr(null);
     loadNews();
     loadWeather();
+    loadAicHydrometContext();
     loadCameraRegistry();
     loadProtectedContext();
     loadEcosystemContext();
@@ -3675,6 +3745,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     return () => {
       newsAbortRef.current?.abort();
       weatherAbortRef.current?.abort();
+      aicHydrometContextAbortRef.current?.abort();
       cameraAbortRef.current?.abort();
       windySearchAbortRef.current?.abort();
       protectedContextAbortRef.current?.abort();
@@ -3973,6 +4044,16 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     Number.isFinite(event.humidity) ? `Humedad: ${event.humidity!.toFixed(0)}%` : null,
     Number.isFinite(event.windSpeed) ? `Viento: ${event.windSpeed!.toFixed(0)} km/h` : null,
   ].filter((item): item is string => Boolean(item));
+  const aicProducts = Array.isArray(aicHydrometContext?.products) ? aicHydrometContext.products : [];
+  const aicLinkedProducts = aicProducts.filter((product) => product.status === "linked").slice(0, 3);
+  const aicManualProducts = aicProducts.filter((product) => product.status !== "linked").slice(0, 3);
+  const aicNearestStations = Array.isArray(aicHydrometContext?.nearestStations)
+    ? aicHydrometContext.nearestStations.slice(0, 3)
+    : [];
+  const aicNearestStation = aicNearestStations[0] ?? null;
+  const aicScopeLabel =
+    aicHydrometContext?.query.scopeLabel ||
+    (aicHydrometContext?.status === "out_of_scope" ? "fuera del area AIC aproximada" : "Cuencas Limay-Neuquen-Negro");
   const gwisCurrent = gwisFireDanger?.current ?? null;
   const gwisFwiText = gwisCurrent?.fwi == null ? "FWI no disponible" : `FWI ${gwisCurrent.fwi.toFixed(1)}`;
   const gwisDateText = gwisCurrent?.date ? fmtNowishUTC(gwisCurrent.date) : "fecha no informada";
@@ -4378,6 +4459,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     ],
     officialAlerts,
     weather,
+    aicHydrometContext,
     gwisFireDanger,
     snmfFireContext,
     cameras: displayCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
@@ -4669,13 +4751,24 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
       id: "weather",
       label: "Clima",
       icon: <CloudRain className="h-4 w-4 text-sky-200/75" />,
-      state: weatherLoading ? "loading" : weatherErr ? "limited" : weather ? "available" : "empty",
-      detail: weatherLoading
-        ? "Consultando clima actual."
-        : weatherErr
-        ? "La fuente climatica no respondio para este evento."
+      state:
+        weatherLoading || aicHydrometContextLoading
+          ? "loading"
+          : weatherErr && aicHydrometContextErr
+          ? "limited"
+          : weather || aicHydrometContext
+          ? "available"
+          : "empty",
+      detail: weatherLoading || aicHydrometContextLoading
+        ? "Consultando clima actual y contexto AIC."
+        : weatherErr && aicHydrometContextErr
+        ? "Las fuentes climaticas no respondieron para este evento."
+        : aicNearestStation
+        ? `Clima + AIC · ${aicNearestStation.name} a ${aicNearestStation.distanceKm.toFixed(1)} km`
         : weather
         ? `Clima actual · ${weather.time ? fmtNowishUTC(weather.time) : "hora no informada"}`
+        : aicHydrometContext
+        ? `AIC · ${aicScopeLabel}`
         : "No hay condiciones disponibles.",
       actionLabel: "Abrir sección",
       onOpen: () => setActiveSection("weather"),
@@ -7939,7 +8032,10 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
                 </div>
 
                 <button
-                  onClick={loadWeather}
+                  onClick={() => {
+                    loadWeather();
+                    loadAicHydrometContext();
+                  }}
                   className={cn(
                     "inline-flex items-center gap-2",
                     "px-3 py-1.5 rounded-full border border-white/10 bg-white/5",
@@ -7948,7 +8044,11 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
                   aria-label="Actualizar clima"
                   title="Actualizar clima"
                 >
-                  {weatherLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  {weatherLoading || aicHydrometContextLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
                   <span className="text-xs font-medium">Actualizar</span>
                 </button>
               </div>
@@ -7988,6 +8088,125 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
                     </div>
                     <div className="mt-2 text-white/90 font-semibold">{tempText}</div>
                   </div>
+                </div>
+
+                <div className="rounded-2xl border border-sky-300/15 bg-sky-400/[0.055] p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-sky-100/90">
+                        <ShieldCheck className="h-4 w-4 text-sky-200/75" />
+                        AIC hidrometeorologia oficial
+                      </div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        Contexto regional de cuencas, estaciones y pronostico. No reemplaza una orden local.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={loadAicHydrometContext}
+                      className="inline-flex min-h-8 items-center justify-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold text-white/65 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      {aicHydrometContextLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      )}
+                      AIC
+                    </button>
+                  </div>
+
+                  {aicHydrometContextErr ? (
+                    <div className="mt-3 rounded-lg border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-xs leading-relaxed text-amber-100/80">
+                      Contexto AIC temporalmente limitado: {aicHydrometContextErr}{" "}
+                      <a
+                        href={AIC_HOME_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-semibold text-amber-50 underline decoration-amber-200/30 underline-offset-2"
+                      >
+                        Abrir fuente
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  ) : aicHydrometContextLoading && !aicHydrometContext ? (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-white/45">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Consultando contexto hidrometeorologico AIC...
+                    </div>
+                  ) : aicHydrometContext ? (
+                    <div className="mt-3 space-y-3">
+                      <div className="flex flex-wrap gap-2 text-[11px]">
+                        <span className="rounded-full border border-sky-300/15 bg-sky-300/10 px-2.5 py-1 font-semibold text-sky-100/80">
+                          Alcance: {aicScopeLabel}
+                        </span>
+                        {aicNearestStation ? (
+                          <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 font-semibold text-white/60">
+                            {aicNearestStation.name} · {aicNearestStation.distanceKm.toFixed(1)} km
+                          </span>
+                        ) : null}
+                        {aicManualProducts.length > 0 ? (
+                          <span className="rounded-full border border-amber-300/15 bg-amber-300/10 px-2.5 py-1 font-semibold text-amber-100/75">
+                            {aicManualProducts.length} manual/limitado
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {aicNearestStations.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          {aicNearestStations.map((station) => (
+                            <a
+                              key={station.id}
+                              href={station.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group rounded-lg border border-white/10 bg-black/20 px-3 py-2 transition-colors hover:border-sky-200/25 hover:bg-sky-300/10"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <div className="text-xs font-semibold text-white/80">{station.name}</div>
+                                  <div className="mt-1 text-[11px] leading-relaxed text-white/40">
+                                    {station.basin} · {station.distanceKm.toFixed(1)} km
+                                  </div>
+                                </div>
+                                <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/35 transition-colors group-hover:text-sky-100/80" />
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                          Sin estaciones AIC cercanas en la lista curada inicial.
+                        </div>
+                      )}
+
+                      {aicLinkedProducts.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {aicLinkedProducts.map((product) => (
+                            <a
+                              key={product.id}
+                              href={product.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-white/55 transition-colors hover:border-sky-200/25 hover:text-sky-50/85"
+                            >
+                              {product.label}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {aicManualProducts.length > 0 ? (
+                        <div className="text-[11px] leading-relaxed text-white/35">
+                          Manual o limitado: {aicManualProducts.map((product) => product.label).join(", ")}.
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                      Sin contexto AIC cargado para esta coordenada.
+                    </div>
+                  )}
                 </div>
 
                 {/* Lectura guardián */}

@@ -27,8 +27,9 @@ This file is the operating map for the next integrations. It is different from `
 4. Keep Secretaria de Emergencias y Riesgos as manual verification until an explicit public alert endpoint or authorization exists.
 5. Verify Municipalidad de Anelo official social channels before adding them.
 6. Keep SNMF connected as national fire context and find a stable daily-report/feed index before parsing active incidents.
-7. Add AIC hydrometeorological products as fire/weather context.
+7. Keep AIC connected as regional hydrometeorological context and find a stable API/feed for station readings or warnings.
 8. Add APN Lanin for protected-area fire/access notices in Neuquen.
+9. Expand official camera and source registries province by province.
 
 ## Promotion Rules
 

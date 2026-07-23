@@ -1,5 +1,7 @@
 import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
+import { aicHydrometContextToObservation } from "@/app/lib/aicHydrometContextObservationAdapter";
+import type { AicHydrometContextResponse } from "@/app/lib/aicHydrometContextTypes";
 import { camerasToObservations, type CameraObservationInput } from "@/app/lib/cameraObservationAdapter";
 import type {
   AccessRoutesResponse,
@@ -64,6 +66,7 @@ export type BuildEventObservationsInput = {
   newsItems?: Array<{ item: NewsItem; classification: NewsObservationClassification }>;
   officialAlerts?: OfficialAlertsResponse | null;
   weather?: WeatherCurrent | null;
+  aicHydrometContext?: AicHydrometContextResponse | null;
   gwisFireDanger?: GwisFireDangerResponse | null;
   snmfFireContext?: SnmfFireContextResponse | null;
   cameras?: CameraObservationInput[];
@@ -150,6 +153,12 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     normalizedAt: generatedAt,
   });
   const weatherObservations = weatherObservation ? [weatherObservation] : [];
+  const aicHydrometContextObservation = aicHydrometContextToObservation({
+    event: input.event,
+    context: input.aicHydrometContext ?? null,
+    normalizedAt: generatedAt,
+  });
+  const aicHydrometContextObservations = aicHydrometContextObservation ? [aicHydrometContextObservation] : [];
   const gwisFireDangerObservation = gwisFireDangerToObservation({
     event: input.event,
     danger: input.gwisFireDanger ?? null,
@@ -195,6 +204,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     ...firmsObservations,
     ...fireHistoryObservations,
     ...weatherObservations,
+    ...aicHydrometContextObservations,
     ...gwisFireDangerObservations,
     ...cameraObservations,
     ...newsObservations,
@@ -224,9 +234,10 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
       news: newsObservations.filter((observation) => observation.type === "news_report").length,
       officialReferences:
         newsObservations.filter((observation) => observation.type === "official_reference").length +
-        snmfFireContextObservations.length,
+        snmfFireContextObservations.length +
+        aicHydrometContextObservations.length,
       officialAlerts: officialAlertObservations.length,
-      weather: weatherObservations.length,
+      weather: weatherObservations.length + aicHydrometContextObservations.length,
       fireDanger: gwisFireDangerObservations.length,
       cameras: cameraObservations.length,
       environmental: environmentalObservations.length,

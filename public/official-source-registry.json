@@ -366,7 +366,7 @@
         "country": "AR",
         "province": "Neuquen"
       },
-      "status": "planned",
+      "status": "partial",
       "criticalNoticeUse": "context_only",
       "canAutoPromote": false,
       "topics": [
@@ -378,7 +378,22 @@
       "access": [
         {
           "type": "web",
+          "url": "https://www.aic.gob.ar/Sitio/home",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
           "url": "https://www.aic.gob.ar/sitio/laaic",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.aic.gob.ar/sitio/estaciones",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.aic.gob.ar/sitio/novedades-inicio",
           "automation": "manual_verification"
         }
       ],
@@ -390,8 +405,8 @@
       "doesNotProvide": [
         "Local evacuation order authority"
       ],
-      "currentUse": "Reference only.",
-      "nextStep": "Identify public AIC alert/feed endpoints and connect as weather/risk context."
+      "currentUse": "Connected by /api/aic-hydromet-context as official regional hydrometeorological context. It does not generate evacuation priority markers.",
+      "nextStep": "Find a stable AIC API/feed for station readings, forecasts or warnings; keep news/alerts as manual verification until structured access exists."
     },
     {
       "id": "ar-snmf",
