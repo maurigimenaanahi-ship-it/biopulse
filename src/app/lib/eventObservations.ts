@@ -23,6 +23,8 @@ import { newsItemsToObservations, type NewsObservationClassification } from "@/a
 import type { NewsItem } from "@/app/lib/newsTypes";
 import { officialAlertsToObservations } from "@/app/lib/officialAlertObservationAdapter";
 import type { OfficialAlertsResponse } from "@/app/lib/officialAlertTypes";
+import { snmfFireContextToObservation } from "@/app/lib/snmfFireContextObservationAdapter";
+import type { SnmfFireContextResponse } from "@/app/lib/snmfFireContextTypes";
 import { weatherCurrentToObservation } from "@/app/lib/weatherObservationAdapter";
 import type { WeatherCurrent } from "@/app/lib/weatherTypes";
 import type { InferenceRecord, NarrativeFragment, Observation, ObservationType } from "@/app/lib/observations";
@@ -63,6 +65,7 @@ export type BuildEventObservationsInput = {
   officialAlerts?: OfficialAlertsResponse | null;
   weather?: WeatherCurrent | null;
   gwisFireDanger?: GwisFireDangerResponse | null;
+  snmfFireContext?: SnmfFireContextResponse | null;
   cameras?: CameraObservationInput[];
   fireHistory?: FireHistoryResponse | null;
   ecosystemContext?: EcosystemContextResponse | null;
@@ -153,6 +156,12 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     normalizedAt: generatedAt,
   });
   const gwisFireDangerObservations = gwisFireDangerObservation ? [gwisFireDangerObservation] : [];
+  const snmfFireContextObservation = snmfFireContextToObservation({
+    event: input.event,
+    context: input.snmfFireContext ?? null,
+    normalizedAt: generatedAt,
+  });
+  const snmfFireContextObservations = snmfFireContextObservation ? [snmfFireContextObservation] : [];
   const cameraObservations = camerasToObservations({
     event: input.event,
     cameras: input.cameras ?? [],
@@ -190,6 +199,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     ...cameraObservations,
     ...newsObservations,
     ...officialAlertObservations,
+    ...snmfFireContextObservations,
     ...environmentalObservations,
     ...humanContextObservations,
     ...guardianObservations,
@@ -212,7 +222,9 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
       firms: firmsObservations.length + fireHistoryObservations.length,
       guardian: guardianObservations.length,
       news: newsObservations.filter((observation) => observation.type === "news_report").length,
-      officialReferences: newsObservations.filter((observation) => observation.type === "official_reference").length,
+      officialReferences:
+        newsObservations.filter((observation) => observation.type === "official_reference").length +
+        snmfFireContextObservations.length,
       officialAlerts: officialAlertObservations.length,
       weather: weatherObservations.length,
       fireDanger: gwisFireDangerObservations.length,

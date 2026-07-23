@@ -400,8 +400,8 @@
       "jurisdiction": {
         "country": "AR"
       },
-      "status": "planned",
-      "criticalNoticeUse": "candidate_feed",
+      "status": "partial",
+      "criticalNoticeUse": "context_only",
       "canAutoPromote": false,
       "topics": [
         "fire",
@@ -413,6 +413,26 @@
         {
           "type": "web",
           "url": "https://www.argentina.gob.ar/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-manejo-del-fuego",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/seguridad/servicio-nacional-de-manejo-del-fuego/evaluacion-de-peligro-y-alerta-temprana/mapa-de",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/servicio-nacional-de-manejo-del-fuego/reporte-mensual-de-alerta-temprana",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/seguridad/servicio-nacional-de-manejo-del-fuego/evaluacion-de-peligro-y-alerta-temprana/reporte",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/sinagir/peligro-incendios-forestales",
           "automation": "manual_verification"
         }
       ],
@@ -424,8 +444,8 @@
       "doesNotProvide": [
         "Municipal evacuation orders"
       ],
-      "currentUse": "Not connected.",
-      "nextStep": "Find current report endpoints or PDF index and parse incidents affecting Neuquen."
+      "currentUse": "Connected by /api/snmf-fire-context as official national fire context; not used for evacuation priority markers.",
+      "nextStep": "Find a stable public report/feed index for daily fire situations and parse incidents by province without auto-promoting evacuation."
     },
     {
       "id": "apn-lanin",

@@ -38,6 +38,7 @@ import type { FireHistoryResponse } from "@/app/lib/fireHistoryTypes";
 import type { GwisFireDangerResponse } from "@/app/lib/gwisTypes";
 import type { NewsItem, NewsResponse } from "@/app/lib/newsTypes";
 import type { OfficialAlertRecord, OfficialAlertsResponse } from "@/app/lib/officialAlertTypes";
+import type { SnmfFireContextResponse } from "@/app/lib/snmfFireContextTypes";
 import {
   officialAlertLooksMandatoryEvacuation,
   officialAlertMentionsEvacuation,
@@ -154,6 +155,8 @@ const WORKER_BASE = "https://square-frost-5487.maurigimenaanahi.workers.dev";
 const PRODUCTION_API_BASE = "https://biopulse-weld.vercel.app";
 const FAV_KEY = "biopulse:followed-alerts";
 const CAMERA_RADIUS_OPTIONS = [60, 100, 120, 250, 500];
+const SNMF_HOME_URL =
+  "https://www.argentina.gob.ar/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-manejo-del-fuego";
 
 function apiUrl(path: string) {
   const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
@@ -639,6 +642,33 @@ async function fetchGwisFireDanger(args: {
   }
 
   return data as GwisFireDangerResponse;
+}
+
+async function fetchSnmfFireContext(args: {
+  lat: number;
+  lon: number;
+  signal?: AbortSignal;
+}): Promise<SnmfFireContextResponse> {
+  const url =
+    `${apiUrl("/api/snmf-fire-context")}?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as
+    | SnmfFireContextResponse
+    | { error?: string; message?: string }
+    | null;
+
+  if (!res.ok) {
+    const message =
+      data && "error" in data && data.error
+        ? data.message
+          ? `${data.error}: ${data.message}`
+          : data.error
+        : `Contexto SNMF no disponible (${res.status}).`;
+    throw new Error(message);
+  }
+
+  return data as SnmfFireContextResponse;
 }
 
 async function fetchOfficialAlerts(args: {
@@ -3009,6 +3039,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const accessRoutesAbortRef = useRef<AbortController | null>(null);
   const fireHistoryAbortRef = useRef<AbortController | null>(null);
   const gwisFireDangerAbortRef = useRef<AbortController | null>(null);
+  const snmfFireContextAbortRef = useRef<AbortController | null>(null);
   const officialAlertsAbortRef = useRef<AbortController | null>(null);
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [guardianStore, setGuardianStore] = useState<GuardianLocalStore>(() => readGuardianLocalStore());
@@ -3109,6 +3140,11 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const [gwisFireDangerLoading, setGwisFireDangerLoading] = useState(false);
   const [gwisFireDangerErr, setGwisFireDangerErr] = useState<string | null>(null);
   const [gwisFireDanger, setGwisFireDanger] = useState<GwisFireDangerResponse | null>(null);
+
+  // ====== SNMF FIRE CONTEXT state ======
+  const [snmfFireContextLoading, setSnmfFireContextLoading] = useState(false);
+  const [snmfFireContextErr, setSnmfFireContextErr] = useState<string | null>(null);
+  const [snmfFireContext, setSnmfFireContext] = useState<SnmfFireContextResponse | null>(null);
 
   // ====== OFFICIAL / HUMANITARIAN ALERTS state ======
   const [officialAlertsLoading, setOfficialAlertsLoading] = useState(false);
@@ -3551,6 +3587,40 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     }
   };
 
+  const loadSnmfFireContext = async () => {
+    if (!event || event.category !== "fire") {
+      snmfFireContextAbortRef.current?.abort();
+      setSnmfFireContextLoading(false);
+      setSnmfFireContextErr(null);
+      setSnmfFireContext(null);
+      return;
+    }
+
+    snmfFireContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    snmfFireContextAbortRef.current = controller;
+
+    setSnmfFireContextLoading(true);
+    setSnmfFireContextErr(null);
+    setSnmfFireContext(null);
+
+    try {
+      const context = await fetchSnmfFireContext({
+        lat: event.latitude,
+        lon: event.longitude,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setSnmfFireContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setSnmfFireContext(null);
+      setSnmfFireContextErr(e?.message ? String(e.message) : "No se pudo consultar contexto SNMF.");
+    } finally {
+      if (!controller.signal.aborted) setSnmfFireContextLoading(false);
+    }
+  };
+
   const loadOfficialAlerts = async () => {
     if (!event) return;
 
@@ -3599,6 +3669,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     loadWaterContext();
     loadFireHistory();
     loadGwisFireDanger();
+    loadSnmfFireContext();
     loadOfficialAlerts();
 
     return () => {
@@ -3615,6 +3686,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
       waterContextAbortRef.current?.abort();
       fireHistoryAbortRef.current?.abort();
       gwisFireDangerAbortRef.current?.abort();
+      snmfFireContextAbortRef.current?.abort();
       officialAlertsAbortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3905,6 +3977,13 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const gwisFwiText = gwisCurrent?.fwi == null ? "FWI no disponible" : `FWI ${gwisCurrent.fwi.toFixed(1)}`;
   const gwisDateText = gwisCurrent?.date ? fmtNowishUTC(gwisCurrent.date) : "fecha no informada";
   const gwisDangerLabel = gwisCurrent?.classLabel ?? "Sin dato";
+  const snmfProducts = Array.isArray(snmfFireContext?.products) ? snmfFireContext.products : [];
+  const snmfLinkedProducts = snmfProducts.filter((product) => product.status === "linked").slice(0, 4);
+  const snmfManualProducts = snmfProducts.filter((product) => product.status !== "linked").slice(0, 3);
+  const snmfScopeLabel =
+    snmfFireContext?.query.regionHint ||
+    snmfFireContext?.query.provinceHint ||
+    (snmfFireContext?.status === "out_of_scope" ? "fuera del alcance nacional" : "Argentina");
   const officialAlertItems = Array.isArray(officialAlerts?.alerts) ? officialAlerts.alerts : [];
   const activeOfficialAlertItems = officialAlertItems.filter((alert) => alert.status === "active");
   const officialAlertsUnsupported = officialAlerts?.status === "unsupported_category";
@@ -4300,6 +4379,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     officialAlerts,
     weather,
     gwisFireDanger,
+    snmfFireContext,
     cameras: displayCameras.map((camera) => ({ camera, providerSnapshot: providerSnapshots[camera.id] ?? null })),
     fireHistory,
     ecosystemContext,
@@ -5898,6 +5978,106 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
                       Fuente tecnica: {gwisFireDanger.attributionText}.
                     </div>
                   ) : null}
+
+                  <div className="mt-3 rounded-lg border border-sky-300/15 bg-sky-400/[0.055] p-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-100/80">
+                          <ShieldCheck className="h-3.5 w-3.5 text-sky-200/75" />
+                          SNMF oficial
+                        </div>
+                        <div className="mt-1 text-xs leading-relaxed text-white/50">
+                          Contexto nacional de manejo del fuego. No reemplaza una orden provincial o municipal.
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={loadSnmfFireContext}
+                        className="inline-flex min-h-8 items-center justify-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold text-white/65 transition-colors hover:bg-white/10 hover:text-white"
+                      >
+                        {snmfFireContextLoading ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        )}
+                        SNMF
+                      </button>
+                    </div>
+
+                    {snmfFireContextErr ? (
+                      <div className="mt-3 rounded-lg border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-xs leading-relaxed text-amber-100/80">
+                        Contexto SNMF temporalmente limitado: {snmfFireContextErr}{" "}
+                        <a
+                          href={SNMF_HOME_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 font-semibold text-amber-50 underline decoration-amber-200/30 underline-offset-2"
+                        >
+                          Abrir fuente
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    ) : snmfFireContextLoading && !snmfFireContext ? (
+                      <div className="mt-3 flex items-center gap-2 text-xs text-white/45">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Consultando productos oficiales SNMF...
+                      </div>
+                    ) : snmfFireContext ? (
+                      <div className="mt-3 space-y-3">
+                        <div className="flex flex-wrap gap-2 text-[11px]">
+                          <span className="rounded-full border border-sky-300/15 bg-sky-300/10 px-2.5 py-1 font-semibold text-sky-100/80">
+                            Alcance: {snmfScopeLabel}
+                          </span>
+                          <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 font-semibold text-white/60">
+                            {snmfLinkedProducts.length} productos enlazados
+                          </span>
+                          {snmfManualProducts.length > 0 ? (
+                            <span className="rounded-full border border-amber-300/15 bg-amber-300/10 px-2.5 py-1 font-semibold text-amber-100/75">
+                              {snmfManualProducts.length} de verificacion manual
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {snmfLinkedProducts.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {snmfLinkedProducts.map((product) => (
+                              <a
+                                key={product.id}
+                                href={product.sourceUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="group rounded-lg border border-white/10 bg-black/20 px-3 py-2 transition-colors hover:border-sky-200/25 hover:bg-sky-300/10"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <div className="text-xs font-semibold text-white/80">{product.label}</div>
+                                    <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-white/40">
+                                      {product.description}
+                                    </div>
+                                  </div>
+                                  <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/35 transition-colors group-hover:text-sky-100/80" />
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                            SNMF no devolvio productos enlazados para esta consulta.
+                          </div>
+                        )}
+
+                        {snmfManualProducts.length > 0 ? (
+                          <div className="text-[11px] leading-relaxed text-white/35">
+                            Manual o limitado: {snmfManualProducts.map((product) => product.label).join(", ")}.
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                        Sin contexto SNMF cargado para esta coordenada.
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-3 text-[11px] text-white/35">

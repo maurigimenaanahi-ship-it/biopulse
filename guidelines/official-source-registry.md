@@ -26,8 +26,9 @@ This file is the operating map for the next integrations. It is different from `
 3. Keep DPV Neuquen connected as road-status context, not as evacuation authority.
 4. Keep Secretaria de Emergencias y Riesgos as manual verification until an explicit public alert endpoint or authorization exists.
 5. Verify Municipalidad de Anelo official social channels before adding them.
-6. Add SNMF reports and AIC hydrometeorological products as fire/weather context.
-7. Add APN Lanin for protected-area fire/access notices in Neuquen.
+6. Keep SNMF connected as national fire context and find a stable daily-report/feed index before parsing active incidents.
+7. Add AIC hydrometeorological products as fire/weather context.
+8. Add APN Lanin for protected-area fire/access notices in Neuquen.
 
 ## Promotion Rules
 
