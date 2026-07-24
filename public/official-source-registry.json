@@ -470,8 +470,8 @@
         "country": "AR",
         "province": "Neuquen"
       },
-      "status": "planned",
-      "criticalNoticeUse": "manual_verification",
+      "status": "partial",
+      "criticalNoticeUse": "context_only",
       "canAutoPromote": false,
       "topics": [
         "protected_area",
@@ -483,6 +483,36 @@
         {
           "type": "web",
           "url": "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin/planea-tu-visita",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin/ficha-del-area-protegida",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin/mapa-del-area-protegida",
+          "automation": "connected"
+        },
+        {
+          "type": "web",
+          "url": "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin/horarios-como-llegar",
+          "automation": "connected"
+        },
+        {
+          "type": "email",
+          "value": "lanin@apn.gob.ar",
+          "automation": "manual_verification"
+        },
+        {
+          "type": "phone",
+          "value": "02972-427233",
           "automation": "manual_verification"
         }
       ],
@@ -494,8 +524,8 @@
       "doesNotProvide": [
         "Alerts outside park jurisdiction"
       ],
-      "currentUse": "Reference only.",
-      "nextStep": "Connect APN/Lanin official news or social alerts for park-access and fire context."
+      "currentUse": "Connected by /api/apn-lanin-context as official protected-area and access context. It does not generate evacuation priority markers.",
+      "nextStep": "Find a stable APN feed for current notices, closures or fire restrictions; keep park alerts as manual verification until structured access exists."
     }
   ]
 }

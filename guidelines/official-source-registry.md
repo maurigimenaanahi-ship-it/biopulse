@@ -28,7 +28,7 @@ This file is the operating map for the next integrations. It is different from `
 5. Verify Municipalidad de Anelo official social channels before adding them.
 6. Keep SNMF connected as national fire context and find a stable daily-report/feed index before parsing active incidents.
 7. Keep AIC connected as regional hydrometeorological context and find a stable API/feed for station readings or warnings.
-8. Add APN Lanin for protected-area fire/access notices in Neuquen.
+8. Keep APN Lanin connected as protected-area/access context and find a stable notices/closures feed.
 9. Expand official camera and source registries province by province.
 
 ## Promotion Rules

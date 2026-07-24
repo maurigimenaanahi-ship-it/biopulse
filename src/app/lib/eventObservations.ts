@@ -2,6 +2,8 @@ import type { EnvironmentalEvent } from "@/data/events";
 import type { GuardianEventMemory, GuardianObservation } from "@/app/lib/guardianStore";
 import { aicHydrometContextToObservation } from "@/app/lib/aicHydrometContextObservationAdapter";
 import type { AicHydrometContextResponse } from "@/app/lib/aicHydrometContextTypes";
+import { apnLaninContextToObservation } from "@/app/lib/apnLaninContextObservationAdapter";
+import type { ApnLaninContextResponse } from "@/app/lib/apnLaninContextTypes";
 import { camerasToObservations, type CameraObservationInput } from "@/app/lib/cameraObservationAdapter";
 import type {
   AccessRoutesResponse,
@@ -73,6 +75,7 @@ export type BuildEventObservationsInput = {
   fireHistory?: FireHistoryResponse | null;
   ecosystemContext?: EcosystemContextResponse | null;
   protectedContext?: ProtectedContextResponse | null;
+  apnLaninContext?: ApnLaninContextResponse | null;
   waterContext?: WaterContextResponse | null;
   criticalInfrastructure?: CriticalInfrastructureResponse | null;
   nearbyCommunities?: NearbyCommunitiesResponse | null;
@@ -183,6 +186,12 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     waterContext: input.waterContext ?? null,
     normalizedAt: generatedAt,
   });
+  const apnLaninContextObservation = apnLaninContextToObservation({
+    event: input.event,
+    context: input.apnLaninContext ?? null,
+    normalizedAt: generatedAt,
+  });
+  const apnLaninContextObservations = apnLaninContextObservation ? [apnLaninContextObservation] : [];
   const humanContextObservations = humanContextsToObservations({
     event: input.event,
     criticalInfrastructure: input.criticalInfrastructure ?? null,
@@ -211,6 +220,7 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
     ...officialAlertObservations,
     ...snmfFireContextObservations,
     ...environmentalObservations,
+    ...apnLaninContextObservations,
     ...humanContextObservations,
     ...guardianObservations,
   ]);
@@ -235,12 +245,13 @@ export function buildEventObservations(input: BuildEventObservationsInput): Even
       officialReferences:
         newsObservations.filter((observation) => observation.type === "official_reference").length +
         snmfFireContextObservations.length +
-        aicHydrometContextObservations.length,
+        aicHydrometContextObservations.length +
+        apnLaninContextObservations.length,
       officialAlerts: officialAlertObservations.length,
       weather: weatherObservations.length + aicHydrometContextObservations.length,
       fireDanger: gwisFireDangerObservations.length,
       cameras: cameraObservations.length,
-      environmental: environmentalObservations.length,
+      environmental: environmentalObservations.length + apnLaninContextObservations.length,
       humanContext: humanContextObservations.length,
     },
     typeCounts: countByType(observations),

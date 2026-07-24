@@ -16,6 +16,7 @@ import { GuardianMemoryTimeline } from "@/app/components/GuardianMemoryTimeline"
 import { GuardianSessionClosePanel } from "@/app/components/GuardianSessionClosePanel";
 import { SATELLITE_RASTER_LAYERS, SatelliteMiniMap } from "@/app/components/SatelliteMiniMap";
 import type { AicHydrometContextResponse } from "@/app/lib/aicHydrometContextTypes";
+import type { ApnLaninContextResponse } from "@/app/lib/apnLaninContextTypes";
 import type { CameraRegistryItem, LoadedCamera, ProviderCameraSnapshot } from "@/app/lib/cameraTypes";
 import type {
   AccessRoute,
@@ -159,6 +160,7 @@ const CAMERA_RADIUS_OPTIONS = [60, 100, 120, 250, 500];
 const SNMF_HOME_URL =
   "https://www.argentina.gob.ar/servicio-nacional-de-manejo-del-fuego/que-es-y-como-funciona-el-servicio-nacional-de-manejo-del-fuego";
 const AIC_HOME_URL = "https://www.aic.gob.ar/Sitio/home";
+const APN_LANIN_HOME_URL = "https://www.argentina.gob.ar/parquesnacionales/regionpatagonia/parque-nacional-lanin";
 
 function apiUrl(path: string) {
   const configuredBase = String(import.meta.env.VITE_BIOPULSE_API_BASE ?? "").replace(/\/$/, "");
@@ -528,6 +530,33 @@ async function fetchProtectedContext(
     ...data,
     areas: Array.isArray(data.areas) ? data.areas : [],
   };
+}
+
+async function fetchApnLaninContext(args: {
+  lat: number;
+  lon: number;
+  signal?: AbortSignal;
+}): Promise<ApnLaninContextResponse> {
+  const url =
+    `${apiUrl("/api/apn-lanin-context")}?lat=${encodeURIComponent(String(args.lat))}` +
+    `&lon=${encodeURIComponent(String(args.lon))}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data = (await res.json().catch(() => null)) as
+    | ApnLaninContextResponse
+    | { error?: string; message?: string }
+    | null;
+
+  if (!res.ok) {
+    const message =
+      data && "error" in data && data.error
+        ? data.message
+          ? `${data.error}: ${data.message}`
+          : data.error
+        : `Contexto APN Lanin no disponible (${res.status}).`;
+    throw new Error(message);
+  }
+
+  return data as ApnLaninContextResponse;
 }
 
 async function fetchEcosystemContext(lat: number, lon: number, signal?: AbortSignal): Promise<EcosystemContextResponse> {
@@ -3061,6 +3090,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const cameraAbortRef = useRef<AbortController | null>(null);
   const windySearchAbortRef = useRef<AbortController | null>(null);
   const protectedContextAbortRef = useRef<AbortController | null>(null);
+  const apnLaninContextAbortRef = useRef<AbortController | null>(null);
   const ecosystemContextAbortRef = useRef<AbortController | null>(null);
   const criticalInfrastructureAbortRef = useRef<AbortController | null>(null);
   const nearbyCommunitiesAbortRef = useRef<AbortController | null>(null);
@@ -3135,6 +3165,11 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const [protectedContextLoading, setProtectedContextLoading] = useState(false);
   const [protectedContextErr, setProtectedContextErr] = useState<string | null>(null);
   const [protectedContext, setProtectedContext] = useState<ProtectedContextResponse | null>(null);
+
+  // ====== APN LANIN CONTEXT state ======
+  const [apnLaninContextLoading, setApnLaninContextLoading] = useState(false);
+  const [apnLaninContextErr, setApnLaninContextErr] = useState<string | null>(null);
+  const [apnLaninContext, setApnLaninContext] = useState<ApnLaninContextResponse | null>(null);
 
   // ====== ECOSYSTEM CONTEXT state ======
   const [ecosystemContextLoading, setEcosystemContextLoading] = useState(false);
@@ -3445,6 +3480,40 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     }
   };
 
+  const loadApnLaninContext = async () => {
+    if (!event) {
+      apnLaninContextAbortRef.current?.abort();
+      setApnLaninContextLoading(false);
+      setApnLaninContextErr(null);
+      setApnLaninContext(null);
+      return;
+    }
+
+    apnLaninContextAbortRef.current?.abort();
+    const controller = new AbortController();
+    apnLaninContextAbortRef.current = controller;
+
+    setApnLaninContextLoading(true);
+    setApnLaninContextErr(null);
+    setApnLaninContext(null);
+
+    try {
+      const context = await fetchApnLaninContext({
+        lat: event.latitude,
+        lon: event.longitude,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setApnLaninContext(context);
+    } catch (e: any) {
+      if (isAbortError(e)) return;
+      setApnLaninContext(null);
+      setApnLaninContextErr(e?.message ? String(e.message) : "No se pudo consultar APN Lanin.");
+    } finally {
+      if (!controller.signal.aborted) setApnLaninContextLoading(false);
+    }
+  };
+
   const loadEcosystemContext = async () => {
     if (!event) return;
     ecosystemContextAbortRef.current?.abort();
@@ -3731,6 +3800,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     loadAicHydrometContext();
     loadCameraRegistry();
     loadProtectedContext();
+    loadApnLaninContext();
     loadEcosystemContext();
     loadCriticalInfrastructure();
     loadNearbyCommunities();
@@ -3749,6 +3819,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
       cameraAbortRef.current?.abort();
       windySearchAbortRef.current?.abort();
       protectedContextAbortRef.current?.abort();
+      apnLaninContextAbortRef.current?.abort();
       ecosystemContextAbortRef.current?.abort();
       criticalInfrastructureAbortRef.current?.abort();
       nearbyCommunitiesAbortRef.current?.abort();
@@ -4119,12 +4190,20 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
   const nearbyEcosystemFeatures = Array.isArray(ecosystemContext?.features) ? ecosystemContext.features : [];
   const nearbyWaterResources = Array.isArray(waterContext?.resources) ? waterContext.resources : [];
   const protectedAreas = Array.isArray(protectedContext?.areas) ? protectedContext.areas : [];
+  const apnProducts = Array.isArray(apnLaninContext?.products) ? apnLaninContext.products : [];
+  const apnLinkedProducts = apnProducts.filter((product) => product.status === "linked").slice(0, 4);
+  const apnManualProducts = apnProducts.filter((product) => product.status !== "linked").slice(0, 3);
+  const apnNearestAreas = Array.isArray(apnLaninContext?.nearestAreas) ? apnLaninContext.nearestAreas.slice(0, 3) : [];
+  const apnNearestArea = apnNearestAreas[0] ?? null;
+  const apnScopeLabel = apnLaninContext?.query.scopeLabel ?? "Parque Nacional Lanin";
+  const apnRestriction = apnLaninContext?.currentFireRestriction ?? null;
   const hasProtectionContext =
     eventEcosystems.length > 0 ||
     eventSpecies.length > 0 ||
     eventWaterLevel != null ||
     Boolean(ecosystemContext) ||
     Boolean(protectedContext) ||
+    Boolean(apnLaninContext && apnLaninContext.status === "ok") ||
     Boolean(waterContext) ||
     nearbyEcosystemFeatures.length > 0 ||
     protectedAreas.length > 0 ||
@@ -4222,6 +4301,27 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
         ? "Consultando la fuente cartográfica de áreas protegidas."
         : protectedContextErr
         ? "La fuente respondió con error o quedó temporalmente limitada."
+        : "Fuente preparada; esperando consulta para este evento.",
+    },
+    {
+      label: "APN Lanin oficial",
+      status: apnLaninContextLoading
+        ? "loading"
+        : apnLaninContextErr
+        ? "limited"
+        : apnLaninContext
+        ? apnLaninContext.status === "ok"
+          ? "connected"
+          : "empty"
+        : "pending",
+      detail: apnLaninContext
+        ? apnLaninContext.status === "ok"
+          ? `Fuente oficial APN conectada · ${apnScopeLabel}${apnNearestArea ? ` · ${apnNearestArea.distanceKm.toFixed(1)} km` : ""}.`
+          : `APN Lanin conectado, pero este evento queda fuera del radio aproximado de ${apnLaninContext.query.contextRadiusKm} km.`
+        : apnLaninContextLoading
+        ? "Consultando contexto oficial de Parque Nacional Lanin."
+        : apnLaninContextErr
+        ? "La fuente APN quedo temporalmente limitada."
         : "Fuente preparada; esperando consulta para este evento.",
     },
     {
@@ -4466,6 +4566,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
     fireHistory,
     ecosystemContext,
     protectedContext,
+    apnLaninContext,
     waterContext,
     criticalInfrastructure,
     nearbyCommunities: nearbyCommunitiesContext,
@@ -6822,6 +6923,146 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
                   description="BioPulse separa fuentes reales conectadas, datos propios del evento y capas futuras para no mezclar evidencia con intención de diseño."
                   items={protectionConnectionItems}
                 />
+
+                <div className="border-b border-cyan-300/15 bg-cyan-400/[0.04] px-4 py-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-cyan-50/90">
+                        <ShieldCheck className="h-4 w-4 text-cyan-200/75" />
+                        APN Lanin oficial
+                      </div>
+                      <div className="mt-1 text-xs leading-relaxed text-white/45">
+                        Fuente nacional para contexto de area protegida, accesos, senderos y uso publico.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={loadApnLaninContext}
+                      className="inline-flex min-h-8 items-center justify-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold text-white/65 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      {apnLaninContextLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      )}
+                      APN
+                    </button>
+                  </div>
+
+                  {apnLaninContextErr ? (
+                    <div className="mt-3 rounded-lg border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-xs leading-relaxed text-amber-100/80">
+                      Contexto APN temporalmente limitado: {apnLaninContextErr}{" "}
+                      <a
+                        href={APN_LANIN_HOME_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-semibold text-amber-50 underline decoration-amber-200/30 underline-offset-2"
+                      >
+                        Abrir fuente
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  ) : apnLaninContextLoading && !apnLaninContext ? (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-white/45">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Consultando APN Lanin...
+                    </div>
+                  ) : apnLaninContext ? (
+                    <div className="mt-3 space-y-3">
+                      <div className="flex flex-wrap gap-2 text-[11px]">
+                        <span
+                          className={cn(
+                            "rounded-full border px-2.5 py-1 font-semibold",
+                            apnLaninContext.status === "ok"
+                              ? "border-cyan-300/15 bg-cyan-300/10 text-cyan-100/80"
+                              : "border-white/10 bg-black/20 text-white/45"
+                          )}
+                        >
+                          {apnLaninContext.status === "ok" ? "Alcance APN" : "Fuera de alcance APN"}: {apnScopeLabel}
+                        </span>
+                        {apnNearestArea ? (
+                          <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 font-semibold text-white/60">
+                            {apnNearestArea.name} · {apnNearestArea.distanceKm.toFixed(1)} km
+                          </span>
+                        ) : null}
+                        {apnRestriction ? (
+                          <span
+                            className={cn(
+                              "rounded-full border px-2.5 py-1 font-semibold",
+                              apnRestriction.status === "active"
+                                ? "border-red-300/20 bg-red-400/10 text-red-100/80"
+                                : "border-white/10 bg-black/20 text-white/45"
+                            )}
+                          >
+                            Fuego: {apnRestriction.status === "active" ? "restriccion vigente" : "ultima restriccion vencida"}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {apnLaninContext.status === "out_of_scope" ? (
+                        <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs leading-relaxed text-white/45">
+                          APN Lanin esta conectado, pero BioPulse no lo suma como evidencia del evento porque queda fuera
+                          del radio aproximado del parque. Esto evita asociar areas protegidas que no corresponden.
+                        </div>
+                      ) : apnNearestAreas.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          {apnNearestAreas.map((area) => (
+                            <a
+                              key={area.id}
+                              href={area.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group rounded-lg border border-white/10 bg-black/20 px-3 py-2 transition-colors hover:border-cyan-200/25 hover:bg-cyan-300/10"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <div className="text-xs font-semibold text-white/80">{area.name}</div>
+                                  <div className="mt-1 text-[11px] leading-relaxed text-white/40">
+                                    Zona {area.zone} · {area.distanceKm.toFixed(1)} km
+                                  </div>
+                                </div>
+                                <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/35 transition-colors group-hover:text-cyan-100/80" />
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {apnLinkedProducts.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {apnLinkedProducts.map((product) => (
+                            <a
+                              key={product.id}
+                              href={product.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-white/55 transition-colors hover:border-cyan-200/25 hover:text-cyan-50/85"
+                            >
+                              {product.label}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {apnRestriction?.status === "expired" ? (
+                        <div className="text-[11px] leading-relaxed text-white/35">
+                          La restriccion APN 390/2025 figura como antecedente vencido el {apnRestriction.validUntil}; no se muestra como alerta vigente.
+                        </div>
+                      ) : null}
+
+                      {apnManualProducts.length > 0 ? (
+                        <div className="text-[11px] leading-relaxed text-white/35">
+                          Manual o archivado: {apnManualProducts.map((product) => product.label).join(", ")}.
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                      Sin contexto APN cargado para esta coordenada.
+                    </div>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2">
                   <div className="border-b border-white/10 p-4 md:border-r">
