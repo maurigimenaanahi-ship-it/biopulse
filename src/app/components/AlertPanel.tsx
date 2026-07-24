@@ -415,6 +415,32 @@ async function fetchChapelcoCameraSnapshot(args: {
   };
 }
 
+async function fetchAgvpCameraSnapshot(args: {
+  cameraKey: string;
+  endpoint?: string;
+  signal?: AbortSignal;
+}): Promise<ProviderCameraSnapshot> {
+  const endpoint = args.endpoint?.startsWith("/api/")
+    ? apiUrl(args.endpoint)
+    : args.endpoint || apiUrl("/api/agvp-camera");
+  const url = `${endpoint}?stationKey=${encodeURIComponent(args.cameraKey)}`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data: any = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.error || `AGVP camera error ${res.status}`);
+  }
+
+  return {
+    status: "ready",
+    snapshotUrl: typeof data?.snapshotUrl === "string" ? data.snapshotUrl : null,
+    playerUrl: null,
+    detailUrl: typeof data?.detailUrl === "string" ? data.detailUrl : null,
+    attributionText: typeof data?.attributionText === "string" ? data.attributionText : null,
+  };
+}
+
 type WindyNearbySearchItem = {
   webcamId?: string | number | null;
   title?: string | null;
@@ -1971,6 +1997,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "webcamtaxi") return "Webcamtaxi";
   if (provider === "worldcam") return "WorldCam";
   if (provider === "chapelco") return "Chapelco";
+  if (provider === "agvp-santa-cruz") return "AGVP Santa Cruz";
   if (provider === "cerrocastor") return "Cerro Castor";
   if (provider === "canal79") return "Canal 79";
   if (provider === "laslenas") return "Las Lenas";
@@ -2339,6 +2366,7 @@ function resolveCameraVisual(
   const isExternalPage = cam.fetch?.kind === "external_page" && typeof (cam.fetch as any)?.url === "string";
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
   const isChapelcoProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "chapelco";
+  const isAgvpProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "agvp-santa-cruz";
   const embedUrl = cameraTrustedEmbedUrl(cam);
   const streamUrl = trustedHlsStreamUrl(cam);
   const usageMode = cameraUsageMode(cam, providerSnapshot);
@@ -2346,7 +2374,7 @@ function resolveCameraVisual(
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
   const snapUrl = snapUrlRaw
     ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
-    : (isWindyProvider || isChapelcoProvider) && providerSnapshot?.snapshotUrl
+    : (isWindyProvider || isChapelcoProvider || isAgvpProvider) && providerSnapshot?.snapshotUrl
     ? `${providerSnapshot.snapshotUrl}${providerSnapshot.snapshotUrl.includes("?") ? "&" : "?"}t=${camRefreshTick}`
     : null;
   const providerDetailUrl =
@@ -2357,6 +2385,11 @@ function resolveCameraVisual(
       : isChapelcoProvider && (cam.fetch as any)?.cameraKey
       ? providerSnapshot?.detailUrl ??
         `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent((cam.fetch as any).cameraKey)}`
+      : isAgvpProvider && (cam.fetch as any)?.cameraKey
+      ? providerSnapshot?.detailUrl ??
+        `https://www.agvp.gob.ar/estaciones/${encodeURIComponent((cam.fetch as any).cameraKey)}/${encodeURIComponent(
+          (cam.fetch as any).cameraKey
+        )}.html`
       : null;
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
   const embedSourceUrl = cam.fetch?.kind === "html_embed" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
@@ -2379,7 +2412,7 @@ function resolveCameraVisual(
     ? "Stream disponible"
     : embedUrl
     ? "Embed disponible"
-    : isWindyProvider && providerSnapshot?.status === "loading"
+    : (isWindyProvider || isChapelcoProvider || isAgvpProvider) && providerSnapshot?.status === "loading"
     ? "Consultando provider"
     : openUrl
     ? "Link externo"
@@ -2390,7 +2423,7 @@ function resolveCameraVisual(
     ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
     : embedUrl
     ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80"
-    : isWindyProvider && providerSnapshot?.status === "loading"
+    : (isWindyProvider || isChapelcoProvider || isAgvpProvider) && providerSnapshot?.status === "loading"
     ? "border-white/10 bg-white/5 text-white/60"
     : openUrl
     ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-100/75"
@@ -3977,7 +4010,7 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
       if (fetchInfo?.kind !== "provider_api" || !fetchInfo?.provider || !fetchInfo?.cameraKey) return;
 
       const provider = String(fetchInfo.provider).toLowerCase();
-      if (provider !== "windy" && provider !== "chapelco") return;
+      if (provider !== "windy" && provider !== "chapelco" && provider !== "agvp-santa-cruz") return;
 
       setProviderSnapshots((prev) => ({
         ...prev,
@@ -3986,17 +4019,27 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
           detailUrl:
             provider === "windy"
               ? `https://www.windy.com/webcams/${fetchInfo.cameraKey}`
-              : `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent(String(fetchInfo.cameraKey))}`,
+              : provider === "chapelco"
+              ? `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent(String(fetchInfo.cameraKey))}`
+              : `https://www.agvp.gob.ar/estaciones/${encodeURIComponent(String(fetchInfo.cameraKey))}/${encodeURIComponent(
+                  String(fetchInfo.cameraKey)
+                )}.html`,
           attributionText:
             cam.usage?.attributionText ??
-            (provider === "windy" ? "Webcams provided by Windy.com" : "Fuente: Chapelco / Varitech"),
+            (provider === "windy"
+              ? "Webcams provided by Windy.com"
+              : provider === "chapelco"
+              ? "Fuente: Chapelco / Varitech"
+              : "Fuente: AGVP Santa Cruz"),
         },
       }));
 
       const loader =
         provider === "windy"
           ? fetchWindyCameraSnapshot
-          : fetchChapelcoCameraSnapshot;
+          : provider === "chapelco"
+          ? fetchChapelcoCameraSnapshot
+          : fetchAgvpCameraSnapshot;
 
       loader({
         cameraKey: String(fetchInfo.cameraKey),
@@ -4016,10 +4059,18 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
               detailUrl:
                 provider === "windy"
                   ? `https://www.windy.com/webcams/${fetchInfo.cameraKey}`
-                  : `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent(String(fetchInfo.cameraKey))}`,
+                  : provider === "chapelco"
+                  ? `https://chapelco.com.ar/camaras/?cam=${encodeURIComponent(String(fetchInfo.cameraKey))}`
+                  : `https://www.agvp.gob.ar/estaciones/${encodeURIComponent(String(fetchInfo.cameraKey))}/${encodeURIComponent(
+                      String(fetchInfo.cameraKey)
+                    )}.html`,
               attributionText:
                 cam.usage?.attributionText ??
-                (provider === "windy" ? "Webcams provided by Windy.com" : "Fuente: Chapelco / Varitech"),
+                (provider === "windy"
+                  ? "Webcams provided by Windy.com"
+                  : provider === "chapelco"
+                  ? "Fuente: Chapelco / Varitech"
+                  : "Fuente: AGVP Santa Cruz"),
               message: err?.message ? String(err.message) : "No se pudo cargar snapshot.",
             },
           }));
