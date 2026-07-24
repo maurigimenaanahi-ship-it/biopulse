@@ -2122,6 +2122,47 @@ function twitchEmbedUrl(rawUrl: unknown) {
   }
 }
 
+function neuquenCapitalEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "camaras.neuquencapital.gov.ar") return null;
+    if (url.pathname !== "/" && url.pathname !== "") return null;
+    if (url.search) return null;
+    if (url.hash && !/^#[a-z0-9-]+$/i.test(url.hash)) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function windyPlayerEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+
+    if (host === "embed.windy.com") {
+      url.protocol = "https:";
+      return url.toString();
+    }
+
+    if (host === "webcams.windy.com") {
+      if (!/^\/webcams\/public\/embed\/player\/\d+\/[a-z0-9-]+$/i.test(url.pathname)) return null;
+      url.protocol = "https:";
+      return url.toString();
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function trustedHlsStreamUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   if (fetchInfo?.kind !== "stream_url") return null;
@@ -2133,8 +2174,7 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     const host = url.hostname.toLowerCase();
 
     if (host === "camaras.neuquencapital.gov.ar") {
-      if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
-      return url.toString();
+      return null;
     }
 
     if (host === "hidrografia2.agpse.gob.ar" && url.port === "8443") {
@@ -2172,6 +2212,10 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   const provider = String(fetchInfo?.provider ?? cam.providerId ?? "").trim().toLowerCase();
 
+  if (provider === "neuquen-capital") {
+    return neuquenCapitalEmbedUrl(fetchInfo?.sourceUrl ?? fetchInfo?.url);
+  }
+
   if (fetchInfo?.kind !== "html_embed") return null;
   if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
   if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
@@ -2191,7 +2235,7 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
     return {
       label: "API + player",
       detail:
-        "Uso por API de Windy con link/player oficial disponible. BioPulse mantiene atribucion y abre la vista del proveedor.",
+        "Uso por API de Windy con player oficial disponible. BioPulse mantiene atribucion y conserva el reproductor del proveedor.",
       className: "border-sky-300/20 bg-sky-400/10 text-sky-100/80",
     };
   }
@@ -2219,6 +2263,15 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
       label: "Imagen directa",
       detail: "Imagen publica directa registrada con atribucion y enlace a la fuente cuando esta disponible.",
       className: "border-white/10 bg-white/5 text-white/60",
+    };
+  }
+
+  if (provider === "neuquen-capital") {
+    return {
+      label: "Player oficial",
+      detail:
+        "Uso mediante pagina oficial embebida de Neuquen Capital. El HLS directo no se fuerza porque la fuente no publica CORS para otros dominios.",
+      className: "border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80",
     };
   }
 
@@ -2367,7 +2420,8 @@ function resolveCameraVisual(
   const isWindyProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "windy";
   const isChapelcoProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "chapelco";
   const isAgvpProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "agvp-santa-cruz";
-  const embedUrl = cameraTrustedEmbedUrl(cam);
+  const embedUrl =
+    (isWindyProvider ? windyPlayerEmbedUrl(providerSnapshot?.playerUrl) : null) ?? cameraTrustedEmbedUrl(cam);
   const streamUrl = trustedHlsStreamUrl(cam);
   const usageMode = cameraUsageMode(cam, providerSnapshot);
   const displayDescription = cameraDisplayDescription(cam, providerSnapshot);

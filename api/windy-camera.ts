@@ -2,13 +2,24 @@ export const config = {
   runtime: "edge",
 };
 
+type WindyPlayerValue =
+  | string
+  | {
+      embed?: string | null;
+      player?: string | null;
+      url?: string | null;
+      available?: boolean | null;
+    }
+  | null
+  | undefined;
+
 type WindyWebcamResponse = {
   status?: string;
   title?: string;
   images?: {
     current?: Record<string, string | null | undefined>;
   };
-  player?: string | Record<string, string | null | undefined> | null;
+  player?: string | Record<string, WindyPlayerValue> | null;
   urls?: {
     detail?: string;
   };
@@ -45,15 +56,23 @@ function pickPlayerUrl(player?: WindyWebcamResponse["player"]) {
   if (typeof player === "string" && /^https?:\/\//i.test(player)) return player;
   if (!player || typeof player !== "object") return null;
 
-  const preferred = ["day", "month", "year", "lifetime", "embed", "url"];
+  const preferred = ["live", "day", "month", "year", "lifetime", "embed", "url"];
 
   for (const key of preferred) {
-    const value = player[key];
+    const value: any = player[key];
     if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+    if (value && typeof value === "object") {
+      const embed = value.embed ?? value.player ?? value.url;
+      if (typeof embed === "string" && /^https?:\/\//i.test(embed)) return embed;
+    }
   }
 
   for (const value of Object.values(player)) {
     if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+    if (value && typeof value === "object") {
+      const embed = (value as any).embed ?? (value as any).player ?? (value as any).url;
+      if (typeof embed === "string" && /^https?:\/\//i.test(embed)) return embed;
+    }
   }
 
   return null;
