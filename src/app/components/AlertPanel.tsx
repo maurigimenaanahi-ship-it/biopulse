@@ -1893,16 +1893,16 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
     video.addEventListener("error", () => markError("El reproductor no pudo decodificar el stream."));
 
     async function attachStream() {
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        setMessage("Conectando stream HLS nativo...");
-        video.src = src;
-        return;
-      }
-
       const { default: Hls } = await import("hls.js");
       if (!mounted) return;
 
       if (!Hls.isSupported()) {
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          setMessage("Conectando stream HLS nativo...");
+          video.src = src;
+          return;
+        }
+
         setState("unsupported");
         setMessage("Este navegador no soporta reproduccion HLS en esta vista.");
         return;
