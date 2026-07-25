@@ -18,6 +18,10 @@ BioPulse muestra reproductores publicos de [Paseos y Turismo](https://www.youtub
 
 BioPulse muestra el reproductor publico de [Ciudad Segura - Municipalidad de Corrientes](https://ciudaddecorrientes.gov.ar/ciudadsegura) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
 
+BioPulse muestra el reproductor publico de [Camaras en vivo en Santa Fe - El Litoral](https://www.ellitoral.com/camaras-vivo) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
+
+BioPulse muestra el reproductor publico de [Diario El Litoral Corrientes](https://www.ellitoral.com.ar/sociedad/2026-2-3-19-31-0-el-litoral-en-youtube-una-senal-de-streaming-24-horas-con-noticias-y-camaras-en-vivo) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
+
 BioPulse muestra reproductores publicos de [Portal 5900](https://5900.com.ar/5900-tv/) y [IngenieroWhite.com](https://www.ingenierowhite.com/camara-en-vivo/) mediante el iframe oficial de YouTube para la camara meteorologica de Villa Maria y la camara de Ingeniero White, sin copiar ni rehostear video.
 
 BioPulse reproduce senales publicas de [Canal 79](https://canal79tv.com.ar/) mediante HLS publicado por su reproductor oficial para Villa Maza, Mar del Plata, La Costa, Puan y Santa Clara del Mar, sin copiar ni rehostear video.

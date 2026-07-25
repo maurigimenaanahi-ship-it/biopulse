@@ -4058,10 +4058,52 @@
                      "water"
                  ],
         "priority":  0,
-        "validation":  {
+    "validation":  {
                            "status":  "verified",
                            "verifiedBy":  "Codex via WorldCam Argentina directory",
                            "verifiedAt":  "2026-07-08"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
+        "id":  "ar-ellitoral-santa-fe-provincia-24-7",
+        "providerId":  "ellitoral-santa-fe",
+        "title":  "Santa Fe - Camaras provinciales rotativas 24/7 (El Litoral)",
+        "description":  "Canal publico rotativo con camaras en Santa Fe Capital, Rafaela, Sauce Viejo, Monte Vera, Sunchales, San Guillermo, Suardi, Galvez, San Lorenzo y puente Rosario-Victoria. BioPulse muestra el reproductor oficial de YouTube publicado por la fuente sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -31.6333,
+                    "lon":  -60.7
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "Santa Fe",
+                         "locality":  "Santa Fe"
+                     },
+        "mediaType":  "embed",
+        "fetch":  {
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/Mb8fb755onY?autoplay=1&mute=1&rel=0",
+                      "sourceUrl":  "https://www.ellitoral.com/camaras-vivo"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: El Litoral / YouTube"
+                  },
+        "tags":  [
+                     "santa-fe",
+                     "province",
+                     "weather",
+                     "traffic",
+                     "rotating",
+                     "embed",
+                     "youtube"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via El Litoral page and YouTube oEmbed",
+                           "verifiedAt":  "2026-07-25"
                        }
     },
     {
@@ -4139,6 +4181,48 @@
                            "status":  "verified",
                            "verifiedBy":  "Codex via Municipalidad de Corrientes Ciudad Segura iframe",
                            "verifiedAt":  "2026-07-17"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
+        "id":  "ar-ellitoral-corrientes-capital-24-7",
+        "providerId":  "ellitoral-corrientes",
+        "title":  "Corrientes Capital - Camaras y noticias 24 horas (El Litoral)",
+        "description":  "Senal publica 24 horas de Diario El Litoral con camaras propias distribuidas en puntos estrategicos de Corrientes Capital. BioPulse muestra el reproductor oficial de YouTube publicado por la fuente sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -27.4692,
+                    "lon":  -58.8306
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "Corrientes",
+                         "locality":  "Corrientes"
+                     },
+        "mediaType":  "embed",
+        "fetch":  {
+                      "kind":  "html_embed",
+                      "provider":  "youtube",
+                      "url":  "https://www.youtube.com/embed/FNqdUygsSfo?autoplay=1&mute=1&rel=0",
+                      "sourceUrl":  "https://www.ellitoral.com.ar/sociedad/2026-2-3-19-31-0-el-litoral-en-youtube-una-senal-de-streaming-24-horas-con-noticias-y-camaras-en-vivo"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Diario El Litoral Corrientes / YouTube"
+                  },
+        "tags":  [
+                     "corrientes",
+                     "city",
+                     "traffic",
+                     "weather",
+                     "news",
+                     "embed",
+                     "youtube"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Diario El Litoral page, AMP YouTube video and YouTube oEmbed",
+                           "verifiedAt":  "2026-07-25"
                        }
     },
     {

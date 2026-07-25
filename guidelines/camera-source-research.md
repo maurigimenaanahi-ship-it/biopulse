@@ -66,6 +66,12 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Municipalidad de Corrientes / SISE Argentina / YouTube: aplicada como `html_embed` para la pagina oficial Ciudad Segura cuando el sitio municipal publica un iframe de YouTube en vivo. BioPulse usa el reproductor oficial de YouTube con atribucion y conserva el enlace a la pagina municipal.
   Fuente: https://ciudaddecorrientes.gov.ar/ciudadsegura
 
+- El Litoral / YouTube: aplicada como `html_embed` para la senal publica "Camaras en vivo en Santa Fe". La fuente publica un canal rotativo 24/7 con camaras en Santa Fe Capital, Rafaela, Sauce Viejo, Monte Vera, Sunchales, San Guillermo, Suardi, Galvez, San Lorenzo y puente Rosario-Victoria. BioPulse registra una unica senal rotativa con coordenada de referencia en Santa Fe capital, no 10 camaras separadas, porque la fuente entrega un solo reproductor que rota automaticamente.
+  Fuentes: https://www.ellitoral.com/camaras-vivo , https://www.youtube.com/watch?v=Mb8fb755onY
+
+- Diario El Litoral Corrientes / YouTube: aplicada como `html_embed` para la senal publica 24 horas con camaras y noticias de Corrientes Capital. La nota publica carga el streaming mediante modulo dinamico y tambien expone `amp-youtube data-videoid`; BioPulse registra el video embebible verificado por YouTube oEmbed. No usar `/service/modulo-streaming` como dependencia directa si devuelve 404 fuera del contexto de pagina.
+  Fuentes: https://www.ellitoral.com.ar/sociedad/2026-2-3-19-31-0-el-litoral-en-youtube-una-senal-de-streaming-24-horas-con-noticias-y-camaras-en-vivo , https://www.youtube.com/watch?v=FNqdUygsSfo
+
 - Portal 5900 e IngenieroWhite.com / YouTube: aplicadas como `html_embed` para la camara meteorologica de Villa Maria y la camara publica de Ingeniero White cuando las paginas fuente publican enlaces o reproductores de YouTube en vivo. BioPulse usa `embed/live_stream` con el canal oficial, mantiene atribucion a la fuente primaria y no copia ni rehostea video.
   Fuentes: https://5900.com.ar/5900-tv/ , https://www.youtube.com/c/Portal5900VillaMar%C3%ADa/live , https://www.ingenierowhite.com/camara-en-vivo/ , https://www.ingenierowhite.com/2024/10/26/link-para-acceder-a-la-primera-camara-en-vivo-que-funciona-en-ingeniero-white/
 

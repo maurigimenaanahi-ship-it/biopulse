@@ -114,7 +114,7 @@ const VITAL_SIGNS = [
   {
     icon: Camera,
     label: "Camaras",
-    metric: "330",
+    metric: "332",
     unit: "camaras",
     status: "API + streams conectados",
     spark: [20, 24, 28, 32, 28, 40, 44],
