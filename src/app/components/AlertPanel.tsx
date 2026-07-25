@@ -2163,6 +2163,22 @@ function windyPlayerEmbedUrl(rawUrl: unknown) {
   }
 }
 
+function neuquenCapitalHlsProxyUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "camaras.neuquencapital.gov.ar") return null;
+
+    const match = url.pathname.match(/^\/live\/([a-z0-9-]+)\.m3u8$/i);
+    if (!match) return null;
+
+    return `${apiUrl("/api/neuquen-hls")}?camera=${encodeURIComponent(match[1].toLowerCase())}`;
+  } catch {
+    return null;
+  }
+}
+
 function trustedHlsStreamUrl(cam: CameraRegistryItem) {
   const fetchInfo: any = cam.fetch;
   if (fetchInfo?.kind !== "stream_url") return null;
@@ -2174,7 +2190,7 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     const host = url.hostname.toLowerCase();
 
     if (host === "camaras.neuquencapital.gov.ar") {
-      return null;
+      return neuquenCapitalHlsProxyUrl(fetchInfo.url);
     }
 
     if (host === "hidrografia2.agpse.gob.ar" && url.port === "8443") {
