@@ -78,6 +78,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Canal 79 / StreamConex: aplicada como `stream_url` para senales publicas de Villa Maza, Mar del Plata, La Costa, Puan y Santa Clara del Mar cuando las paginas de Canal 79 publican el player Clappr con HLS propio. BioPulse reproduce el HLS directo con allowlist de host y CORS verificado, mantiene atribucion y conserva el enlace a la pagina original. La senal de San Juan fue revisada pero no aplicada porque el HLS publicado devolvio 404.
   Fuentes: https://canal79tv.com.ar/ , https://canal79tv.com.ar/media-kit/ , https://canal79tv.com.ar/villa-maza/ , https://canal79tv.com.ar/mardelplatas/ , https://canal79tv.com.ar/la-costa/ , https://canal79tv.com.ar/puan/ , https://canal79tv.com.ar/santa-clara-del-mar/
 
+- Radio Cardinal / Canal 99 / Solumedia: aplicada como `stream_url` para la camara HD publica 24 horas de Cordoba Capital orientada hacia Av. Olmos y Maipu. La pagina fuente publica el player `play99.html` con HLS `vivo.solumedia.com:19360/cardinal/cardinal.m3u8`; BioPulse reproduce el HLS directo con CORS verificado, segmento MPEG-TS real y allowlist estricta de host/ruta Solumedia.
+  Fuentes: https://radiocardinal.com.ar/cordoba-en-vivo-en-el-canal-99/ , https://www.radiocardinal.com.ar/htm/play99.html
+
 - Las Lenas / StreamCastHD: aplicada como `html_embed` para la camara oficial de Las Lenas cuando la pagina publica expone el iframe de StreamCastHD. BioPulse usa el reproductor oficial con allowlist estricta de host/ruta, mantiene atribucion y conserva el enlace a la pagina oficial. No usar el HLS directo como fuente primaria si la playlist publica existe pero los segmentos actuales devuelven 404.
   Fuente: https://laslenas.com/camara-en-vivo/
 

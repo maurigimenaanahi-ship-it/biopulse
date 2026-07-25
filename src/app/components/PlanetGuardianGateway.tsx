@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Activity,
@@ -92,6 +92,18 @@ const GUARDIAN_STEPS = [
   },
 ];
 
+type CameraRegistrySummary = {
+  total: number | null;
+  providerApi: number | null;
+  streams: number | null;
+};
+
+const INITIAL_CAMERA_REGISTRY_SUMMARY: CameraRegistrySummary = {
+  total: null,
+  providerApi: null,
+  streams: null,
+};
+
 const VITAL_SIGNS = [
   {
     icon: Activity,
@@ -114,9 +126,9 @@ const VITAL_SIGNS = [
   {
     icon: Camera,
     label: "Camaras",
-    metric: "332",
+    metric: "...",
     unit: "camaras",
-    status: "API + streams conectados",
+    status: "leyendo registry",
     spark: [20, 24, 28, 32, 28, 40, 44],
     position: "left-[7vw] bottom-[22vh]",
   },
@@ -148,6 +160,20 @@ const VITAL_SIGNS = [
     position: "right-[27vw] top-[7vh] hidden lg:block",
   },
 ];
+
+function makeVitalSigns(cameraSummary: CameraRegistrySummary) {
+  return VITAL_SIGNS.map((item) => {
+    if (item.label !== "Camaras" || cameraSummary.total == null) return item;
+
+    const providerApi = cameraSummary.providerApi ?? 0;
+    const streams = cameraSummary.streams ?? 0;
+    return {
+      ...item,
+      metric: String(cameraSummary.total),
+      status: `${providerApi} API + ${streams} streams`,
+    };
+  });
+}
 
 function BioPulseMark({ compact = false }: { compact?: boolean }) {
   return (
@@ -225,10 +251,12 @@ function VitalSign(props: (typeof VITAL_SIGNS)[number]) {
   );
 }
 
-function PlanetVitalsHud() {
+function PlanetVitalsHud({ cameraSummary }: { cameraSummary: CameraRegistrySummary }) {
+  const vitalSigns = useMemo(() => makeVitalSigns(cameraSummary), [cameraSummary]);
+
   return (
     <div className="pointer-events-none absolute inset-0">
-      {VITAL_SIGNS.map((item) => (
+      {vitalSigns.map((item) => (
         <VitalSign key={item.label} {...item} />
       ))}
     </div>
@@ -247,6 +275,7 @@ export function PlanetGatewayBackground({
 
 export function PlanetGuardianGateway({ onComplete }: { onComplete: () => void }) {
   const [thresholdStarted, setThresholdStarted] = useState(false);
+  const [cameraSummary, setCameraSummary] = useState<CameraRegistrySummary>(INITIAL_CAMERA_REGISTRY_SUMMARY);
   const [stepIndex, setStepIndex] = useState(0);
   const [exposure, setExposure] = useState<GuardianExposurePreference>(() => {
     try {
@@ -260,6 +289,31 @@ export function PlanetGuardianGateway({ onComplete }: { onComplete: () => void }
 
   const step = GUARDIAN_STEPS[stepIndex];
   const isFinalStep = stepIndex === GUARDIAN_STEPS.length - 1;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/cameraregistry.json", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((items) => {
+        if (cancelled || !Array.isArray(items)) return;
+
+        const providerApi = items.filter((item) => item?.fetch?.kind === "provider_api").length;
+        const streams = items.filter((item) => item?.fetch?.kind === "stream_url").length;
+        setCameraSummary({
+          total: items.length,
+          providerApi,
+          streams,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setCameraSummary(INITIAL_CAMERA_REGISTRY_SUMMARY);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const continueToSetup = () => {
     try {
@@ -282,7 +336,7 @@ export function PlanetGuardianGateway({ onComplete }: { onComplete: () => void }
   return (
     <div className="absolute inset-0 z-[70] overflow-hidden bg-[#020712]">
       <BioPulsePlanet />
-      <PlanetVitalsHud />
+      <PlanetVitalsHud cameraSummary={cameraSummary} />
 
       <div className="pointer-events-none absolute left-1/2 top-8 z-10 -translate-x-1/2">
         <BioPulseMark compact={thresholdStarted} />

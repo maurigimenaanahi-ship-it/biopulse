@@ -26,6 +26,8 @@ BioPulse muestra reproductores publicos de [Portal 5900](https://5900.com.ar/590
 
 BioPulse reproduce senales publicas de [Canal 79](https://canal79tv.com.ar/) mediante HLS publicado por su reproductor oficial para Villa Maza, Mar del Plata, La Costa, Puan y Santa Clara del Mar, sin copiar ni rehostear video.
 
+BioPulse reproduce la senal publica de [Radio Cardinal / Canal 99](https://radiocardinal.com.ar/cordoba-en-vivo-en-el-canal-99/) mediante HLS publicado por su reproductor oficial para Cordoba Capital, sin copiar ni rehostear video.
+
 BioPulse reproduce la camara oficial de [Las Lenas](https://laslenas.com/camara-en-vivo/) mediante HLS publicado por su reproductor StreamCastHD, sin copiar ni rehostear video.
 
 BioPulse muestra la camara publica de [LU24 Radio Tres Arroyos](https://www.lu24.com.ar/camara-en-vivo/) mediante el reproductor oficial Shockmedia publicado por la fuente, sin copiar ni rehostear video.

@@ -2290,6 +2290,11 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
       return url.toString();
     }
 
+    if (host === "vivo.solumedia.com" && url.port === "19360") {
+      if (!/^\/cardinal\/cardinal\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
     if (host === "tv.streamcasthd.com" && url.port === "3895") {
       if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
       return url.toString();

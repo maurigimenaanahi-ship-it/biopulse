@@ -107,6 +107,31 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-radio-cardinal-cordoba-canal-99",
+    "providerId": "radio-cardinal",
+    "title": "Cordoba - Canal 99 Av. Olmos y Maipu",
+    "description": "Camara HD publica 24 horas de Canal 99 / Radio Cardinal orientada hacia avenidas Olmos y Maipu en Cordoba Capital. BioPulse reproduce el HLS publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -31.4143, "lon": -64.1807 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "radio-cardinal",
+      "url": "https://vivo.solumedia.com:19360/cardinal/cardinal.m3u8",
+      "sourceUrl": "https://radiocardinal.com.ar/cordoba-en-vivo-en-el-canal-99/"
+    },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Radio Cardinal / Canal 99" },
+    "tags": ["city", "traffic", "weather", "cordoba", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Radio Cardinal page, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-windy-mendoza-finca-la-anita-1697039896",
     "providerId": "windy",
     "title": "Mendoza - Finca La Anita (Windy)",
