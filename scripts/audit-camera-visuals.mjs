@@ -493,7 +493,7 @@ async function fetchText(url, timeoutMs, init = {}) {
 async function probeResource(url, timeoutMs) {
   const head = await fetchWithTimeout(url, { method: "HEAD" }, timeoutMs).catch((err) => ({ error: err }));
   if (head && !head.error) {
-    return {
+    const headSummary = {
       url: head.url || url,
       ok: head.ok,
       status: head.status,
@@ -502,6 +502,8 @@ async function probeResource(url, timeoutMs) {
       cors: head.headers.get("access-control-allow-origin") ?? null,
       method: "HEAD",
     };
+
+    if (head.ok) return headSummary;
   }
 
   const response = await fetchWithTimeout(url, { headers: { Range: "bytes=0-0" } }, timeoutMs);

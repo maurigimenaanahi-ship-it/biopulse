@@ -4693,7 +4693,7 @@
         "id":  "ar-worldcam-6926-las-lenas",
         "providerId":  "worldcam",
         "title":  "Las Lenas (WorldCam)",
-        "description":  "Camara oficial en vivo de Las Lenas, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
+        "description":  "Camara oficial en vivo de Las Lenas, registrada desde WorldCam y reproducida mediante reproductor StreamCastHD publicado por la fuente.",
         "geo":  {
                     "lat":  -35.146407,
                     "lon":  -70.08153
@@ -4702,12 +4702,11 @@
                          "countryISO2":  "AR",
                          "locality":  "Las Lenas"
                      },
-        "mediaType":  "stream",
+        "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "stream_url",
-                      "provider":  "laslenas",
-                      "protocol":  "hls",
-                      "url":  "https://tv.streamcasthd.com:3895/live/laslenaslive.m3u8",
+                      "kind":  "html_embed",
+                      "provider":  "streamcasthd",
+                      "url":  "https://player.streamcasthd.com/tv.php?url=https://tv.streamcasthd.com:3895/live/laslenaslive.m3u8",
                       "sourceUrl":  "https://laslenas.com/camara-en-vivo/"
                   },
         "usage":  {
@@ -4718,13 +4717,14 @@
                      "worldcam",
                      "mountain",
                      "snow",
-                     "stream"
+                     "stream",
+                     "embed"
                  ],
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via Las Lenas official camera page HLS and CORS check",
-                           "verifiedAt":  "2026-07-17"
+                           "verifiedBy":  "Codex via Las Lenas official camera page StreamCastHD iframe; direct HLS segments returned 404",
+                           "verifiedAt":  "2026-07-25"
                        }
     }
 ,

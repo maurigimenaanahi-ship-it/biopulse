@@ -2142,6 +2142,29 @@ function lu24EmbedUrl(rawUrl: unknown) {
   }
 }
 
+function streamcastHdEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "player.streamcasthd.com") return null;
+    if (url.pathname !== "/tv.php") return null;
+
+    const stream = url.searchParams.get("url");
+    if (!stream) return null;
+
+    const streamUrl = new URL(stream);
+    if (streamUrl.protocol !== "https:") return null;
+    if (streamUrl.hostname.toLowerCase() !== "tv.streamcasthd.com" || streamUrl.port !== "3895") return null;
+    if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(streamUrl.pathname)) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function twitchEmbedUrl(rawUrl: unknown) {
   if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
 
@@ -2283,6 +2306,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
+  if (provider === "streamcasthd") return streamcastHdEmbedUrl(fetchInfo.url);
 
   return null;
 }
