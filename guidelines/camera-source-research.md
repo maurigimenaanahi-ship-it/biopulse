@@ -9,7 +9,9 @@ La seccion Camaras usa dos capas:
 1. Registro curado en `public/cameraregistry.json`.
 2. Descubrimiento dinamico de Windy alrededor del evento mediante `/api/windy-search`.
 
-BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas externas salvo que exista una API o URL de imagen permitida. Si una plataforma publica camaras pero no autoriza reutilizacion de frames, se registra como `external_page` y se abre la fuente original.
+BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas externas salvo que exista una API, URL de imagen, reproductor embebible o stream permitido. Si una plataforma publica camaras pero no autoriza reutilizacion de frames ni ofrece un modo tecnico compatible, se registra como `external_page` y se abre la fuente original.
+
+Antes de degradar una camara a `external_page`, BioPulse debe verificar si existe video real recuperable: API oficial, iframe/reproductor oficial, HLS directo con CORS, o HLS sin CORS que pueda resolverse mediante relay allowlisted sin almacenar contenido. El caso Neuquen Capital queda como precedente: las camaras parecian disponibles solo como pagina externa o player colgado, pero los segmentos HLS eran validos; la solucion correcta fue relay HLS allowlisted + `hls.js`, prefiriendo `hls.js` sobre HLS nativo.
 
 ## Herramienta de descubrimiento
 
@@ -117,5 +119,7 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - `provider_api`: cuando hay API documentada y permiso de uso.
 - `html_embed`: cuando la fuente primaria publica un reproductor oficial embebible compatible con sus terminos.
 - `image_url`: cuando existe una imagen publica directa y el uso esta permitido.
+- `stream_url`: cuando el HLS directo es publico, estable y reproducible desde BioPulse. Validar master playlist, media playlist, al menos un segmento real y CORS.
+- Relay HLS allowlisted: cuando una fuente oficial o publica permite ver el stream y expone playlists/segmentos reales, pero no publica CORS para otros dominios. El relay debe aceptar solo hosts/rutas/camaras conocidas, reescribir playlists y segmentos, no almacenar contenido, mantener atribucion y enlace a la fuente, y reproducirse con `hls.js` antes que con HLS nativo.
 - `external_page`: cuando la camara es publica para observar, pero no se deben copiar frames ni embeber contenido.
 - `pending`: cuando falta revisar terminos, estabilidad tecnica o cobertura territorial.
