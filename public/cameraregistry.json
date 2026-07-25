@@ -254,6 +254,111 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-windy-tandil-south-east-1729256189",
+    "providerId": "windy",
+    "title": "Tandil - Vista sudeste (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -37.31561, "lon": -59.15067 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Tandil" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1729256189",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "weather", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via OpenCCTV Windy detail page and preview", "verifiedAt": "2026-07-25" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-tandil-1745403682",
+    "providerId": "windy",
+    "title": "Tandil - Vista urbana (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -37.34295, "lon": -59.13219 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Tandil" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1745403682",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["city", "weather", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via OpenCCTV Windy detail page and preview", "verifiedAt": "2026-07-25" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-dock-sud-east-1751040831",
+    "providerId": "windy",
+    "title": "Dock Sud - Vista este (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -34.5952, "lon": -58.36421 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Dock Sud" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1751040831",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["industrial", "city", "weather", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via OpenCCTV Windy detail page and preview", "verifiedAt": "2026-07-25" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-san-cayetano-1637929191",
+    "providerId": "windy",
+    "title": "San Cayetano - Vista urbana (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -38.75453, "lon": -59.42695 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "San Cayetano" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1637929191",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["rural", "weather", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via OpenCCTV Windy detail page and preview", "verifiedAt": "2026-07-25" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-pinamar-beach-east-1582152170",
+    "providerId": "windy",
+    "title": "Pinamar - Playa vista este (Windy)",
+    "description": "Camara publica activa consultada via Windy Webcams.",
+    "geo": { "lat": -37.12975, "lon": -56.86599 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1582152170",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": { "isPublic": true, "attributionText": "Fuente: Windy Webcams" },
+    "tags": ["coast", "weather", "snapshot"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via OpenCCTV Windy detail page and preview", "verifiedAt": "2026-07-25" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-skyline-ushuaia-port",
     "providerId": "skyline",
     "groupKey": "ar-ushuaia-port-panorama",
