@@ -285,7 +285,7 @@ async function inspectExternalPage(camera, rawUrl, args) {
   const page = await fetchText(rawUrl, args.timeoutMs, { headers: { Accept: "text/html,*/*" } });
   const hlsCandidates = extractHlsCandidates(page.body, page.url);
   const matchedHlsCandidates = hlsCandidates.filter((candidate) => hlsCandidateMatchesCamera(candidate, camera));
-  const iframeCandidates = extractIframeCandidates(page.body, page.url).slice(0, 10);
+  const iframeCandidates = extractIframeCandidates(page.body, page.url).filter(isUsefulIframeCandidate).slice(0, 10);
   const sampledHls = [];
 
   for (const candidate of matchedHlsCandidates.slice(0, 2)) {
@@ -326,6 +326,16 @@ function classifyExternalPage(base, camera, page) {
       status: "external_page_unreachable",
       severity: "high",
       recommendation: "Recheck source; page did not load during audit.",
+      page,
+    };
+  }
+
+  if ((playableHls || hasMatchedHls || hasIframe) && externalPromotionRequiresPermission(camera)) {
+    return {
+      ...base,
+      status: "external_visual_permission_required",
+      severity: "medium",
+      recommendation: "Keep external_page and request explicit permission before using this HLS/embed inside BioPulse.",
       page,
     };
   }
@@ -450,6 +460,24 @@ function extractHlsCandidates(html, baseUrl) {
   }
 
   return Array.from(found).sort();
+}
+
+function isUsefulIframeCandidate(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+
+    if (host === "googletagmanager.com" && url.pathname === "/ns.html") return false;
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function externalPromotionRequiresPermission(camera) {
+  const provider = String(camera.providerId ?? camera.fetch?.provider ?? "").trim().toLowerCase();
+  return provider === "estadodelmar";
 }
 
 function hlsCandidateMatchesCamera(candidateUrl, camera) {
