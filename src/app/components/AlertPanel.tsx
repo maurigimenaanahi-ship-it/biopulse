@@ -2054,6 +2054,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "nautica-news") return "Nautica News";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
+  if (provider === "mendoza-capital") return "Ciudad de Mendoza";
   if (provider === "twitch") return "Twitch";
   if (provider === "youtube") return "YouTube";
   if (provider) {
@@ -2157,6 +2158,22 @@ function streamcastHdEmbedUrl(rawUrl: unknown) {
     if (streamUrl.protocol !== "https:") return null;
     if (streamUrl.hostname.toLowerCase() !== "tv.streamcasthd.com" || streamUrl.port !== "3895") return null;
     if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(streamUrl.pathname)) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function mendozaCapitalEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "camarasmunicapital.ciudaddemendoza.gov.ar") return null;
+    if (!/^(?:\/[a-f0-9-]{36}\.html|\/playersite_[a-f0-9-]{36}\.html)$/i.test(url.pathname)) return null;
+    if (url.search || url.hash) return null;
 
     url.protocol = "https:";
     return url.toString();
@@ -2307,6 +2324,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
   if (provider === "streamcasthd") return streamcastHdEmbedUrl(fetchInfo.url);
+  if (provider === "mendoza-capital") return mendozaCapitalEmbedUrl(fetchInfo.url);
 
   return null;
 }

@@ -7901,6 +7901,89 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-mendoza-capital-terraza-municipal",
+    "providerId": "mendoza-capital",
+    "title": "Mendoza - Terraza Municipal",
+    "description": "Reproductor oficial de la Municipalidad de la Ciudad de Mendoza para la camara en vivo Terraza Municipal.",
+    "geo": {
+      "lat": -32.8892,
+      "lon": -68.8451
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Mendoza",
+      "locality": "Mendoza"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "mendoza-capital",
+      "url": "https://camarasmunicapital.ciudaddemendoza.gov.ar/playersite_5a03c0ce-4e27-43c2-8066-981d9ed228e6.html",
+      "sourceUrl": "https://camarasmunicapital.ciudaddemendoza.gov.ar/playersite_5a03c0ce-4e27-43c2-8066-981d9ed228e6.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de la Ciudad de Mendoza"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "official",
+      "weather",
+      "mendoza",
+      "embed"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Ciudad de Mendoza official Restreamer playersite, oEmbed and visual playback check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-mendoza-capital-plaza-independencia",
+    "providerId": "mendoza-capital",
+    "title": "Mendoza - Plaza Independencia",
+    "description": "Reproductor oficial de la Municipalidad de la Ciudad de Mendoza para la camara en vivo Plaza Independencia.",
+    "geo": {
+      "lat": -32.889724,
+      "lon": -68.844498
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Mendoza",
+      "locality": "Mendoza"
+    },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "mendoza-capital",
+      "url": "https://camarasmunicapital.ciudaddemendoza.gov.ar/96f0de54-8c98-4395-8782-4b145d6bb4ae.html",
+      "sourceUrl": "https://camarasmunicapital.ciudaddemendoza.gov.ar/playersite_96f0de54-8c98-4395-8782-4b145d6bb4ae.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de la Ciudad de Mendoza"
+    },
+    "tags": [
+      "city",
+      "municipal",
+      "official",
+      "square",
+      "weather",
+      "mendoza",
+      "embed"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Ciudad de Mendoza official Restreamer player, oEmbed and HTTPS iframe check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-paseos-turismo-mar-de-las-pampas",
     "providerId": "paseos-turismo",
     "title": "Mar de las Pampas - En vivo (Paseos y Turismo)",

@@ -60,6 +60,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Paseos y Turismo / YouTube: aplicada como `html_embed` solo para videos directos donde el feed, oEmbed o descripcion publica identifican la localidad. BioPulse registra Buenos Aires, Mendoza y Mar de las Pampas con coordenadas aproximadas de ciudad/zona, y conserva como `external_page` las referencias WorldCam mas especificas cuando el video directo no prueba la misma escena.
   Fuente: https://www.youtube.com/@paseosyturismo
 
+- Municipalidad de la Ciudad de Mendoza / Restreamer: aplicada como `html_embed` para las camaras publicas Terraza Municipal y Plaza Independencia. La fuente publica reproductores oficiales HTTPS y oEmbed; el HLS directo existe en `memfs/*.m3u8`, pero no publica CORS para reproducirse desde BioPulse. Plaza funciona con el iframe directo; Terraza usa el wrapper oficial `playersite_*.html` porque el iframe directo quedo cargando en negro durante el chequeo visual.
+  Fuente: https://camarasmunicapital.ciudaddemendoza.gov.ar/
+
 - Municipalidad de Corrientes / SISE Argentina / YouTube: aplicada como `html_embed` para la pagina oficial Ciudad Segura cuando el sitio municipal publica un iframe de YouTube en vivo. BioPulse usa el reproductor oficial de YouTube con atribucion y conserva el enlace a la pagina municipal.
   Fuente: https://ciudaddecorrientes.gov.ar/ciudadsegura
 
