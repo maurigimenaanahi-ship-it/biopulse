@@ -10976,5 +10976,31 @@
       "verifiedBy": "Codex via Kite Bariloche page, HLS discovery and direct HLS 403 check",
       "verifiedAt": "2026-07-25"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-liwen-catedral-webcam",
+    "providerId": "liwen-catedral",
+    "title": "Villa Catedral - Liwen webcam",
+    "description": "Imagen publica de webcam exterior de Cabanas Liwen en Villa Catedral, util como contexto de visibilidad, nieve y condiciones locales.",
+    "geo": { "lat": -41.1699459, "lon": -71.4400054 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Villa Catedral" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "image_url",
+      "url": "https://www.liwencatedral.com.ar/webcam/liwencam.jpg",
+      "sourceUrl": "https://www.liwencatedral.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Cabanas Liwen Catedral"
+    },
+    "tags": ["mountain", "weather", "ski", "bariloche", "rio-negro", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Liwen Catedral page, HTTPS image HEAD and visual image check",
+      "verifiedAt": "2026-07-25"
+    }
   }
 ]

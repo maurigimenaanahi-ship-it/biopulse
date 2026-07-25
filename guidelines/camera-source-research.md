@@ -91,6 +91,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Varitech imagenes para medios: aplicada como `image_url` para sumar camaras faltantes de Cerro Catedral y La Hoya mediante URLs `latest.jpg` publicadas para embeber con actualizacion automatica cada 5 minutos. En esta tanda se agregaron Punta Princesa como respaldo snapshot del live existente, Cable carril inferior en Catedral y Plateau en La Hoya. La URL `catedral-vivo/latest.jpg` fue revisada pero no aplicada porque devolvio 404.
   Fuentes: https://varitech.ar/prensa , https://varitech.ar/terminos , https://varitech.ar/camara/cam001 , https://varitech.ar/camara/cam004 , https://varitech.ar/camara/cam032
 
+- Cabanas Liwen Catedral: aplicada como `image_url` para una webcam publica HTTPS en Villa Catedral. BioPulse la usa como snapshot de visibilidad/nieve y conserva enlace/atribucion a la fuente.
+  Fuente: https://www.liwencatedral.com.ar/
+
 - ESA Ground Stations Live: aplicada como `image_url` para la webcam oficial exterior de la estacion MLG1 / DSA-3 de Malargue. La pagina oficial indica imagenes outdoor actualizadas frecuentemente y la URL directa respondio `image/jpeg` con cache corto. BioPulse muestra la imagen con credito ESA y enlace a la fuente, bajo terminos de uso informativo/editorial de imagenes.
   Fuentes: https://www.esa.int/Enabling_Support/Operations/ESA_Ground_Stations/ESA_Ground_Stations_Live , https://download.esa.int/webcam/mlg/mlg.jpg , https://www.esa.int/ESA_Multimedia/Terms_and_conditions_of_use_of_images_and_videos_available_on_the_esa_website
 
