@@ -10924,5 +10924,57 @@
     "tags": ["official", "weather", "road", "santa-cruz", "snapshot"],
     "priority": 1,
     "validation": { "status": "pending", "verifiedBy": "Codex via AGVP official station list", "verifiedAt": "2026-07-24" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-kitebariloche-camara-1-n",
+    "providerId": "kitebariloche",
+    "title": "Bariloche - Kite Bariloche Camara 1 N",
+    "description": "Pagina publica externa con camara en vivo de Kite Bariloche hacia el norte. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1283976, "lon": -71.2847602 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "San Carlos de Bariloche" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "kitebariloche",
+      "url": "https://kitebariloche.com/#camara-1-n"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Kite Bariloche"
+    },
+    "tags": ["weather", "wind", "lake", "bariloche", "rio-negro", "external"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Kite Bariloche page, HLS discovery and direct HLS 403 check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-kitebariloche-camara-2-ono",
+    "providerId": "kitebariloche",
+    "title": "Bariloche - Kite Bariloche Camara 2 ONO",
+    "description": "Pagina publica externa con camara en vivo de Kite Bariloche hacia el oeste-noroeste. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "geo": { "lat": -41.1283976, "lon": -71.2847602 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "San Carlos de Bariloche" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "kitebariloche",
+      "url": "https://kitebariloche.com/#camara-2-ono"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Kite Bariloche"
+    },
+    "tags": ["weather", "wind", "lake", "bariloche", "rio-negro", "external"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Kite Bariloche page, HLS discovery and direct HLS 403 check",
+      "verifiedAt": "2026-07-25"
+    }
   }
 ]

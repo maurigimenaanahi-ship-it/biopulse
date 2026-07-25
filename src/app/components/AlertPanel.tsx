@@ -2055,6 +2055,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "mendoza-capital") return "Ciudad de Mendoza";
+  if (provider === "kitebariloche") return "Kite Bariloche";
   if (provider === "twitch") return "Twitch";
   if (provider === "youtube") return "YouTube";
   if (provider) {
