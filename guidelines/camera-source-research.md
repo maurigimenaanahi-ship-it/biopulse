@@ -82,7 +82,8 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
   Fuente: https://eldiariodepringles.com.ar/
 
 - Centros de montana y nieve con webcams oficiales: aplicados como `html_embed` cuando publican un reproductor oficial, como `image_url` cuando exponen una imagen directa estable, como `provider_api` cuando hace falta resolver dinamicamente la imagen publica mas reciente, o como `external_page` cuando solo corresponde abrir la fuente original. Aportan observacion visual de cielo, visibilidad, nieve, viento visible y condiciones de montana cercanas a zonas de bosque/interfase.
-  Fuentes: https://catedralaltapatagonia.com/webcams/ , https://chapelco.com.ar/camaras/ , https://cerrobayo.com.ar/montana/camara/ , https://skilahoya.com/webcams/ , https://www.cerrocastor.com/es_ar/live.html
+  Cerro Bayo queda como 6 paginas externas oficiales porque el JPG legacy registrado apuntaba a una imagen vieja, no a una senal viva confiable.
+  Fuentes: https://catedralaltapatagonia.com/webcams/ , https://chapelco.com.ar/camaras/ , https://www.cerrobayo.com/montana/camara/ , https://skilahoya.com/webcams/ , https://www.cerrocastor.com/es_ar/live.html
 
 - Chapelco / Varitech: aplicada como `provider_api` para las camaras publicas Rancho Grande, Pradera del Puma y Lift del Puente. La pagina oficial publica imagenes JPEG fechadas en `camaras.ar`; BioPulse consulta la pagina fuente para resolver la URL mas reciente y evitar dejar snapshots congelados. Se conserva atribucion Chapelco / Varitech y enlace al origen.
   Fuentes: https://chapelco.com.ar/camaras/ , https://camaras.ar/
