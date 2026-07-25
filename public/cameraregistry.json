@@ -1465,7 +1465,7 @@
     "fetch": {
       "kind": "html_embed",
       "provider": "youtube",
-      "url": "https://www.youtube.com/embed/RVuTqjTyrr0",
+      "url": "https://www.youtube.com/embed/CcRJ_XjBNSE",
       "sourceUrl": "https://www.cerrocastor.com/es_ar/live.html"
     },
     "usage": {
@@ -1476,7 +1476,7 @@
     "tags": ["mountain", "weather", "ski", "tierra-del-fuego", "embed", "youtube"],
     "groupKey": "ar-cerrocastor-live",
     "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor live page", "verifiedAt": "2026-07-11" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor current live page iframe and YouTube oEmbed", "verifiedAt": "2026-07-25" }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -1490,7 +1490,7 @@
     "fetch": {
       "kind": "html_embed",
       "provider": "youtube",
-      "url": "https://www.youtube.com/embed/BN1BHGv52WU",
+      "url": "https://www.youtube.com/embed/QBPz2WjnmxI",
       "sourceUrl": "https://www.cerrocastor.com/es_ar/live.html"
     },
     "usage": {
@@ -1501,7 +1501,7 @@
     "tags": ["mountain", "weather", "ski", "tierra-del-fuego", "embed", "youtube"],
     "groupKey": "ar-cerrocastor-live",
     "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor live page", "verifiedAt": "2026-07-11" }
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor current live page iframe and YouTube oEmbed", "verifiedAt": "2026-07-25" }
   },
 {
         "schema":  "biopulse.camera.v1",
