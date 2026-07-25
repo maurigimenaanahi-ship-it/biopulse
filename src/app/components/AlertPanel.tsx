@@ -1850,7 +1850,10 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
 
 function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "error" | "unsupported">("loading");
+  const [state, setState] = useState<"loading" | "playlist" | "buffering" | "ready" | "error" | "unsupported">(
+    "loading"
+  );
+  const [message, setMessage] = useState("Conectando stream HLS...");
 
   useEffect(() => {
     const video = videoRef.current;
@@ -1860,19 +1863,38 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
     let mounted = true;
 
     const markReady = () => {
-      if (mounted) setState("ready");
+      if (!mounted) return;
+      setState("ready");
+      setMessage("");
     };
-    const markError = () => {
-      if (mounted) setState("error");
+    const markPlaylist = () => {
+      if (!mounted) return;
+      setState((current) => (current === "ready" ? current : "playlist"));
+      setMessage("Playlist HLS conectada. Cargando video...");
+    };
+    const markBuffering = () => {
+      if (!mounted) return;
+      setState((current) => (current === "ready" ? current : "buffering"));
+      setMessage("Recibiendo video. Esperando primer frame...");
+    };
+    const markError = (detail = "El stream no respondio en este momento.") => {
+      if (!mounted) return;
+      setState("error");
+      setMessage(detail);
     };
 
     setState("loading");
+    setMessage("Conectando stream HLS...");
     video.addEventListener("loadedmetadata", markReady);
+    video.addEventListener("loadeddata", markReady);
     video.addEventListener("canplay", markReady);
-    video.addEventListener("error", markError);
+    video.addEventListener("playing", markReady);
+    video.addEventListener("timeupdate", markReady);
+    video.addEventListener("error", () => markError("El reproductor no pudo decodificar el stream."));
 
     async function attachStream() {
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        setMessage("Conectando stream HLS nativo...");
         video.src = src;
         return;
       }
@@ -1882,29 +1904,51 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
 
       if (!Hls.isSupported()) {
         setState("unsupported");
+        setMessage("Este navegador no soporta reproduccion HLS en esta vista.");
         return;
       }
 
       const instance = new Hls({
         enableWorker: true,
         lowLatencyMode: true,
+        manifestLoadingTimeOut: 45000,
+        manifestLoadingMaxRetry: 4,
+        manifestLoadingRetryDelay: 1000,
+        levelLoadingTimeOut: 45000,
+        levelLoadingMaxRetry: 4,
+        levelLoadingRetryDelay: 1000,
+        fragLoadingTimeOut: 90000,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 1500,
+        startFragPrefetch: true,
       });
       hls = instance;
       instance.loadSource(src);
       instance.attachMedia(video);
-      instance.on(Hls.Events.MANIFEST_PARSED, markReady);
+      instance.on(Hls.Events.MEDIA_ATTACHED, () => setMessage("Player HLS listo. Cargando playlist..."));
+      instance.on(Hls.Events.MANIFEST_PARSED, markPlaylist);
+      instance.on(Hls.Events.LEVEL_LOADED, markPlaylist);
+      instance.on(Hls.Events.FRAG_LOADED, markBuffering);
+      instance.on(Hls.Events.BUFFER_APPENDED, markBuffering);
       instance.on(Hls.Events.ERROR, (_event, data) => {
-        if (data.fatal) markError();
+        const detail = data?.details ? `Stream HLS: ${String(data.details).replace(/_/g, " ")}.` : undefined;
+        if (data.fatal) {
+          markError(detail);
+        } else if (detail && mounted) {
+          setMessage(detail);
+        }
       });
     }
 
-    attachStream().catch(markError);
+    attachStream().catch(() => markError("No se pudo inicializar el reproductor HLS."));
 
     return () => {
       mounted = false;
       video.removeEventListener("loadedmetadata", markReady);
+      video.removeEventListener("loadeddata", markReady);
       video.removeEventListener("canplay", markReady);
-      video.removeEventListener("error", markError);
+      video.removeEventListener("playing", markReady);
+      video.removeEventListener("timeupdate", markReady);
       if (hls) hls.destroy();
       video.removeAttribute("src");
       video.load();
@@ -1925,10 +1969,12 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
       {state !== "ready" ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t border-white/10 bg-black/65 px-3 py-2 text-xs text-white/65">
           {state === "loading"
-            ? "Conectando stream HLS..."
+            ? message
+            : state === "playlist" || state === "buffering"
+            ? message
             : state === "unsupported"
-            ? "Este navegador no soporta reproduccion HLS en esta vista."
-            : "El stream no respondio en este momento."}
+            ? message
+            : message}
         </div>
       ) : null}
     </div>
