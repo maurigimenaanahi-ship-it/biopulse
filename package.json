@@ -7,6 +7,7 @@
     "build": "vite build",
     "dev": "vite",
     "cameras:discover": "node scripts/discover-windy-cameras.mjs",
+    "cameras:audit": "node scripts/audit-camera-visuals.mjs",
     "notices:validate": "node scripts/validate-official-critical-notices.mjs",
     "sources:validate": "node scripts/validate-official-source-registry.mjs"
   },

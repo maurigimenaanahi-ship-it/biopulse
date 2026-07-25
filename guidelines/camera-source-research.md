@@ -23,6 +23,17 @@ npm run cameras:discover
 
 El script `scripts/discover-windy-cameras.mjs` recorre raices de OpenCCTV Argentina, detecta `cameraKey` Windy, compara contra `public/cameraregistry.json`, valida que la preview sea una imagen real por tipo y tamano minimo, y escribe reportes ignorados por git en `.camera-reports/`: `windy-candidates.json` con `ready`, `existing` y `rejected`; `windy-ready-registry-snippets.json` con solo los bloques listos para copiar al registry; y `windy-review-checklist.md` para revision visual. No modifica el registry automaticamente: las camaras deben revisarse visualmente antes de agregarse.
 
+## Herramienta de auditoria visual
+
+Para detectar camaras registradas como `external_page` o `stream_url` que esconden video recuperable, usar:
+
+```bash
+npm run cameras:audit -- --scope=patagonia
+npm run cameras:audit -- --scope=neuquen
+```
+
+El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, media playlist, segmento real y CORS; tambien inspecciona paginas externas para encontrar HLS o iframes candidatos correlacionados por slug/hash de la camara. Escribe reportes ignorados por git en `.camera-reports/` y no modifica el registry automaticamente. Si detecta HLS sin CORS pero con segmentos validos, revisar terminos y crear relay allowlisted antes de resignar la camara a link externo.
+
 ## Fuentes aplicadas
 
 - Windy Webcams API: integrada como `provider_api`. La API requiere `x-windy-api-key` y sus URLs de imagen expiran, por eso BioPulse refresca snapshots mediante `/api/windy-camera` y descubre camaras cercanas mediante `/api/windy-search`.
