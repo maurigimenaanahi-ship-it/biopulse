@@ -194,21 +194,23 @@ async function inspectHls(rawUrl, args) {
   const master = await fetchText(rawUrl, args.timeoutMs);
   const masterUris = parsePlaylistUris(master.body);
   const firstChild = masterUris.find((uri) => /\.m3u8(?:[?#]|$)/i.test(uri));
-  const firstMasterSegment = masterUris.find((uri) => /\.(ts|m4s|mp4)(?:[?#]|$)/i.test(uri));
+  const masterSegments = segmentUris(masterUris);
 
   let media = null;
   let segment = null;
+  let segmentAttempts = [];
 
   if (firstChild) {
     const mediaUrl = resolveUri(master.url, firstChild);
     media = await fetchText(mediaUrl, args.timeoutMs);
     const mediaUris = parsePlaylistUris(media.body);
-    const segmentUri = mediaUris.find((uri) => /\.(ts|m4s|mp4)(?:[?#]|$)/i.test(uri));
-    if (segmentUri) {
-      segment = await probeResource(resolveUri(media.url, segmentUri), args.timeoutMs);
-    }
-  } else if (firstMasterSegment) {
-    segment = await probeResource(resolveUri(master.url, firstMasterSegment), args.timeoutMs);
+    const probed = await probeRecentSegment(media.url, segmentUris(mediaUris), args);
+    segment = probed.segment;
+    segmentAttempts = probed.attempts;
+  } else if (masterSegments.length > 0) {
+    const probed = await probeRecentSegment(master.url, masterSegments, args);
+    segment = probed.segment;
+    segmentAttempts = probed.attempts;
   }
 
   return {
@@ -219,6 +221,7 @@ async function inspectHls(rawUrl, args) {
     mediaLooksLikeHls: media ? /^#EXTM3U/m.test(media.body) : null,
     firstChild: firstChild ? resolveUri(master.url, firstChild) : null,
     firstSegment: segment?.url ?? null,
+    segmentAttempts,
   };
 }
 
@@ -380,10 +383,51 @@ function classifyExternalPage(base, camera, page) {
 }
 
 function parsePlaylistUris(body) {
-  return body
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith("#"));
+  const uris = [];
+
+  for (const rawLine of body.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (!line.startsWith("#")) {
+      uris.push(line);
+      continue;
+    }
+
+    for (const match of line.matchAll(/\bURI="([^"]+)"/gi)) {
+      uris.push(match[1]);
+    }
+  }
+
+  return uris;
+}
+
+function segmentUris(uris) {
+  const mediaSegments = uris.filter((uri) => /\.(ts|m4s)(?:[?#]|$)/i.test(uri));
+  const initSegments = uris.filter((uri) => /\.mp4(?:[?#]|$)/i.test(uri));
+  return mediaSegments.length > 0 ? mediaSegments : initSegments;
+}
+
+async function probeRecentSegment(baseUrl, uris, args) {
+  const candidates = [...uris].slice(-4).reverse();
+  const attempts = [];
+  let lastSegment = null;
+
+  for (const uri of candidates) {
+    const url = resolveUri(baseUrl, uri);
+    const segment = await probeResource(url, args.timeoutMs);
+    attempts.push({
+      url: segment.url,
+      ok: segment.ok,
+      status: segment.status,
+      contentType: segment.contentType,
+      method: segment.method,
+    });
+    lastSegment = segment;
+    if (segment.ok) return { segment, attempts };
+  }
+
+  return { segment: lastSegment, attempts };
 }
 
 function extractHlsCandidates(html, baseUrl) {
