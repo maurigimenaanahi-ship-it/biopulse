@@ -5416,6 +5416,251 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-chapelco-ingreso",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Ingreso Cerro Chapelco",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -40.161,
+      "lon": -71.274
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Cerro Chapelco"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/iot/LCO/5469ZS4B/D6E92BCPSFAD1CE/0/1/20250730T122455/openor9bc5338fee4048969063a54bc6facb17.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-correntoso-villa-la-angostura",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Correntoso, Villa La Angostura",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -40.742,
+      "lon": -71.667
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Villa La Angostura"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/LCO/AA0396EPCGE0BEE/0/1/20250730T213818/openord8d4ffcb60024a94a8e79ddabf1923f1.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-primeros-pinos",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Primeros Pinos",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -38.897,
+      "lon": -70.631
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Primeros Pinos"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/iot/LCO/B59QTTLM/92E14ADPCP9E833/0/1/20250730T214654/openor50db7855e857445ea64324119fecd1b1.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-villa-pehuenia",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Villa Pehuenia",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -38.882,
+      "lon": -71.17
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Villa Pehuenia"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/iot/LCO/B59QTTLM/92E14ADPCP54547/0/1/20250622T002306/openor47875422a7054ad9b163a33e5f15f647.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-junin-de-los-andes",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Junin de los Andes",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -39.951,
+      "lon": -71.069
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Junin de los Andes"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/LCO/1196DADPCG94AB4/0/1/20250730T221823/openor0e863bd30f3f4220b81245e3294b2ab0.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-lago-lolog",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Lago Lolog, San Martin de los Andes",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -40.044,
+      "lon": -71.432
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Lago Lolog"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/LCO/9H08980PBV55360/0/1/20250730T222429/openorc928db6f5c6b4c589084c8f7d15f166f.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "lake", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-neuquen-fauna-rahue",
+    "providerId": "neuquen-fauna",
+    "title": "Operativo Nieve - Rahue",
+    "description": "Stream HLS publico publicado por Caza y Pesca del Neuquen en su red oficial de camaras en vivo. Aporta contexto visual de montana, ruta, visibilidad y condiciones meteorologicas.",
+    "geo": {
+      "lat": -39.333,
+      "lon": -70.922
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Neuquen",
+      "locality": "Rahue"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "neuquen-fauna",
+      "protocol": "hls",
+      "url": "https://cmgw-online-vg.imoulife.com:8890/LCO/9E00B39PBVE6E66/0/1/20250730T223054/openor66439bbece774db784bd35a93c2c1328.m3u8?source=open&proto=https",
+      "sourceUrl": "https://cazaypesca.neuquen.gob.ar/red_camara_fauna/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Caza y Pesca del Neuquen"
+    },
+    "tags": ["mountain", "road", "snow", "weather", "official", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Caza y Pesca Neuquen page, HLS playlist, CORS and MPEG-TS segment GET check",
+      "verifiedAt": "2026-07-25"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-las-heras-plaza-san-martin",
     "providerId": "las-heras-sc",
     "title": "Las Heras - Plaza San Martin",

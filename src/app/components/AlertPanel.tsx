@@ -2305,6 +2305,14 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
       return url.toString();
     }
 
+    if (host === "cmgw-online-vg.imoulife.com" && url.port === "8890") {
+      if (!/^\/(?:iot\/)?LCO\/[a-z0-9]+\/[a-z0-9]+\/0\/1\/\d{8}T\d{6}\/openor[a-f0-9]+\.m3u8$/i.test(url.pathname)) {
+        return null;
+      }
+      if (url.searchParams.get("source") !== "open" || url.searchParams.get("proto") !== "https") return null;
+      return url.toString();
+    }
+
     return null;
   } catch {
     return null;

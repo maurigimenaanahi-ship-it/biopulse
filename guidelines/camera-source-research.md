@@ -1,6 +1,6 @@
 # BioPulse camera source research
 
-Fecha de corte: 2026-07-18.
+Fecha de corte: 2026-07-25.
 
 ## Decision MVP
 
@@ -105,6 +105,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 
 - Fuentes oficiales nacionales y municipales argentinas: aplicadas como `stream_url`, `html_embed` o `external_page` segun lo que la fuente publique. Incluye AGP / Argentina.gob.ar para Via Navegable Troncal, Municipalidad de Neuquen Capital, Municipalidad de Las Heras Santa Cruz, Municipalidad de Tandil y Comodoro Turismo. Las estaciones AGP de Bella Vista, San Lorenzo, Rosario, Del Guazu - Brazo Largo y Braga quedaron conectadas por HLS oficial con CORS verificado; su auditoria requiere certificados del sistema y soporte LL-HLS porque publican fragmentos `.m4s` en atributos `URI`. Neuquen Capital usa un relay HLS allowlisted de BioPulse porque sus playlists y segmentos responden, pero no publican CORS para reproducirlos desde otro dominio; BioPulse no almacena contenido y mantiene enlace/atribucion a la fuente oficial. Cuando una pagina agrupa varias camaras, BioPulse registra cada punto visual con URL hash para evitar deduplicacion tecnica y conservar distancia aproximada por punto.
   Fuentes: https://www.argentina.gob.ar/administracion-general-de-puertos-se/navegable-troncal/camaras-de-vigilancia , https://www.argentina.gob.ar/administracion-general-de-puertos-se/via-navegable-troncal/mapa-de-estaciones-meteorologicas-camaras , https://camaras.neuquencapital.gov.ar/ , https://municipiolasherassantacruz.gob.ar/camara-en-vivo/ , https://tandil.gov.ar/camara-vivo , https://comodoroturismo.gob.ar/en-vivo-comodoro-rivadavia/
+
+- Caza y Pesca del Neuquen / Red de Camaras en vivo Fauna: aplicada como `stream_url` para 7 senales oficiales de Operativo Nieve en Ingreso Cerro Chapelco, Correntoso - Villa La Angostura, Primeros Pinos, Villa Pehuenia, Junin de los Andes, Lago Lolog y Rahue. La pagina oficial publica HLS `imoulife`; BioPulse valida playlist con CORS y segmentos MPEG-TS mediante GET. En esta fuente `HEAD` sobre segmentos puede devolver 404 falso-negativo, por lo que la validacion correcta debe probar descarga GET corta del segmento y byte inicial MPEG-TS `0x47`.
+  Fuente: https://cazaypesca.neuquen.gob.ar/red_camara_fauna/
 
 - Administracion General de Vialidad Provincial de Santa Cruz / monitoreo meteorologico: aplicada como `provider_api` para las 25 estaciones oficiales EM01-EM25. BioPulse resuelve la pagina oficial `https://www.agvp.gob.ar/estaciones/EMxx/EMxx.html`, detecta la hora publicada y muestra el JPG horario `Fotos/EMxx-AAAAMMDDHH.jpg` cuando esta disponible, con enlace y atribucion a AGVP. EM01, EM06, EM10, EM12, EM13, EM17 y EM23 fueron verificadas con snapshot JPEG real el 2026-07-24; el resto queda registrado desde la lista oficial y el provider falla de forma segura si una estacion no tiene imagen reciente.
   Fuente: https://www.agvp.gob.ar/servicios/monitoreo-meteorologico/

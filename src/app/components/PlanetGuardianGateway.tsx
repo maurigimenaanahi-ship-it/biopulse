@@ -114,9 +114,9 @@ const VITAL_SIGNS = [
   {
     icon: Camera,
     label: "Camaras",
-    metric: "4+",
-    unit: "registry",
-    status: "red visual inicial",
+    metric: "325",
+    unit: "camaras",
+    status: "44 streams conectados",
     spark: [20, 24, 28, 32, 28, 40, 44],
     position: "left-[7vw] bottom-[22vh]",
   },
