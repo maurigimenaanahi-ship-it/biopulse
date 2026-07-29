@@ -96,6 +96,12 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Canal 7 Jujuy / Somos Jujuy / Arcast: aplicada como `stream_url` para la senal local de San Salvador de Jujuy cuando la pagina oficial publica iframe de Arcast y el player expone HLS `stream.arcast.live/canal7jujuy/ngrp:canal7jujuy_all/playlist.m3u8`. Registrar como senal local, no como camara fija garantizada, porque puede incluir noticieros, programas y camaras locales. Requiere allowlist estricta del host/ruta y CORS/segmento MPEG-TS verificado.
   Fuentes: https://www.somosjujuy.com.ar/canal7vivo , https://arcast.com.ar/canal7jujuy/
 
+- Catamarca TV y Canal 3 La Pampa / Arcast: aplicadas como `stream_url` para senales locales provinciales cuando el player Arcast directo existe y el HLS HTTPS responde con CORS y segmentos MPEG-TS. Registrar como senales locales, no como camaras fijas garantizadas. Usar rutas allowlisteadas de `stream.arcast.com.ar` sin parametros.
+  Fuentes: https://arcast.com.ar/canal7catamarca/ , https://stream.arcast.com.ar/canal7catamarca/ngrp:canal7catamarca_all/playlist.m3u8 , https://arcast.com.ar/c3lapampa/ , https://stream.arcast.com.ar/c3lapampa/ngrp:c3lapampa_all/playlist.m3u8
+
+- Formosa / Lapacho / Canal 3 Formosa: revisada pero no aplicada como `stream_url` en esta tanda. `stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8` responde playlist dinamica sin CORS visible y `stmvideo2.livecastv.com` presenta certificado expirado; Lapacho TV oficial solo expone canal de YouTube sin iframe directo. Mantener pendiente hasta hallar player embebible, HLS con CORS o relay autorizado.
+  Fuentes: https://www.lapachotv.com.ar/ , https://stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8
+
 - Las Lenas / StreamCastHD: aplicada como `html_embed` para la camara oficial de Las Lenas cuando la pagina publica expone el iframe de StreamCastHD. BioPulse usa el reproductor oficial con allowlist estricta de host/ruta, mantiene atribucion y conserva el enlace a la pagina oficial. No usar el HLS directo como fuente primaria si la playlist publica existe pero los segmentos actuales devuelven 404.
   Fuente: https://laslenas.com/camara-en-vivo/
 

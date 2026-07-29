@@ -11728,6 +11728,62 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-canal7catamarca-live",
+    "providerId": "canal7catamarca",
+    "title": "San Fernando del Valle de Catamarca - Catamarca TV en vivo",
+    "description": "Senal local de Catamarca TV / Canal 7 para San Fernando del Valle de Catamarca y la provincia. Puede incluir noticias, programas y camaras locales; BioPulse reproduce el HLS publicado por el reproductor Arcast sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4696, "lon": -65.7852 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "canal7catamarca",
+      "url": "https://stream.arcast.com.ar/canal7catamarca/ngrp:canal7catamarca_all/playlist.m3u8",
+      "sourceUrl": "https://arcast.com.ar/canal7catamarca/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catamarca TV / Canal 7"
+    },
+    "tags": ["catamarca", "san-fernando-del-valle-de-catamarca", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Arcast player, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal3lapampa-live",
+    "providerId": "canal3lapampa",
+    "title": "Santa Rosa - Canal 3 La Pampa en vivo",
+    "description": "Senal local de Canal 3 La Pampa para Santa Rosa y la provincia. Puede incluir noticias, programas y camaras locales; BioPulse reproduce el HLS publicado por el reproductor Arcast sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6209, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "canal3lapampa",
+      "url": "https://stream.arcast.com.ar/c3lapampa/ngrp:c3lapampa_all/playlist.m3u8",
+      "sourceUrl": "https://arcast.com.ar/c3lapampa/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 3 La Pampa"
+    },
+    "tags": ["la-pampa", "santa-rosa", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Arcast player, HLS playlist, CORS and MPEG-TS stream check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-windy-posadas-encarnacion-bridge-1736465230",
     "providerId": "windy",
     "title": "Posadas / Encarnacion - Puente Internacional (Windy)",
