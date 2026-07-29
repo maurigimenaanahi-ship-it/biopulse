@@ -1082,6 +1082,29 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-radio-ciudad-merlo-san-luis",
+    "providerId": "radio-ciudad-merlo",
+    "title": "Villa de Merlo - San Luis en vivo",
+    "description": "Camara publica en vivo de Villa de Merlo, San Luis, publicada mediante reproductor oficial de YouTube y referenciada como webcam actual por Omnicam.",
+    "geo": { "lat": -32.3429, "lon": -65.0131 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "Villa de Merlo" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/VUnPksjW7Co?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://omnicamapp.com/en/webcam/103786/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio Ciudad de Merlo / YouTube"
+    },
+    "tags": ["mountain", "city", "weather", "san-luis", "embed", "youtube"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Omnicam YouTube iframe and YouTube oEmbed", "verifiedAt": "2026-07-29" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-skyline-tolhuin",
     "providerId": "skyline",
     "title": "Tolhuin - Tierra del Fuego (SkylineWebcams)",
@@ -2540,10 +2563,52 @@
                      "landscape"
                  ],
         "priority":  0,
-        "validation":  {
+    "validation":  {
                            "status":  "verified",
                            "verifiedBy":  "Codex via WorldCam Argentina directory",
                            "verifiedAt":  "2026-07-08"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
+        "id":  "ar-windy-santiago-del-estero-plaza-libertad-1732394190",
+        "providerId":  "windy",
+        "title":  "Santiago del Estero - Plaza Libertad y Catedral (Windy)",
+        "description":  "Camara publica activa de Santiago del Estero consultada via Windy Webcams. Meteoblue referencia el embed Windy y la imagen actual de la camara.",
+        "geo":  {
+                    "lat":  -27.78728,
+                    "lon":  -64.25914
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "Santiago del Estero",
+                         "locality":  "Santiago del Estero"
+                     },
+        "mediaType":  "snapshot",
+        "fetch":  {
+                      "kind":  "provider_api",
+                      "provider":  "windy",
+                      "cameraKey":  "1732394190",
+                      "endpoint":  "/api/windy-camera"
+                  },
+        "update":  {
+                       "expectedIntervalSec":  300
+                   },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Windy Webcams"
+                  },
+        "tags":  [
+                     "city",
+                     "weather",
+                     "santiago-del-estero",
+                     "snapshot"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Meteoblue Windy embed and current image reference",
+                           "verifiedAt":  "2026-07-29"
                        }
     },
     {
@@ -5227,6 +5292,48 @@
     "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-del-guazu-brazo-largo"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-parana-entre-rios-1621685722",
+    "providerId": "windy",
+    "title": "Parana - Entre Rios webcam (Windy)",
+    "description": "Camara publica activa de Parana, Entre Rios, consultada via Windy Webcams. Tiempo3 referencia la imagen actual y el reproductor Lookr/Windy de la camara.",
+    "geo": {
+      "lat": -31.7333,
+      "lon": -60.5297
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Entre Rios",
+      "locality": "Parana"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1621685722",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": {
+      "expectedIntervalSec": 300
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams"
+    },
+    "tags": [
+      "city",
+      "weather",
+      "entre-rios",
+      "snapshot"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Tiempo3 Windy image and Lookr/Windy embed reference",
+      "verifiedAt": "2026-07-29"
+    }
   },
   {
     "schema": "biopulse.camera.v1",
