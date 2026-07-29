@@ -12184,5 +12184,142 @@
       "verifiedBy": "Codex via El Ocho official live page and YouTube oEmbed check",
       "verifiedAt": "2026-07-29"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agenfor-canal3-formosa-live",
+    "providerId": "agenfor-canal3",
+    "title": "Formosa - Canal 3 Formosa en vivo",
+    "description": "Senal local publica de Canal 3 Formosa publicada por Agenfor / Gobierno de Formosa. Puede incluir noticias, actos oficiales, programas, moviles y camaras locales; BioPulse usa el reproductor oficial Livecastv sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "agenfor-canal3",
+      "url": "https://playerv.livecastv.com/video/agenfor/1/true/false/V1hwT1UyUkhVblJpUjNSaFZucG5lVlJITVRSalIxSjBWbTF3V2xkRk5IZGFSMnN4WVcxSmVVMUVNRDA9K1I=/16:9/aHR0cDovL3d3dy5hZ2VuZm9yLmNvbS5hcisx/nao",
+      "sourceUrl": "https://agenfor.com.ar/canal-3-formosa/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 3 Formosa / Agenfor"
+    },
+    "tags": ["formosa", "news", "official", "local", "stream", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Agenfor official page, Livecastv iframe, frame headers and HLS discovery; direct HLS kept inside official player",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cpetv-santa-rosa-live",
+    "providerId": "cpetv",
+    "title": "Santa Rosa - CPEtv en vivo",
+    "description": "Senal local de CPEtv / Cooperativa Popular de Electricidad de Santa Rosa. Puede incluir noticias, programas, moviles y camaras locales; BioPulse usa el reproductor oficial VMF publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6209, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "cpetv",
+      "url": "https://vmf.edge-apps.net/embed/live.php?streamname=cpetv1-100187&autoplay=true",
+      "sourceUrl": "https://www.cpe.coop.ar/CpeTvVivo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: CPEtv / CPE Santa Rosa"
+    },
+    "tags": ["la-pampa", "santa-rosa", "news", "local", "stream", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via CPEtv official page and VMF player headers; internal HLS kept inside official player",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-tvco-general-pico-live",
+    "providerId": "tvco",
+    "title": "General Pico - TVCO en vivo",
+    "description": "Senal local de TVCO / Corpico para General Pico. Puede incluir noticias, programas, producciones locales y camaras de estudio; BioPulse reproduce el HLS publicado por la pagina oficial sin copiar ni rehostear video.",
+    "geo": { "lat": -35.6566, "lon": -63.7568 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "General Pico" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "tvco",
+      "url": "https://cdn.sensa.com.ar/output/ARR/TVCOh/playlist.m3u8",
+      "sourceUrl": "https://www.corpico.com.ar/tvco"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: TVCO / Corpico"
+    },
+    "tags": ["la-pampa", "general-pico", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Corpico official TVCO page, Sensa HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal9larioja-live",
+    "providerId": "canal9larioja",
+    "title": "La Rioja - Canal 9 en vivo",
+    "description": "Senal local de Canal 9 La Rioja / Radio y Television Riojana para La Rioja capital y la provincia. Puede incluir noticias, programas, moviles y camaras locales; BioPulse reproduce el HLS publicado por el reproductor oficial sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4131, "lon": -66.8558 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "canal9larioja",
+      "url": "https://stream.inliveserver.com:19360/8030/8030.m3u8",
+      "sourceUrl": "https://radioytelevisionriojana.com.ar/canal9/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 9 La Rioja / Radio y Television Riojana"
+    },
+    "tags": ["la-rioja", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Radio y Television Riojana official Canal 9 page, VideoPlayer HLS discovery, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-fmsol-jujuy-live",
+    "providerId": "fm-sol-jujuy",
+    "title": "San Salvador de Jujuy - FM Sol Jujuy en vivo",
+    "description": "Radio con camara y senal audiovisual local de FM Sol Jujuy, publicada como canal oficial en TRIBUNOtv y YouTube. Puede incluir estudio, noticias, entrevistas y moviles; BioPulse usa el iframe oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCncHTTKVMR4Sw7dVqQhVf9A",
+      "sourceUrl": "https://tribunotv.ar/canal/fmsol"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: FM Sol Jujuy / TRIBUNOtv"
+    },
+    "tags": ["jujuy", "san-salvador-de-jujuy", "radio-con-camara", "news", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via TRIBUNOtv public status API, current FM Sol live video, YouTube oEmbed and live_stream embed check",
+      "verifiedAt": "2026-07-29"
+    }
   }
 ]

@@ -2054,6 +2054,11 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal13larioja") return "Canal 13 La Rioja";
   if (provider === "canal10tucuman") return "Canal 10 Tucuman";
   if (provider === "lapacho-tv") return "Lapacho TV";
+  if (provider === "agenfor-canal3") return "Canal 3 Formosa";
+  if (provider === "cpetv") return "CPEtv";
+  if (provider === "tvco") return "TVCO";
+  if (provider === "canal9larioja") return "Canal 9 La Rioja";
+  if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
@@ -2159,19 +2164,41 @@ function lu24EmbedUrl(rawUrl: unknown) {
   }
 }
 
-function lapachoTvEmbedUrl(rawUrl: unknown) {
+function livecastvEmbedUrl(rawUrl: unknown) {
   if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
 
   try {
     const url = new URL(rawUrl);
     if (url.hostname.toLowerCase() !== "playerv.livecastv.com") return null;
-    if (
-      url.pathname !==
-      "/video/oncestream/3/true/false/WXpOU2RHUnRiR3RhVnpneVRHMTRjR1J0Vm1wWldFNHdaR2sxYW1JeU1EMD0rMw==/16:9/WVVoU01HTklUVFpNZVRseldWaENhRmt5YUhaWk1rWjFXVmQzZUUxVE5XcGlNakIxV1ZoSmRtUXpRWFJaTWpsMVpFZFdkV1JET1RGalIzaDJXVmRTZWt4NlNYZE5hbEYyVFVSamRsUkZPVWhVZWtwdVkyMXNlazFwTlhGalIyTTkrMw==/sim"
-    ) {
-      return null;
-    }
+    const allowedPaths = new Set([
+      "/video/oncestream/3/true/false/WXpOU2RHUnRiR3RhVnpneVRHMTRjR1J0Vm1wWldFNHdaR2sxYW1JeU1EMD0rMw==/16:9/WVVoU01HTklUVFpNZVRseldWaENhRmt5YUhaWk1rWjFXVmQzZUUxVE5XcGlNakIxV1ZoSmRtUXpRWFJaTWpsMVpFZFdkV1JET1RGalIzaDJXVmRTZWt4NlNYZE5hbEYyVFVSamRsUkZPVWhVZWtwdVkyMXNlazFwTlhGalIyTTkrMw==/sim",
+      "/video/agenfor/1/true/false/V1hwT1UyUkhVblJpUjNSaFZucG5lVlJITVRSalIxSjBWbTF3V2xkRk5IZGFSMnN4WVcxSmVVMUVNRDA9K1I=/16:9/aHR0cDovL3d3dy5hZ2VuZm9yLmNvbS5hcisx/nao",
+    ]);
+    if (!allowedPaths.has(url.pathname)) return null;
     if (url.search || url.hash) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function vmfEdgeAppsEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "vmf.edge-apps.net") return null;
+    if (url.pathname !== "/embed/live.php") return null;
+    if (url.searchParams.get("streamname") !== "cpetv1-100187") return null;
+
+    const allowedParams = new Set(["streamname", "autoplay"]);
+    for (const key of Array.from(url.searchParams.keys())) {
+      if (!allowedParams.has(key)) return null;
+    }
+    if (url.searchParams.has("autoplay") && url.searchParams.get("autoplay") !== "true") return null;
+    if (url.hash) return null;
 
     url.protocol = "https:";
     return url.toString();
@@ -2372,6 +2399,19 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
       return url.toString();
     }
 
+    if (host === "cdn.sensa.com.ar") {
+      if (url.port) return null;
+      if (!/^\/output\/ARR\/TVCOh\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "stream.inliveserver.com" && url.port === "19360") {
+      if (!/^\/8030\/8030\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
     if (host === "stream.arcast.live") {
       if (url.port) return null;
       if (!/^\/canal7jujuy\/ngrp:canal7jujuy_all\/playlist\.m3u8$/i.test(url.pathname)) return null;
@@ -2441,7 +2481,8 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
-  if (provider === "lapacho-tv") return lapachoTvEmbedUrl(fetchInfo.url);
+  if (provider === "lapacho-tv" || provider === "agenfor-canal3") return livecastvEmbedUrl(fetchInfo.url);
+  if (provider === "cpetv") return vmfEdgeAppsEmbedUrl(fetchInfo.url);
   if (provider === "streamcasthd") return streamcastHdEmbedUrl(fetchInfo.url);
   if (provider === "mendoza-capital") return mendozaCapitalEmbedUrl(fetchInfo.url);
 

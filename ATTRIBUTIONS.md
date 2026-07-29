@@ -48,11 +48,19 @@ BioPulse reproduce las senales publicas de [Ciudad TV Chaco](https://ciudadtv.ar
 
 BioPulse reproduce la senal publica de Canal 13 La Rioja / Medios Provincia mediante HLS HTTPS publicado en reproductor publico, con atribucion a la fuente, sin copiar ni rehostear video.
 
+BioPulse reproduce la senal publica de [Canal 9 La Rioja / Radio y Television Riojana](https://radioytelevisionriojana.com.ar/canal9/) mediante HLS publicado por su reproductor oficial, sin copiar ni rehostear video.
+
 BioPulse muestra el reproductor publico de [Canal 10 Tucuman](https://canal10.com.ar/) mediante el iframe oficial de YouTube `live_stream` publicado por la fuente, sin copiar ni rehostear video.
 
 BioPulse reproduce la senal publica de [Canal 2 Misiones](https://www.canal2misiones.com.ar/) mediante HLS publicado por su reproductor oficial MistServer, sin copiar ni rehostear video.
 
 BioPulse muestra el reproductor publico de [El Ocho Tucuman](https://www.elocho.tv/el-ocho-en-vivo.html) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
+
+BioPulse muestra [Canal 3 Formosa / Agenfor](https://agenfor.com.ar/canal-3-formosa/) mediante el reproductor oficial Livecastv publicado por la fuente, sin copiar ni rehostear video.
+
+BioPulse muestra [CPEtv Santa Rosa](https://www.cpe.coop.ar/CpeTvVivo) mediante el reproductor oficial VMF publicado por la fuente y reproduce la senal publica de [TVCO / Corpico](https://www.corpico.com.ar/tvco) mediante HLS publicado por su pagina oficial, sin copiar ni rehostear video.
+
+BioPulse muestra la senal publica de [FM Sol Jujuy](https://tribunotv.ar/canal/fmsol) mediante el iframe oficial de YouTube referenciado por TRIBUNOtv, sin copiar ni rehostear video.
 
 BioPulse reproduce la camara oficial de [Las Lenas](https://laslenas.com/camara-en-vivo/) mediante HLS publicado por su reproductor StreamCastHD, sin copiar ni rehostear video.
 

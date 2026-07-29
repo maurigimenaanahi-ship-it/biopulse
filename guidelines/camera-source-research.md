@@ -105,6 +105,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Formosa / Lapacho / Canal 11 / Livecastv: aplicada como `html_embed` desde la pagina oficial nueva de Lapacho, que publica un iframe `playerv.livecastv.com/video/oncestream/.../sim`. El player expone HLS `stmvideo6.livecastv.com/oncestream/oncestream/playlist.m3u8` y segmentos MPEG-TS validos, pero no publica CORS para reproducir el HLS directo desde BioPulse; usar el iframe oficial allowlisteado, no el HLS directo. El sitio viejo `www.lapachotv.com.ar` queda como referencia historica.
   Fuentes: https://lapachocanal11.com.ar/vivo/ , https://playerv.livecastv.com/video/oncestream/3/true/false/WXpOU2RHUnRiR3RhVnpneVRHMTRjR1J0Vm1wWldFNHdaR2sxYW1JeU1EMD0rMw==/16:9/WVVoU01HTklUVFpNZVRseldWaENhRmt5YUhaWk1rWjFXVmQzZUUxVE5XcGlNakIxV1ZoSmRtUXpRWFJaTWpsMVpFZFdkV1JET1RGalIzaDJXVmRTZWt4NlNYZE5hbEYyVFVSamRsUkZPVWhVZWtwdVkyMXNlazFwTlhGalIyTTkrMw==/sim , https://stmvideo6.livecastv.com/oncestream/oncestream/playlist.m3u8
 
+- Formosa / Agenfor / Canal 3 / Livecastv: aplicada como `html_embed` desde la pagina oficial de Agenfor / Gobierno de Formosa. La portada declara "CANAL 3 FORMOSA" y publica iframe `playerv.livecastv.com/video/agenfor/.../nao`; el player descubre HLS `stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8`, pero BioPulse usa el reproductor oficial porque el acceso directo no quedo promovido como stream con CORS/segmentos estables. Registrar como senal local/oficial, no como camara fija garantizada.
+  Fuentes: https://agenfor.com.ar/ , https://agenfor.com.ar/canal-3-formosa/ , https://playerv.livecastv.com/video/agenfor/1/true/false/V1hwT1UyUkhVblJpUjNSaFZucG5lVlJITVRSalIxSjBWbTF3V2xkRk5IZGFSMnN4WVcxSmVVMUVNRDA9K1I=/16:9/aHR0cDovL3d3dy5hZ2VuZm9yLmNvbS5hcisx/nao
+
 - Ciudad TV Chaco y Canal Somos Uno: aplicadas como `stream_url` para senales locales/provinciales de Chaco cuando sus paginas oficiales publican HLS directo con CORS y segmentos MPEG-TS. Ciudad TV usa `617c5175c970b.streamlock.net:4444/chacodxdtv/livenew/playlist.m3u8`; Somos Uno usa `wowzasrv.chaco.gov.ar/Streamtv/chacotv/playlist.m3u8`. Registrar como senales de noticias/programas/moviles, no como camaras fijas garantizadas.
   Fuentes: https://ciudadtv.ar/ , https://ciudadtv.ar/institucional/ , https://617c5175c970b.streamlock.net:4444/chacodxdtv/livenew/playlist.m3u8 , https://canalsomosuno.tv/vivo , https://wowzasrv.chaco.gov.ar/Streamtv/chacotv/playlist.m3u8
 
@@ -117,6 +120,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Canal 13 La Rioja / Medios Provincia / Arcast: aplicada como `stream_url` con HLS HTTPS `stream.arcast.net:4443/mp/mp/playlist.m3u8`, CORS y segmento MPEG-TS verificados. La app oficial Medios Provincia confirma TV en vivo de Canal 13 La Rioja; el reproductor publico de TeleOnline expone la variante HTTPS. Mantener allowlist estricta de host, puerto y ruta.
   Fuentes: https://www.teleonline.tv/canal/canal-13-la-rioja/ , https://play.google.com/store/apps/details?id=ar.com.mediosprovincia.mediosprovincia
 
+- Canal 9 La Rioja / Radio y Television Riojana / InliveServer: aplicada como `stream_url` desde el sitio oficial actual de Radio y Television Riojana, que enlaza `canal9` y publica el player `stream.inliveserver.com:2020/VideoPlayer/8030`. El player expone HLS HTTPS `stream.inliveserver.com:19360/8030/8030.m3u8` con CORS `*` y segmento MPEG-TS validado. Mantener allowlist estricta de host, puerto y ruta.
+  Fuentes: https://radioytelevisionriojana.com.ar/ , https://radioytelevisionriojana.com.ar/canal9/ , https://stream.inliveserver.com:19360/8030/8030.m3u8
+
 - Canal 10 Tucuman: aplicada como `html_embed` porque la portada oficial publica iframe YouTube `embed/live_stream?channel=UCRlakPhec4-k3vkBeyWBojg`. Usar el iframe oficial, no streams DASH/DRM de terceros.
   Fuente: https://canal10.com.ar/
 
@@ -125,6 +131,15 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 
 - El Ocho Tucuman: aplicada como `html_embed` porque la pagina oficial `el-ocho-en-vivo.html` publica iframe de YouTube para la transmision en vivo y el `oEmbed` de YouTube confirma el video `RCXfY3lEAoI`. Usar el iframe oficial de YouTube, no streams descargados ni mirrors de terceros.
   Fuente: https://www.elocho.tv/el-ocho-en-vivo.html
+
+- La Pampa / CPEtv / VMF: aplicada como `html_embed` para la senal local de CPEtv Santa Rosa cuando la pagina oficial `CpeTvVivo` publica iframe `vmf.edge-apps.net/embed/live.php?streamname=cpetv1-100187&autoplay=true`. El HLS interno del player se mantiene dentro del reproductor oficial porque el host interno informado por VMF no resolvio directamente durante la validacion. Mantener allowlist estricta de host, ruta y `streamname`.
+  Fuentes: https://www.cpe.coop.ar/CpeTvVivo , https://vmf.edge-apps.net/embed/live.php?streamname=cpetv1-100187&autoplay=true
+
+- La Pampa / TVCO / Corpico / Sensa: aplicada como `stream_url` para la senal local de TVCO General Pico cuando la pagina oficial de Corpico publica HLS `cdn.sensa.com.ar/output/ARR/TVCOh/playlist.m3u8`. Validar master playlist, variante, CORS `*` y segmento MPEG-TS; registrar como senal local, no como camara fija garantizada.
+  Fuentes: https://www.corpico.com.ar/tvco , https://cdn.sensa.com.ar/output/ARR/TVCOh/playlist.m3u8
+
+- Jujuy / TRIBUNOtv / FM Sol Jujuy: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCncHTTKVMR4Sw7dVqQhVf9A`. TRIBUNOtv publica un endpoint `/api/status` con canales dinamicos y FM Sol Jujuy figuraba activo/en vivo con `videoId` vigente; usar `live_stream?channel` para no depender del video ID rotativo. Registrar como radio con camara/senal audiovisual local, no como camara fija garantizada.
+  Fuentes: https://tribunotv.ar/ , https://tribunotv.ar/api/status , https://www.youtube.com/@FMSolJujuy
 
 - Las Lenas / StreamCastHD: aplicada como `html_embed` para la camara oficial de Las Lenas cuando la pagina publica expone el iframe de StreamCastHD. BioPulse usa el reproductor oficial con allowlist estricta de host/ruta, mantiene atribucion y conserva el enlace a la pagina oficial. No usar el HLS directo como fuente primaria si la playlist publica existe pero los segmentos actuales devuelven 404.
   Fuente: https://laslenas.com/camara-en-vivo/
@@ -195,6 +210,9 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 
 - Canal 4 Jujuy / El Cuatro: revisado como candidato local adicional para San Salvador de Jujuy. La pagina oficial existe y la ficha de Google Play declara transmision en vivo 24 hs, pero el endpoint web `https://canal4jujuy.elcuatro.com/player/status?device=web` respondio `{"status":"disabled"}` el 2026-07-29. No aplicar hasta que el player oficial vuelva a publicar stream embebible o HLS activo.
   Fuentes: https://canal4jujuy.elcuatro.com/ , https://play.google.com/store/apps/details?id=com.elcuatro.canal4jujuy
+
+- Lateplay / Canal 9 La Rioja historico: revisado como candidato desde `lateplay.larioja.gob.ar/canal-9/`; la pagina publica un widget Elementor apuntando a YouTube `zGDFohQyZgk`, pero YouTube respondio `playabilityStatus=ERROR` porque la cuenta asociada fue cerrada. No aplicar ese embed; usar en cambio el sitio actual `radioytelevisionriojana.com.ar/canal9/` y su HLS vigente.
+  Fuentes: https://lateplay.larioja.gob.ar/canal-9/ , https://radioytelevisionriojana.com.ar/canal9/
 
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
