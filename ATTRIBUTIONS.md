@@ -50,6 +50,10 @@ BioPulse reproduce la senal publica de Canal 13 La Rioja / Medios Provincia medi
 
 BioPulse muestra el reproductor publico de [Canal 10 Tucuman](https://canal10.com.ar/) mediante el iframe oficial de YouTube `live_stream` publicado por la fuente, sin copiar ni rehostear video.
 
+BioPulse reproduce la senal publica de [Canal 2 Misiones](https://www.canal2misiones.com.ar/) mediante HLS publicado por su reproductor oficial MistServer, sin copiar ni rehostear video.
+
+BioPulse muestra el reproductor publico de [El Ocho Tucuman](https://www.elocho.tv/el-ocho-en-vivo.html) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
+
 BioPulse reproduce la camara oficial de [Las Lenas](https://laslenas.com/camara-en-vivo/) mediante HLS publicado por su reproductor StreamCastHD, sin copiar ni rehostear video.
 
 BioPulse muestra la camara publica de [LU24 Radio Tres Arroyos](https://www.lu24.com.ar/camara-en-vivo/) mediante el reproductor oficial Shockmedia publicado por la fuente, sin copiar ni rehostear video.

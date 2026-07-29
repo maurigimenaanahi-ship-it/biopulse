@@ -2059,6 +2059,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
   if (provider === "ciudadtv-chaco") return "Ciudad TV Chaco";
   if (provider === "canal-somos-uno") return "Canal Somos Uno";
+  if (provider === "canal2misiones") return "Canal 2 Misiones";
+  if (provider === "elocho-tucuman") return "El Ocho Tucuman";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2330,8 +2332,10 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     }
 
     if (host === "nd106.republicaservers.com") {
-      if (url.port) return null;
-      if (!/^\/hls\/c7827\/index\.m3u8$/i.test(url.pathname)) return null;
+      if (url.port && url.port !== "4433") return null;
+      const isCanal12Web = !url.port && /^\/hls\/c7827\/index\.m3u8$/i.test(url.pathname);
+      const isCanal2Misiones = url.port === "4433" && /^\/hls\/canal2misioness\/index\.m3u8$/i.test(url.pathname);
+      if (!isCanal12Web && !isCanal2Misiones) return null;
       if (url.search) return null;
       return url.toString();
     }

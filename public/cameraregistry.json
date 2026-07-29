@@ -12129,5 +12129,60 @@
       "verifiedBy": "Codex via Windy page, Meteoblue listing, Outdooractive metadata and Windy preview HEAD check",
       "verifiedAt": "2026-07-29"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal2misiones-live",
+    "providerId": "canal2misiones",
+    "title": "Posadas - Canal 2 Misiones en vivo",
+    "description": "Senal local de Canal 2 Misiones / Telefe para Posadas y la provincia. Puede incluir noticias, programas, moviles y camaras locales; BioPulse reproduce el HLS publicado por el reproductor oficial sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3837, "lon": -55.9158 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "canal2misiones",
+      "url": "https://nd106.republicaservers.com:4433/hls/canal2misioness/index.m3u8",
+      "sourceUrl": "https://www.canal2misiones.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 2 Misiones"
+    },
+    "tags": ["misiones", "posadas", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal 2 Misiones official page, MistServer player, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-elocho-tucuman-live",
+    "providerId": "elocho-tucuman",
+    "title": "San Miguel de Tucuman - El Ocho en vivo",
+    "description": "Senal local de El Ocho / Canal 8 Tucuman para San Miguel de Tucuman y la provincia. Puede incluir noticias, programas, moviles y camaras locales; BioPulse usa el iframe oficial de YouTube publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8241, "lon": -65.2226 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/RCXfY3lEAoI?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.elocho.tv/el-ocho-en-vivo.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Ocho Tucuman"
+    },
+    "tags": ["tucuman", "san-miguel-de-tucuman", "news", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Ocho official live page and YouTube oEmbed check",
+      "verifiedAt": "2026-07-29"
+    }
   }
 ]

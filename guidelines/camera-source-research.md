@@ -120,6 +120,12 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Canal 10 Tucuman: aplicada como `html_embed` porque la portada oficial publica iframe YouTube `embed/live_stream?channel=UCRlakPhec4-k3vkBeyWBojg`. Usar el iframe oficial, no streams DASH/DRM de terceros.
   Fuente: https://canal10.com.ar/
 
+- Canal 2 Misiones / MistServer: aplicada como `stream_url` para la senal local de Posadas cuando la portada oficial publica iframe `nd106.republicaservers.com:4433/canal2misioness.html` y el player expone HLS `/hls/canal2misioness/index.m3u8`. Registrar como senal local con noticias/programas/moviles, no como camara fija garantizada. Requiere allowlist estricta del host/puerto/ruta, CORS `*` y segmento MPEG-TS validado.
+  Fuentes: https://www.canal2misiones.com.ar/ , https://nd106.republicaservers.com:4433/hls/canal2misioness/index.m3u8
+
+- El Ocho Tucuman: aplicada como `html_embed` porque la pagina oficial `el-ocho-en-vivo.html` publica iframe de YouTube para la transmision en vivo y el `oEmbed` de YouTube confirma el video `RCXfY3lEAoI`. Usar el iframe oficial de YouTube, no streams descargados ni mirrors de terceros.
+  Fuente: https://www.elocho.tv/el-ocho-en-vivo.html
+
 - Las Lenas / StreamCastHD: aplicada como `html_embed` para la camara oficial de Las Lenas cuando la pagina publica expone el iframe de StreamCastHD. BioPulse usa el reproductor oficial con allowlist estricta de host/ruta, mantiene atribucion y conserva el enlace a la pagina oficial. No usar el HLS directo como fuente primaria si la playlist publica existe pero los segmentos actuales devuelven 404.
   Fuente: https://laslenas.com/camara-en-vivo/
 
@@ -186,6 +192,9 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 
 - Mar del Sud / YouTube: revisado como candidato costero municipal/cooperativo por nota publica sobre stream de camaras. El canal `UCBeVyugrRCdu9TYwQlf1aLQ` no mostro `isLiveNow` activo al momento de validacion, por eso no se aplico como `html_embed` todavia.
   Fuentes: https://eldiariodemiramar.com.ar/2026/04/mar-del-sud-inauguro-su-centro-de-monitoreo-y-habilito-un-stream-con-imagenes-de-la-ciudad/ , https://www.youtube.com/@MarDelSud-2026
+
+- Canal 4 Jujuy / El Cuatro: revisado como candidato local adicional para San Salvador de Jujuy. La pagina oficial existe y la ficha de Google Play declara transmision en vivo 24 hs, pero el endpoint web `https://canal4jujuy.elcuatro.com/player/status?device=web` respondio `{"status":"disabled"}` el 2026-07-29. No aplicar hasta que el player oficial vuelva a publicar stream embebible o HLS activo.
+  Fuentes: https://canal4jujuy.elcuatro.com/ , https://play.google.com/store/apps/details?id=com.elcuatro.canal4jujuy
 
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
