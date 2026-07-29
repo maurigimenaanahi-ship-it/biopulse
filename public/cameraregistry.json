@@ -11784,6 +11784,87 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-lapacho-tv-formosa-external",
+    "providerId": "lapacho-tv",
+    "title": "Formosa - Lapacho TV / Canal 11",
+    "description": "Sitio oficial externo de Lapacho TV / Canal 11 Formosa. BioPulse conserva el enlace como fuente territorial mientras se localiza un reproductor embebible o HLS apto para navegador; no copia ni rehostea video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "lapacho-tv",
+      "url": "https://www.lapachotv.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Lapacho TV / Canal 11 Formosa"
+    },
+    "tags": ["formosa", "news", "local", "external"],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Lapacho TV official site; HLS candidates reviewed but not applied due missing CORS/expired certificate",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal13larioja-live",
+    "providerId": "canal13larioja",
+    "title": "La Rioja - Canal 13 en vivo",
+    "description": "Senal local de Canal 13 La Rioja / Medios Provincia para La Rioja capital y la provincia. Puede incluir noticias, programas y camaras locales; BioPulse reproduce el HLS HTTPS publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4131, "lon": -66.8558 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "canal13larioja",
+      "url": "https://stream.arcast.net:4443/mp/mp/playlist.m3u8",
+      "sourceUrl": "https://www.teleonline.tv/canal/canal-13-la-rioja/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 13 La Rioja / Medios Provincia"
+    },
+    "tags": ["la-rioja", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via TeleOnline listing, Medios Provincia official app metadata, HTTPS HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal10tucuman-live",
+    "providerId": "canal10tucuman",
+    "title": "Yerba Buena / San Miguel de Tucuman - Canal 10 en vivo",
+    "description": "Senal local de Canal 10 Tucuman, publicada en la portada oficial mediante iframe de YouTube live_stream. Puede incluir noticias, programas y camaras locales; BioPulse usa el iframe oficial sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8167, "lon": -65.3167 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "Yerba Buena / San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCRlakPhec4-k3vkBeyWBojg",
+      "sourceUrl": "https://canal10.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 10 Tucuman"
+    },
+    "tags": ["tucuman", "yerba-buena", "san-miguel-de-tucuman", "news", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal 10 official homepage iframe live_stream",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-windy-posadas-encarnacion-bridge-1736465230",
     "providerId": "windy",
     "title": "Posadas / Encarnacion - Puente Internacional (Windy)",

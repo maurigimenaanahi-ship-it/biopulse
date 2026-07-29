@@ -2050,6 +2050,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal7jujuy") return "Canal 7 Jujuy";
   if (provider === "canal7catamarca") return "Catamarca TV";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
+  if (provider === "canal13larioja") return "Canal 13 La Rioja";
+  if (provider === "canal10tucuman") return "Canal 10 Tucuman";
+  if (provider === "lapacho-tv") return "Lapacho TV";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2316,6 +2319,12 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     if (host === "stream.arcast.com.ar") {
       if (url.port) return null;
       if (!/^\/(?:canal7catamarca\/ngrp:canal7catamarca_all|c3lapampa\/ngrp:c3lapampa_all)\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "stream.arcast.net" && url.port === "4443") {
+      if (!/^\/mp\/mp\/playlist\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }

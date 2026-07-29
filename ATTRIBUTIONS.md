@@ -36,6 +36,12 @@ BioPulse reproduce la senal publica de [Canal 7 / Somos Jujuy](https://www.somos
 
 BioPulse reproduce senales publicas de [Catamarca TV](https://arcast.com.ar/canal7catamarca/) y [Canal 3 La Pampa](https://arcast.com.ar/c3lapampa/) mediante HLS publicado por reproductores Arcast, sin copiar ni rehostear video.
 
+BioPulse enlaza el sitio oficial de [Lapacho TV / Canal 11 Formosa](https://www.lapachotv.com.ar/) como fuente externa territorial mientras no haya reproductor embebible o HLS apto para navegador.
+
+BioPulse reproduce la senal publica de Canal 13 La Rioja / Medios Provincia mediante HLS HTTPS publicado en reproductor publico, con atribucion a la fuente, sin copiar ni rehostear video.
+
+BioPulse muestra el reproductor publico de [Canal 10 Tucuman](https://canal10.com.ar/) mediante el iframe oficial de YouTube `live_stream` publicado por la fuente, sin copiar ni rehostear video.
+
 BioPulse reproduce la camara oficial de [Las Lenas](https://laslenas.com/camara-en-vivo/) mediante HLS publicado por su reproductor StreamCastHD, sin copiar ni rehostear video.
 
 BioPulse muestra la camara publica de [LU24 Radio Tres Arroyos](https://www.lu24.com.ar/camara-en-vivo/) mediante el reproductor oficial Shockmedia publicado por la fuente, sin copiar ni rehostear video.

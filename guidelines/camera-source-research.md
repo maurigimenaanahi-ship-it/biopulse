@@ -99,8 +99,14 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Catamarca TV y Canal 3 La Pampa / Arcast: aplicadas como `stream_url` para senales locales provinciales cuando el player Arcast directo existe y el HLS HTTPS responde con CORS y segmentos MPEG-TS. Registrar como senales locales, no como camaras fijas garantizadas. Usar rutas allowlisteadas de `stream.arcast.com.ar` sin parametros.
   Fuentes: https://arcast.com.ar/canal7catamarca/ , https://stream.arcast.com.ar/canal7catamarca/ngrp:canal7catamarca_all/playlist.m3u8 , https://arcast.com.ar/c3lapampa/ , https://stream.arcast.com.ar/c3lapampa/ngrp:c3lapampa_all/playlist.m3u8
 
-- Formosa / Lapacho / Canal 3 Formosa: revisada pero no aplicada como `stream_url` en esta tanda. `stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8` responde playlist dinamica sin CORS visible y `stmvideo2.livecastv.com` presenta certificado expirado; Lapacho TV oficial solo expone canal de YouTube sin iframe directo. Mantener pendiente hasta hallar player embebible, HLS con CORS o relay autorizado.
+- Formosa / Lapacho / Canal 3 Formosa: aplicada como `external_page` al sitio oficial de Lapacho TV mientras no haya reproductor embebible o HLS apto para navegador. `stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8` responde playlist dinamica sin CORS visible y `stmvideo2.livecastv.com` presenta certificado expirado; Lapacho TV oficial solo expone canal de YouTube sin iframe directo. Mantener pendiente hasta hallar player embebible, HLS con CORS o relay autorizado.
   Fuentes: https://www.lapachotv.com.ar/ , https://stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8
+
+- Canal 13 La Rioja / Medios Provincia / Arcast: aplicada como `stream_url` con HLS HTTPS `stream.arcast.net:4443/mp/mp/playlist.m3u8`, CORS y segmento MPEG-TS verificados. La app oficial Medios Provincia confirma TV en vivo de Canal 13 La Rioja; el reproductor publico de TeleOnline expone la variante HTTPS. Mantener allowlist estricta de host, puerto y ruta.
+  Fuentes: https://www.teleonline.tv/canal/canal-13-la-rioja/ , https://play.google.com/store/apps/details?id=ar.com.mediosprovincia.mediosprovincia
+
+- Canal 10 Tucuman: aplicada como `html_embed` porque la portada oficial publica iframe YouTube `embed/live_stream?channel=UCRlakPhec4-k3vkBeyWBojg`. Usar el iframe oficial, no streams DASH/DRM de terceros.
+  Fuente: https://canal10.com.ar/
 
 - Las Lenas / StreamCastHD: aplicada como `html_embed` para la camara oficial de Las Lenas cuando la pagina publica expone el iframe de StreamCastHD. BioPulse usa el reproductor oficial con allowlist estricta de host/ruta, mantiene atribucion y conserva el enlace a la pagina oficial. No usar el HLS directo como fuente primaria si la playlist publica existe pero los segmentos actuales devuelven 404.
   Fuente: https://laslenas.com/camara-en-vivo/
