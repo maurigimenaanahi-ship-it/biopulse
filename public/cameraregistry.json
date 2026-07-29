@@ -1669,6 +1669,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Mendoza",
                          "locality":  "Malargue Station"
                      },
         "mediaType":  "embed",
@@ -1706,6 +1707,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Salta",
                          "locality":  "San Ramon de la Nueva Oran"
                      },
         "mediaType":  "embed",
@@ -1743,6 +1745,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Buenos Aires"
                      },
         "mediaType":  "embed",
@@ -1779,6 +1782,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Pinamar"
                      },
         "mediaType":  "embed",
@@ -1818,6 +1822,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Cordoba",
                          "locality":  "Villa Maria"
                      },
         "mediaType":  "embed",
@@ -1858,6 +1863,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Rio Negro",
                          "locality":  "Bariloche"
                      },
         "mediaType":  "embed",
@@ -1896,6 +1902,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Villa Gesell"
                      },
         "mediaType":  "embed",
@@ -1934,6 +1941,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -1973,6 +1981,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Tierra del Fuego",
                          "locality":  "Ushuaia"
                      },
         "mediaType":  "embed",
@@ -2011,6 +2020,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Pinamar"
                      },
         "mediaType":  "embed",
@@ -2050,6 +2060,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Villa Gesell"
                      },
         "mediaType":  "embed",
@@ -2089,6 +2100,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -2128,6 +2140,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -2167,6 +2180,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Miramar"
                      },
         "mediaType":  "embed",
@@ -2206,6 +2220,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -2245,6 +2260,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Tierra del Fuego",
                          "locality":  "Ushuaia"
                      },
         "mediaType":  "embed",
@@ -2285,6 +2301,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Tierra del Fuego",
                          "locality":  "Ushuaia"
                      },
         "mediaType":  "embed",
@@ -2323,6 +2340,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "CABA",
                          "locality":  "Buenos Aires"
                      },
         "mediaType":  "embed",
@@ -2359,6 +2377,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Tierra del Fuego",
                          "locality":  "Ushuaia"
                      },
         "mediaType":  "embed",
@@ -2395,6 +2414,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Balneario San Cayetano"
                      },
         "mediaType":  "embed",
@@ -2434,6 +2454,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Neuquen",
                          "locality":  "Neuquen"
                      },
         "mediaType":  "embed",
@@ -2470,6 +2491,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Corrientes",
                          "locality":  "Corrientes"
                      },
         "mediaType":  "embed",
@@ -2507,6 +2529,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Neuquen",
                          "locality":  "Villa La Angostura"
                      },
         "mediaType":  "embed",
@@ -2544,6 +2567,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santiago del Estero",
                          "locality":  "Santiago del Estero"
                      },
         "mediaType":  "embed",
@@ -2623,6 +2647,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santa Cruz",
                          "locality":  "Perito Moreno Glacier"
                      },
         "mediaType":  "embed",
@@ -2661,6 +2686,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "San Juan",
                          "locality":  "Veladero gold mine"
                      },
         "mediaType":  "embed",
@@ -2698,6 +2724,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Monte Hermoso"
                      },
         "mediaType":  "stream",
@@ -2738,6 +2765,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Villa Gesell"
                      },
         "mediaType":  "embed",
@@ -2776,6 +2804,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Cordoba",
                          "locality":  "Villa Carlos Paz"
                      },
         "mediaType":  "embed",
@@ -2812,6 +2841,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santa Cruz",
                          "locality":  "Las Heras"
                      },
         "mediaType":  "embed",
@@ -2849,6 +2879,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Chubut",
                          "locality":  "Comodoro Rivadavia"
                      },
         "mediaType":  "embed",
@@ -2885,6 +2916,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Villa Maza"
                      },
         "mediaType":  "stream",
@@ -2924,6 +2956,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "stream",
@@ -2965,6 +2998,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "La Costa"
                      },
         "mediaType":  "stream",
@@ -3005,6 +3039,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Puan"
                      },
         "mediaType":  "stream",
@@ -3044,6 +3079,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Santa Clara del Mar"
                      },
         "mediaType":  "stream",
@@ -3084,6 +3120,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Coronel Pringles"
                      },
         "mediaType":  "stream",
@@ -3123,6 +3160,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Rio Negro",
                          "locality":  "Cipolletti"
                      },
         "mediaType":  "embed",
@@ -3160,6 +3198,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Tierra del Fuego",
                          "locality":  "Tolhuin"
                      },
         "mediaType":  "embed",
@@ -3201,6 +3240,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Tierra del Fuego",
                          "locality":  "Rio Grande"
                      },
         "mediaType":  "embed",
@@ -3241,6 +3281,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Mendoza",
                          "locality":  "San Rafael"
                      },
         "mediaType":  "embed",
@@ -3279,6 +3320,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Tigre"
                      },
         "mediaType":  "embed",
@@ -3316,6 +3358,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Tres Arroyos"
                      },
         "mediaType":  "embed",
@@ -3355,6 +3398,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Entre Rios",
                          "locality":  "Paranacito"
                      },
         "mediaType":  "embed",
@@ -3393,6 +3437,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santa Fe",
                          "locality":  "Puerto General San Martin"
                      },
         "mediaType":  "embed",
@@ -3430,6 +3475,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Mendoza",
                          "locality":  "San Rafael"
                      },
         "mediaType":  "embed",
@@ -3469,6 +3515,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Villa Gesell"
                      },
         "mediaType":  "embed",
@@ -3507,6 +3554,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Villa Gesell"
                      },
         "mediaType":  "embed",
@@ -3543,6 +3591,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Ingeniero White"
                      },
         "mediaType":  "embed",
@@ -3583,6 +3632,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Tandil"
                      },
         "mediaType":  "embed",
@@ -3621,6 +3671,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -3660,6 +3711,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -3700,6 +3752,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Pinamar"
                      },
         "mediaType":  "embed",
@@ -3739,6 +3792,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Miramar"
                      },
         "mediaType":  "embed",
@@ -3778,6 +3832,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -3817,6 +3872,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -3856,6 +3912,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -3895,6 +3952,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Santa Clara Del Mar"
                      },
         "mediaType":  "embed",
@@ -3934,6 +3992,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -3973,6 +4032,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -4012,6 +4072,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Camet Norte"
                      },
         "mediaType":  "embed",
@@ -4051,6 +4112,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -4089,6 +4151,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Chaco",
                          "locality":  "Resistencia"
                      },
         "mediaType":  "embed",
@@ -4129,6 +4192,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santa Fe",
                          "locality":  "Rosario"
                      },
         "mediaType":  "embed",
@@ -4208,6 +4272,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Tandil"
                      },
         "mediaType":  "embed",
@@ -4245,6 +4310,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Corrientes",
                          "locality":  "Corrientes"
                      },
         "mediaType":  "embed",
@@ -4327,6 +4393,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santa Cruz",
                          "locality":  "Los Glaciares National Park"
                      },
         "mediaType":  "embed",
@@ -4365,6 +4432,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "CABA",
                          "locality":  "Buenos Aires"
                      },
         "mediaType":  "embed",
@@ -4406,6 +4474,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Olivos"
                      },
         "mediaType":  "embed",
@@ -4444,6 +4513,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "San Isidro"
                      },
         "mediaType":  "embed",
@@ -4481,6 +4551,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Rio Negro",
                          "locality":  "Bariloche"
                      },
         "mediaType":  "embed",
@@ -4519,6 +4590,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Las Toninas"
                      },
         "mediaType":  "embed",
@@ -4558,6 +4630,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Rio Negro",
                          "locality":  "Las Grutas"
                      },
         "mediaType":  "embed",
@@ -4599,6 +4672,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -4637,6 +4711,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
         "mediaType":  "embed",
@@ -4675,6 +4750,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Neuquen",
                          "locality":  "San Martin de los Andes"
                      },
         "mediaType":  "embed",
@@ -4712,6 +4788,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Rio Negro",
                          "locality":  "San Carlos de Bariloche"
                      },
         "mediaType":  "embed",
@@ -4750,6 +4827,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Santa Cruz",
                          "locality":  "Caleta Olivia"
                      },
         "mediaType":  "embed",
@@ -4789,6 +4867,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Rio Negro",
                          "locality":  "Las Grutas"
                      },
         "mediaType":  "embed",
@@ -4829,6 +4908,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Chubut",
                          "locality":  "Caleta Cordoba"
                      },
         "mediaType":  "embed",
@@ -4867,6 +4947,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar de Ajo"
                      },
         "mediaType":  "embed",
@@ -4906,6 +4987,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Mar de Ajo"
                      },
         "mediaType":  "embed",
@@ -4946,6 +5028,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Buenos Aires",
                          "locality":  "Santa Clara del Mar"
                      },
         "mediaType":  "embed",
@@ -4984,6 +5067,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "CABA",
                          "locality":  "Buenos Aires"
                      },
         "mediaType":  "embed",
@@ -5020,6 +5104,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Mendoza",
                          "locality":  "Mendoza"
                      },
         "mediaType":  "embed",
@@ -5057,6 +5142,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Mendoza",
                          "locality":  "Mendoza"
                      },
         "mediaType":  "embed",
@@ -5093,6 +5179,7 @@
                 },
         "coverage":  {
                          "countryISO2":  "AR",
+                         "admin1":  "Mendoza",
                          "locality":  "Las Lenas"
                      },
         "mediaType":  "embed",
