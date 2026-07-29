@@ -2053,6 +2053,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal13larioja") return "Canal 13 La Rioja";
   if (provider === "canal10tucuman") return "Canal 10 Tucuman";
   if (provider === "lapacho-tv") return "Lapacho TV";
+  if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2326,6 +2327,13 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     if (host === "nd106.republicaservers.com") {
       if (url.port) return null;
       if (!/^\/hls\/c7827\/index\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "videostream.shockmedia.com.ar") {
+      if (url.port) return null;
+      if (!/^\/hls\/multivisionfederal\/multivisionfederal\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }

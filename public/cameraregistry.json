@@ -2676,6 +2676,48 @@
     },
     {
         "schema":  "biopulse.camera.v1",
+        "id":  "ar-multivision-federal-salta-live",
+        "providerId":  "multivision-federal",
+        "title":  "Salta - Multivision Federal en vivo",
+        "description":  "Senal local/federal originada en Salta. Puede incluir noticias, moviles y programas de distintas provincias; BioPulse reproduce el HLS publicado por la fuente sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -24.77,
+                    "lon":  -65.44
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "Salta",
+                         "locality":  "Salta"
+                     },
+        "mediaType":  "stream",
+        "fetch":  {
+                      "kind":  "stream_url",
+                      "protocol":  "hls",
+                      "provider":  "multivision-federal",
+                      "url":  "https://videostream.shockmedia.com.ar/hls/multivisionfederal/multivisionfederal.m3u8",
+                      "sourceUrl":  "https://multivision.tv/"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Multivision Federal"
+                  },
+        "tags":  [
+                     "salta",
+                     "news",
+                     "local",
+                     "federal",
+                     "stream",
+                     "hls"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Multivision official site, HLS playlist CORS and MPEG-TS segment check",
+                           "verifiedAt":  "2026-07-29"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-26870-veladero-gold-mine",
         "providerId":  "worldcam",
         "title":  "Veladero gold mine (WorldCam)",

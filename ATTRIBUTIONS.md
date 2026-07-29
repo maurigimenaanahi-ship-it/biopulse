@@ -38,6 +38,8 @@ BioPulse reproduce senales publicas de [Catamarca TV](https://arcast.com.ar/cana
 
 BioPulse muestra [Lapacho TV / Canal 11 Formosa](https://lapachocanal11.com.ar/vivo/) mediante el reproductor oficial Livecastv publicado por la fuente. No copia, descarga ni rehostea video.
 
+BioPulse reproduce la senal publica de [Multivision Federal](https://multivision.tv/) mediante HLS publicado por su sitio oficial para Salta, sin copiar ni rehostear video.
+
 BioPulse reproduce la senal publica de Canal 13 La Rioja / Medios Provincia mediante HLS HTTPS publicado en reproductor publico, con atribucion a la fuente, sin copiar ni rehostear video.
 
 BioPulse muestra el reproductor publico de [Canal 10 Tucuman](https://canal10.com.ar/) mediante el iframe oficial de YouTube `live_stream` publicado por la fuente, sin copiar ni rehostear video.
