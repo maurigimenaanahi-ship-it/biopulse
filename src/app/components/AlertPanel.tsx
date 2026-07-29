@@ -2046,6 +2046,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "agvp-santa-cruz") return "AGVP Santa Cruz";
   if (provider === "cerrocastor") return "Cerro Castor";
   if (provider === "canal79") return "Canal 79";
+  if (provider === "canal12web") return "Canal 12 Web";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2292,6 +2293,13 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (host === "vivo.solumedia.com" && url.port === "19360") {
       if (!/^\/cardinal\/cardinal\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    if (host === "nd106.republicaservers.com") {
+      if (url.port) return null;
+      if (!/^\/hls\/c7827\/index\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
       return url.toString();
     }
 
