@@ -2151,6 +2151,27 @@ function lu24EmbedUrl(rawUrl: unknown) {
   }
 }
 
+function lapachoTvEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "playerv.livecastv.com") return null;
+    if (
+      url.pathname !==
+      "/video/oncestream/3/true/false/WXpOU2RHUnRiR3RhVnpneVRHMTRjR1J0Vm1wWldFNHdaR2sxYW1JeU1EMD0rMw==/16:9/WVVoU01HTklUVFpNZVRseldWaENhRmt5YUhaWk1rWjFXVmQzZUUxVE5XcGlNakIxV1ZoSmRtUXpRWFJaTWpsMVpFZFdkV1JET1RGalIzaDJXVmRTZWt4NlNYZE5hbEYyVFVSamRsUkZPVWhVZWtwdVkyMXNlazFwTlhGalIyTTkrMw==/sim"
+    ) {
+      return null;
+    }
+    if (url.search || url.hash) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function streamcastHdEmbedUrl(rawUrl: unknown) {
   if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
 
@@ -2371,6 +2392,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
+  if (provider === "lapacho-tv") return lapachoTvEmbedUrl(fetchInfo.url);
   if (provider === "streamcasthd") return streamcastHdEmbedUrl(fetchInfo.url);
   if (provider === "mendoza-capital") return mendozaCapitalEmbedUrl(fetchInfo.url);
 

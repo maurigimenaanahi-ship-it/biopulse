@@ -11784,27 +11784,28 @@
   },
   {
     "schema": "biopulse.camera.v1",
-    "id": "ar-lapacho-tv-formosa-external",
+    "id": "ar-lapacho-tv-formosa-live",
     "providerId": "lapacho-tv",
-    "title": "Formosa - Lapacho TV / Canal 11",
-    "description": "Sitio oficial externo de Lapacho TV / Canal 11 Formosa. BioPulse conserva el enlace como fuente territorial mientras se localiza un reproductor embebible o HLS apto para navegador; no copia ni rehostea video.",
+    "title": "Formosa - Lapacho TV / Canal 11 en vivo",
+    "description": "Senal local de Lapacho TV / Canal 11 Formosa. BioPulse usa el reproductor oficial Livecastv publicado por Lapacho; no copia, descarga ni rehostea video.",
     "geo": { "lat": -26.1849, "lon": -58.1731 },
     "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "lapacho-tv",
-      "url": "https://www.lapachotv.com.ar/"
+      "url": "https://playerv.livecastv.com/video/oncestream/3/true/false/WXpOU2RHUnRiR3RhVnpneVRHMTRjR1J0Vm1wWldFNHdaR2sxYW1JeU1EMD0rMw==/16:9/WVVoU01HTklUVFpNZVRseldWaENhRmt5YUhaWk1rWjFXVmQzZUUxVE5XcGlNakIxV1ZoSmRtUXpRWFJaTWpsMVpFZFdkV1JET1RGalIzaDJXVmRTZWt4NlNYZE5hbEYyVFVSamRsUkZPVWhVZWtwdVkyMXNlazFwTlhGalIyTTkrMw==/sim",
+      "sourceUrl": "https://lapachocanal11.com.ar/vivo/"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Lapacho TV / Canal 11 Formosa"
     },
-    "tags": ["formosa", "news", "local", "external"],
-    "priority": 0,
+    "tags": ["formosa", "news", "local", "stream", "embed"],
+    "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Lapacho TV official site; HLS candidates reviewed but not applied due missing CORS/expired certificate",
+      "verifiedBy": "Codex via Lapacho Canal 11 official live page, Livecastv iframe, frame headers, HLS playlist and MPEG-TS segment check; direct HLS kept inside official player because it does not publish CORS",
       "verifiedAt": "2026-07-29"
     }
   },
