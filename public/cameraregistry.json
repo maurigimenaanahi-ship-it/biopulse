@@ -4266,6 +4266,91 @@
     },
     {
         "schema":  "biopulse.camera.v1",
+        "id":  "ar-ciudadtv-resistencia-live",
+        "providerId":  "ciudadtv-chaco",
+        "title":  "Resistencia - Ciudad TV Chaco en vivo",
+        "description":  "Senal local de noticias de Ciudad TV Chaco para Resistencia y la provincia. Puede incluir estudio, noticias y moviles; BioPulse reproduce el HLS publicado por el sitio oficial sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -27.4514,
+                    "lon":  -58.9867
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "Chaco",
+                         "locality":  "Resistencia"
+                     },
+        "mediaType":  "stream",
+        "fetch":  {
+                      "kind":  "stream_url",
+                      "protocol":  "hls",
+                      "provider":  "ciudadtv-chaco",
+                      "url":  "https://617c5175c970b.streamlock.net:4444/chacodxdtv/livenew/playlist.m3u8",
+                      "sourceUrl":  "https://ciudadtv.ar/"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Ciudad TV Chaco"
+                  },
+        "tags":  [
+                     "chaco",
+                     "resistencia",
+                     "news",
+                     "local",
+                     "stream",
+                     "hls"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Ciudad TV official site, HLS playlist CORS and MPEG-TS segment check",
+                           "verifiedAt":  "2026-07-29"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
+        "id":  "ar-canal-somos-uno-chaco-live",
+        "providerId":  "canal-somos-uno",
+        "title":  "Chaco - Canal Somos Uno en vivo",
+        "description":  "Senal local/provincial de Canal Somos Uno. Puede incluir noticias, programas y moviles; BioPulse reproduce el HLS publicado por la pagina oficial sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -27.4514,
+                    "lon":  -58.9867
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "Chaco",
+                         "locality":  "Resistencia / Chaco"
+                     },
+        "mediaType":  "stream",
+        "fetch":  {
+                      "kind":  "stream_url",
+                      "protocol":  "hls",
+                      "provider":  "canal-somos-uno",
+                      "url":  "https://wowzasrv.chaco.gov.ar/Streamtv/chacotv/playlist.m3u8",
+                      "sourceUrl":  "https://canalsomosuno.tv/vivo"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Canal Somos Uno / Provincia del Chaco"
+                  },
+        "tags":  [
+                     "chaco",
+                     "resistencia",
+                     "news",
+                     "local",
+                     "provincial",
+                     "stream",
+                     "hls"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Canal Somos Uno official live page, HLS playlist CORS and MPEG-TS segment check",
+                           "verifiedAt":  "2026-07-29"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35116-resistencia-traffic",
         "providerId":  "worldcam",
         "title":  "Resistencia - Traffic (WorldCam)",
@@ -11876,6 +11961,34 @@
     "validation": {
       "status": "verified",
       "verifiedBy": "Codex via Arcast player, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radiovalleviejo-catamarca-live",
+    "providerId": "radio-valle-viejo",
+    "title": "Valle Viejo / Catamarca - Radio TV Valle Viejo en vivo",
+    "description": "Senal audiovisual local de Radio TV Valle Viejo para Valle Viejo y San Fernando del Valle de Catamarca. Puede incluir estudio, noticias y moviles; BioPulse reproduce el HLS publicado por el reproductor Arcast sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4699, "lon": -65.7266 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "Valle Viejo / San Fernando del Valle de Catamarca" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "radio-valle-viejo",
+      "url": "https://stream.arcast.ar/radiovalleviejo/ngrp:radiovalleviejo_all/playlist.m3u8",
+      "sourceUrl": "https://radiovalleviejo.com/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio TV Valle Viejo"
+    },
+    "tags": ["catamarca", "valle-viejo", "san-fernando-del-valle-de-catamarca", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Radio TV Valle Viejo official page, Arcast player, HLS playlist CORS and MPEG-TS segment check",
       "verifiedAt": "2026-07-29"
     }
   },

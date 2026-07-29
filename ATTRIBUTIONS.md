@@ -36,11 +36,15 @@ BioPulse reproduce la senal publica de [Canal 7 / Somos Jujuy](https://www.somos
 
 BioPulse reproduce senales publicas de [Catamarca TV](https://arcast.com.ar/canal7catamarca/) y [Canal 3 La Pampa](https://arcast.com.ar/c3lapampa/) mediante HLS publicado por reproductores Arcast, sin copiar ni rehostear video.
 
+BioPulse reproduce la senal publica de [Radio TV Valle Viejo](https://radiovalleviejo.com/) mediante HLS publicado por su reproductor Arcast para Catamarca, sin copiar ni rehostear video.
+
 BioPulse muestra [Lapacho TV / Canal 11 Formosa](https://lapachocanal11.com.ar/vivo/) mediante el reproductor oficial Livecastv publicado por la fuente. No copia, descarga ni rehostea video.
 
 BioPulse reproduce la senal publica de [Multivision Federal](https://multivision.tv/) mediante HLS publicado por su sitio oficial para Salta, sin copiar ni rehostear video.
 
 BioPulse reproduce la [Camara HD de Light FM San Juan](https://www.lightfm.com.ar/camara/) y la senal publica de [Canal 4 San Juan](https://canal4sanjuan.com.ar/) mediante HLS publicado por sus reproductores oficiales, sin copiar ni rehostear video.
+
+BioPulse reproduce las senales publicas de [Ciudad TV Chaco](https://ciudadtv.ar/) y [Canal Somos Uno](https://canalsomosuno.tv/vivo) mediante HLS publicado por sus paginas oficiales, sin copiar ni rehostear video.
 
 BioPulse reproduce la senal publica de Canal 13 La Rioja / Medios Provincia mediante HLS HTTPS publicado en reproductor publico, con atribucion a la fuente, sin copiar ni rehostear video.
 

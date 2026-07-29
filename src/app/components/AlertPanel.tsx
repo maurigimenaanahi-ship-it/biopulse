@@ -2049,6 +2049,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal12web") return "Canal 12 Web";
   if (provider === "canal7jujuy") return "Canal 7 Jujuy";
   if (provider === "canal7catamarca") return "Catamarca TV";
+  if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
   if (provider === "canal13larioja") return "Canal 13 La Rioja";
   if (provider === "canal10tucuman") return "Canal 10 Tucuman";
@@ -2056,6 +2057,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
+  if (provider === "ciudadtv-chaco") return "Ciudad TV Chaco";
+  if (provider === "canal-somos-uno") return "Canal Somos Uno";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2352,9 +2355,29 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
       return url.toString();
     }
 
+    if (host === "617c5175c970b.streamlock.net" && url.port === "4444") {
+      if (!/^\/chacodxdtv\/livenew\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "wowzasrv.chaco.gov.ar") {
+      if (url.port) return null;
+      if (!/^\/Streamtv\/chacotv\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
     if (host === "stream.arcast.live") {
       if (url.port) return null;
       if (!/^\/canal7jujuy\/ngrp:canal7jujuy_all\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "stream.arcast.ar") {
+      if (url.port) return null;
+      if (!/^\/radiovalleviejo\/ngrp:radiovalleviejo_all\/playlist\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }
