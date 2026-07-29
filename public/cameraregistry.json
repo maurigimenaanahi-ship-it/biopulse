@@ -11697,5 +11697,61 @@
       "verifiedBy": "Codex via Liwen Catedral page, HTTPS image HEAD and visual image check",
       "verifiedAt": "2026-07-25"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal7jujuy-live",
+    "providerId": "canal7jujuy",
+    "title": "San Salvador de Jujuy - Canal 7 en vivo",
+    "description": "Senal local de Canal 7 / Somos Jujuy para San Salvador de Jujuy y la provincia. Puede incluir noticias, programas y camaras locales; BioPulse reproduce el HLS publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "protocol": "hls",
+      "provider": "canal7jujuy",
+      "url": "https://stream.arcast.live/canal7jujuy/ngrp:canal7jujuy_all/playlist.m3u8",
+      "sourceUrl": "https://www.somosjujuy.com.ar/canal7vivo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 7 / Somos Jujuy"
+    },
+    "tags": ["jujuy", "san-salvador-de-jujuy", "news", "local", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Somos Jujuy page, Arcast HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-posadas-encarnacion-bridge-1736465230",
+    "providerId": "windy",
+    "title": "Posadas / Encarnacion - Puente Internacional (Windy)",
+    "description": "Camara publica Windy del area fronteriza Posadas-Encarnacion con vista al Puente Internacional San Roque Gonzalez de Santa Cruz. Aporta contexto visual cercano para Posadas y Misiones; BioPulse consulta Windy sin copiar ni rehostear imagenes.",
+    "geo": { "lat": -27.33082, "lon": -55.87419 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas / Encarnacion" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1736465230",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams"
+    },
+    "tags": ["misiones", "posadas", "encarnacion", "bridge", "border", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Windy page, Meteoblue listing, Outdooractive metadata and Windy preview HEAD check",
+      "verifiedAt": "2026-07-29"
+    }
   }
 ]

@@ -2047,6 +2047,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "cerrocastor") return "Cerro Castor";
   if (provider === "canal79") return "Canal 79";
   if (provider === "canal12web") return "Canal 12 Web";
+  if (provider === "canal7jujuy") return "Canal 7 Jujuy";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2299,6 +2300,13 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     if (host === "nd106.republicaservers.com") {
       if (url.port) return null;
       if (!/^\/hls\/c7827\/index\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "stream.arcast.live") {
+      if (url.port) return null;
+      if (!/^\/canal7jujuy\/ngrp:canal7jujuy_all\/playlist\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }
