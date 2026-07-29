@@ -4183,6 +4183,89 @@
     },
     {
         "schema":  "biopulse.camera.v1",
+        "id":  "ar-lightfm-san-juan-camara-hd",
+        "providerId":  "lightfm",
+        "title":  "San Juan Capital - Light FM Camara HD",
+        "description":  "Camara HD publica de Radio Light FM 97.3 en la ciudad de San Juan. BioPulse reproduce el HLS publicado por la fuente sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -31.5375,
+                    "lon":  -68.5364
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "San Juan",
+                         "locality":  "San Juan"
+                     },
+        "mediaType":  "stream",
+        "fetch":  {
+                      "kind":  "stream_url",
+                      "protocol":  "hls",
+                      "provider":  "lightfm",
+                      "url":  "https://videostream.shockmedia.com.ar:19360/lightfm/lightfm.m3u8",
+                      "sourceUrl":  "https://www.lightfm.com.ar/camara/"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Light FM 97.3 San Juan"
+                  },
+        "tags":  [
+                     "san-juan",
+                     "camera",
+                     "radio",
+                     "local",
+                     "stream",
+                     "hls"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Light FM camera page, HLS playlist CORS and MPEG-TS segment check",
+                           "verifiedAt":  "2026-07-29"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
+        "id":  "ar-canal4sanjuan-live",
+        "providerId":  "canal4sanjuan",
+        "title":  "San Juan Capital - Canal 4 en vivo",
+        "description":  "Senal local de Canal 4 San Juan. Puede incluir noticias, programas y camaras de estudio o moviles; BioPulse reproduce el HLS publicado por el reproductor oficial sin copiar ni rehostear video.",
+        "geo":  {
+                    "lat":  -31.5368,
+                    "lon":  -68.5325
+                },
+        "coverage":  {
+                         "countryISO2":  "AR",
+                         "admin1":  "San Juan",
+                         "locality":  "San Juan"
+                     },
+        "mediaType":  "stream",
+        "fetch":  {
+                      "kind":  "stream_url",
+                      "protocol":  "hls",
+                      "provider":  "canal4sanjuan",
+                      "url":  "https://streamlov.alsolnet.com/canal4sanjuan/live/playlist.m3u8",
+                      "sourceUrl":  "https://canal4sanjuan.com.ar/"
+                  },
+        "usage":  {
+                      "isPublic":  true,
+                      "attributionText":  "Fuente: Canal 4 San Juan"
+                  },
+        "tags":  [
+                     "san-juan",
+                     "news",
+                     "local",
+                     "stream",
+                     "hls"
+                 ],
+        "priority":  1,
+        "validation":  {
+                           "status":  "verified",
+                           "verifiedBy":  "Codex via Canal 4 official page, ALSOLNET player, HLS playlist CORS and MPEG-TS segment check",
+                           "verifiedAt":  "2026-07-29"
+                       }
+    },
+    {
+        "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-35116-resistencia-traffic",
         "providerId":  "worldcam",
         "title":  "Resistencia - Traffic (WorldCam)",

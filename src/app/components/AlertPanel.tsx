@@ -2054,6 +2054,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal10tucuman") return "Canal 10 Tucuman";
   if (provider === "lapacho-tv") return "Lapacho TV";
   if (provider === "multivision-federal") return "Multivision Federal";
+  if (provider === "lightfm") return "Light FM";
+  if (provider === "canal4sanjuan") return "Canal 4 San Juan";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
@@ -2332,8 +2334,20 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     }
 
     if (host === "videostream.shockmedia.com.ar") {
+      if (url.port === "19360") {
+        if (!/^\/lightfm\/lightfm\.m3u8$/i.test(url.pathname)) return null;
+        if (url.search) return null;
+        return url.toString();
+      }
       if (url.port) return null;
       if (!/^\/hls\/multivisionfederal\/multivisionfederal\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "streamlov.alsolnet.com") {
+      if (url.port) return null;
+      if (!/^\/canal4sanjuan\/live\/playlist\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }
