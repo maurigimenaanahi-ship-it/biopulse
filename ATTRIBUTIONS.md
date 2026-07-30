@@ -42,7 +42,9 @@ BioPulse muestra [Lapacho TV / Canal 11 Formosa](https://lapachocanal11.com.ar/v
 
 BioPulse reproduce la senal publica de [Multivision Federal](https://multivision.tv/) mediante HLS publicado por su sitio oficial para Salta, sin copiar ni rehostear video.
 
-BioPulse reproduce la [Camara HD de Light FM San Juan](https://www.lightfm.com.ar/camara/) y la senal publica de [Canal 4 San Juan](https://canal4sanjuan.com.ar/) mediante HLS publicado por sus reproductores oficiales, sin copiar ni rehostear video.
+BioPulse muestra la senal publica de [PUE! Salta](https://pueinfo.com/) mediante el iframe oficial de YouTube de su canal, sin copiar ni rehostear video.
+
+BioPulse reproduce la [Camara HD de Light FM San Juan](https://www.lightfm.com.ar/camara/) mediante HLS publicado por su reproductor oficial y muestra la senal publica de Canal 4 San Juan mediante el reproductor oficial de [ALSOLNET](https://www.alsolnet.com/stream/canal4sanjuan/), sin copiar ni rehostear video.
 
 BioPulse reproduce las senales publicas de [Ciudad TV Chaco](https://ciudadtv.ar/) y [Canal Somos Uno](https://canalsomosuno.tv/vivo) mediante HLS publicado por sus paginas oficiales, sin copiar ni rehostear video.
 
@@ -61,6 +63,10 @@ BioPulse muestra [Canal 3 Formosa / Agenfor](https://agenfor.com.ar/canal-3-form
 BioPulse muestra [CPEtv Santa Rosa](https://www.cpe.coop.ar/CpeTvVivo) mediante el reproductor oficial VMF publicado por la fuente y reproduce la senal publica de [TVCO / Corpico](https://www.corpico.com.ar/tvco) mediante HLS publicado por su pagina oficial, sin copiar ni rehostear video.
 
 BioPulse muestra la senal publica de [FM Sol Jujuy](https://tribunotv.ar/canal/fmsol) mediante el iframe oficial de YouTube referenciado por TRIBUNOtv, sin copiar ni rehostear video.
+
+BioPulse muestra la senal publica de [San Luis+](https://sanluismas.com/#vivo) mediante el iframe oficial de YouTube de su canal cuando la fuente esta emitiendo en vivo, sin copiar ni rehostear video.
+
+BioPulse enlaza la pagina oficial [En Vivo del Gobierno de Santiago del Estero](https://sde.gob.ar/en-vivo/) como fuente externa de transmisiones y videos institucionales, sin copiar ni rehostear contenido.
 
 BioPulse reproduce la camara oficial de [Las Lenas](https://laslenas.com/camara-en-vivo/) mediante HLS publicado por su reproductor StreamCastHD, sin copiar ni rehostear video.
 

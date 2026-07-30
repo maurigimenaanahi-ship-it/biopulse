@@ -2059,6 +2059,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
+  if (provider === "pue-salta") return "PUE! Salta";
+  if (provider === "san-luis-mas") return "San Luis+";
+  if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
@@ -2199,6 +2202,22 @@ function vmfEdgeAppsEmbedUrl(rawUrl: unknown) {
     }
     if (url.searchParams.has("autoplay") && url.searchParams.get("autoplay") !== "true") return null;
     if (url.hash) return null;
+
+    url.protocol = "https:";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function alsolnetCanal4SanJuanEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== "www.alsolnet.com") return null;
+    if (url.pathname !== "/stream/canal4sanjuan/player.htm") return null;
+    if (url.search || url.hash) return null;
 
     url.protocol = "https:";
     return url.toString();
@@ -2483,6 +2502,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
   if (provider === "lapacho-tv" || provider === "agenfor-canal3") return livecastvEmbedUrl(fetchInfo.url);
   if (provider === "cpetv") return vmfEdgeAppsEmbedUrl(fetchInfo.url);
+  if (provider === "canal4sanjuan") return alsolnetCanal4SanJuanEmbedUrl(fetchInfo.url);
   if (provider === "streamcasthd") return streamcastHdEmbedUrl(fetchInfo.url);
   if (provider === "mendoza-capital") return mendozaCapitalEmbedUrl(fetchInfo.url);
 

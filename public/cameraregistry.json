@@ -2991,7 +2991,7 @@
         "id":  "ar-worldcam-31636-mar-del-plata-coast",
         "providerId":  "worldcam",
         "title":  "Mar del Plata - Coast (WorldCam)",
-        "description":  "Senal publica de Canal 79 para Mar del Plata, registrada desde WorldCam y reproducida mediante stream HLS publicado por la fuente.",
+        "description":  "Pagina publica externa de WorldCam / Canal 79 para Mar del Plata. BioPulse enlaza la fuente porque el HLS directo registrado no quedo reproducible de forma verificable.",
         "geo":  {
                     "lat":  -37.999753,
                     "lon":  -57.542592
@@ -3001,13 +3001,11 @@
                          "admin1":  "Buenos Aires",
                          "locality":  "Mar del Plata"
                      },
-        "mediaType":  "stream",
+        "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "stream_url",
+                      "kind":  "external_page",
                       "provider":  "canal79",
-                      "protocol":  "hls",
-                      "url":  "https://streamconex.com:19360/mardelplata/mardelplata.m3u8",
-                      "sourceUrl":  "https://canal79tv.com.ar/mardelplatas/"
+                      "url":  "https://worldcam.eu/webcams/south-america/argentina/31636-mar-del-plata-coast"
                   },
         "usage":  {
                       "isPublic":  true,
@@ -3019,13 +3017,13 @@
                      "beach",
                      "canal79",
                      "weather",
-                     "stream"
+                     "external"
                  ],
         "priority":  0,
         "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via Canal 79 page HLS and CORS check",
-                           "verifiedAt":  "2026-07-17"
+                           "status":  "partial",
+                           "verifiedBy":  "Codex via prior audit: Canal 79 HLS unavailable; retained external WorldCam source",
+                           "verifiedAt":  "2026-07-29"
                        }
     },
     {
@@ -4228,7 +4226,7 @@
         "id":  "ar-canal4sanjuan-live",
         "providerId":  "canal4sanjuan",
         "title":  "San Juan Capital - Canal 4 en vivo",
-        "description":  "Senal local de Canal 4 San Juan. Puede incluir noticias, programas y camaras de estudio o moviles; BioPulse reproduce el HLS publicado por el reproductor oficial sin copiar ni rehostear video.",
+        "description":  "Senal local de Canal 4 San Juan. Puede incluir noticias, programas y camaras de estudio o moviles; BioPulse usa el reproductor oficial de ALSOLNET sin copiar ni rehostear video.",
         "geo":  {
                     "lat":  -31.5368,
                     "lon":  -68.5325
@@ -4238,13 +4236,12 @@
                          "admin1":  "San Juan",
                          "locality":  "San Juan"
                      },
-        "mediaType":  "stream",
+        "mediaType":  "embed",
         "fetch":  {
-                      "kind":  "stream_url",
-                      "protocol":  "hls",
+                      "kind":  "html_embed",
                       "provider":  "canal4sanjuan",
-                      "url":  "https://streamlov.alsolnet.com/canal4sanjuan/live/playlist.m3u8",
-                      "sourceUrl":  "https://canal4sanjuan.com.ar/"
+                      "url":  "https://www.alsolnet.com/stream/canal4sanjuan/player.htm",
+                      "sourceUrl":  "https://www.alsolnet.com/stream/canal4sanjuan/"
                   },
         "usage":  {
                       "isPublic":  true,
@@ -4255,12 +4252,12 @@
                      "news",
                      "local",
                      "stream",
-                     "hls"
+                     "embed"
                  ],
         "priority":  1,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via Canal 4 official page, ALSOLNET player, HLS playlist CORS and MPEG-TS segment check",
+                           "verifiedBy":  "Codex via Canal 4 official page and ALSOLNET player; direct HLS removed after audit failure",
                            "verifiedAt":  "2026-07-29"
                        }
     },
@@ -12319,6 +12316,86 @@
     "validation": {
       "status": "verified",
       "verifiedBy": "Codex via TRIBUNOtv public status API, current FM Sol live video, YouTube oEmbed and live_stream embed check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-pue-salta-live",
+    "providerId": "pue-salta",
+    "title": "Salta - PUE! en vivo",
+    "description": "Senal audiovisual local de PUE! para Salta, con programas, entrevistas, coberturas y moviles. BioPulse usa el iframe oficial de YouTube live_stream para el canal de la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7821, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCdMP4zAisGQ7Dve0rjrsVAw",
+      "sourceUrl": "https://pueinfo.com/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: PUE! Salta"
+    },
+    "tags": ["salta", "news", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via PUE! official site, YouTube /@pueok/live, current live video playability and oEmbed check",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-san-luis-mas-live",
+    "providerId": "san-luis-mas",
+    "title": "San Luis - San Luis+ en vivo",
+    "description": "Canal y multiplataforma oficial San Luis+ con programacion local, informativos y contenidos audiovisuales provinciales. BioPulse usa el iframe oficial de YouTube live_stream; puede mostrar la senal cuando la fuente esta emitiendo en vivo.",
+    "geo": { "lat": -33.3017, "lon": -66.3378 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC2TE19Vc_rDQRMO5hnhqsQw",
+      "sourceUrl": "https://sanluismas.com/#vivo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: San Luis+"
+    },
+    "tags": ["san-luis", "news", "official", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via San Luis+ official site, Agencia San Luis source note, YouTube channel and live_stream embed check; channel was not live at validation time",
+      "verifiedAt": "2026-07-29"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-sde-en-vivo",
+    "providerId": "gobierno-sde",
+    "title": "Santiago del Estero - Gobierno provincial en vivo",
+    "description": "Pagina oficial de actividad en vivo del Gobierno de Santiago del Estero con transmisiones y videos institucionales de YouTube. BioPulse enlaza la fuente oficial porque no habia un stream actual continuo verificable al momento de validacion.",
+    "geo": { "lat": -27.7844, "lon": -64.2669 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "gobierno-sde",
+      "url": "https://sde.gob.ar/en-vivo/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Santiago del Estero"
+    },
+    "tags": ["santiago-del-estero", "official", "news", "local", "external"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via SDE official En Vivo page and YouTube channel/live checks; no current continuous live stream verified",
       "verifiedAt": "2026-07-29"
     }
   }
