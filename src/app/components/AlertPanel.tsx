@@ -2080,6 +2080,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "mendoza-capital") return "Ciudad de Mendoza";
   if (provider === "kitebariloche") return "Kite Bariloche";
   if (provider === "twitch") return "Twitch";
+  if (provider === "dailymotion") return "Dailymotion";
   if (provider === "youtube") return "YouTube";
   if (provider) {
     return provider
@@ -2126,6 +2127,24 @@ function youtubeEmbedUrl(rawUrl: unknown) {
     if (!videoId || !/^[a-zA-Z0-9_-]{6,}$/.test(videoId)) return null;
 
     return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?rel=0`;
+  } catch {
+    return null;
+  }
+}
+
+function dailymotionEmbedUrl(rawUrl: unknown) {
+  if (typeof rawUrl !== "string" || !/^https?:\/\//i.test(rawUrl)) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host !== "dailymotion.com") return null;
+
+    const match = url.pathname.match(/^\/embed\/video\/([a-z0-9]+)$/i);
+    if (!match) return null;
+    if (url.search || url.hash) return null;
+
+    return `https://www.dailymotion.com/embed/video/${match[1]}`;
   } catch {
     return null;
   }
@@ -2497,6 +2516,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
 
   if (fetchInfo?.kind !== "html_embed") return null;
   if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
+  if (provider === "dailymotion") return dailymotionEmbedUrl(fetchInfo.url);
   if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
   if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);

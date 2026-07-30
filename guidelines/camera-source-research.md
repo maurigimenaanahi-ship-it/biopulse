@@ -132,6 +132,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Canal 2 Misiones / MistServer: aplicada como `stream_url` para la senal local de Posadas cuando la portada oficial publica iframe `nd106.republicaservers.com:4433/canal2misioness.html` y el player expone HLS `/hls/canal2misioness/index.m3u8`. Registrar como senal local con noticias/programas/moviles, no como camara fija garantizada. Requiere allowlist estricta del host/puerto/ruta, CORS `*` y segmento MPEG-TS validado.
   Fuentes: https://www.canal2misiones.com.ar/ , https://nd106.republicaservers.com:4433/hls/canal2misioness/index.m3u8
 
+- Misiones Online / Dailymotion: aplicadas como `html_embed` para la camara / senal visual "Costanera de Posadas" y la senal "Misiones Online Television". El perfil publico de Dailymotion lista ambas como `Live`; las paginas de video y los embeds oficiales `www.dailymotion.com/embed/video/x9x6vqm` y `www.dailymotion.com/embed/video/x7zh5gd` responden con player HTML y referencias de streaming. Usar Dailymotion solo con allowlist exacta `/embed/video/<id>` y fuente de video publicada por la cuenta Misiones Online. Las paginas propias de Misiones Online devolvieron 403 al validador, por eso no depender de ellas hasta resolver el acceso.
+  Fuentes: https://www.dailymotion.com/user/misionesonline , https://www.dailymotion.com/video/x9x6vqm , https://www.dailymotion.com/video/x7zh5gd
+
 - El Ocho Tucuman: aplicada como `html_embed` porque la pagina oficial `el-ocho-en-vivo.html` publica iframe de YouTube para la transmision en vivo y el `oEmbed` de YouTube confirma el video `RCXfY3lEAoI`. Usar el iframe oficial de YouTube, no streams descargados ni mirrors de terceros.
   Fuente: https://www.elocho.tv/el-ocho-en-vivo.html
 

@@ -12398,5 +12398,59 @@
       "verifiedBy": "Codex via SDE official En Vivo page and YouTube channel/live checks; no current continuous live stream verified",
       "verifiedAt": "2026-07-29"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-misionesonline-costanera-posadas",
+    "providerId": "dailymotion",
+    "title": "Posadas - Costanera de Posadas (Misiones Online)",
+    "description": "Camara / senal visual publica de Misiones Online orientada a la Costanera de Posadas. BioPulse usa el reproductor oficial de Dailymotion sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3622, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "dailymotion",
+      "url": "https://www.dailymotion.com/embed/video/x9x6vqm",
+      "sourceUrl": "https://www.dailymotion.com/video/x9x6vqm"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Misiones Online / Dailymotion"
+    },
+    "tags": ["misiones", "posadas", "costanera", "river", "weather", "dailymotion", "stream"],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Misiones Online Dailymotion profile, live video page and official Dailymotion embed check",
+      "verifiedAt": "2026-07-30"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-misionesonline-tv-live",
+    "providerId": "dailymotion",
+    "title": "Posadas - Misiones Online Television",
+    "description": "Senal audiovisual local de Misiones Online Television para Posadas y la provincia. Puede incluir estudio, noticias, programas y moviles; BioPulse usa el reproductor oficial de Dailymotion sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3671, "lon": -55.8961 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "dailymotion",
+      "url": "https://www.dailymotion.com/embed/video/x7zh5gd",
+      "sourceUrl": "https://www.dailymotion.com/video/x7zh5gd"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Misiones Online / Dailymotion"
+    },
+    "tags": ["misiones", "posadas", "news", "local", "dailymotion", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Misiones Online Dailymotion profile, live video page and official Dailymotion embed check",
+      "verifiedAt": "2026-07-30"
+    }
   }
 ]

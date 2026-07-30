@@ -56,6 +56,8 @@ BioPulse muestra el reproductor publico de [Canal 10 Tucuman](https://canal10.co
 
 BioPulse reproduce la senal publica de [Canal 2 Misiones](https://www.canal2misiones.com.ar/) mediante HLS publicado por su reproductor oficial MistServer, sin copiar ni rehostear video.
 
+BioPulse muestra la camara / senal visual de [Costanera de Posadas](https://www.dailymotion.com/video/x9x6vqm) y la senal publica de [Misiones Online Television](https://www.dailymotion.com/video/x7zh5gd) mediante el reproductor oficial de Dailymotion publicado por Misiones Online, sin copiar ni rehostear video.
+
 BioPulse muestra el reproductor publico de [El Ocho Tucuman](https://www.elocho.tv/el-ocho-en-vivo.html) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
 
 BioPulse muestra [Canal 3 Formosa / Agenfor](https://agenfor.com.ar/canal-3-formosa/) mediante el reproductor oficial Livecastv publicado por la fuente, sin copiar ni rehostear video.
