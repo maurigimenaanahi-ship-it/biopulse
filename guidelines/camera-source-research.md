@@ -111,6 +111,9 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 - Formosa / Agenfor / Canal 3 / Livecastv: aplicada como `html_embed` desde la pagina oficial de Agenfor / Gobierno de Formosa. La portada declara "CANAL 3 FORMOSA" y publica iframe `playerv.livecastv.com/video/agenfor/.../nao`; el player descubre HLS `stmvideo6.livecastv.com/agenfor/agenfor/playlist.m3u8`, pero BioPulse usa el reproductor oficial porque el acceso directo no quedo promovido como stream con CORS/segmentos estables. Registrar como senal local/oficial, no como camara fija garantizada.
   Fuentes: https://agenfor.com.ar/ , https://agenfor.com.ar/canal-3-formosa/ , https://playerv.livecastv.com/video/agenfor/1/true/false/V1hwT1UyUkhVblJpUjNSaFZucG5lVlJITVRSalIxSjBWbTF3V2xkRk5IZGFSMnN4WVcxSmVVMUVNRDA9K1I=/16:9/aHR0cDovL3d3dy5hZ2VuZm9yLmNvbS5hcisx/nao
 
+- Formosa / Quien TV / Twitch: aplicada como `html_embed` usando el reproductor oficial `player.twitch.tv/?channel=quientvformosa`. La fuente publica presencia local en YouTube y Twitch; BioPulse usa Twitch porque el embed por canal es estable y ya esta soportado con `parent` dinamico. Registrar como senal local de streaming, no como camara fija 24/7.
+  Fuentes: https://www.twitch.tv/quientvformosa , https://www.youtube.com/@QUIENTVFORMOSA
+
 - Ciudad TV Chaco y Canal Somos Uno: aplicadas como `stream_url` para senales locales/provinciales de Chaco cuando sus paginas oficiales publican HLS directo con CORS y segmentos MPEG-TS. Ciudad TV usa `617c5175c970b.streamlock.net:4444/chacodxdtv/livenew/playlist.m3u8`; Somos Uno usa `wowzasrv.chaco.gov.ar/Streamtv/chacotv/playlist.m3u8`. Registrar como senales de noticias/programas/moviles, no como camaras fijas garantizadas.
   Fuentes: https://ciudadtv.ar/ , https://ciudadtv.ar/institucional/ , https://617c5175c970b.streamlock.net:4444/chacodxdtv/livenew/playlist.m3u8 , https://canalsomosuno.tv/vivo , https://wowzasrv.chaco.gov.ar/Streamtv/chacotv/playlist.m3u8
 
@@ -140,6 +143,12 @@ El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, med
 
 - El Ocho Tucuman: aplicada como `html_embed` porque la pagina oficial `el-ocho-en-vivo.html` publica iframe de YouTube para la transmision en vivo y el `oEmbed` de YouTube confirma el video `RCXfY3lEAoI`. Usar el iframe oficial de YouTube, no streams descargados ni mirrors de terceros.
   Fuente: https://www.elocho.tv/el-ocho-en-vivo.html
+
+- Tucuman / LA GACETA Play: aplicada como `external_page` a `lagaceta.com.ar/lgplay`. La pagina estable publica el iframe de YouTube vigente para LG Play, pero el `videoId` rota por programa/dia y el sitio responde `X-Frame-Options: SAMEORIGIN`; no registrar el video ID actual como `html_embed` porque queda obsoleto. Paso futuro: resolver dinamicamente el iframe actual desde un endpoint propio y servir solo el embed oficial de YouTube.
+  Fuentes: https://www.lagaceta.com.ar/lgplay , https://www.youtube.com/@lagacetadetucuman
+
+- Tucuman / Mia Tucuman 101.1: aplicada como `external_page` porque la pagina oficial declara streaming audiovisual por YouTube/Twitch y enlaza el canal `@MiaTucumanHD`, pero el endpoint YouTube `embed/live_stream?channel=UClSXlqO2N4rnRPc6H01eRxw` devolvio reproductor no disponible durante validacion. No promover a `html_embed` hasta hallar un embed estable o canal Twitch verificable.
+  Fuentes: https://miatucuman.com.ar/ , https://www.youtube.com/@MiaTucumanHD
 
 - La Pampa / CPEtv / VMF: aplicada como `html_embed` para la senal local de CPEtv Santa Rosa cuando la pagina oficial `CpeTvVivo` publica iframe `vmf.edge-apps.net/embed/live.php?streamname=cpetv1-100187&autoplay=true`. El HLS interno del player se mantiene dentro del reproductor oficial porque el host interno informado por VMF no resolvio directamente durante la validacion. Mantener allowlist estricta de host, ruta y `streamname`.
   Fuentes: https://www.cpe.coop.ar/CpeTvVivo , https://vmf.edge-apps.net/embed/live.php?streamname=cpetv1-100187&autoplay=true

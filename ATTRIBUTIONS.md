@@ -62,7 +62,11 @@ BioPulse muestra la camara / senal visual de [Costanera de Posadas](https://www.
 
 BioPulse muestra el reproductor publico de [El Ocho Tucuman](https://www.elocho.tv/el-ocho-en-vivo.html) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
 
+BioPulse enlaza [LA GACETA Play](https://www.lagaceta.com.ar/lgplay) y [Mia Tucuman 101.1](https://miatucuman.com.ar/) como fuentes externas de transmisiones audiovisuales locales de Tucuman cuando no hay embed estable verificable dentro de BioPulse.
+
 BioPulse muestra [Canal 3 Formosa / Agenfor](https://agenfor.com.ar/canal-3-formosa/) mediante el reproductor oficial Livecastv publicado por la fuente, sin copiar ni rehostear video.
+
+BioPulse muestra la senal publica de [Quien TV Formosa](https://www.twitch.tv/quientvformosa) mediante el reproductor oficial de Twitch publicado por la fuente, sin copiar ni rehostear video.
 
 BioPulse muestra [CPEtv Santa Rosa](https://www.cpe.coop.ar/CpeTvVivo) mediante el reproductor oficial VMF publicado por la fuente y reproduce la senal publica de [TVCO / Corpico](https://www.corpico.com.ar/tvco) mediante HLS publicado por su pagina oficial, sin copiar ni rehostear video.
 

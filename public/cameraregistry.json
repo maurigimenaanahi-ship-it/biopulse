@@ -12533,5 +12533,85 @@
       "verifiedBy": "Codex via Canal Parlamentario official VIVO page, YouTube oEmbed, channel metadata and live_stream endpoint",
       "verifiedAt": "2026-07-30"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-quientv-formosa-twitch",
+    "providerId": "quientv-formosa",
+    "title": "Formosa - Quien TV Formosa en vivo",
+    "description": "Canal local de streaming de Formosa con programas informativos y coberturas provinciales. BioPulse usa el reproductor oficial de Twitch publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=quientvformosa",
+      "sourceUrl": "https://www.twitch.tv/quientvformosa"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Quien TV Formosa / Twitch",
+      "termsUrl": "https://dev.twitch.tv/docs/embed/"
+    },
+    "tags": ["formosa", "news", "local", "twitch", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Quien TV Formosa public YouTube/Twitch references and official Twitch player check",
+      "verifiedAt": "2026-07-30"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-lagaceta-play-tucuman",
+    "providerId": "lagaceta-play",
+    "title": "San Miguel de Tucuman - LA GACETA Play",
+    "description": "Pagina estable de LA GACETA Play con transmision informativa en vivo y programacion audiovisual local. BioPulse enlaza la fuente porque el sitio actualiza el video de YouTube vigente y no permite embeber la pagina completa fuera de su dominio.",
+    "geo": { "lat": -26.8241, "lon": -65.2226 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "lagaceta-play",
+      "url": "https://www.lagaceta.com.ar/lgplay"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: LA GACETA Play"
+    },
+    "tags": ["tucuman", "news", "local", "external"],
+    "priority": 1,
+    "validation": {
+      "status": "partial",
+      "verifiedBy": "Codex via LA GACETA Play page, current YouTube iframe check and X-Frame-Options SAMEORIGIN; kept external to avoid stale rotating video IDs",
+      "verifiedAt": "2026-07-30"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-mia-tucuman-live-page",
+    "providerId": "mia-tucuman",
+    "title": "San Miguel de Tucuman - Mia Tucuman 101.1",
+    "description": "Pagina local de Mia Tucuman 101.1 con transmision en vivo, programacion y referencias a streaming audiovisual por YouTube/Twitch. BioPulse enlaza la fuente porque el canal de YouTube no entrego un live_stream embebible estable al momento de validacion.",
+    "geo": { "lat": -26.8241, "lon": -65.2226 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "mia-tucuman",
+      "url": "https://miatucuman.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Mia Tucuman 101.1"
+    },
+    "tags": ["tucuman", "radio-con-camara", "local", "external"],
+    "priority": 2,
+    "validation": {
+      "status": "partial",
+      "verifiedBy": "Codex via Mia Tucuman official site and YouTube channel metadata; live_stream endpoint not promoted because it returned an unavailable player during validation",
+      "verifiedAt": "2026-07-30"
+    }
   }
 ]

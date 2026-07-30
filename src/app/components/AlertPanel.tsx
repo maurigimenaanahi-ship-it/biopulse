@@ -2056,6 +2056,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal10tucuman") return "Canal 10 Tucuman";
   if (provider === "lapacho-tv") return "Lapacho TV";
   if (provider === "agenfor-canal3") return "Canal 3 Formosa";
+  if (provider === "quientv-formosa") return "Quien TV Formosa";
   if (provider === "cpetv") return "CPEtv";
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
@@ -2065,6 +2066,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "gobierno-sde") return "Gobierno SDE";
+  if (provider === "lagaceta-play") return "LA GACETA Play";
+  if (provider === "mia-tucuman") return "Mia Tucuman";
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
