@@ -2049,6 +2049,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal12web") return "Canal 12 Web";
   if (provider === "canal7jujuy") return "Canal 7 Jujuy";
   if (provider === "canal7catamarca") return "Catamarca TV";
+  if (provider === "canal-parlamentario-catamarca") return "Canal Parlamentario Catamarca";
   if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
   if (provider === "canal13larioja") return "Canal 13 La Rioja";
@@ -2058,6 +2059,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "cpetv") return "CPEtv";
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
+  if (provider === "eltribuno-jujuy") return "El Tribuno de Jujuy";
+  if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "san-luis-mas") return "San Luis+";

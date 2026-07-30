@@ -12452,5 +12452,86 @@
       "verifiedBy": "Codex via Misiones Online Dailymotion profile, live video page and official Dailymotion embed check",
       "verifiedAt": "2026-07-30"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-eltribuno-jujuy-live",
+    "providerId": "eltribuno-jujuy",
+    "title": "San Salvador de Jujuy - El Tribuno de Jujuy en vivo",
+    "description": "Senal audiovisual local de El Tribuno de Jujuy con programacion informativa, coberturas y moviles provinciales. BioPulse usa el iframe oficial de YouTube live_stream referenciado por TRIBUNOtv; puede mostrar la senal cuando la fuente esta emitiendo.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCMywWPYWcnMqkgIOdyeYgyA",
+      "sourceUrl": "https://tribunotv.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Tribuno de Jujuy / TRIBUNOtv"
+    },
+    "tags": ["jujuy", "san-salvador-de-jujuy", "news", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via TRIBUNOtv public status API, YouTube channel metadata and live_stream endpoint; channel was not live at validation time",
+      "verifiedAt": "2026-07-30"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-jujuyfm-live",
+    "providerId": "jujuyfm",
+    "title": "San Salvador de Jujuy - Jujuy FM en vivo",
+    "description": "Radio con camara y senal audiovisual local de Jujuy FM, publicada en TRIBUNOtv y YouTube. Puede incluir estudio, musica, noticias y programas locales; BioPulse usa el iframe oficial de YouTube live_stream sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCqA6wLDYdEwRm3Q3Yu-rFHQ",
+      "sourceUrl": "https://tribunotv.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Jujuy FM / TRIBUNOtv"
+    },
+    "tags": ["jujuy", "san-salvador-de-jujuy", "radio-con-camara", "news", "local", "youtube", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via TRIBUNOtv public status API, YouTube channel metadata and live_stream endpoint; channel was not live at validation time",
+      "verifiedAt": "2026-07-30"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal-parlamentario-catamarca-live",
+    "providerId": "canal-parlamentario-catamarca",
+    "title": "Catamarca - Canal Parlamentario en vivo",
+    "description": "Senal institucional oficial de la Camara de Diputados de Catamarca para sesiones y actividades legislativas. BioPulse usa el iframe oficial de YouTube live_stream asociado al canal y conserva la pagina VIVO como fuente primaria.",
+    "geo": { "lat": -28.4696, "lon": -65.7852 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCZFcNG6O6VeHBAL3PaIwp0Q",
+      "sourceUrl": "https://tv.diputadoscatamarca.gob.ar/index.php/vivo/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal Parlamentario / Camara de Diputados de Catamarca"
+    },
+    "tags": ["catamarca", "official", "legislature", "youtube", "stream"],
+    "priority": 2,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal Parlamentario official VIVO page, YouTube oEmbed, channel metadata and live_stream endpoint",
+      "verifiedAt": "2026-07-30"
+    }
   }
 ]

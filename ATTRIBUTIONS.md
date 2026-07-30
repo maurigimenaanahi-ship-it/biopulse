@@ -38,6 +38,8 @@ BioPulse reproduce senales publicas de [Catamarca TV](https://arcast.com.ar/cana
 
 BioPulse reproduce la senal publica de [Radio TV Valle Viejo](https://radiovalleviejo.com/) mediante HLS publicado por su reproductor Arcast para Catamarca, sin copiar ni rehostear video.
 
+BioPulse muestra la senal institucional de [Canal Parlamentario / Camara de Diputados de Catamarca](https://tv.diputadoscatamarca.gob.ar/index.php/vivo/) mediante el iframe oficial de YouTube del canal cuando la fuente esta emitiendo, sin copiar ni rehostear video.
+
 BioPulse muestra [Lapacho TV / Canal 11 Formosa](https://lapachocanal11.com.ar/vivo/) mediante el reproductor oficial Livecastv publicado por la fuente. No copia, descarga ni rehostea video.
 
 BioPulse reproduce la senal publica de [Multivision Federal](https://multivision.tv/) mediante HLS publicado por su sitio oficial para Salta, sin copiar ni rehostear video.
@@ -65,6 +67,8 @@ BioPulse muestra [Canal 3 Formosa / Agenfor](https://agenfor.com.ar/canal-3-form
 BioPulse muestra [CPEtv Santa Rosa](https://www.cpe.coop.ar/CpeTvVivo) mediante el reproductor oficial VMF publicado por la fuente y reproduce la senal publica de [TVCO / Corpico](https://www.corpico.com.ar/tvco) mediante HLS publicado por su pagina oficial, sin copiar ni rehostear video.
 
 BioPulse muestra la senal publica de [FM Sol Jujuy](https://tribunotv.ar/canal/fmsol) mediante el iframe oficial de YouTube referenciado por TRIBUNOtv, sin copiar ni rehostear video.
+
+BioPulse muestra las senales publicas locales de [El Tribuno de Jujuy](https://tribunotv.ar/) y Jujuy FM mediante iframes oficiales de YouTube referenciados por TRIBUNOtv, sin copiar ni rehostear video.
 
 BioPulse muestra la senal publica de [San Luis+](https://sanluismas.com/#vivo) mediante el iframe oficial de YouTube de su canal cuando la fuente esta emitiendo en vivo, sin copiar ni rehostear video.
 
