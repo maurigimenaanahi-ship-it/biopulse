@@ -62,7 +62,7 @@ BioPulse muestra la camara / senal visual de [Costanera de Posadas](https://www.
 
 BioPulse muestra el reproductor publico de [El Ocho Tucuman](https://www.elocho.tv/el-ocho-en-vivo.html) mediante el iframe oficial de YouTube publicado por la fuente, sin copiar ni rehostear video.
 
-BioPulse enlaza [LA GACETA Play](https://www.lagaceta.com.ar/lgplay) y [Mia Tucuman 101.1](https://miatucuman.com.ar/) como fuentes externas de transmisiones audiovisuales locales de Tucuman cuando no hay embed estable verificable dentro de BioPulse.
+BioPulse muestra [LA GACETA Play](https://www.lagaceta.com.ar/lgplay) resolviendo dinamicamente el iframe vigente de YouTube publicado por la fuente, sin copiar ni rehostear video; [Mia Tucuman 101.1](https://miatucuman.com.ar/) queda enlazada como fuente externa hasta verificar un embed estable.
 
 BioPulse muestra [Canal 3 Formosa / Agenfor](https://agenfor.com.ar/canal-3-formosa/) mediante el reproductor oficial Livecastv publicado por la fuente, sin copiar ni rehostear video.
 

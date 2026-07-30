@@ -12567,24 +12567,25 @@
     "id": "ar-lagaceta-play-tucuman",
     "providerId": "lagaceta-play",
     "title": "San Miguel de Tucuman - LA GACETA Play",
-    "description": "Pagina estable de LA GACETA Play con transmision informativa en vivo y programacion audiovisual local. BioPulse enlaza la fuente porque el sitio actualiza el video de YouTube vigente y no permite embeber la pagina completa fuera de su dominio.",
+    "description": "Pagina estable de LA GACETA Play con transmision informativa en vivo y programacion audiovisual local. BioPulse consulta un endpoint propio que resuelve el iframe vigente de YouTube para evitar videos rotativos obsoletos; si no hay iframe disponible, conserva el enlace a la fuente.",
     "geo": { "lat": -26.8241, "lon": -65.2226 },
     "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "provider_api",
       "provider": "lagaceta-play",
-      "url": "https://www.lagaceta.com.ar/lgplay"
+      "cameraKey": "main",
+      "endpoint": "/api/lagaceta-play"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: LA GACETA Play"
     },
-    "tags": ["tucuman", "news", "local", "external"],
+    "tags": ["tucuman", "news", "local", "youtube", "dynamic-embed", "stream"],
     "priority": 1,
     "validation": {
-      "status": "partial",
-      "verifiedBy": "Codex via LA GACETA Play page, current YouTube iframe check and X-Frame-Options SAMEORIGIN; kept external to avoid stale rotating video IDs",
+      "status": "verified",
+      "verifiedBy": "Codex via LA GACETA Play page, current YouTube iframe check and dynamic provider endpoint",
       "verifiedAt": "2026-07-30"
     }
   },
