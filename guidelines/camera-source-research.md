@@ -13,6 +13,8 @@ BioPulse no descarga, captura, rehostea ni reproduce frames de plataformas exter
 
 Antes de degradar una camara a `external_page`, BioPulse debe verificar si existe video real recuperable: API oficial, iframe/reproductor oficial, HLS directo con CORS, o HLS sin CORS que pueda resolverse mediante relay allowlisted sin almacenar contenido. El caso Neuquen Capital queda como precedente: las camaras parecian disponibles solo como pagina externa o player colgado, pero los segmentos HLS eran validos; la solucion correcta fue relay HLS allowlisted + `hls.js`, prefiriendo `hls.js` sobre HLS nativo.
 
+El reproductor HLS de BioPulse hace un preflight de playlist antes de inicializar `hls.js`. Si la fuente oficial o el relay devuelve 404/403/error, la UI debe mostrarlo como disponibilidad temporal del origen, no como fallo silencioso ni como razon automatica para degradar la camara a `external_page`.
+
 ## Herramienta de descubrimiento
 
 Para acelerar la captura de camaras Windy indexadas en OpenCCTV, usar:

@@ -1902,6 +1902,50 @@ function CameraThumb({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function hlsPreflightErrorMessage(response: Response, body: string) {
+  let upstreamStatus: number | null = null;
+  let upstreamError = "";
+
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed?.status === "number") upstreamStatus = parsed.status;
+    if (typeof parsed?.error === "string") upstreamError = parsed.error;
+  } catch {
+    // HLS endpoints normally return text playlists; JSON appears only on relay errors.
+  }
+
+  const status = upstreamStatus ?? response.status;
+  const statusLabel = Number.isFinite(status) ? `HTTP ${status}` : "sin codigo HTTP";
+
+  if (status === 404) {
+    return `Fuente oficial temporalmente no disponible (${statusLabel}). La camara puede volver cuando el origen reactive el stream.`;
+  }
+
+  if (status === 403) {
+    return `La fuente oficial rechazo la playlist en este momento (${statusLabel}). Abrir fuente para verificar el reproductor original.`;
+  }
+
+  return `La fuente oficial no entrego una playlist HLS valida (${statusLabel}${upstreamError ? `, ${upstreamError}` : ""}).`;
+}
+
+async function preflightHlsPlaylist(src: string, signal: AbortSignal) {
+  const response = await fetch(src, { cache: "no-store", signal });
+  const body = await response.text().catch(() => "");
+
+  if (!response.ok) {
+    return { ok: false, message: hlsPreflightErrorMessage(response, body) };
+  }
+
+  if (!body.includes("#EXTM3U")) {
+    return {
+      ok: false,
+      message: "La fuente oficial respondio, pero no devolvio una playlist HLS valida.",
+    };
+  }
+
+  return { ok: true, message: "" };
+}
+
 function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [state, setState] = useState<"loading" | "playlist" | "buffering" | "ready" | "error" | "unsupported">(
@@ -1915,6 +1959,7 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
 
     let hls: { destroy: () => void } | null = null;
     let mounted = true;
+    const controller = new AbortController();
 
     const markReady = () => {
       if (!mounted) return;
@@ -1938,7 +1983,7 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
     };
 
     setState("loading");
-    setMessage("Conectando stream HLS...");
+    setMessage("Verificando disponibilidad del stream HLS...");
     video.addEventListener("loadedmetadata", markReady);
     video.addEventListener("loadeddata", markReady);
     video.addEventListener("canplay", markReady);
@@ -1947,6 +1992,14 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
     video.addEventListener("error", () => markError("El reproductor no pudo decodificar el stream."));
 
     async function attachStream() {
+      const preflight = await preflightHlsPlaylist(src, controller.signal);
+      if (!mounted) return;
+      if (!preflight.ok) {
+        markError(preflight.message);
+        return;
+      }
+
+      setMessage("Playlist HLS disponible. Preparando reproductor...");
       const { default: Hls } = await import("hls.js");
       if (!mounted) return;
 
@@ -1994,10 +2047,15 @@ function HlsCameraPlayer({ src, title }: { src: string; title: string }) {
       });
     }
 
-    attachStream().catch(() => markError("No se pudo inicializar el reproductor HLS."));
+    attachStream().catch((error) => {
+      if (!mounted || controller.signal.aborted) return;
+      const detail = error instanceof Error && error.name !== "AbortError" ? error.message : "";
+      markError(detail ? `No se pudo contactar la fuente oficial del stream. ${detail}` : "No se pudo contactar la fuente oficial del stream.");
+    });
 
     return () => {
       mounted = false;
+      controller.abort();
       video.removeEventListener("loadedmetadata", markReady);
       video.removeEventListener("loadeddata", markReady);
       video.removeEventListener("canplay", markReady);
