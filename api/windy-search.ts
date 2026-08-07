@@ -5,7 +5,7 @@ import {
   pickWindySnapshotUrl,
   windyErrorResponse,
   type WindyWebcam,
-} from "../src/app/lib/windyWebcams.ts";
+} from "../src/app/lib/windyWebcams";
 
 export const config = {
   runtime: "edge",
