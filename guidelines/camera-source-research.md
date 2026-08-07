@@ -34,6 +34,17 @@ npm run cameras:audit -- --scope=neuquen
 
 El script `scripts/audit-camera-visuals.mjs` valida HLS con master playlist, media playlist, segmento real y CORS; tambien inspecciona paginas externas para encontrar HLS o iframes candidatos correlacionados por slug/hash de la camara. Corre con `node --use-system-ca` para respetar el almacen de certificados del sistema en fuentes oficiales como AGP, y reconoce playlists LL-HLS con fragmentos en atributos `URI` probando segmentos recientes en vez de asumir que el primer segmento live sigue disponible. Escribe reportes ignorados por git en `.camera-reports/` y no modifica el registry automaticamente. Si detecta HLS sin CORS pero con segmentos validos, revisar terminos y crear relay allowlisted antes de resignar la camara a link externo.
 
+## Herramienta de politica de fuentes
+
+Para validar que el registro no incorpore credenciales, tokens, fuentes no publicas o formas de uso incompatibles con la politica de BioPulse, usar:
+
+```bash
+npm run cameras:policy
+npm run cameras:policy -- --strict
+```
+
+El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregistry.json` sin modificarlo. Bloquea errores duros como IDs duplicados, coordenadas invalidas, URLs con credenciales, parametros sensibles en query strings y entradas sin marca `usage.isPublic`. Tambien emite advertencias por proveedores sin politica explicita, falta de atribucion, falta de URL de terminos o combinaciones de proveedor/tipo de fetch que conviene revisar antes de promover una fuente. El modo `--strict` convierte advertencias en fallo para auditorias mas exigentes.
+
 ## Fuentes aplicadas
 
 - Windy Webcams API: integrada como `provider_api`. La API requiere `x-windy-api-key` y sus URLs de imagen expiran, por eso BioPulse refresca snapshots mediante `/api/windy-camera` y descubre camaras cercanas mediante `/api/windy-search`.

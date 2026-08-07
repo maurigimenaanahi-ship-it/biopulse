@@ -8,6 +8,7 @@
     "dev": "vite",
     "cameras:discover": "node scripts/discover-windy-cameras.mjs",
     "cameras:audit": "node --use-system-ca scripts/audit-camera-visuals.mjs",
+    "cameras:policy": "node scripts/validate-camera-source-policy.mjs",
     "notices:validate": "node scripts/validate-official-critical-notices.mjs",
     "sources:validate": "node scripts/validate-official-source-registry.mjs"
   },
