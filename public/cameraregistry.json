@@ -1741,81 +1741,89 @@
     }
 },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-14872-buenos-aires-santa-teresita",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-santa-teresita",
-        "title":  "Buenos Aires - Santa Teresita (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -36.541628,
-                    "lon":  -56.688722
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Buenos Aires"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/14872-buenos-aires-santa-teresita"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-14872-buenos-aires-santa-teresita",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-santa-teresita",
+        "title": "Buenos Aires - Santa Teresita (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -36.541628,
+            "lon": -56.688722
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Buenos Aires"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "14872",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-15942-pinamar-bunge-y-el-mar-bunge-y-libertador-ostende",
-        "providerId":  "worldcam",
-        "title":  "Pinamar - Bunge y el Mar, Bunge y Libertador, Ostende (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -37.116708,
-                    "lon":  -56.854636
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Pinamar"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/15942-pinamar-bunge-y-el-mar-bunge-y-libertador-ostende"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-15942-pinamar-bunge-y-el-mar-bunge-y-libertador-ostende",
+        "providerId": "worldcam",
+        "title": "Pinamar - Bunge y el Mar, Bunge y Libertador, Ostende (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -37.116708,
+            "lon": -56.854636
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Pinamar"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "15942",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
         "schema":  "biopulse.camera.v1",
@@ -1860,400 +1868,440 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-16873-bariloche-centro-villa-catedral-amancay",
-        "providerId":  "worldcam",
-        "title":  "Bariloche - Centro, Villa Catedral, Amancay (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -41.133442,
-                    "lon":  -71.310929
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Rio Negro",
-                         "locality":  "Bariloche"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/16873-bariloche-centro-villa-catedral-amancay"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "mountain"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-16873-bariloche-centro-villa-catedral-amancay",
+        "providerId": "worldcam",
+        "title": "Bariloche - Centro, Villa Catedral, Amancay (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -41.133442,
+            "lon": -71.310929
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Rio Negro",
+            "locality": "Bariloche"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "16873",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "mountain"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-17721-villa-gesell-buenos-aires-y-playa",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-windy-villa-gesell",
-        "title":  "Villa Gesell - Buenos Aires y Playa (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -37.25535,
-                    "lon":  -56.965545
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Villa Gesell"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/17721-villa-gesell-buenos-aires-y-playa"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-17721-villa-gesell-buenos-aires-y-playa",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-windy-villa-gesell",
+        "title": "Villa Gesell - Buenos Aires y Playa (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -37.25535,
+            "lon": -56.965545
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Villa Gesell"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "17721",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-17791-mar-del-plata-las-toscas",
-        "providerId":  "worldcam",
-        "title":  "Mar del Plata - Las Toscas (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.007898,
-                    "lon":  -57.533322
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Mar del Plata"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/17791-mar-del-plata-las-toscas"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-17791-mar-del-plata-las-toscas",
+        "providerId": "worldcam",
+        "title": "Mar del Plata - Las Toscas (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.007898,
+            "lon": -57.533322
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Mar del Plata"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "17791",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18361-ushuaia-harbour",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-ushuaia-port-panorama",
-        "title":  "Ushuaia - Harbour (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -54.805949,
-                    "lon":  -68.299339
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Tierra del Fuego",
-                         "locality":  "Ushuaia"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18361-ushuaia-harbour"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "water"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18361-ushuaia-harbour",
+        "providerId": "worldcam",
+        "groupKey": "ar-ushuaia-port-panorama",
+        "title": "Ushuaia - Harbour (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -54.805949,
+            "lon": -68.299339
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Tierra del Fuego",
+            "locality": "Ushuaia"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18361",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "water"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18399-pinamar-beach",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-pinamar-beach",
-        "title":  "Pinamar - Beach (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -37.116725,
-                    "lon":  -56.854938
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Pinamar"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18399-pinamar-beach"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18399-pinamar-beach",
+        "providerId": "worldcam",
+        "groupKey": "ar-pinamar-beach",
+        "title": "Pinamar - Beach (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -37.116725,
+            "lon": -56.854938
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Pinamar"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18399",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18624-villa-gesell-muelle",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-el-muelle",
-        "title":  "Villa Gesell - Muelle (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -37.27936,
-                    "lon":  -56.983121
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Villa Gesell"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18624-villa-gesell-muelle"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18624-villa-gesell-muelle",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-el-muelle",
+        "title": "Villa Gesell - Muelle (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -37.27936,
+            "lon": -56.983121
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Villa Gesell"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18624",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18625-mar-del-plata-playa-biologia",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-playa-grande",
-        "title":  "Mar del Plata - Playa Biologia (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.029164,
-                    "lon":  -57.532526
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Mar del Plata"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18625-mar-del-plata-playa-biologia"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18625-mar-del-plata-playa-biologia",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-playa-grande",
+        "title": "Mar del Plata - Playa Biologia (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.029164,
+            "lon": -57.532526
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Mar del Plata"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18625",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18627-mar-del-plata-playa-mariano",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-mariano",
-        "title":  "Mar del Plata - Playa Mariano (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.083412,
-                    "lon":  -57.538786
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Mar del Plata"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18627-mar-del-plata-playa-mariano"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18627-mar-del-plata-playa-mariano",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-mariano",
+        "title": "Mar del Plata - Playa Mariano (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.083412,
+            "lon": -57.538786
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Mar del Plata"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18627",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18631-miramar-hijos-del-mar",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-el-nautico",
-        "title":  "Miramar - Hijos del Mar (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.247399,
-                    "lon":  -57.785174
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Miramar"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18631-miramar-hijos-del-mar"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18631-miramar-hijos-del-mar",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-el-nautico",
+        "title": "Miramar - Hijos del Mar (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.247399,
+            "lon": -57.785174
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Miramar"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18631",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18632-mar-del-plata-el-yacht",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-el-yacht",
-        "title":  "Mar del Plata - El Yacht (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.030522,
-                    "lon":  -57.532663
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Mar del Plata"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18632-mar-del-plata-el-yacht"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18632-mar-del-plata-el-yacht",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-el-yacht",
+        "title": "Mar del Plata - El Yacht (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.030522,
+            "lon": -57.532663
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Mar del Plata"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18632",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
         "schema":  "biopulse.camera.v1",
@@ -2298,194 +2346,214 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-18795-ushuaia-fin-del-mundo-station",
-        "providerId":  "worldcam",
-        "title":  "Ushuaia - Fin del Mundo station (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -54.83342,
-                    "lon":  -68.423376
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Tierra del Fuego",
-                         "locality":  "Ushuaia"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/18795-ushuaia-fin-del-mundo-station"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "landscape"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-18795-ushuaia-fin-del-mundo-station",
+        "providerId": "worldcam",
+        "title": "Ushuaia - Fin del Mundo station (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -54.83342,
+            "lon": -68.423376
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Tierra del Fuego",
+            "locality": "Ushuaia"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "18795",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "landscape"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-19171-buenos-aires-el-obelisco",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-buenos-aires-obelisco",
-        "title":  "Buenos Aires - El Obelisco (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -34.603808,
-                    "lon":  -58.3819
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "CABA",
-                         "locality":  "Buenos Aires"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/19171-buenos-aires-el-obelisco"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-19171-buenos-aires-el-obelisco",
+        "providerId": "worldcam",
+        "groupKey": "ar-buenos-aires-obelisco",
+        "title": "Buenos Aires - El Obelisco (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -34.603808,
+            "lon": -58.3819
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "CABA",
+            "locality": "Buenos Aires"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "19171",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-1921-ushuaia-monte-olivia",
-        "providerId":  "worldcam",
-        "title":  "Ushuaia - Monte Olivia (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -54.741668,
-                    "lon":  -68.339424
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Tierra del Fuego",
-                         "locality":  "Ushuaia"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/1921-ushuaia-monte-olivia"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-1921-ushuaia-monte-olivia",
+        "providerId": "worldcam",
+        "title": "Ushuaia - Monte Olivia (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -54.741668,
+            "lon": -68.339424
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Tierra del Fuego",
+            "locality": "Ushuaia"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "1921",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-20792-balneario-san-cayetano-beach",
-        "providerId":  "worldcam",
-        "title":  "Balneario San Cayetano - Beach (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.751009,
-                    "lon":  -59.430153
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Balneario San Cayetano"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/20792-balneario-san-cayetano-beach"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach",
-                     "water"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-20792-balneario-san-cayetano-beach",
+        "providerId": "worldcam",
+        "title": "Balneario San Cayetano - Beach (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.751009,
+            "lon": -59.430153
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Balneario San Cayetano"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "20792",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach",
+            "water"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-24962-neuquen-several-views",
-        "providerId":  "worldcam",
-        "title":  "Neuquen - Several views (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -38.951722,
-                    "lon":  -68.059417
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Neuquen",
-                         "locality":  "Neuquen"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/24962-neuquen-several-views"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-24962-neuquen-several-views",
+        "providerId": "worldcam",
+        "title": "Neuquen - Several views (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -38.951722,
+            "lon": -68.059417
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Neuquen",
+            "locality": "Neuquen"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "24962",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
     "schema": "biopulse.camera.v1",
@@ -2530,42 +2598,46 @@
     }
 },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-25311-villa-la-angostura-cerro-bayo-ski-resort",
-        "providerId":  "worldcam",
-        "title":  "Villa La Angostura - Cerro Bayo Ski Resort (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -40.752047,
-                    "lon":  -71.605957
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Neuquen",
-                         "locality":  "Villa La Angostura"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/25311-villa-la-angostura-cerro-bayo-ski-resort"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "mountain"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-25311-villa-la-angostura-cerro-bayo-ski-resort",
+        "providerId": "worldcam",
+        "title": "Villa La Angostura - Cerro Bayo Ski Resort (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -40.752047,
+            "lon": -71.605957
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Neuquen",
+            "locality": "Villa La Angostura"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "25311",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "mountain"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
     "schema": "biopulse.camera.v1",
@@ -2652,43 +2724,47 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-26135-perito-moreno-glacier",
-        "providerId":  "worldcam",
-        "title":  "Perito Moreno Glacier (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -50.467133,
-                    "lon":  -73.033472
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Santa Cruz",
-                         "locality":  "Perito Moreno Glacier"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/26135-perito-moreno-glacier"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "water",
-                     "mountain"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam liveview image resolver",
-                           "verifiedAt":  "2026-08-07"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-26135-perito-moreno-glacier",
+        "providerId": "worldcam",
+        "title": "Perito Moreno Glacier (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -50.467133,
+            "lon": -73.033472
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Santa Cruz",
+            "locality": "Perito Moreno Glacier"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "26135",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "water",
+            "mountain"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
         "schema":  "biopulse.camera.v1",
@@ -2815,44 +2891,48 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-29514-villa-gesell-beach",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-edm-windy-villa-gesell",
-        "title":  "Villa Gesell - Beach (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -37.257837,
-                    "lon":  -56.964078
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Buenos Aires",
-                         "locality":  "Villa Gesell"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/29514-villa-gesell-beach"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "coast",
-                     "beach"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+        "schema": "biopulse.camera.v1",
+        "id": "ar-worldcam-29514-villa-gesell-beach",
+        "providerId": "worldcam",
+        "groupKey": "ar-edm-windy-villa-gesell",
+        "title": "Villa Gesell - Beach (WorldCam)",
+        "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+        "geo": {
+            "lat": -37.257837,
+            "lon": -56.964078
+        },
+        "coverage": {
+            "countryISO2": "AR",
+            "admin1": "Buenos Aires",
+            "locality": "Villa Gesell"
+        },
+        "mediaType": "snapshot",
+        "fetch": {
+            "kind": "provider_api",
+            "provider": "worldcam",
+            "cameraKey": "29514",
+            "endpoint": "/api/worldcam-camera"
+        },
+        "update": {
+            "expectedIntervalSec": 300
+        },
+        "usage": {
+            "isPublic": true,
+            "attributionText": "Fuente: WorldCam",
+            "termsUrl": "https://worldcam.eu/terms"
+        },
+        "tags": [
+            "worldcam",
+            "snapshot",
+            "coast",
+            "beach"
+        ],
+        "priority": 0,
+        "validation": {
+            "status": "verified",
+            "verifiedBy": "Codex via WorldCam liveview image resolver",
+            "verifiedAt": "2026-08-07"
+        }
     },
     {
     "schema": "biopulse.camera.v1",
