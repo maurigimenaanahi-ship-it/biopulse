@@ -1,23 +1,14 @@
+import {
+  fetchWindyApi,
+  normalizeWindyWebcams,
+  pickWindyPlayerUrl,
+  pickWindySnapshotUrl,
+  windyErrorResponse,
+  type WindyWebcam,
+} from "../src/app/lib/windyWebcams.ts";
+
 export const config = {
   runtime: "edge",
-};
-
-type WindyWebcam = {
-  webcamId?: string | number;
-  id?: string | number;
-  title?: string;
-  status?: string;
-  location?: {
-    latitude?: number;
-    longitude?: number;
-  };
-  images?: {
-    current?: Record<string, string | null | undefined>;
-  };
-  player?: string | Record<string, string | null | undefined> | null;
-  urls?: {
-    detail?: string;
-  };
 };
 
 function json(data: unknown, init: ResponseInit = {}) {
@@ -31,38 +22,20 @@ function json(data: unknown, init: ResponseInit = {}) {
   });
 }
 
-function pickSnapshotUrl(images?: WindyWebcam["images"]) {
-  const current = images?.current ?? {};
-  const preferred = ["full", "preview", "medium", "thumbnail", "icon"];
-
-  for (const key of preferred) {
-    const value = current[key];
-    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
-  }
-
-  for (const value of Object.values(current)) {
-    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
-  }
-
-  return null;
-}
-
-function pickPlayerUrl(player?: WindyWebcam["player"]) {
-  if (typeof player === "string" && /^https?:\/\//i.test(player)) return player;
-  if (!player || typeof player !== "object") return null;
-
-  const preferred = ["day", "month", "year", "lifetime", "embed", "url"];
-
-  for (const key of preferred) {
-    const value = player[key];
-    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
-  }
-
-  for (const value of Object.values(player)) {
-    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
-  }
-
-  return null;
+function normalizeItem(webcam: WindyWebcam) {
+  const webcamId = webcam.webcamId ?? webcam.id ?? null;
+  return {
+    webcamId: webcamId == null ? null : String(webcamId),
+    title: webcam.title ?? null,
+    status: webcam.status ?? null,
+    lat: Number.isFinite(webcam.location?.latitude) ? webcam.location!.latitude : null,
+    lon: Number.isFinite(webcam.location?.longitude) ? webcam.location!.longitude : null,
+    snapshotUrl: pickWindySnapshotUrl(webcam.images),
+    playerUrl: pickWindyPlayerUrl(webcam.player),
+    detailUrl:
+      webcam.urls?.detail ??
+      (webcamId == null ? null : `https://www.windy.com/webcams/${String(webcamId)}`),
+  };
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -107,69 +80,29 @@ export default async function handler(req: Request): Promise<Response> {
     return json({ error: "Invalid radius" }, { status: 400 });
   }
 
-  const apiKey = process.env.WINDY_WEBCAMS_API_KEY;
-  if (!apiKey) {
-    return json({ error: "Missing WINDY_WEBCAMS_API_KEY" }, { status: 500 });
-  }
-
   const nearby = `${lat},${lon},${radius}`;
-  const windyUrl =
-    `https://api.windy.com/webcams/api/v3/webcams` +
-    `?nearby=${encodeURIComponent(nearby)}` +
-    `&include=images,urls,location,player` +
-    `&limit=50`;
 
   try {
-    const res = await fetch(windyUrl, {
-      headers: {
-        Accept: "application/json",
-        "x-windy-api-key": apiKey,
-      },
+    const { data, cached } = await fetchWindyApi<any>("/webcams/api/v3/webcams", {
+      nearby,
+      include: "images,urls,location,player",
+      limit: 50,
     });
 
-    if (!res.ok) {
-      return json(
-        {
-          error: "Windy API error",
-          status: res.status,
-        },
-        { status: 502 }
-      );
-    }
+    const webcams = normalizeWindyWebcams(data);
+    const items = webcams.map(normalizeItem);
 
-    const data: any = await res.json();
-    const webcams: WindyWebcam[] = Array.isArray(data)
-      ? data
-      : Array.isArray(data?.webcams)
-      ? data.webcams
-      : Array.isArray(data?.result?.webcams)
-      ? data.result.webcams
-      : [];
-
-    const items = webcams.map((webcam) => {
-      const webcamId = webcam.webcamId ?? webcam.id ?? null;
-      return {
-        webcamId: webcamId == null ? null : String(webcamId),
-        title: webcam.title ?? null,
-        status: webcam.status ?? null,
-        lat: Number.isFinite(webcam.location?.latitude) ? webcam.location!.latitude : null,
-        lon: Number.isFinite(webcam.location?.longitude) ? webcam.location!.longitude : null,
-        snapshotUrl: pickSnapshotUrl(webcam.images),
-        playerUrl: pickPlayerUrl(webcam.player),
-        detailUrl:
-          webcam.urls?.detail ??
-          (webcamId == null ? null : `https://www.windy.com/webcams/${String(webcamId)}`),
-      };
-    });
-
-    return json({ count: items.length, items });
-  } catch (err: any) {
     return json(
+      { count: items.length, items },
       {
-        error: "Unable to search Windy cameras",
-        message: err?.message ? String(err.message) : "Unknown error",
-      },
-      { status: 502 }
+        headers: {
+          "cache-control": "s-maxage=300, stale-while-revalidate=900",
+          "x-biopulse-windy-cache": cached ? "hit" : "miss",
+        },
+      }
     );
+  } catch (err) {
+    const response = windyErrorResponse(err, "Unable to search Windy cameras");
+    return json(response.body, { status: response.status });
   }
 }
