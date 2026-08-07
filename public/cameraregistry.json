@@ -1657,81 +1657,89 @@
     "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Castor current live page iframe and YouTube oEmbed", "verifiedAt": "2026-07-25" }
   },
 {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-11545-malargue-station",
-        "providerId":  "worldcam",
-        "groupKey":  "ar-esa-malargue-station",
-        "title":  "Malargue Station (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -35.775886,
-                    "lon":  -69.397974
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Mendoza",
-                         "locality":  "Malargue Station"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/11545-malargue-station"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "landscape"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+    "schema": "biopulse.camera.v1",
+    "id": "ar-worldcam-11545-malargue-station",
+    "providerId": "worldcam",
+    "groupKey": "ar-esa-malargue-station",
+    "title": "Malargue Station (WorldCam)",
+    "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+    "geo": {
+        "lat": -35.775886,
+        "lon": -69.397974
     },
+    "coverage": {
+        "countryISO2": "AR",
+        "admin1": "Mendoza",
+        "locality": "Malargue Station"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+        "kind": "provider_api",
+        "provider": "worldcam",
+        "cameraKey": "11545",
+        "endpoint": "/api/worldcam-camera"
+    },
+    "update": {
+        "expectedIntervalSec": 300
+    },
+    "usage": {
+        "isPublic": true,
+        "attributionText": "Fuente: WorldCam",
+        "termsUrl": "https://worldcam.eu/terms"
+    },
+    "tags": [
+        "worldcam",
+        "snapshot",
+        "landscape"
+    ],
+    "priority": 0,
+    "validation": {
+        "status": "verified",
+        "verifiedBy": "Codex via WorldCam liveview image resolver",
+        "verifiedAt": "2026-08-07"
+    }
+},
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-12708-san-ramon-de-la-nueva-oran",
-        "providerId":  "worldcam",
-        "title":  "San Ramon de la Nueva Oran (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -23.132731,
-                    "lon":  -64.324312
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Salta",
-                         "locality":  "San Ramon de la Nueva Oran"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/12708-san-ramon-de-la-nueva-oran"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+    "schema": "biopulse.camera.v1",
+    "id": "ar-worldcam-12708-san-ramon-de-la-nueva-oran",
+    "providerId": "worldcam",
+    "title": "San Ramon de la Nueva Oran (WorldCam)",
+    "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+    "geo": {
+        "lat": -23.132731,
+        "lon": -64.324312
     },
+    "coverage": {
+        "countryISO2": "AR",
+        "admin1": "Salta",
+        "locality": "San Ramon de la Nueva Oran"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+        "kind": "provider_api",
+        "provider": "worldcam",
+        "cameraKey": "12708",
+        "endpoint": "/api/worldcam-camera"
+    },
+    "usage": {
+        "isPublic": true,
+        "attributionText": "Fuente: WorldCam",
+        "termsUrl": "https://worldcam.eu/terms"
+    },
+    "tags": [
+        "worldcam",
+        "snapshot"
+    ],
+    "priority": 0,
+    "validation": {
+        "status": "verified",
+        "verifiedBy": "Codex via WorldCam liveview image resolver",
+        "verifiedAt": "2026-08-07"
+    },
+    "update": {
+        "expectedIntervalSec": 300
+    }
+},
     {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-14872-buenos-aires-santa-teresita",
@@ -2480,43 +2488,47 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-25295-corrientes-general-belgrano-bridge",
-        "providerId":  "worldcam",
-        "title":  "Corrientes - General Belgrano Bridge (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -27.470103,
-                    "lon":  -58.859822
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Corrientes",
-                         "locality":  "Corrientes"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/25295-corrientes-general-belgrano-bridge"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "traffic"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+    "schema": "biopulse.camera.v1",
+    "id": "ar-worldcam-25295-corrientes-general-belgrano-bridge",
+    "providerId": "worldcam",
+    "title": "Corrientes - General Belgrano Bridge (WorldCam)",
+    "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+    "geo": {
+        "lat": -27.470103,
+        "lon": -58.859822
     },
+    "coverage": {
+        "countryISO2": "AR",
+        "admin1": "Corrientes",
+        "locality": "Corrientes"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+        "kind": "provider_api",
+        "provider": "worldcam",
+        "cameraKey": "25295",
+        "endpoint": "/api/worldcam-camera"
+    },
+    "usage": {
+        "isPublic": true,
+        "attributionText": "Fuente: WorldCam",
+        "termsUrl": "https://worldcam.eu/terms"
+    },
+    "tags": [
+        "worldcam",
+        "traffic",
+        "snapshot"
+    ],
+    "priority": 0,
+    "validation": {
+        "status": "verified",
+        "verifiedBy": "Codex via WorldCam liveview image resolver",
+        "verifiedAt": "2026-08-07"
+    },
+    "update": {
+        "expectedIntervalSec": 300
+    }
+},
     {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-25311-villa-la-angostura-cerro-bayo-ski-resort",
@@ -2556,43 +2568,47 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-25437-santiago-del-estero-panoramic-view",
-        "providerId":  "worldcam",
-        "title":  "Santiago del Estero - Panoramic view (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -27.789483,
-                    "lon":  -64.261402
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Santiago del Estero",
-                         "locality":  "Santiago del Estero"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/25437-santiago-del-estero-panoramic-view"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "landscape"
-                 ],
-        "priority":  0,
-    "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+    "schema": "biopulse.camera.v1",
+    "id": "ar-worldcam-25437-santiago-del-estero-panoramic-view",
+    "providerId": "worldcam",
+    "title": "Santiago del Estero - Panoramic view (WorldCam)",
+    "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+    "geo": {
+        "lat": -27.789483,
+        "lon": -64.261402
     },
+    "coverage": {
+        "countryISO2": "AR",
+        "admin1": "Santiago del Estero",
+        "locality": "Santiago del Estero"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+        "kind": "provider_api",
+        "provider": "worldcam",
+        "cameraKey": "25437",
+        "endpoint": "/api/worldcam-camera"
+    },
+    "usage": {
+        "isPublic": true,
+        "attributionText": "Fuente: WorldCam",
+        "termsUrl": "https://worldcam.eu/terms"
+    },
+    "tags": [
+        "worldcam",
+        "landscape",
+        "snapshot"
+    ],
+    "priority": 0,
+    "validation": {
+        "status": "verified",
+        "verifiedBy": "Codex via WorldCam liveview image resolver",
+        "verifiedAt": "2026-08-07"
+    },
+    "update": {
+        "expectedIntervalSec": 300
+    }
+},
     {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-windy-santiago-del-estero-plaza-libertad-1732394190",
@@ -2670,8 +2686,8 @@
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam liveview image resolver",
+                           "verifiedAt":  "2026-08-07"
                        }
     },
     {
@@ -2717,43 +2733,47 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-26870-veladero-gold-mine",
-        "providerId":  "worldcam",
-        "title":  "Veladero gold mine (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -29.409284,
-                    "lon":  -69.891957
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "San Juan",
-                         "locality":  "Veladero gold mine"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/26870-veladero-gold-mine"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam",
-                     "mountain"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+    "schema": "biopulse.camera.v1",
+    "id": "ar-worldcam-26870-veladero-gold-mine",
+    "providerId": "worldcam",
+    "title": "Veladero gold mine (WorldCam)",
+    "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+    "geo": {
+        "lat": -29.409284,
+        "lon": -69.891957
     },
+    "coverage": {
+        "countryISO2": "AR",
+        "admin1": "San Juan",
+        "locality": "Veladero gold mine"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+        "kind": "provider_api",
+        "provider": "worldcam",
+        "cameraKey": "26870",
+        "endpoint": "/api/worldcam-camera"
+    },
+    "usage": {
+        "isPublic": true,
+        "attributionText": "Fuente: WorldCam",
+        "termsUrl": "https://worldcam.eu/terms"
+    },
+    "tags": [
+        "worldcam",
+        "mountain",
+        "snapshot"
+    ],
+    "priority": 0,
+    "validation": {
+        "status": "verified",
+        "verifiedBy": "Codex via WorldCam liveview image resolver",
+        "verifiedAt": "2026-08-07"
+    },
+    "update": {
+        "expectedIntervalSec": 300
+    }
+},
     {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-27848-monte-hermoso-beach",
@@ -2835,42 +2855,46 @@
                        }
     },
     {
-        "schema":  "biopulse.camera.v1",
-        "id":  "ar-worldcam-30822-villa-carlos-paz",
-        "providerId":  "worldcam",
-        "title":  "Villa Carlos Paz (WorldCam)",
-        "description":  "Pagina publica externa con camara listada por WorldCam. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
-        "geo":  {
-                    "lat":  -31.391408,
-                    "lon":  -64.467764
-                },
-        "coverage":  {
-                         "countryISO2":  "AR",
-                         "admin1":  "Cordoba",
-                         "locality":  "Villa Carlos Paz"
-                     },
-        "mediaType":  "embed",
-        "fetch":  {
-                      "kind":  "external_page",
-                      "provider":  "worldcam",
-                      "url":  "https://worldcam.eu/webcams/south-america/argentina/30822-villa-carlos-paz"
-                  },
-        "usage":  {
-                      "isPublic":  true,
-                      "attributionText":  "Fuente: WorldCam",
-                      "termsUrl":  "https://worldcam.eu/terms"
-                  },
-        "tags":  [
-                     "external",
-                     "worldcam"
-                 ],
-        "priority":  0,
-        "validation":  {
-                           "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
-                       }
+    "schema": "biopulse.camera.v1",
+    "id": "ar-worldcam-30822-villa-carlos-paz",
+    "providerId": "worldcam",
+    "title": "Villa Carlos Paz (WorldCam)",
+    "description": "Camara listada por WorldCam. BioPulse resuelve dinamicamente la imagen publica actual desde WorldCam sin copiar ni rehostear contenido.",
+    "geo": {
+        "lat": -31.391408,
+        "lon": -64.467764
     },
+    "coverage": {
+        "countryISO2": "AR",
+        "admin1": "Cordoba",
+        "locality": "Villa Carlos Paz"
+    },
+    "mediaType": "snapshot",
+    "fetch": {
+        "kind": "provider_api",
+        "provider": "worldcam",
+        "cameraKey": "30822",
+        "endpoint": "/api/worldcam-camera"
+    },
+    "usage": {
+        "isPublic": true,
+        "attributionText": "Fuente: WorldCam",
+        "termsUrl": "https://worldcam.eu/terms"
+    },
+    "tags": [
+        "worldcam",
+        "snapshot"
+    ],
+    "priority": 0,
+    "validation": {
+        "status": "verified",
+        "verifiedBy": "Codex via WorldCam liveview image resolver",
+        "verifiedAt": "2026-08-07"
+    },
+    "update": {
+        "expectedIntervalSec": 300
+    }
+},
     {
         "schema":  "biopulse.camera.v1",
         "id":  "ar-worldcam-31242-las-heras",
@@ -4175,8 +4199,8 @@
         "priority":  0,
         "validation":  {
                            "status":  "verified",
-                           "verifiedBy":  "Codex via WorldCam Argentina directory",
-                           "verifiedAt":  "2026-07-08"
+                           "verifiedBy":  "Codex via WorldCam liveview image resolver",
+                           "verifiedAt":  "2026-08-07"
                        }
     },
     {

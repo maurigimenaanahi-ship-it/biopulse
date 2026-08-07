@@ -468,6 +468,33 @@ async function fetchLagacetaPlaySnapshot(args: {
   };
 }
 
+async function fetchWorldcamCameraSnapshot(args: {
+  cameraKey: string;
+  endpoint?: string;
+  signal?: AbortSignal;
+}): Promise<ProviderCameraSnapshot> {
+  const endpoint = args.endpoint?.startsWith("/api/")
+    ? apiUrl(args.endpoint)
+    : args.endpoint || apiUrl("/api/worldcam-camera");
+  const url = `${endpoint}?cameraId=${encodeURIComponent(args.cameraKey)}`;
+
+  const res = await fetch(url, { headers: { Accept: "application/json" }, signal: args.signal });
+  const data: any = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.error || `WorldCam camera error ${res.status}`);
+  }
+
+  return {
+    status: "ready",
+    snapshotUrl: typeof data?.snapshotUrl === "string" ? data.snapshotUrl : null,
+    playerUrl: null,
+    detailUrl: typeof data?.detailUrl === "string" ? data.detailUrl : null,
+    attributionText: typeof data?.attributionText === "string" ? data.attributionText : "Fuente: WorldCam",
+    message: typeof data?.message === "string" ? data.message : undefined,
+  };
+}
+
 type WindyNearbySearchItem = {
   webcamId?: string | number | null;
   title?: string | null;
@@ -2768,7 +2795,9 @@ function resolveCameraVisual(
   const isChapelcoProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "chapelco";
   const isAgvpProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "agvp-santa-cruz";
   const isLagacetaPlayProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "lagaceta-play";
-  const isDynamicProvider = isWindyProvider || isChapelcoProvider || isAgvpProvider || isLagacetaPlayProvider;
+  const isWorldcamProvider = cam.fetch?.kind === "provider_api" && (cam.fetch as any)?.provider === "worldcam";
+  const isDynamicProvider =
+    isWindyProvider || isChapelcoProvider || isAgvpProvider || isLagacetaPlayProvider || isWorldcamProvider;
   const embedUrl =
     (isWindyProvider
       ? windyPlayerEmbedUrl(providerSnapshot?.playerUrl)
@@ -2781,7 +2810,7 @@ function resolveCameraVisual(
   const snapUrlRaw = isSnapshot ? (cam.fetch as any).url : null;
   const snapUrl = snapUrlRaw
     ? `${snapUrlRaw}${snapUrlRaw.includes("?") ? "&" : "?"}t=${camRefreshTick}`
-    : (isWindyProvider || isChapelcoProvider || isAgvpProvider) && providerSnapshot?.snapshotUrl
+    : (isWindyProvider || isChapelcoProvider || isAgvpProvider || isWorldcamProvider) && providerSnapshot?.snapshotUrl
     ? `${providerSnapshot.snapshotUrl}${providerSnapshot.snapshotUrl.includes("?") ? "&" : "?"}t=${camRefreshTick}`
     : null;
   const providerDetailUrl =
@@ -2799,6 +2828,8 @@ function resolveCameraVisual(
         )}.html`
       : isLagacetaPlayProvider
       ? providerSnapshot?.detailUrl ?? "https://www.lagaceta.com.ar/lgplay"
+      : isWorldcamProvider && (cam.fetch as any)?.cameraKey
+      ? providerSnapshot?.detailUrl ?? `https://worldcam.eu/liveview/${encodeURIComponent((cam.fetch as any).cameraKey)}`
       : null;
   const externalPageUrl = isExternalPage ? (cam.fetch as any).url : null;
   const embedSourceUrl = cam.fetch?.kind === "html_embed" ? (cam.fetch as any).sourceUrl ?? (cam.fetch as any).url : null;
@@ -4419,7 +4450,15 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
       if (fetchInfo?.kind !== "provider_api" || !fetchInfo?.provider || !fetchInfo?.cameraKey) return;
 
       const provider = String(fetchInfo.provider).toLowerCase();
-      if (provider !== "windy" && provider !== "chapelco" && provider !== "agvp-santa-cruz" && provider !== "lagaceta-play") return;
+      if (
+        provider !== "windy" &&
+        provider !== "chapelco" &&
+        provider !== "agvp-santa-cruz" &&
+        provider !== "lagaceta-play" &&
+        provider !== "worldcam"
+      ) {
+        return;
+      }
 
       const fallbackDetailUrl =
         provider === "windy"
@@ -4430,6 +4469,8 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
           ? `https://www.agvp.gob.ar/estaciones/${encodeURIComponent(String(fetchInfo.cameraKey))}/${encodeURIComponent(
               String(fetchInfo.cameraKey)
             )}.html`
+          : provider === "worldcam"
+          ? `https://worldcam.eu/liveview/${encodeURIComponent(String(fetchInfo.cameraKey))}`
           : "https://www.lagaceta.com.ar/lgplay";
 
       const fallbackAttribution =
@@ -4440,6 +4481,8 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
           ? "Fuente: Chapelco / Varitech"
           : provider === "agvp-santa-cruz"
           ? "Fuente: AGVP Santa Cruz"
+          : provider === "worldcam"
+          ? "Fuente: WorldCam"
           : "Fuente: LA GACETA Play");
 
       setProviderSnapshots((prev) => ({
@@ -4458,6 +4501,8 @@ export function AlertPanel({ event, onClose, onOfficialPrioritySignal }: AlertPa
           ? fetchChapelcoCameraSnapshot
           : provider === "agvp-santa-cruz"
           ? fetchAgvpCameraSnapshot
+          : provider === "worldcam"
+          ? fetchWorldcamCameraSnapshot
           : fetchLagacetaPlaySnapshot;
 
       loader({

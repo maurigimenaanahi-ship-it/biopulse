@@ -10,7 +10,7 @@ BioPulse usa paginas publicas de [Webcamtaxi](https://www.webcamtaxi.com/en/arge
 
 BioPulse muestra el reproductor publico de [Radio Ciudad de Merlo](https://www.youtube.com/watch?v=VUnPksjW7Co), referenciado por [Omnicam](https://omnicamapp.com/en/webcam/103786/), mediante el iframe oficial de YouTube para Villa de Merlo, San Luis, sin copiar ni rehostear video.
 
-BioPulse usa paginas publicas de [WorldCam Argentina](https://worldcam.eu/webcams/south-america/argentina) como directorio externo de webcams y muestra reproductores de YouTube cuando la fuente primaria publicada por WorldCam es publica y embebible, sin copiar ni rehostear frames.
+BioPulse usa paginas publicas de [WorldCam Argentina](https://worldcam.eu/webcams/south-america/argentina) como directorio externo de webcams, muestra snapshots publicos resueltos desde liveview cuando estan disponibles y muestra reproductores de YouTube cuando la fuente primaria publicada por WorldCam es publica y embebible, sin copiar ni rehostear frames.
 
 BioPulse muestra reproductores publicos de [Tierra del Fuego Live](https://www.youtube.com/@UshuaiaLive) mediante el iframe oficial de YouTube para camaras de Ushuaia, Tolhuin y Rio Grande, sin copiar ni rehostear video.
 
