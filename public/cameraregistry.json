@@ -5291,6 +5291,49 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-agp-bella-vista-camara-2",
+    "providerId": "agp",
+    "title": "AGP - Bella Vista Camara 2",
+    "description": "Segundo angulo oficial de AGP / Via Navegable Troncal para Bella Vista, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -28.5085,
+      "lon": -59.0459
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Corrientes",
+      "locality": "Bella Vista"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/41001d9f-5bdc-4f86-8df1-34e58b0f4f6b/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/BellaVista.html#hlsll-video1"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-agp-san-lorenzo",
     "providerId": "agp",
     "title": "AGP - San Lorenzo",
@@ -5377,6 +5420,92 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-agp-rosario-camara-2",
+    "providerId": "agp",
+    "title": "AGP - Rosario Camara 2",
+    "description": "Segundo angulo oficial de AGP / Via Navegable Troncal para Rosario, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -32.943435,
+      "lon": -60.633291
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Fe",
+      "locality": "Rosario"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/ad9c5d3b-8009-48fd-ac47-a83ff9c741bb/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/Rosario.html#hlsll-video1"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-rosario-camara-3",
+    "providerId": "agp",
+    "title": "AGP - Rosario Camara 3",
+    "description": "Tercer angulo oficial de AGP / Via Navegable Troncal para Rosario, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -32.943435,
+      "lon": -60.633291
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Santa Fe",
+      "locality": "Rosario"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/9895ceb1-6a6c-48c5-869c-070c64398bc8/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/Rosario.html#hlsll-video2"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-agp-del-guazu-brazo-largo",
     "providerId": "agp",
     "title": "AGP - Del Guazu Brazo Largo",
@@ -5417,6 +5546,92 @@
     "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-del-guazu-brazo-largo"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-del-guazu-brazo-largo-camara-2",
+    "providerId": "agp",
+    "title": "AGP - Del Guazu Brazo Largo Camara 2",
+    "description": "Segundo angulo oficial de AGP / Via Navegable Troncal para Del Guazu - Brazo Largo, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -33.902276,
+      "lon": -58.883997
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Entre Rios",
+      "locality": "Brazo Largo"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/67f3ecd5-3919-404d-bf25-efcd59d9b02e/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/DelGuazu.html#hlsll-video1"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "bridge",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-del-guazu-brazo-largo-camara-3",
+    "providerId": "agp",
+    "title": "AGP - Del Guazu Brazo Largo Camara 3",
+    "description": "Tercer angulo oficial de AGP / Via Navegable Troncal para Del Guazu - Brazo Largo, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -33.902276,
+      "lon": -58.883997
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Entre Rios",
+      "locality": "Brazo Largo"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/70fe0a68-fdf7-48e4-8a62-9b7195f53880/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/DelGuazu.html#hlsll-video2"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "bridge",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
   },
   {
     "schema": "biopulse.camera.v1",
@@ -5502,6 +5717,92 @@
     "verifiedAt": "2026-07-17"
     },
     "groupKey": "ar-agp-braga-parana-delta"
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-braga-parana-delta-camara-2",
+    "providerId": "agp",
+    "title": "AGP - Braga / Delta del Parana Camara 2",
+    "description": "Segundo angulo oficial de AGP / Via Navegable Troncal para Braga / Delta del Parana, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -34.334662,
+      "lon": -58.486293
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Delta del Parana"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/9a0dce42-b9a4-4837-bea5-1bd20eb2a40e/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/Braga.html#hlsll-video1"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agp-braga-parana-delta-camara-3",
+    "providerId": "agp",
+    "title": "AGP - Braga / Delta del Parana Camara 3",
+    "description": "Tercer angulo oficial de AGP / Via Navegable Troncal para Braga / Delta del Parana, reproducido mediante stream HLS publicado por la fuente.",
+    "geo": {
+      "lat": -34.334662,
+      "lon": -58.486293
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Delta del Parana"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "agp",
+      "protocol": "hls",
+      "url": "https://hidrografia2.agpse.gob.ar:8443/stream/0f12ecc6-1830-4691-bdfa-22432671566a/channel/0/hlsll/live/index.m3u8",
+      "sourceUrl": "https://hidrografia2.agpse.gob.ar/camaraweb/Braga.html#hlsll-video2"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Administracion General de Puertos / Argentina.gob.ar",
+      "termsUrl": "https://www.argentina.gob.ar/terminos-y-condiciones"
+    },
+    "tags": [
+      "river",
+      "waterway",
+      "national",
+      "weather",
+      "stream",
+      "angle"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Argentina.gob.ar AGP camera page HLS playlist, CORS and source HTML check",
+      "verifiedAt": "2026-08-08"
+    }
   },
   {
     "schema": "biopulse.camera.v1",
