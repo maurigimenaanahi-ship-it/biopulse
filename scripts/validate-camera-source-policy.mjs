@@ -26,7 +26,7 @@ const PROVIDER_POLICIES = new Map([
   ["gesell", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /gesell/i }],
   ["chapelco", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["provider_api"], attribution: /chapelco|varitech/i }],
   ["catedral", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["image_url", "html_embed"], attribution: /catedral|varitech/i }],
-  ["cerrobayo", { licenseClass: "external-only", publishSignal: "operator-page", allowedKinds: ["external_page"], attribution: /cerro bayo/i }],
+  ["cerrobayo", { licenseClass: "embed-only", publishSignal: "operator-page", allowedKinds: ["html_embed", "external_page"], attribution: /cerro bayo/i }],
   ["lahoya", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["image_url"], attribution: /hoya|varitech/i }],
   ["varitech", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["image_url"], attribution: /varitech/i }],
 ]);
@@ -39,6 +39,8 @@ const EMBED_HOSTS = new Set([
   "player.twitch.tv",
   "www.dailymotion.com",
   "geo.dailymotion.com",
+  "ipcamlive.com",
+  "www.ipcamlive.com",
   "streamable.com",
 ]);
 

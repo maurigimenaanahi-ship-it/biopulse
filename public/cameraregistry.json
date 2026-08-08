@@ -1325,138 +1325,144 @@
     "id": "ar-cerrobayo-cumbre",
     "providerId": "cerrobayo",
     "title": "Cerro Bayo - Cumbre",
-    "description": "Pagina oficial externa con camara online de Cerro Bayo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor oficial publicado por Cerro Bayo mediante IPCamLive. BioPulse usa el iframe oficial sin copiar ni rehostear contenido.",
     "geo": { "lat": -40.7622, "lon": -71.6069 },
     "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "cerrobayo",
-      "url": "https://www.cerrobayo.com/montana/camara/?cam=cumbre"
+      "url": "https://ipcamlive.com/player/player.php?alias=cumbre&autoplay=1",
+      "sourceUrl": "https://www.cerrobayo.com/montana/camara/?cam=cumbre"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Cerro Bayo",
       "termsUrl": "https://www.cerrobayo.com/legales/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
-    "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page", "verifiedAt": "2026-07-25" }
+    "tags": ["mountain", "weather", "ski", "neuquen", "live", "embed"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page and IPCamLive iframe headers", "verifiedAt": "2026-08-07" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-cerrobayo-copitos",
     "providerId": "cerrobayo",
     "title": "Cerro Bayo - Copitos",
-    "description": "Pagina oficial externa con camara online de Cerro Bayo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor oficial publicado por Cerro Bayo mediante IPCamLive. BioPulse usa el iframe oficial sin copiar ni rehostear contenido.",
     "geo": { "lat": -40.7622, "lon": -71.6069 },
     "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "cerrobayo",
-      "url": "https://www.cerrobayo.com/montana/camara/?cam=copitos"
+      "url": "https://ipcamlive.com/player/player.php?alias=copitos&autoplay=1",
+      "sourceUrl": "https://www.cerrobayo.com/montana/camara/?cam=copitos"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Cerro Bayo",
       "termsUrl": "https://www.cerrobayo.com/legales/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
-    "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page", "verifiedAt": "2026-07-25" }
+    "tags": ["mountain", "weather", "ski", "neuquen", "live", "embed"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page and IPCamLive iframe headers", "verifiedAt": "2026-08-07" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-cerrobayo-principiantes-1500",
     "providerId": "cerrobayo",
     "title": "Cerro Bayo - Principiantes 1500",
-    "description": "Pagina oficial externa con camara online de Cerro Bayo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor oficial publicado por Cerro Bayo mediante IPCamLive. BioPulse usa el iframe oficial sin copiar ni rehostear contenido.",
     "geo": { "lat": -40.7622, "lon": -71.6069 },
     "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "cerrobayo",
-      "url": "https://www.cerrobayo.com/montana/camara/?cam=principiantes1500"
+      "url": "https://ipcamlive.com/player/player.php?alias=principiantes1500&autoplay=1",
+      "sourceUrl": "https://www.cerrobayo.com/montana/camara/?cam=principiantes1500"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Cerro Bayo",
       "termsUrl": "https://www.cerrobayo.com/legales/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
-    "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page", "verifiedAt": "2026-07-25" }
+    "tags": ["mountain", "weather", "ski", "neuquen", "live", "embed"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page and IPCamLive iframe headers", "verifiedAt": "2026-08-07" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-cerrobayo-telecabina-1500",
     "providerId": "cerrobayo",
     "title": "Cerro Bayo - Telecabina 1500",
-    "description": "Pagina oficial externa con camara online de Cerro Bayo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor oficial publicado por Cerro Bayo mediante IPCamLive. BioPulse usa el iframe oficial sin copiar ni rehostear contenido.",
     "geo": { "lat": -40.7622, "lon": -71.6069 },
     "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "cerrobayo",
-      "url": "https://www.cerrobayo.com/montana/camara/?cam=telecabina1500"
+      "url": "https://ipcamlive.com/player/player.php?alias=telecabina1500&autoplay=1",
+      "sourceUrl": "https://www.cerrobayo.com/montana/camara/?cam=telecabina1500"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Cerro Bayo",
       "termsUrl": "https://www.cerrobayo.com/legales/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
-    "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page", "verifiedAt": "2026-07-25" }
+    "tags": ["mountain", "weather", "ski", "neuquen", "live", "embed"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page and IPCamLive iframe headers", "verifiedAt": "2026-08-07" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-cerrobayo-lagos",
     "providerId": "cerrobayo",
     "title": "Cerro Bayo - Lagos",
-    "description": "Pagina oficial externa con camara online de Cerro Bayo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor oficial publicado por Cerro Bayo mediante IPCamLive. BioPulse usa el iframe oficial sin copiar ni rehostear contenido.",
     "geo": { "lat": -40.7622, "lon": -71.6069 },
     "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "cerrobayo",
-      "url": "https://www.cerrobayo.com/montana/camara/?cam=lagos"
+      "url": "https://ipcamlive.com/player/player.php?alias=lagos2&autoplay=1",
+      "sourceUrl": "https://www.cerrobayo.com/montana/camara/?cam=lagos"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Cerro Bayo",
       "termsUrl": "https://www.cerrobayo.com/legales/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
-    "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page", "verifiedAt": "2026-07-25" }
+    "tags": ["mountain", "weather", "ski", "neuquen", "live", "embed"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page and IPCamLive iframe headers", "verifiedAt": "2026-08-07" }
   },
   {
     "schema": "biopulse.camera.v1",
     "id": "ar-cerrobayo-pista-2",
     "providerId": "cerrobayo",
     "title": "Cerro Bayo - Pista 2",
-    "description": "Pagina oficial externa con camara online de Cerro Bayo. BioPulse enlaza la fuente sin copiar ni rehostear contenido.",
+    "description": "Reproductor oficial publicado por Cerro Bayo mediante IPCamLive. BioPulse usa el iframe oficial sin copiar ni rehostear contenido.",
     "geo": { "lat": -40.7622, "lon": -71.6069 },
     "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Villa La Angostura" },
     "mediaType": "embed",
     "fetch": {
-      "kind": "external_page",
+      "kind": "html_embed",
       "provider": "cerrobayo",
-      "url": "https://www.cerrobayo.com/montana/camara/?cam=pista2"
+      "url": "https://ipcamlive.com/player/player.php?alias=principiantes2&autoplay=1",
+      "sourceUrl": "https://www.cerrobayo.com/montana/camara/?cam=pista2"
     },
     "usage": {
       "isPublic": true,
       "attributionText": "Fuente: Cerro Bayo",
       "termsUrl": "https://www.cerrobayo.com/legales/condiciones-generales/"
     },
-    "tags": ["mountain", "weather", "ski", "neuquen", "external"],
-    "priority": 2,
-    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page", "verifiedAt": "2026-07-25" }
+    "tags": ["mountain", "weather", "ski", "neuquen", "live", "embed"],
+    "priority": 1,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Cerro Bayo official camera page and IPCamLive iframe headers", "verifiedAt": "2026-08-07" }
   },
   {
     "schema": "biopulse.camera.v1",

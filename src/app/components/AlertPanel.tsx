@@ -2276,7 +2276,7 @@ function ipcamliveEmbedUrl(rawUrl: unknown) {
     const host = url.hostname.toLowerCase();
     const alias = url.searchParams.get("alias");
 
-    if (!/^g\d+\.ipcamlive\.com$/.test(host)) return null;
+    if (host !== "ipcamlive.com" && host !== "www.ipcamlive.com" && !/^g\d+\.ipcamlive\.com$/.test(host)) return null;
     if (url.pathname !== "/player/player.php") return null;
     if (!alias || !/^[a-zA-Z0-9_-]{6,}$/.test(alias)) return null;
 
@@ -2636,7 +2636,7 @@ function cameraTrustedEmbedUrl(cam: CameraRegistryItem) {
   if (provider === "youtube") return youtubeEmbedUrl(fetchInfo.url);
   if (provider === "dailymotion") return dailymotionEmbedUrl(fetchInfo.url);
   if (provider === "twitch") return twitchEmbedUrl(fetchInfo.url);
-  if (provider === "catedral" || provider === "ipcamlive") return ipcamliveEmbedUrl(fetchInfo.url);
+  if (provider === "catedral" || provider === "ipcamlive" || provider === "cerrobayo") return ipcamliveEmbedUrl(fetchInfo.url);
   if (provider === "lu24") return lu24EmbedUrl(fetchInfo.url);
   if (provider === "lapacho-tv" || provider === "agenfor-canal3") return livecastvEmbedUrl(fetchInfo.url);
   if (provider === "cpetv") return vmfEdgeAppsEmbedUrl(fetchInfo.url);
@@ -2726,7 +2726,7 @@ function cameraUsageMode(cam: CameraRegistryItem, providerSnapshot?: ProviderCam
       };
     }
 
-    if (provider === "catedral" || provider === "ipcamlive") {
+    if (provider === "catedral" || provider === "ipcamlive" || provider === "cerrobayo") {
       return {
         label: "Player oficial",
         detail:
