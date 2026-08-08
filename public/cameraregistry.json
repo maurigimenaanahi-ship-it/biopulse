@@ -6425,6 +6425,34 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-isla-tova-penguin-live",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Tova - Pinguino de Magallanes en vivo",
+    "description": "Camara ambiental en vivo de Fundacion Rewilding Argentina desde Isla Tova, Parque Provincial Patagonia Azul, Chubut. Permite observar condiciones costeras, viento visible y actividad de fauna en una colonia de pinguinos de Magallanes; BioPulse usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -45.09687, "lon": -66.00032 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Tova / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/QTUb7J4Htv8?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=QTUb7J4Htv8"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chubut", "patagonia-azul", "isla-tova", "wildlife", "coast", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina YouTube streams, YouTube oEmbed and Explore.org camera metadata for Isla Tova",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-bariloche-org-cable-carril-inferior",
     "providerId": "bariloche-org",
     "title": "Cerro Catedral - Cable carril inferior (Bariloche.org)",
