@@ -11820,6 +11820,30 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-misiones-rio-uruguay-goio-en-monitor",
+    "providerId": "misiones-sig",
+    "title": "Misiones / Rio Uruguay - Goio-En (Monitor Hidrologico)",
+    "description": "Camara en vivo del Rio Uruguay publicada por el Monitor Hidrologico oficial de Misiones para contexto de cuenca alta. El punto visual esta en Goio-En, Brasil, y se registra como senal fronteriza de contexto para Misiones.",
+    "geo": { "lat": -27.28116, "lon": -52.69266 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Cuenca alta Rio Uruguay / Goio-En" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/2TOg3dXpMmE?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://sig.misiones.gob.ar/mapas/monitor/rio-uruguay/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Monitor Hidrologico Misiones / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "rio-uruguay", "hydrology", "border", "weather", "youtube", "embed"],
+    "priority": 0,
+    "validation": { "status": "verified", "verifiedBy": "Codex via Monitor Hidrologico Misiones iframe and YouTube oEmbed", "verifiedAt": "2026-08-07" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-canal2misiones-live",
     "providerId": "canal2misiones",
     "title": "Posadas - Canal 2 Misiones en vivo",
