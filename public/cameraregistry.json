@@ -739,6 +739,34 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-sise-puente-general-belgrano",
+    "providerId": "sise-argentina",
+    "title": "Puente General Belgrano - Chaco/Corrientes (SISE Argentina)",
+    "description": "Camara publica en vivo de SISE Argentina para el Puente General Belgrano, infraestructura vial critica entre Resistencia y Corrientes. BioPulse usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -27.46777, "lon": -58.86257 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia / Puente General Belgrano" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/CA3S3av3C5A?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=CA3S3av3C5A"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SISE Argentina / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "corrientes", "bridge", "river", "traffic", "critical-infrastructure", "youtube", "embed"],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via SISE Argentina public YouTube streams, YouTube oEmbed and CAME article documenting free 24h bridge cameras",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-beagle-channel-ushuaia",
     "providerId": "webcamtaxi",
     "title": "Ushuaia - Canal Beagle (Webcamtaxi)",
@@ -1102,6 +1130,34 @@
     "tags": ["mountain", "city", "weather", "san-luis", "embed", "youtube"],
     "priority": 1,
     "validation": { "status": "verified", "verifiedBy": "Codex via Omnicam YouTube iframe and YouTube oEmbed", "verifiedAt": "2026-07-29" }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radio-ciudad-los-molles-san-luis",
+    "providerId": "radio-ciudad-merlo",
+    "title": "Los Molles - San Luis en vivo",
+    "description": "Camara publica en vivo de Los Molles, San Luis, publicada por Radio Ciudad de Merlo mediante reproductor oficial de YouTube y referenciada como webcam actual por Omnicam. Aporta visibilidad del corredor serrano Merlo - Los Molles.",
+    "geo": { "lat": -32.4398, "lon": -65.0047 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "Los Molles" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/3faXDGNnZnE?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=3faXDGNnZnE"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio Ciudad de Merlo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["mountain", "weather", "san-luis", "los-molles", "embed", "youtube"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Omnicam public listing, Los Molles official location page and YouTube oEmbed",
+      "verifiedAt": "2026-08-08"
+    }
   },
   {
     "schema": "biopulse.camera.v1",
