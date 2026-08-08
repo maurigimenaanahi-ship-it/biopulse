@@ -278,7 +278,7 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - FAA WeatherCams y National Park Service: fuentes oficiales utiles como patron para camaras meteorologicas/parques, pero sin cobertura argentina para este MVP.
   Fuentes: https://weathercams.faa.gov/ y https://www.nps.gov/subjects/developer/api-documentation.htm
 
-- Vialidad Nacional / estado de rutas y SIG Vial: revisados como fuente vial oficial argentina. Aportan estado de rutas y mapas, pero no se encontro una red publica nacional de camaras visuales enlazable para el registro de Camaras.
+- Vialidad Nacional / estado de rutas y SIG Vial: revisados como fuente vial oficial argentina. Aportan estado de rutas, mapas y referencias a sensores/camaras en obras o corredores, pero no se encontro una red publica nacional de feeds visuales enlazable para el registro de Camaras. Rechequeado el 2026-08-08 contra Argentina.gob.ar / Vialidad Nacional, SIG Vial, ANSV y Corredores Viales; no usar directorios privados como fuente final sin confirmar operador y permisos.
   Fuentes: https://www.argentina.gob.ar/transporte/vialidad-nacional/estado-de-rutas y https://www.argentina.gob.ar/transporte/vialidad-nacional/sig-vial
 
 - Mar del Sud / YouTube: revisado como candidato costero municipal/cooperativo por nota publica sobre stream de camaras. El canal `UCBeVyugrRCdu9TYwQlf1aLQ` no mostro `isLiveNow` activo al momento de validacion, por eso no se aplico como `html_embed` todavia.
@@ -290,14 +290,23 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Canal 7 Santiago del Estero / Diario Panorama / Arcast: aplicada como `stream_url` cuando la pagina publica de Diario Panorama `https://www.diariopanorama.com/contenidos/noticiero7envivo-38.html` expuso iframe `https://arcast.com.ar/castv` y el player publico expuso HLS `https://stream.arcast.com.ar/envivo/castv/playlist.m3u8`. BioPulse usa allowlist exacta de host/ruta, con playlist maestra, variante y segmento MPEG-TS verificados con CORS abierto. Registrar como senal local audiovisual, no como camara fija garantizada, porque puede alternar estudio, noticias, moviles y camaras locales.
   Fuentes: https://www.diariopanorama.com/contenidos/noticiero7envivo-38.html , https://arcast.com.ar/castv
 
+- RDM TV Santiago del Estero / Shockmedia: revisado como candidato local adicional el 2026-08-08. La pagina `https://rdmsantiago.com.ar/tv/` publica iframe `https://videostream.shockmedia.com.ar:2000/VideoPlayer/rdmtv`, pero ese player respondio `Service ID not provided` aun con `Referer` oficial, y las rutas HLS candidatas de `rdmtv` devolvieron 404. No aplicar hasta que el player oficial vuelva a exponer HLS o embed reproducible.
+  Fuentes: https://rdmsantiago.com.ar/tv/ , https://videostream.shockmedia.com.ar:2000/VideoPlayer/rdmtv
+
 - Santiago del Estero / Radio Panorama y Canal 7: revisados como candidatos locales. El indice publico describe "En Vivo por Youtube" y Noticiero 7, pero la pagina `radiopanorama.com.ar` entrego una verificacion anti-bot al validador, sin HTML de player comprobable; Canal 7 Santiago del Estero no mostro `/live` activo durante la prueba. No aplicar como embed hasta obtener una URL verificable.
   Fuentes: https://radiopanorama.com.ar/ , https://www.youtube.com/@canal7santiagodelestero/live
 
 - Canal 8 Catamarca / Arcast: revisado como candidato adicional. La pagina `https://arcast.net/c8/` se identifica como "Catamarca Canal 8" y expone `https://stream.arcast.com.ar/c8/c8/playlist.m3u8`, pero la playlist devolvio 404 durante la prueba. No aplicar hasta que el HLS responda con playlist y segmento reales.
   Fuentes: https://arcast.net/c8/ , https://stream.arcast.com.ar/c8/c8/playlist.m3u8
 
-- Canal 4 Jujuy / El Cuatro: revisado como candidato local adicional para San Salvador de Jujuy. La pagina oficial existe y la ficha de Google Play declara transmision en vivo 24 hs, pero el endpoint web `https://canal4jujuy.elcuatro.com/player/status?device=web` respondio `{"status":"disabled"}` el 2026-07-29. No aplicar hasta que el player oficial vuelva a publicar stream embebible o HLS activo.
+- Canal 4 Jujuy / El Cuatro: revisado como candidato local adicional para San Salvador de Jujuy. La pagina oficial existe y la ficha de Google Play declara transmision en vivo 24 hs, pero el endpoint web `https://canal4jujuy.elcuatro.com/player/status?device=web` respondio `{"status":"disabled"}` el 2026-07-29 y otra vez el 2026-08-08. La ruta `/player` expuso `https://5cd577a3dd8ec.streamlock.net/CAMARAS/live/playlist.m3u8`, con playlist, variante y segmento MPEG-TS validos, pero no aplicar mientras el endpoint oficial de publicacion siga deshabilitado para web.
   Fuentes: https://canal4jujuy.elcuatro.com/ , https://play.google.com/store/apps/details?id=com.elcuatro.canal4jujuy
+
+- Canal 2 Jujuy / Fiberway: revisado como candidato local el 2026-08-08. El sitio oficial `https://canal2jujuy.com/canal2/vivo/` publica un evento de Livestream/Vimeo y un iframe de YouTube, pero el player Livestream redirigio a una pagina comercial de Vimeo y los IDs de YouTube publicados no respondieron por oEmbed. No aplicar hasta encontrar un embed actual verificable o un canal YouTube live estable.
+  Fuentes: https://canal2jujuy.com/canal2/vivo/ , https://livestream.com/accounts/679322/events/3782013
+
+- APN / Centro de Formacion y Capacitacion en Areas Protegidas / Estacion 6: revisada como posible fuente de Parques Nacionales. La pagina `https://www.capacitacionapn.gob.ar/estacion6/` publica un iframe de YouTube `tH753dA2dvE` y una imagen historica del Cerro Pistarini, pero no es una webcam operativa ni un vivo verificable. No registrar en Camaras salvo que APN publique una senal visual actual.
+  Fuentes: https://www.capacitacionapn.gob.ar/estacion6/
 
 - Lateplay / Canal 9 La Rioja historico: revisado como candidato desde `lateplay.larioja.gob.ar/canal-9/`; la pagina publica un widget Elementor apuntando a YouTube `zGDFohQyZgk`, pero YouTube respondio `playabilityStatus=ERROR` porque la cuenta asociada fue cerrada. No aplicar ese embed; usar en cambio el sitio actual `radioytelevisionriojana.com.ar/canal9/` y su HLS vigente.
   Fuentes: https://lateplay.larioja.gob.ar/canal-9/ , https://radioytelevisionriojana.com.ar/canal9/
