@@ -2194,6 +2194,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gesell") return "Gesell";
   if (provider === "telpin") return "Telpin";
   if (provider === "infopico") return "InfoPico";
+  if (provider === "fenix951") return "Fenix Multiplataforma";
   if (provider === "nautica-news") return "Nautica News";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
@@ -2607,6 +2608,13 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (host === "tv.streamcasthd.com" && url.port === "3895") {
       if (!/^\/live\/[a-z0-9-]+\.m3u8$/i.test(url.pathname)) return null;
+      return url.toString();
+    }
+
+    if (host === "stmvideo3.livecastv.com") {
+      if (url.port) return null;
+      if (url.pathname !== "/fenixrioja/fenixrioja/playlist.m3u8") return null;
+      if (url.search) return null;
       return url.toString();
     }
 
