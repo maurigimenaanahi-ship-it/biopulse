@@ -12799,5 +12799,32 @@
       "verifiedBy": "Codex via Paseos y Turismo YouTube streams, oEmbed and current isLiveNow check for iqX6f4hGLWA",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-reserva-san-guillermo-cuesta-del-viento",
+    "providerId": "reserva-san-guillermo",
+    "title": "Reserva San Guillermo - Cuesta del Viento",
+    "description": "Camara oficial de monitoreo de rios / calidad de agua de la Reserva de Biosfera San Guillermo, San Juan. BioPulse abre la pagina original porque el reproductor Angelcam/Click2Stream no quedo habilitado para embed seguro en produccion.",
+    "geo": { "lat": -30.1945, "lon": -69.1529 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "Cuesta del Viento" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "external_page",
+      "provider": "reserva-san-guillermo",
+      "url": "https://www.reservasanguillermo.com/videos-en-vivo.php?camara=03",
+      "sourceUrl": "https://www.reservasanguillermo.com/galeria-multimedia.php"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Reserva de Biosfera San Guillermo"
+    },
+    "tags": ["san-juan", "biosphere-reserve", "river", "water-quality", "weather", "external"],
+    "priority": 1,
+    "validation": {
+      "status": "partial",
+      "verifiedBy": "Codex via Reserva San Guillermo official multimedia page and live camera page; Click2Stream script responds for camara=03 but Angelcam frame policy prevents safe BioPulse embed",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
