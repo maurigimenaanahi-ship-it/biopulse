@@ -76,8 +76,8 @@ El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregis
 - Tierra del Fuego Live / YouTube: aplicada como `html_embed` para camaras publicas de Ushuaia, Tolhuin y Rio Grande cuando los titulos de oEmbed/feed identifican la localidad especifica. BioPulse usa el iframe oficial de YouTube con atribucion y no copia ni rehostea video.
   Fuente: https://www.youtube.com/@UshuaiaLive
 
-- Innovacion Cipolletti / YouTube: aplicada como `html_embed` para camaras urbanas publicas de Cipolletti cuando el feed del canal y oEmbed identifican la ubicacion especifica. BioPulse usa el iframe oficial de YouTube con atribucion y agrupa escenas equivalentes con Webcamtaxi/Skyline/WorldCam cuando corresponde.
-  Fuente: https://www.youtube.com/@innovacioncipolletti
+- Innovacion Cipolletti / YouTube: aplicada como `html_embed` para camaras urbanas y ambientales publicas de Cipolletti cuando el feed del canal y oEmbed identifican la ubicacion especifica. BioPulse usa el iframe oficial de YouTube con atribucion y conserva puntos visuales independientes, incluido Balneario Isla Jordan, cuando el video ID y la escena son distintos.
+  Fuentes: https://www.youtube.com/@innovacioncipolletti , https://www.youtube.com/watch?v=JwczEilzRuI , https://opencctv.org/cameras/argentina/rio-negro/cipolletti/isla-jordan-cipolletti-409414
 
 - Paseos y Turismo / YouTube: aplicada como `html_embed` solo para videos directos donde el feed, oEmbed o descripcion publica identifican la localidad. BioPulse registra Buenos Aires, Mendoza, Mendoza Andes y Mar de las Pampas con coordenadas aproximadas de ciudad/zona, y conserva como `external_page` las referencias WorldCam mas especificas cuando el video directo no prueba la misma escena. La senal federal rotativa `ARGENTINA LIVE 24/7` fue revisada y estaba activa, pero no se registra como camara puntual porque rota multiples destinos y no entrega coordenada estable.
   Fuentes: https://www.youtube.com/@paseosyturismo , https://www.youtube.com/watch?v=iqX6f4hGLWA , https://streamers.ar/events_api

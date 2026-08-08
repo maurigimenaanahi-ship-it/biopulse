@@ -13145,5 +13145,33 @@
       "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-innovacion-cipolletti-isla-jordan",
+    "providerId": "innovacion-cipolletti",
+    "title": "Cipolletti - Balneario Isla Jordan",
+    "description": "Reproductor publico de YouTube publicado por Innovacion Cipolletti para el Balneario Isla Jordan. Aporta vista ambiental y recreativa del rio, visibilidad, cielo y condiciones locales.",
+    "geo": { "lat": -38.96, "lon": -68.03 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Cipolletti" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/JwczEilzRuI?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=JwczEilzRuI"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Innovacion Cipolletti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["rio-negro", "cipolletti", "river", "recreation", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, YouTube oEmbed and isLiveNow check",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
