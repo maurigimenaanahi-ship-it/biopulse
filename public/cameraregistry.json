@@ -13462,5 +13462,89 @@
       "verifiedBy": "Codex via InfoPico TV page, own article identifying the macrocentro webcam, HLS playlist/media playlist/segment and CORS check",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-inet-santa-fe-aristobulo-6726",
+    "providerId": "i-net-servicios-de-red",
+    "title": "Santa Fe Capital - Aristobulo del Valle 6726 (I-Net)",
+    "description": "Camara publica en vivo de I-Net Servicios de Red sobre Avenida Aristobulo del Valle 6726, Santa Fe Capital. Aporta vista urbana, transito, cielo, visibilidad y condiciones meteorologicas locales.",
+    "geo": { "lat": -31.606312, "lon": -60.692677 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Santa Fe" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/xnd182MFJ8s?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=xnd182MFJ8s"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: I-Net Servicios de Red / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santa-fe", "santa-fe-capital", "aristobulo-del-valle", "city", "traffic", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-inet-santa-fe-barrio-belgrano-boneo",
+    "providerId": "i-net-servicios-de-red",
+    "title": "Santa Fe Capital - Barrio Belgrano / Boneo 3050 (I-Net)",
+    "description": "Camara publica en vivo de I-Net Servicios de Red en Barrio Belgrano, Boneo 3050, Santa Fe Capital. Aporta vista aerea urbana, cielo, visibilidad y condiciones meteorologicas locales.",
+    "geo": { "lat": -31.60338, "lon": -60.7002 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Santa Fe" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/5qJkQ9yrnWo?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=5qJkQ9yrnWo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: I-Net Servicios de Red / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santa-fe", "santa-fe-capital", "barrio-belgrano", "city", "skyline", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-inet-santa-fe-los-troncos-gorriti",
+    "providerId": "i-net-servicios-de-red",
+    "title": "Santa Fe Capital - Barrio Los Troncos / Gorriti 6700 (I-Net)",
+    "description": "Camara publica en vivo de I-Net Servicios de Red en Barrio Los Troncos, zona Gorriti 6700, Santa Fe Capital. Aporta vista panoramica urbana, cielo, visibilidad y condiciones meteorologicas locales.",
+    "geo": { "lat": -31.581522, "lon": -60.746128 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Santa Fe" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/12sdQvZsavg?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=12sdQvZsavg"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: I-Net Servicios de Red / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santa-fe", "santa-fe-capital", "los-troncos", "city", "skyline", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]

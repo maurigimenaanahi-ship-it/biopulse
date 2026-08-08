@@ -2199,6 +2199,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "mendoza-capital") return "Ciudad de Mendoza";
   if (provider === "kitebariloche") return "Kite Bariloche";
+  if (provider === "i-net-servicios-de-red") return "I-Net Servicios de Red";
   if (provider === "twitch") return "Twitch";
   if (provider === "dailymotion") return "Dailymotion";
   if (provider === "youtube") return "YouTube";
