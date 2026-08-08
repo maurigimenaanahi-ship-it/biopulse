@@ -79,8 +79,8 @@ El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregis
 - Innovacion Cipolletti / YouTube: aplicada como `html_embed` para camaras urbanas publicas de Cipolletti cuando el feed del canal y oEmbed identifican la ubicacion especifica. BioPulse usa el iframe oficial de YouTube con atribucion y agrupa escenas equivalentes con Webcamtaxi/Skyline/WorldCam cuando corresponde.
   Fuente: https://www.youtube.com/@innovacioncipolletti
 
-- Paseos y Turismo / YouTube: aplicada como `html_embed` solo para videos directos donde el feed, oEmbed o descripcion publica identifican la localidad. BioPulse registra Buenos Aires, Mendoza y Mar de las Pampas con coordenadas aproximadas de ciudad/zona, y conserva como `external_page` las referencias WorldCam mas especificas cuando el video directo no prueba la misma escena.
-  Fuente: https://www.youtube.com/@paseosyturismo
+- Paseos y Turismo / YouTube: aplicada como `html_embed` solo para videos directos donde el feed, oEmbed o descripcion publica identifican la localidad. BioPulse registra Buenos Aires, Mendoza, Mendoza Andes y Mar de las Pampas con coordenadas aproximadas de ciudad/zona, y conserva como `external_page` las referencias WorldCam mas especificas cuando el video directo no prueba la misma escena. La senal federal rotativa `ARGENTINA LIVE 24/7` fue revisada y estaba activa, pero no se registra como camara puntual porque rota multiples destinos y no entrega coordenada estable.
+  Fuentes: https://www.youtube.com/@paseosyturismo , https://www.youtube.com/watch?v=iqX6f4hGLWA , https://streamers.ar/events_api
 
 - Municipalidad de la Ciudad de Mendoza / Restreamer: aplicada como `html_embed` para las camaras publicas Terraza Municipal y Plaza Independencia. La fuente publica reproductores oficiales HTTPS y oEmbed; el HLS directo existe en `memfs/*.m3u8`, pero no publica CORS para reproducirse desde BioPulse. Plaza funciona con el iframe directo; Terraza usa el wrapper oficial `playersite_*.html` porque el iframe directo quedo cargando en negro durante el chequeo visual.
   Fuente: https://camarasmunicapital.ciudaddemendoza.gov.ar/
@@ -184,6 +184,9 @@ El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregis
 - San Luis / San Luis+ / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UC2TE19Vc_rDQRMO5hnhqsQw`. El sitio oficial San Luis+ publica seccion `#vivo`, canal `@SanLuisMas` y enlaces a videos/live; Agencia San Luis documenta la multiplataforma y sus programas en vivo. La ruta `/live` no estaba emitiendo en el momento de validacion, por lo que debe tratarse como senal disponible cuando la fuente esta al aire, no como camara 24/7.
   Fuentes: https://sanluismas.com/#vivo , https://www.youtube.com/@SanLuisMas/live , https://agenciasanluis.com/2024/03/12/926364-san-luis-estrena-multiplataforma/
 
+- Streamers.ar como radar de senales argentinas en vivo: usado solo como indice de descubrimiento y chequeo de `isLiveNow`, no como proveedor final. Cuando el endpoint publico `events_api` detecta una senal territorial actualmente viva, BioPulse registra la fuente primaria/YouTube correspondiente. En esta tanda se aplicaron Canal 8 San Juan, ELONCE Parana y El Siete TV Mendoza como `html_embed` de YouTube, etiquetadas como senales locales y no como camaras fijas garantizadas.
+  Fuentes: https://streamers.ar/ , https://streamers.ar/events_api , https://www.sanjuan8.com/canal8sanjuan , https://www.elonce.com/envivo , https://www.elsietetv.com.ar/
+
 - Las Lenas / StreamCastHD: aplicada como `html_embed` para la camara oficial de Las Lenas cuando la pagina publica expone el iframe de StreamCastHD. BioPulse usa el reproductor oficial con allowlist estricta de host/ruta, mantiene atribucion y conserva el enlace a la pagina oficial. No usar el HLS directo como fuente primaria si la playlist publica existe pero los segmentos actuales devuelven 404.
   Fuente: https://laslenas.com/camara-en-vivo/
 
@@ -271,6 +274,12 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 
 - San Luis / SDN y San Luis TV legado: SDN fue revisado desde la nota "en vivo 24 horas", pero el video `jBjG37tMtiM` devolvio oEmbed 404 y `playabilityStatus=ERROR`; no aplicar hasta hallar el canal/ruta vigente. El dominio historico `sanluistv.com` no se debe usar como fuente del canal provincial sin verificacion adicional porque hoy no presenta el sitio oficial historico esperado; usar San Luis+ / San LuisMas como fuente provincial actual.
   Fuentes: https://serviciodenoticias.net/servicio-de-noticias-en-vivo-24-horas/ , https://sanluismas.com/#vivo
+
+- CECARA / CONICET / Aguila Coronada La Pampa: revisado como camara ambiental de conservacion. YouTube oEmbed confirma videos embebibles de CECARA, pero el proyecto Yupanqui no estaba `isLiveNow` y las fuentes publicas indican que el ciclo del streaming cientifico se cumplio despues del primer vuelo del pichon. No registrar como camara viva hasta que CECARA abra una transmision actual.
+  Fuentes: https://www.cecara.com.ar/ , https://opcionrural.com.ar/2026/03/12/cientificos-argentinos-transmiten-en-vivo-la-intimidad-de-las-aguilas/ , https://www.infobae.com/sociedad/2026/03/17/el-primer-vuelo-de-yupanqui-el-stream-del-conicet-transmitio-en-vivo-el-crecimiento-de-un-pichon-de-aguila-en-la-pampa/ , https://www.youtube.com/watch?v=jddLOlK1cAk
+
+- Playas Doradas / YouTube: revisado como fuente costera oficial de Rio Negro. La pagina declara camara web 24/7 por YouTube y advierte posibles interrupciones por periodo de prueba, pero los streams publicados en `@PlayasDoradasAR` no estaban `isLiveNow` durante la validacion del 2026-08-08. No registrar hasta detectar un vivo activo para evitar reproductores negros.
+  Fuentes: https://playasdoradas.com.ar/vivo/ , https://www.youtube.com/@PlayasDoradasAR/streams
 
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 

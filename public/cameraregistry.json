@@ -12687,5 +12687,117 @@
       "verifiedBy": "Codex via Primera Edicion public article and YouTube oEmbed for Circuito Online video 5Edrx4xlx-Y",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal8sanjuan-live",
+    "providerId": "canal8sanjuan",
+    "title": "San Juan Capital - Canal 8 San Juan en vivo",
+    "description": "Senal audiovisual local de Canal 8 San Juan / San Juan 8. Puede incluir noticias, programas, moviles y camaras de estudio; BioPulse usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC5UKMEIoqvNDMSDz2_6Sn9g&autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.sanjuan8.com/canal8sanjuan"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 8 San Juan / San Juan 8 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "news", "local", "youtube", "stream", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via San Juan 8 official live page, Streamers.ar public live tracker, YouTube channel ID and current live video SMVSr3RAyNg",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-elonce-parana-live",
+    "providerId": "elonce",
+    "title": "Parana - ELONCE en vivo",
+    "description": "Senal audiovisual local de ELONCE TV, television abierta de Parana, Entre Rios. Puede incluir noticias, programas, moviles y camaras de estudio; BioPulse usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7333, "lon": -60.5297 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCWzsoIEZLGLinhYrm66VD4Q&autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.elonce.com/envivo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: ELONCE / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "parana", "news", "local", "youtube", "stream", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via ELONCE official live page, Streamers.ar public live tracker, YouTube channel ID and current live video vThOlBlNygg",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-elsietetv-mendoza-live",
+    "providerId": "elsietetv",
+    "title": "Mendoza - El Siete TV en vivo",
+    "description": "Senal audiovisual local de El Siete TV Mendoza. Puede incluir noticias, programas, moviles y camaras de estudio; BioPulse usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -32.8897, "lon": -68.8445 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Mendoza" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC64ZNqX0FQHabP8iIkmnR3A&autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.elsietetv.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Siete TV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["mendoza", "news", "local", "youtube", "stream", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Siete TV official live page, Streamers.ar public live tracker, YouTube channel ID and current live video Vh8xmLBJtR8",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-paseos-turismo-mendoza-andes",
+    "providerId": "paseos-turismo",
+    "title": "Mendoza - Andes, ciudad y clima en vivo (Paseos y Turismo)",
+    "description": "Camara publica 24/7 de Paseos y Turismo con vista de Mendoza, cordillera de los Andes, ciudad y condiciones meteorologicas visibles. BioPulse usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -32.8897, "lon": -68.8445 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Mendoza" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/iqX6f4hGLWA?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=iqX6f4hGLWA"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Paseos y Turismo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["mendoza", "andes", "city", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Paseos y Turismo YouTube streams, oEmbed and current isLiveNow check for iqX6f4hGLWA",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
