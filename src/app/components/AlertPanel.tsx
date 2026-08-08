@@ -2193,6 +2193,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "esa") return "ESA";
   if (provider === "gesell") return "Gesell";
   if (provider === "telpin") return "Telpin";
+  if (provider === "infopico") return "InfoPico";
   if (provider === "nautica-news") return "Nautica News";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
@@ -2511,7 +2512,9 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     }
 
     if (host === "vivo.solumedia.com" && url.port === "19360") {
-      if (!/^\/cardinal\/cardinal\.m3u8$/i.test(url.pathname)) return null;
+      const allowedSolumediaPaths = new Set(["/cardinal/cardinal.m3u8", "/infopico/infopico.m3u8"]);
+      if (!allowedSolumediaPaths.has(url.pathname.toLowerCase())) return null;
+      if (url.search) return null;
       return url.toString();
     }
 

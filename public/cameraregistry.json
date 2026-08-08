@@ -13433,5 +13433,34 @@
       "verifiedBy": "Codex via Radio Cardinal Miramar article, YouTube /live resolution, oEmbed and isLiveContent check",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-infopico-general-pico-tv",
+    "providerId": "infopico",
+    "title": "General Pico - InfoPico TV",
+    "description": "Webcam publica 24 horas de InfoPico ubicada en el macrocentro de General Pico. Aporta vista urbana, cielo, visibilidad, actividad local y condiciones meteorologicas de La Pampa.",
+    "geo": { "lat": -35.6566, "lon": -63.7568 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "General Pico" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "infopico",
+      "protocol": "hls",
+      "url": "https://vivo.solumedia.com:19360/infopico/infopico.m3u8",
+      "sourceUrl": "https://www.infopico.com/tv/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: InfoPico",
+      "termsUrl": "https://www.infopico.com/politica-de-privacidad/"
+    },
+    "tags": ["la-pampa", "general-pico", "city", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via InfoPico TV page, own article identifying the macrocentro webcam, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
