@@ -12826,5 +12826,121 @@
       "verifiedBy": "Codex via Reserva San Guillermo official multimedia page and live camera page; Click2Stream script responds for camara=03 but Angelcam frame policy prevents safe BioPulse embed",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-avenida-24-septiembre-1671043707",
+    "providerId": "windy",
+    "title": "Cordoba - Avenida 24 de Septiembre (Windy)",
+    "description": "Camara publica urbana de Cordoba Capital indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de calle, transito, visibilidad y condiciones meteorologicas urbanas.",
+    "geo": { "lat": -31.41134, "lon": -64.15713 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1671043707",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["cordoba", "city", "traffic", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-ciudad-universitaria-1722781049",
+    "providerId": "windy",
+    "title": "Cordoba - Ciudad Universitaria (Windy)",
+    "description": "Camara publica urbana de Cordoba Capital indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de Ciudad Universitaria, visibilidad, transito local y condiciones meteorologicas urbanas.",
+    "geo": { "lat": -31.43367, "lon": -64.18782 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1722781049",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["cordoba", "city", "campus", "traffic", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-plaza-espana-1664930739",
+    "providerId": "windy",
+    "title": "Cordoba - Plaza Espana e Hipolito Yrigoyen (Windy)",
+    "description": "Camara publica urbana de Cordoba Capital indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de Plaza Espana / Avenida Hipolito Yrigoyen para observar visibilidad, transito y condiciones de ciudad.",
+    "geo": { "lat": -31.42816, "lon": -64.1851 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664930739",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["cordoba", "city", "traffic", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-cordoba-plaza-americas-1664733822",
+    "providerId": "windy",
+    "title": "Cordoba - Plaza de las Americas (Windy)",
+    "description": "Camara publica urbana de Cordoba Capital indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de Plaza de las Americas, transito, visibilidad y condiciones meteorologicas urbanas.",
+    "geo": { "lat": -31.43306, "lon": -64.19416 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1664733822",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["cordoba", "city", "traffic", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
