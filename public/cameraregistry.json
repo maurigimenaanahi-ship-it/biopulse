@@ -12942,5 +12942,208 @@
       "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-villa-gesell-mirador-muelle-1793898445",
+    "providerId": "windy",
+    "title": "Villa Gesell - Mirador del Muelle (Windy)",
+    "description": "Camara publica costera de Villa Gesell indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista del muelle, costa, oleaje, visibilidad y condiciones meteorologicas.",
+    "geo": { "lat": -37.27959, "lon": -56.98254 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Villa Gesell" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793898445",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["buenos-aires", "villa-gesell", "coast", "pier", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-villa-gesell-plaza-americas-1793898453",
+    "providerId": "windy",
+    "title": "Villa Gesell - Plaza de las Americas (Windy)",
+    "description": "Camara publica urbana/costera de Villa Gesell indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de plaza, movimiento urbano, visibilidad y condiciones meteorologicas.",
+    "geo": { "lat": -37.28119, "lon": -56.98975 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Villa Gesell" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793898453",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["buenos-aires", "villa-gesell", "city", "coast", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-malargue-planchon-peteroa-1793886259",
+    "providerId": "windy",
+    "title": "Malargue - Planchon-Peteroa (Windy)",
+    "description": "Camara publica de montana en el departamento Malargue, Mendoza, orientada hacia la zona Planchon-Peteroa. Aporta visibilidad, nubosidad, nieve/humo visible y condiciones meteorologicas de alta montana.",
+    "geo": { "lat": -35.54931, "lon": -70.15418 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Malargue / Planchon-Peteroa" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793886259",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["mendoza", "malargue", "mountain", "volcano", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-caviahue-volcan-copahue-1730382269",
+    "providerId": "windy",
+    "title": "Caviahue - Volcan Copahue (Windy)",
+    "description": "Camara publica de montana en Caviahue, Neuquen, con vista hacia el volcan Copahue. Aporta observacion visual de nubosidad, nieve, visibilidad, humo/ceniza visible y condiciones meteorologicas.",
+    "geo": { "lat": -37.84726, "lon": -71.00939 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Caviahue" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1730382269",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["neuquen", "caviahue", "mountain", "volcano", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-copahue-west-1739469669",
+    "providerId": "windy",
+    "title": "Copahue - Vista oeste (Windy)",
+    "description": "Camara publica de montana en Copahue, Neuquen, indexada por OpenCCTV y consultada via Windy Webcams. Aporta observacion de visibilidad, nieve, nubosidad y condiciones meteorologicas de cordillera.",
+    "geo": { "lat": -37.84292, "lon": -71.11667 },
+    "coverage": { "countryISO2": "AR", "admin1": "Neuquen", "locality": "Copahue" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1739469669",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["neuquen", "copahue", "mountain", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-las-grutas-southeast-1793896838",
+    "providerId": "windy",
+    "title": "Las Grutas - Vista sudeste (Windy)",
+    "description": "Camara publica costera de Las Grutas, Rio Negro, indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de costa, oleaje, nubosidad, visibilidad y condiciones meteorologicas.",
+    "geo": { "lat": -40.81361, "lon": -65.09222 },
+    "coverage": { "countryISO2": "AR", "admin1": "Rio Negro", "locality": "Las Grutas" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793896838",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["rio-negro", "las-grutas", "coast", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-windy-rosario-el-aura-1793901927",
+    "providerId": "windy",
+    "title": "Rosario - El Aura este (Windy)",
+    "description": "Camara publica urbana de Rosario, Santa Fe, indexada por OpenCCTV y consultada via Windy Webcams. Aporta vista de ciudad, visibilidad, transito local y condiciones meteorologicas.",
+    "geo": { "lat": -32.94357, "lon": -60.63162 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Rosario" },
+    "mediaType": "snapshot",
+    "fetch": {
+      "kind": "provider_api",
+      "provider": "windy",
+      "cameraKey": "1793901927",
+      "endpoint": "/api/windy-camera"
+    },
+    "update": { "expectedIntervalSec": 300 },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Windy Webcams",
+      "termsUrl": "https://api.windy.com/webcams/terms"
+    },
+    "tags": ["santa-fe", "rosario", "city", "traffic", "weather", "snapshot"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via OpenCCTV public index, signed preview image and Windy public webcam page",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
