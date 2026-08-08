@@ -12329,5 +12329,33 @@
       "verifiedBy": "Codex via Mia Tucuman official site and YouTube channel metadata; live_stream endpoint not promoted because it returned an unavailable player during validation",
       "verifiedAt": "2026-07-30"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-circuitoonline-posadas-encarnacion-bridge",
+    "providerId": "circuitoonline",
+    "title": "Posadas / Encarnacion - Circuito Comercial y Puente San Roque",
+    "description": "Camara publica en vivo de Circuito Online con vista al circuito comercial de Encarnacion y al Puente Internacional San Roque Gonzalez de Santa Cruz. Se registra como senal fronteriza de contexto para Posadas y Misiones; BioPulse usa el iframe oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -27.33082, "lon": -55.87419 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas / Encarnacion" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/5Edrx4xlx-Y?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.primeraedicion.com.ar/nota/100722969/en-tiempo-real-la-cola-en-la-zona-comercial-de-encarnacion-y-el-puente/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Circuito Online / Primera Edicion / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "posadas", "encarnacion", "bridge", "border", "traffic", "weather", "youtube", "embed"],
+    "priority": 0,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Primera Edicion public article and YouTube oEmbed for Circuito Online video 5Edrx4xlx-Y",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
