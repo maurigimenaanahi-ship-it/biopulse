@@ -139,6 +139,9 @@ El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregis
 - Multivision Federal / Shockmedia: aplicada como `stream_url` para la senal local/federal originada en Salta cuando la portada oficial publica HLS `videostream.shockmedia.com.ar/hls/multivisionfederal/multivisionfederal.m3u8`. Registrar como senal de noticias y moviles, no como camara fija garantizada. Requiere allowlist estricta de host/ruta, CORS `*` y segmento validado.
   Fuentes: https://multivision.tv/ , https://multivision.tv/programacion/ , https://videostream.shockmedia.com.ar/hls/multivisionfederal/multivisionfederal.m3u8
 
+- Canal 7 Salta / Cooperativa del Pueblo / Solumedia: aplicada como `stream_url` cuando el sitio oficial `https://canal7salta.com/en-vivo/` y la portada publicaron players en vivo; el player Solumedia `https://vivo.solumedia.com:2020/VideoPlayer/canal7salta?autoplay=1` expuso HLS `https://vivo.solumedia.com:19360/canal7salta/canal7salta.m3u8`. BioPulse usa allowlist exacta de host/puerto/ruta con CORS y segmento MPEG-TS verificados. Las rutas viejas `streamingargentino.info/playerhtml5/canal7_pf.html`, `streamingargentino.info/playerhtml5/crespo3.html` y `streamlock.net/crespo3` devolvieron 404 o timeout durante la prueba, por eso no se usan.
+  Fuentes: https://canal7salta.com/ , https://canal7salta.com/en-vivo/ , https://vivo.solumedia.com:2020/VideoPlayer/canal7salta?autoplay=1
+
 - Salta / PUE! / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCdMP4zAisGQ7Dve0rjrsVAw`. La pagina oficial de PUE! enlaza su canal `@pueok`; la ruta `/live` de YouTube resolvio a un video actual en vivo con `playability=OK`, `isLiveNow` y oEmbed valido. Registrar como senal local con programas/coberturas/moviles, no como camara fija garantizada.
   Fuentes: https://pueinfo.com/ , https://www.youtube.com/@pueok/live , https://www.youtube.com/@pueok
 
@@ -289,6 +292,9 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 
 - Santiago del Estero / Radio Panorama y Canal 7: revisados como candidatos locales. El indice publico describe "En Vivo por Youtube" y Noticiero 7, pero la pagina `radiopanorama.com.ar` entrego una verificacion anti-bot al validador, sin HTML de player comprobable; Canal 7 Santiago del Estero no mostro `/live` activo durante la prueba. No aplicar como embed hasta obtener una URL verificable.
   Fuentes: https://radiopanorama.com.ar/ , https://www.youtube.com/@canal7santiagodelestero/live
+
+- Canal 8 Catamarca / Arcast: revisado como candidato adicional. La pagina `https://arcast.net/c8/` se identifica como "Catamarca Canal 8" y expone `https://stream.arcast.com.ar/c8/c8/playlist.m3u8`, pero la playlist devolvio 404 durante la prueba. No aplicar hasta que el HLS responda con playlist y segmento reales.
+  Fuentes: https://arcast.net/c8/ , https://stream.arcast.com.ar/c8/c8/playlist.m3u8
 
 - Canal 4 Jujuy / El Cuatro: revisado como candidato local adicional para San Salvador de Jujuy. La pagina oficial existe y la ficha de Google Play declara transmision en vivo 24 hs, pero el endpoint web `https://canal4jujuy.elcuatro.com/player/status?device=web` respondio `{"status":"disabled"}` el 2026-07-29. No aplicar hasta que el player oficial vuelva a publicar stream embebible o HLS activo.
   Fuentes: https://canal4jujuy.elcuatro.com/ , https://play.google.com/store/apps/details?id=com.elcuatro.canal4jujuy

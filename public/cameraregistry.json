@@ -12722,6 +12722,34 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-canal7salta-live",
+    "providerId": "canal7salta",
+    "title": "Salta - Canal 7 Salta en vivo",
+    "description": "Senal local de Canal 7 Salta / Cooperativa del Pueblo publicada en su sitio oficial mediante reproductor Solumedia. Puede incluir noticias, programas, estudio, moviles y camaras locales; BioPulse reproduce el HLS HTTPS publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7821, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "canal7salta",
+      "protocol": "hls",
+      "url": "https://vivo.solumedia.com:19360/canal7salta/canal7salta.m3u8",
+      "sourceUrl": "https://canal7salta.com/en-vivo/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 7 Salta / Cooperativa del Pueblo"
+    },
+    "tags": ["salta", "news", "local", "solumedia", "hls", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal 7 Salta official En Vivo page, Solumedia player, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-san-luis-mas-live",
     "providerId": "san-luis-mas",
     "title": "San Luis - San Luis+ en vivo",

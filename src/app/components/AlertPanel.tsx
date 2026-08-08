@@ -2176,6 +2176,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
   if (provider === "pue-salta") return "PUE! Salta";
+  if (provider === "canal7salta") return "Canal 7 Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
@@ -2520,7 +2521,7 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     }
 
     if (host === "vivo.solumedia.com" && url.port === "19360") {
-      const allowedSolumediaPaths = new Set(["/cardinal/cardinal.m3u8", "/infopico/infopico.m3u8"]);
+      const allowedSolumediaPaths = new Set(["/cardinal/cardinal.m3u8", "/infopico/infopico.m3u8", "/canal7salta/canal7salta.m3u8"]);
       if (!allowedSolumediaPaths.has(url.pathname.toLowerCase())) return null;
       if (url.search) return null;
       return url.toString();
