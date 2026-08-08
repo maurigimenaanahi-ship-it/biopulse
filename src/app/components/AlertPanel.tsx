@@ -2200,6 +2200,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "mendoza-capital") return "Ciudad de Mendoza";
   if (provider === "kitebariloche") return "Kite Bariloche";
   if (provider === "i-net-servicios-de-red") return "I-Net Servicios de Red";
+  if (provider === "diario-uno-mendoza") return "Diario UNO Mendoza";
+  if (provider === "radio-claromeco") return "Radio Claromeco";
+  if (provider === "nahuel-valentini") return "Nahuel Valentini";
   if (provider === "twitch") return "Twitch";
   if (provider === "dailymotion") return "Dailymotion";
   if (provider === "youtube") return "YouTube";

@@ -13546,5 +13546,89 @@
       "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diario-uno-las-cuevas-mendoza",
+    "providerId": "diario-uno-mendoza",
+    "title": "Las Cuevas - Mendoza (Diario UNO)",
+    "description": "Camara publica en vivo de Diario UNO Mendoza en Las Cuevas, alta montana mendocina. Aporta vista de cordillera, nubosidad, nieve, visibilidad, viento aparente y condiciones meteorologicas en zona de paso internacional.",
+    "geo": { "lat": -32.8139, "lon": -70.05017 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Las Cuevas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/Vox_qgF8TUQ?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=Vox_qgF8TUQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Diario UNO Mendoza / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["mendoza", "las-cuevas", "andes", "mountain", "weather", "snow", "road", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radio-claromeco-playa-la-bajada",
+    "providerId": "radio-claromeco",
+    "title": "Claromeco - Playa La Bajada (Radio Claromeco)",
+    "description": "Camara publica en vivo de Radio Claromeco hacia Playa La Bajada. Aporta vista costera, cielo, visibilidad, oleaje, playa y condiciones meteorologicas locales.",
+    "geo": { "lat": -38.860477, "lon": -60.079605 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Claromeco" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/SzveEm5Y4oc?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=SzveEm5Y4oc"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio Claromeco / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["buenos-aires", "claromeco", "coast", "beach", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nahuel-valentini-necochea-cam-2",
+    "providerId": "nahuel-valentini",
+    "title": "Necochea - Vista aerea de playa CAM 2 (Nahuel Valentini)",
+    "description": "Camara publica en vivo CAM 2 de Nahuel Valentini sobre Necochea. Aporta un angulo independiente de costa, ciudad, cielo, playa, visibilidad y condiciones meteorologicas locales.",
+    "geo": { "lat": -38.554497, "lon": -58.73961 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Necochea" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/FqgTC1hW2TE?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=FqgTC1hW2TE"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nahuel Valentini / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["buenos-aires", "necochea", "coast", "beach", "city", "weather", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
