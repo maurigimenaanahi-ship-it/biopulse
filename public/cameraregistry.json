@@ -12775,6 +12775,34 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-canal7-santiago-del-estero-live",
+    "providerId": "canal7-santiago",
+    "title": "Santiago del Estero - Canal 7 / Diario Panorama en vivo",
+    "description": "Senal local de Canal 7 Santiago del Estero publicada por Diario Panorama mediante reproductor Arcast. Puede incluir noticias, programas, estudio, moviles y camaras locales; BioPulse reproduce el HLS HTTPS publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "canal7-santiago",
+      "protocol": "hls",
+      "url": "https://stream.arcast.com.ar/envivo/castv/playlist.m3u8",
+      "sourceUrl": "https://www.diariopanorama.com/contenidos/noticiero7envivo-38.html"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 7 Santiago del Estero / Diario Panorama"
+    },
+    "tags": ["santiago-del-estero", "news", "local", "arcast", "hls", "stream"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Diario Panorama official Canal 7 page iframe, Arcast player, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-misionesonline-costanera-posadas",
     "providerId": "dailymotion",
     "title": "Posadas - Costanera de Posadas (Misiones Online)",

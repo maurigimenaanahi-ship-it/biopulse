@@ -27,6 +27,7 @@ const PROVIDER_POLICIES = new Map([
   ["telpin", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /telpin/i }],
   ["infopico", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /infopico/i }],
   ["fenix951", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /fenix|fénix/i }],
+  ["canal7-santiago", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 7|diario panorama|santiago/i }],
   ["chapelco", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["provider_api"], attribution: /chapelco|varitech/i }],
   ["catedral", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["image_url", "html_embed"], attribution: /catedral|varitech/i }],
   ["cerrobayo", { licenseClass: "embed-only", publishSignal: "operator-page", allowedKinds: ["html_embed", "external_page"], attribution: /cerro bayo/i }],

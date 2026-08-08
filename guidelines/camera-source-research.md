@@ -284,6 +284,9 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Santiago del Estero / Gobierno provincial: aplicada solo como `external_page` porque la pagina oficial `sde.gob.ar/en-vivo/` existe y lista transmisiones/videos del canal de YouTube del Gobierno, pero la ruta `/live` del canal y los videos revisados no mostraron un vivo actual continuo al momento de validacion. No promover a `html_embed` hasta detectar una emision activa o una ruta estable que no deje el panel en negro.
   Fuentes: https://sde.gob.ar/en-vivo/ , https://www.youtube.com/@gobiernodesantiagodelestero/live
 
+- Canal 7 Santiago del Estero / Diario Panorama / Arcast: aplicada como `stream_url` cuando la pagina publica de Diario Panorama `https://www.diariopanorama.com/contenidos/noticiero7envivo-38.html` expuso iframe `https://arcast.com.ar/castv` y el player publico expuso HLS `https://stream.arcast.com.ar/envivo/castv/playlist.m3u8`. BioPulse usa allowlist exacta de host/ruta, con playlist maestra, variante y segmento MPEG-TS verificados con CORS abierto. Registrar como senal local audiovisual, no como camara fija garantizada, porque puede alternar estudio, noticias, moviles y camaras locales.
+  Fuentes: https://www.diariopanorama.com/contenidos/noticiero7envivo-38.html , https://arcast.com.ar/castv
+
 - Santiago del Estero / Radio Panorama y Canal 7: revisados como candidatos locales. El indice publico describe "En Vivo por Youtube" y Noticiero 7, pero la pagina `radiopanorama.com.ar` entrego una verificacion anti-bot al validador, sin HTML de player comprobable; Canal 7 Santiago del Estero no mostro `/live` activo durante la prueba. No aplicar como embed hasta obtener una URL verificable.
   Fuentes: https://radiopanorama.com.ar/ , https://www.youtube.com/@canal7santiagodelestero/live
 

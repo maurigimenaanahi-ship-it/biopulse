@@ -2178,6 +2178,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "gobierno-sde") return "Gobierno SDE";
+  if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "lagaceta-play") return "LA GACETA Play";
   if (provider === "mia-tucuman") return "Mia Tucuman";
   if (provider === "multivision-federal") return "Multivision Federal";
@@ -2595,7 +2596,7 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (host === "stream.arcast.com.ar") {
       if (url.port) return null;
-      if (!/^\/(?:canal7catamarca\/ngrp:canal7catamarca_all|c3lapampa\/ngrp:c3lapampa_all)\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (!/^\/(?:canal7catamarca\/ngrp:canal7catamarca_all|c3lapampa\/ngrp:c3lapampa_all|envivo\/castv)\/playlist\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }
