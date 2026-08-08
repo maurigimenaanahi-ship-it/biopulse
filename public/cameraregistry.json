@@ -13630,5 +13630,33 @@
       "verifiedBy": "Codex via GeoWebcams discovery metadata, YouTube oEmbed and watch page isLiveNow/isLiveContent check",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-deroweb-daireaux-weathercam",
+    "providerId": "deroweb-daireaux",
+    "title": "Daireaux - Estacion Meteorologica Deroweb",
+    "description": "Camara publica en vivo de la Estacion Meteorologica Daireaux / Deroweb. Aporta vista meteorologica local, cielo, nubosidad, visibilidad, eventos convectivos y condiciones rurales del centro bonaerense.",
+    "geo": { "lat": -36.59756, "lon": -61.74675 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Daireaux" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCEqH1DHacLT-p5hyTZgi9XA&autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://meteo.deroweb.com.ar/camara_vivo_daireaux.php"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Estacion Meteorologica Daireaux / Deroweb / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["buenos-aires", "daireaux", "weather", "meteorological-station", "sky", "rural", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Estacion Meteorologica Daireaux camera page, official YouTube iframe, channel /live page and embed response",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]

@@ -2203,6 +2203,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "diario-uno-mendoza") return "Diario UNO Mendoza";
   if (provider === "radio-claromeco") return "Radio Claromeco";
   if (provider === "nahuel-valentini") return "Nahuel Valentini";
+  if (provider === "deroweb-daireaux") return "Estacion Meteorologica Daireaux";
   if (provider === "twitch") return "Twitch";
   if (provider === "dailymotion") return "Dailymotion";
   if (provider === "youtube") return "YouTube";
