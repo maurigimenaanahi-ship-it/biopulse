@@ -24,6 +24,7 @@ const PROVIDER_POLICIES = new Map([
   ["agvp-santa-cruz", { licenseClass: "display-only", publishSignal: "gov-open-data", allowedKinds: ["provider_api"], attribution: /agvp|santa cruz/i }],
   ["agp", { licenseClass: "display-only", publishSignal: "gov-open-data", allowedKinds: ["stream_url"], attribution: /agp|argentina/i }],
   ["gesell", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /gesell/i }],
+  ["telpin", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /telpin/i }],
   ["chapelco", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["provider_api"], attribution: /chapelco|varitech/i }],
   ["catedral", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["image_url", "html_embed"], attribution: /catedral|varitech/i }],
   ["cerrobayo", { licenseClass: "embed-only", publishSignal: "operator-page", allowedKinds: ["html_embed", "external_page"], attribution: /cerro bayo/i }],

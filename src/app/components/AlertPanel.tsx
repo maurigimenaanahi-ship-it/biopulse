@@ -2192,6 +2192,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "eldiariodepringles") return "El Diario de Pringles";
   if (provider === "esa") return "ESA";
   if (provider === "gesell") return "Gesell";
+  if (provider === "telpin") return "Telpin";
   if (provider === "nautica-news") return "Nautica News";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
@@ -2607,6 +2608,27 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (/^cam[a-z0-9-]*\.gesell\.com\.ar$/i.test(host)) {
       if (url.pathname !== "/playlist.m3u8") return null;
+      return url.toString();
+    }
+
+    if (host === "wowza.telpin.com.ar" && url.port === "1935") {
+      const allowedTelpinPaths = new Set([
+        "/camara-bypdomo/smil:camara-bypdomo.smil/playlist.m3u8",
+        "/camara-golf/smil:camara-golf.smil/playlist.m3u8",
+        "/camara-muelle/muelle.stream_720p/playlist.m3u8",
+        "/camara-muelleii/muelleii.stream/playlist.m3u8",
+        "/camara-botavara/smil:camara-botavara.smil/playlist.m3u8",
+        "/camara-rambla/smil:camara-rambla.smil/playlist.m3u8",
+        "/camara-ramblaloft/ramblaloft.stream/playlist.m3u8",
+      ]);
+      if (!allowedTelpinPaths.has(url.pathname.toLowerCase())) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "mistserver.telpin.com.ar" && url.port === "8443") {
+      if (url.pathname !== "/hls/fuente/index.m3u8") return null;
+      if (url.search) return null;
       return url.toString();
     }
 

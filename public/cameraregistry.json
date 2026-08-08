@@ -13173,5 +13173,237 @@
       "verifiedBy": "Codex via OpenCCTV public index, YouTube oEmbed and isLiveNow check",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-pinamar-bunge-domo",
+    "providerId": "telpin",
+    "title": "Pinamar - Bunge y el Mar Domo (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la camara domo de Bunge y el Mar en Pinamar. Aporta vista costera, visibilidad, cielo, transito local y condiciones meteorologicas.",
+    "geo": { "lat": -37.1083, "lon": -56.8472 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-bypdomo/smil:camara-bypdomo.smil/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "pinamar", "coast", "traffic", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-pinamar-golf",
+    "providerId": "telpin",
+    "title": "Pinamar - Golf (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la camara del Golf de Pinamar. Aporta vista ambiental, visibilidad, cielo y condiciones meteorologicas locales.",
+    "geo": { "lat": -37.1015, "lon": -56.8555 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-golf/smil:camara-golf.smil/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "pinamar", "golf", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-pinamar-bunge-libertador",
+    "providerId": "telpin",
+    "title": "Pinamar - Bunge y Libertador (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la camara urbana de Bunge y Libertador en Pinamar. Aporta vista de transito, visibilidad, cielo y condiciones locales.",
+    "geo": { "lat": -37.116708, "lon": -56.854636 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://mistserver.telpin.com.ar:8443/hls/fuente/index.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "pinamar", "city", "traffic", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-pinamar-muelle",
+    "providerId": "telpin",
+    "title": "Pinamar - Muelle (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la camara del muelle de Pinamar. Aporta vista costera, oleaje, visibilidad, cielo y condiciones meteorologicas.",
+    "geo": { "lat": -37.11, "lon": -56.8455 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-muelle/muelle.stream_720p/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "pinamar", "coast", "pier", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-pinamar-morro-muelle",
+    "providerId": "telpin",
+    "title": "Pinamar - Morro del Muelle (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la camara del morro del muelle de Pinamar. Aporta otro angulo costero independiente para oleaje, visibilidad y condiciones locales.",
+    "geo": { "lat": -37.111, "lon": -56.845 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-muelleII/muelleII.stream/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "pinamar", "coast", "pier", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-pinamar-botavara",
+    "providerId": "telpin",
+    "title": "Pinamar - Playas del Norte / Botavara (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la zona Botavara / Playas del Norte de Pinamar. Aporta vista costera, visibilidad, cielo, playa y condiciones meteorologicas.",
+    "geo": { "lat": -37.095, "lon": -56.848 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Pinamar" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-botavara/smil:camara-botavara.smil/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "pinamar", "coast", "beach", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-ostende-la-rambla",
+    "providerId": "telpin",
+    "title": "Ostende - La Rambla (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para La Rambla de Ostende. Aporta vista costera y urbana, visibilidad, cielo, playa y condiciones meteorologicas.",
+    "geo": { "lat": -37.138, "lon": -56.865 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Ostende" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-rambla/smil:camara-rambla.smil/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "ostende", "coast", "beach", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-ostende-la-rambla-ii",
+    "providerId": "telpin",
+    "title": "Ostende - La Rambla II (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para una segunda camara de La Rambla de Ostende. Aporta un angulo independiente de costa, visibilidad, cielo, playa y condiciones locales.",
+    "geo": { "lat": -37.139, "lon": -56.8655 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Ostende" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-ramblaloft/ramblaloft.stream/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "ostende", "coast", "beach", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
