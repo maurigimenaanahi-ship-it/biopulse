@@ -6453,6 +6453,168 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-isla-tova-penguin-1",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Tova - Nido de pinguino de Magallanes 1",
+    "description": "Birdcam oficial de Fundacion Rewilding Argentina para monitoreo remoto no invasivo de un nido de pinguino de Magallanes en Isla Tova, Parque Provincial Patagonia Azul, Chubut. BioPulse usa el reproductor IPCamLive publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -45.09687, "lon": -66.00032 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Tova / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "ipcamlive",
+      "url": "https://g0.ipcamlive.com/player/player.php?alias=argentinacam5&disablevideofit=1",
+      "sourceUrl": "https://www.rewildingargentina.org/monitoreo/#camaras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / IPCamLive"
+    },
+    "tags": ["chubut", "patagonia-azul", "isla-tova", "wildlife", "coast", "weather", "ipcamlive", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina official monitoreo page iframe alias argentinacam5",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-isla-tova-penguin-2",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Tova - Nido de pinguino de Magallanes 2",
+    "description": "Birdcam oficial de Fundacion Rewilding Argentina para monitoreo remoto no invasivo de un segundo nido de pinguino de Magallanes en Isla Tova, Parque Provincial Patagonia Azul, Chubut. BioPulse usa el reproductor IPCamLive publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -45.09687, "lon": -66.00032 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Tova / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "ipcamlive",
+      "url": "https://g0.ipcamlive.com/player/player.php?alias=argentinacam6&disablevideofit=1",
+      "sourceUrl": "https://www.rewildingargentina.org/monitoreo/#camaras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / IPCamLive"
+    },
+    "tags": ["chubut", "patagonia-azul", "isla-tova", "wildlife", "coast", "weather", "ipcamlive", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina official monitoreo page iframe alias argentinacam6",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-gran-robredo-petrel-1",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Gran Robredo - Nidos de petrel gigante 1",
+    "description": "Birdcam oficial de Fundacion Rewilding Argentina para monitoreo remoto no invasivo de nidos de petrel gigante del sur en Isla Gran Robredo, Patagonia Azul, Chubut. BioPulse usa el reproductor IPCamLive publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -45.1294, "lon": -66.05664 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Gran Robredo / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "ipcamlive",
+      "url": "https://g0.ipcamlive.com/player/player.php?alias=argentinacam1&disablevideofit=1",
+      "sourceUrl": "https://www.rewildingargentina.org/monitoreo/#camaras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / IPCamLive"
+    },
+    "tags": ["chubut", "patagonia-azul", "gran-robredo", "wildlife", "coast", "weather", "ipcamlive", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina official monitoreo page iframe alias argentinacam1",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-gran-robredo-petrel-2",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Gran Robredo - Nidos de petrel gigante 2",
+    "description": "Birdcam oficial de Fundacion Rewilding Argentina para monitoreo remoto no invasivo de otro punto de nidos de petrel gigante del sur en Isla Gran Robredo, Patagonia Azul, Chubut. BioPulse usa el reproductor IPCamLive publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -45.1294, "lon": -66.05664 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Gran Robredo / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "ipcamlive",
+      "url": "https://g0.ipcamlive.com/player/player.php?alias=argentinacam2&disablevideofit=1",
+      "sourceUrl": "https://www.rewildingargentina.org/monitoreo/#camaras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / IPCamLive"
+    },
+    "tags": ["chubut", "patagonia-azul", "gran-robredo", "wildlife", "coast", "weather", "ipcamlive", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina official monitoreo page iframe alias argentinacam2",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-isla-tovita-cormoran-1",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Tovita - Nidos de cormoran imperial 1",
+    "description": "Birdcam oficial de Fundacion Rewilding Argentina para monitoreo remoto no invasivo de nidos de cormoran imperial en Isla Tovita, Patagonia Azul, Chubut. BioPulse usa el reproductor IPCamLive publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -45.11417, "lon": -65.95139 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Tovita / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "ipcamlive",
+      "url": "https://g0.ipcamlive.com/player/player.php?alias=argentinacam3&disablevideofit=1",
+      "sourceUrl": "https://www.rewildingargentina.org/monitoreo/#camaras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / IPCamLive"
+    },
+    "tags": ["chubut", "patagonia-azul", "isla-tovita", "wildlife", "coast", "weather", "ipcamlive", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina official monitoreo page iframe alias argentinacam3",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-rewilding-isla-tovita-cormoran-2",
+    "providerId": "rewilding-argentina",
+    "title": "Isla Tovita - Nidos de cormoran imperial 2",
+    "description": "Birdcam oficial de Fundacion Rewilding Argentina para monitoreo remoto no invasivo de otro punto de nidos de cormoran imperial en Isla Tovita, Patagonia Azul, Chubut. BioPulse usa el reproductor IPCamLive publicado por la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -45.11417, "lon": -65.95139 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Isla Tovita / Patagonia Azul" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "ipcamlive",
+      "url": "https://g0.ipcamlive.com/player/player.php?alias=argentinacam4&disablevideofit=1",
+      "sourceUrl": "https://www.rewildingargentina.org/monitoreo/#camaras"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Fundacion Rewilding Argentina / IPCamLive"
+    },
+    "tags": ["chubut", "patagonia-azul", "isla-tovita", "wildlife", "coast", "weather", "ipcamlive", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rewilding Argentina official monitoreo page iframe alias argentinacam4",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-bariloche-org-cable-carril-inferior",
     "providerId": "bariloche-org",
     "title": "Cerro Catedral - Cable carril inferior (Bariloche.org)",
