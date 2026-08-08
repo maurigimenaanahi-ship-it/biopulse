@@ -767,6 +767,90 @@
   },
   {
     "schema": "biopulse.camera.v1",
+    "id": "ar-sise-resistencia-chaco-live-1",
+    "providerId": "sise-argentina",
+    "title": "Resistencia - Camaras en vivo SISE Argentina",
+    "description": "Senal publica de camaras en vivo de Resistencia, Chaco, publicada por Eventos SISE Argentina mediante YouTube. La fuente no identifica una esquina exacta, por eso BioPulse la registra como senal urbana de ciudad y usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4514, "lon": -58.9867 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/-oNQejx98EQ?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=-oNQejx98EQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Eventos SISE Argentina / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "resistencia", "city", "traffic", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Omnicam public listing 77359 and YouTube oEmbed for Eventos SISE Argentina video -oNQejx98EQ",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-sise-resistencia-chaco-live-2",
+    "providerId": "sise-argentina",
+    "title": "Resistencia - Ciudad en vivo SISE Argentina",
+    "description": "Senal publica en vivo de la ciudad de Resistencia, Chaco, publicada por Eventos SISE Argentina mediante YouTube. La fuente no identifica una esquina exacta, por eso BioPulse la registra como senal urbana de ciudad y usa el reproductor oficial de YouTube sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4514, "lon": -58.9867 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/SS8UHsUAT00?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=SS8UHsUAT00"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Eventos SISE Argentina / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "resistencia", "city", "traffic", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Omnicam public listing 110557 and YouTube oEmbed for Eventos SISE Argentina video SS8UHsUAT00",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-sise-resistencia-chaco-live-3",
+    "providerId": "sise-argentina",
+    "title": "Resistencia - Ciudad en vivo SISE Argentina II",
+    "description": "Senal publica en vivo de la ciudad de Resistencia, Chaco, publicada por Eventos SISE Argentina mediante YouTube. Se conserva como observacion independiente aunque comparta localidad con otras senales SISE, porque puede aportar otro angulo o rotacion visual.",
+    "geo": { "lat": -27.4514, "lon": -58.9867 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/YcyfsY4kVIo?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=YcyfsY4kVIo"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Eventos SISE Argentina / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "resistencia", "city", "traffic", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Omnicam public listing 129268 and YouTube oEmbed for Eventos SISE Argentina video YcyfsY4kVIo",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
     "id": "ar-webcamtaxi-beagle-channel-ushuaia",
     "providerId": "webcamtaxi",
     "title": "Ushuaia - Canal Beagle (Webcamtaxi)",
