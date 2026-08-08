@@ -13658,5 +13658,33 @@
       "verifiedBy": "Codex via Estacion Meteorologica Daireaux camera page, official YouTube iframe, channel /live page and embed response",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-meteotandil-weathercam",
+    "providerId": "meteotandil",
+    "title": "Tandil - MeteoTandil camara en vivo",
+    "description": "Camara publica en vivo de MeteoTandil asociada a una estacion meteorologica automatica HP2550. Aporta vista de cielo, nubosidad, visibilidad, eventos meteorologicos y condiciones urbanas/rurales de Tandil.",
+    "geo": { "lat": -37.31556, "lon": -59.15056 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Tandil" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=camaraenvivotandil",
+      "sourceUrl": "https://meteotandil.com.ar/index.htm"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: MeteoTandil / Twitch",
+      "termsUrl": "https://www.twitch.tv/p/en/legal/terms-of-service/"
+    },
+    "tags": ["buenos-aires", "tandil", "weather", "meteorological-station", "sky", "twitch", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via MeteoTandil page, official Twitch iframe, Twitch channel/embed response and live preview JPEG",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]

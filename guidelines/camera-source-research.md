@@ -254,6 +254,9 @@ El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregis
 - Estacion Meteorologica Daireaux / Deroweb: aplicada como `html_embed` para la camara meteorologica publica de Daireaux. La pagina oficial publica un iframe de YouTube `live_stream?channel=UCEqH1DHacLT-p5hyTZgi9XA`, coordenadas `-36.59756, -61.74675`, historial de timelapses y advertencia de uso. BioPulse usa el embed oficial del canal para resistir reinicios del vivo, mantiene atribucion y no copia ni rehostea video.
   Fuentes: https://meteo.deroweb.com.ar/camara_vivo_daireaux.php , https://www.youtube.com/channel/UCEqH1DHacLT-p5hyTZgi9XA/live
 
+- MeteoTandil / Twitch: aplicada como `html_embed` para la camara meteorologica publica de Tandil publicada en la pagina de MeteoTandil. La fuente usa `player.twitch.tv` con el canal `camaraenvivotandil`; BioPulse conserva el canal y reescribe el parametro `parent` en runtime mediante el helper de Twitch para que funcione en local y en produccion. La pagina, el embed y el preview live de Twitch respondieron 200 el 2026-08-08.
+  Fuentes: https://meteotandil.com.ar/index.htm , https://www.twitch.tv/camaraenvivotandil
+
 - Estado del Mar: aplicada como `external_page` para ampliar cobertura costera y meteorologica con camaras publicas en vivo de Mar del Plata, Costa Atlantica bonaerense, Caleta Olivia, Caleta Cordova y Las Grutas. Aunque varias paginas publican iframes de video, sus terminos vigentes indican que los datos/servicios no se pueden usar en software propio, apps o paginas propias salvo aceptacion expresa. BioPulse mantiene enlace a la pagina original y atribucion hasta conseguir permiso formal; el auditor marca estos casos como `external_visual_permission_required` en vez de promoverlos a `html_embed`.
   Fuentes: https://estadodelmar.com.ar/ y https://estadodelmar.com.ar/terminos-y-condiciones/
 

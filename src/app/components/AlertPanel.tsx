@@ -2204,6 +2204,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "radio-claromeco") return "Radio Claromeco";
   if (provider === "nahuel-valentini") return "Nahuel Valentini";
   if (provider === "deroweb-daireaux") return "Estacion Meteorologica Daireaux";
+  if (provider === "meteotandil") return "MeteoTandil";
   if (provider === "twitch") return "Twitch";
   if (provider === "dailymotion") return "Dailymotion";
   if (provider === "youtube") return "YouTube";
