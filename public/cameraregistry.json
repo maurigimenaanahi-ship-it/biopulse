@@ -13405,5 +13405,33 @@
       "verifiedBy": "Codex via Telpin Comunidad official page, HLS playlist/media playlist/segment and CORS check",
       "verifiedAt": "2026-08-08"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radio-cardinal-miramar-ansenuza",
+    "providerId": "radio-cardinal-miramar",
+    "title": "Miramar de Ansenuza - Sistema de Informacion Turistica (Canal 99)",
+    "description": "Senal publica en vivo de Radio Cardinal / Canal 99 Miramar para el sistema de informacion turistica de Miramar de Ansenuza. La fuente publica camaras instaladas en la region y la emision puede rotar vistas, por eso BioPulse la registra como punto visual regional hasta obtener feeds independientes.",
+    "geo": { "lat": -30.9145, "lon": -62.6782 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Miramar de Ansenuza" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/KHCdkIaHAJk?autoplay=1&mute=1&rel=0",
+      "sourceUrl": "https://www.youtube.com/watch?v=KHCdkIaHAJk"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio Cardinal Miramar / Canal 99 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["cordoba", "miramar-de-ansenuza", "ansenuza", "tourism", "weather", "wildlife", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Radio Cardinal Miramar article, YouTube /live resolution, oEmbed and isLiveContent check",
+      "verifiedAt": "2026-08-08"
+    }
   }
 ]
