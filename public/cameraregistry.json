@@ -9483,11 +9483,11 @@
     "schema": "biopulse.camera.v1",
     "id": "ar-gesell-av-104-3-norte",
     "providerId": "gesell",
-    "title": "Villa Gesell - Av. 104 y Av. 3 norte",
-    "description": "Senal publica oficial de Gesell.com.ar para la camara de Av. 104 y Av. 3 con vista norte.",
+    "title": "Villa Gesell - 104 y Playa",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Paseo 104 y Playa. Aporta vista costera, playa, oleaje, cielo, visibilidad y condiciones meteorologicas locales.",
     "geo": {
-      "lat": -37.2584,
-      "lon": -56.9708
+      "lat": -37.256,
+      "lon": -56.967
     },
     "coverage": {
       "countryISO2": "AR",
@@ -9507,15 +9507,56 @@
       "attributionText": "Fuente: Gesell.com.ar"
     },
     "tags": [
-      "city",
-      "traffic",
+      "coast",
+      "beach",
+      "weather",
       "stream"
     ],
     "priority": 1,
     "validation": {
       "status": "verified",
-      "verifiedBy": "Codex via Gesell.com.ar camera menu HLS and CORS check",
-      "verifiedAt": "2026-07-17"
+      "verifiedBy": "Codex via Gesell.com.ar camera page, OpenCCTV discovery metadata, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-08-08"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gesell-112-playa",
+    "providerId": "gesell",
+    "title": "Villa Gesell - 112 y Playa",
+    "description": "Senal publica oficial de Gesell.com.ar para la camara de Paseo 112 y Playa. Aporta vista costera, playa, oleaje, cielo, visibilidad y condiciones meteorologicas locales.",
+    "geo": {
+      "lat": -37.262,
+      "lon": -56.969
+    },
+    "coverage": {
+      "countryISO2": "AR",
+      "admin1": "Buenos Aires",
+      "locality": "Villa Gesell"
+    },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "gesell",
+      "protocol": "hls",
+      "url": "https://cam112yplaya.gesell.com.ar/playlist.m3u8",
+      "sourceUrl": "https://cam112yplaya.gesell.com.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gesell.com.ar"
+    },
+    "tags": [
+      "coast",
+      "beach",
+      "weather",
+      "stream"
+    ],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gesell.com.ar camera page, OpenCCTV discovery metadata, HLS playlist, CORS and MPEG-TS segment check",
+      "verifiedAt": "2026-08-08"
     }
   },
   {
