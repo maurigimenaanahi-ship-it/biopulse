@@ -2162,6 +2162,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal7jujuy") return "Canal 7 Jujuy";
   if (provider === "canal7catamarca") return "Catamarca TV";
   if (provider === "canal-parlamentario-catamarca") return "Canal Parlamentario Catamarca";
+  if (provider === "uncatv") return "UNCA TV";
   if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
   if (provider === "canal13larioja") return "Canal 13 La Rioja";

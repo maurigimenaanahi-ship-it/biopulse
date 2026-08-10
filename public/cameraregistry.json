@@ -14225,5 +14225,33 @@
       "verifiedBy": "Codex via Canal 5 TV Chepes official page, Shockmedia VideoPlayer, HLS playlist, CORS and MPEG-TS segment check",
       "verifiedAt": "2026-08-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unca-tv-catamarca-live",
+    "providerId": "uncatv",
+    "title": "Catamarca - UNCA TV en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional de Catamarca. Puede incluir actos universitarios, transmisiones especiales, programas, entrevistas y cobertura local; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4689, "lon": -65.7794 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCytzYmegAHZaoV9CJbnCcxg",
+      "sourceUrl": "https://www.youtube.com/@UNCATV"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNCA TV / Universidad Nacional de Catamarca / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "san-fernando-del-valle-de-catamarca", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Universidad Nacional de Catamarca official site/news references, UNCA TV YouTube channel, channel ID resolution and live_stream embed response; channel was not live at validation time",
+      "verifiedAt": "2026-08-10"
+    }
   }
 ]
