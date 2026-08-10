@@ -2172,6 +2172,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "cpetv") return "CPEtv";
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
+  if (provider === "canal5-chepes") return "Canal 5 TV Chepes";
   if (provider === "eltribuno-jujuy") return "El Tribuno de Jujuy";
   if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
@@ -2540,7 +2541,7 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
 
     if (host === "videostream.shockmedia.com.ar") {
       if (url.port === "19360") {
-        if (!/^\/lightfm\/lightfm\.m3u8$/i.test(url.pathname)) return null;
+        if (!/^\/(?:lightfm\/lightfm|canal5alfatvchepes\/canal5alfatvchepes)\.m3u8$/i.test(url.pathname)) return null;
         if (url.search) return null;
         return url.toString();
       }

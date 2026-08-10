@@ -154,6 +154,9 @@ El script `scripts/validate-camera-source-policy.mjs` revisa `public/cameraregis
 - Canal 9 La Rioja / Radio y Television Riojana / InliveServer: aplicada como `stream_url` desde el sitio oficial actual de Radio y Television Riojana, que enlaza `canal9` y publica el player `stream.inliveserver.com:2020/VideoPlayer/8030`. El player expone HLS HTTPS `stream.inliveserver.com:19360/8030/8030.m3u8` con CORS `*` y segmento MPEG-TS validado. Mantener allowlist estricta de host, puerto y ruta.
   Fuentes: https://radioytelevisionriojana.com.ar/ , https://radioytelevisionriojana.com.ar/canal9/ , https://stream.inliveserver.com:19360/8030/8030.m3u8
 
+- Canal 5 TV Chepes / Alfa TV / Shockmedia: aplicada como `stream_url` cuando el sitio oficial `https://canal5tvchepes.com.ar/` publico iframe `https://videostream.shockmedia.com.ar:2000/VideoPlayer/canal5alfatvchepes` y el player expuso HLS `https://videostream.shockmedia.com.ar:19360/canal5alfatvchepes/canal5alfatvchepes.m3u8`. Validar playlist, CORS abierto y segmento MPEG-TS real. Registrar como senal local audiovisual de Chepes / sur riojano, no como camara fija garantizada.
+  Fuentes: https://canal5tvchepes.com.ar/ , https://videostream.shockmedia.com.ar:2000/VideoPlayer/canal5alfatvchepes , https://videostream.shockmedia.com.ar:19360/canal5alfatvchepes/canal5alfatvchepes.m3u8
+
 - Canal 10 Tucuman: aplicada como `html_embed` porque la portada oficial publica iframe YouTube `embed/live_stream?channel=UCRlakPhec4-k3vkBeyWBojg`. Usar el iframe oficial, no streams DASH/DRM de terceros.
   Fuente: https://canal10.com.ar/
 

@@ -27,6 +27,7 @@ const PROVIDER_POLICIES = new Map([
   ["telpin", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /telpin/i }],
   ["infopico", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /infopico/i }],
   ["fenix951", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /fenix|fénix/i }],
+  ["canal5-chepes", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 5|chepes|alfa tv/i }],
   ["canal7-santiago", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 7|diario panorama|santiago/i }],
   ["canal7salta", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 7|salta/i }],
   ["canal13jujuy", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 13|jujuy|genex/i }],
