@@ -14168,5 +14168,34 @@
       "verifiedBy": "Codex via Canal 13 Jujuy official page, Video.js source, HLS playlist, CORS and MPEG-TS segment check",
       "verifiedAt": "2026-08-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-telpin-carilo-hemingway",
+    "providerId": "telpin",
+    "title": "Carilo - Hemingway (Telpin)",
+    "description": "Senal publica de Telpin Comunidad para la camara Hemingway en Carilo. Aporta vista costera, playa, oleaje, cielo, visibilidad y condiciones meteorologicas locales.",
+    "geo": { "lat": -37.17, "lon": -56.89 },
+    "coverage": { "countryISO2": "AR", "admin1": "Buenos Aires", "locality": "Carilo" },
+    "mediaType": "stream",
+    "fetch": {
+      "kind": "stream_url",
+      "provider": "telpin",
+      "protocol": "hls",
+      "url": "https://wowza.telpin.com.ar:1935/camara-hemingway/smil:camara-hemingway.smil/playlist.m3u8",
+      "sourceUrl": "https://telpin.com.ar/comunidad/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Telpin",
+      "termsUrl": "https://telpin.com.ar/terminos-y-condiciones/"
+    },
+    "tags": ["buenos-aires", "carilo", "coast", "beach", "weather", "stream", "hls"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Telpin Comunidad official page, OpenCCTV discovery metadata, HLS playlist/media playlist/segment and CORS check",
+      "verifiedAt": "2026-08-10"
+    }
   }
 ]

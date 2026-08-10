@@ -2647,6 +2647,7 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
         "/camara-botavara/smil:camara-botavara.smil/playlist.m3u8",
         "/camara-rambla/smil:camara-rambla.smil/playlist.m3u8",
         "/camara-ramblaloft/ramblaloft.stream/playlist.m3u8",
+        "/camara-hemingway/smil:camara-hemingway.smil/playlist.m3u8",
       ]);
       if (!allowedTelpinPaths.has(url.pathname.toLowerCase())) return null;
       if (url.search) return null;
