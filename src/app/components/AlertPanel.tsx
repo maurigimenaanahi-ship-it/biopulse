@@ -2175,6 +2175,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "eltribuno-jujuy") return "El Tribuno de Jujuy";
   if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
+  if (provider === "canal6-libertador") return "Canal 6 Libertador";
+  if (provider === "canal13jujuy") return "Canal 13 Jujuy";
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "canal7salta") return "Canal 7 Salta";
   if (provider === "san-luis-mas") return "San Luis+";
@@ -2584,6 +2586,12 @@ function trustedHlsStreamUrl(cam: CameraRegistryItem) {
     if (host === "stream.arcast.live") {
       if (url.port) return null;
       if (!/^\/canal7jujuy\/ngrp:canal7jujuy_all\/playlist\.m3u8$/i.test(url.pathname)) return null;
+      if (url.search) return null;
+      return url.toString();
+    }
+
+    if (host === "genexservicios.com" && url.port === "19360") {
+      if (!/^\/canal13jujuy\/canal13jujuy\.m3u8$/i.test(url.pathname)) return null;
       if (url.search) return null;
       return url.toString();
     }
