@@ -14253,5 +14253,61 @@
       "verifiedBy": "Codex via Universidad Nacional de Catamarca official site/news references, UNCA TV YouTube channel, channel ID resolution and live_stream embed response; channel was not live at validation time",
       "verifiedAt": "2026-08-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unlar-tv-la-rioja-live",
+    "providerId": "unlar-tv",
+    "title": "La Rioja - UNLaR TV en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional de La Rioja. Puede incluir actos universitarios, transmisiones especiales, programas, entrevistas y cobertura local; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC3ofHPSRXllhyYuTISRkeAw",
+      "sourceUrl": "https://www.unlar.edu.ar/index.php/medios/unlar-tv"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNLaR TV / Universidad Nacional de La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Universidad Nacional de La Rioja official UNLaR TV page, YouTube channel ID and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unsl-tv-san-luis-live",
+    "providerId": "unsl-tv",
+    "title": "San Luis - UNSL TV en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional de San Luis. Puede incluir contenidos universitarios, emisiones especiales, entrevistas y cobertura local; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.3017, "lon": -66.3378 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCZZWwoQL1ZpRU-8hdsrUpew",
+      "sourceUrl": "http://tv.unsl.edu.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNSL TV / Universidad Nacional de San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via UNSL TV official app, public YouTube channel reference and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
   }
 ]

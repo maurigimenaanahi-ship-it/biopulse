@@ -2163,6 +2163,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal7catamarca") return "Catamarca TV";
   if (provider === "canal-parlamentario-catamarca") return "Canal Parlamentario Catamarca";
   if (provider === "uncatv") return "UNCA TV";
+  if (provider === "unlar-tv") return "UNLaR TV";
   if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
   if (provider === "canal13larioja") return "Canal 13 La Rioja";
@@ -2182,6 +2183,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "canal7salta") return "Canal 7 Salta";
   if (provider === "san-luis-mas") return "San Luis+";
+  if (provider === "unsl-tv") return "UNSL TV";
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "lagaceta-play") return "LA GACETA Play";

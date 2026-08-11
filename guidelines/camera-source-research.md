@@ -332,6 +332,12 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Playas Doradas / YouTube: revisado como fuente costera oficial de Rio Negro. La pagina declara camara web 24/7 por YouTube y advierte posibles interrupciones por periodo de prueba, pero los streams publicados en `@PlayasDoradasAR` no estaban `isLiveNow` durante la validacion del 2026-08-08. No registrar hasta detectar un vivo activo para evitar reproductores negros.
   Fuentes: https://playasdoradas.com.ar/vivo/ , https://www.youtube.com/@PlayasDoradasAR/streams
 
+- UNLaR TV / Universidad Nacional de La Rioja / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UC3ofHPSRXllhyYuTISRkeAw`. La pagina oficial de la universidad identifica UNLaR TV, enlaza el canal oficial, playlists y "Transmisiones en Vivo". Registrar como senal institucional/local disponible cuando la fuente emite, no como camara fija 24/7.
+  Fuentes: https://www.unlar.edu.ar/index.php/medios/unlar-tv , https://www.youtube.com/channel/UC3ofHPSRXllhyYuTISRkeAw
+
+- UNSL TV / Universidad Nacional de San Luis / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCZZWwoQL1ZpRU-8hdsrUpew`. La app oficial `tv.unsl.edu.ar` publica la identidad UNSL TV y referencia el canal de YouTube; BioPulse usa solo el embed oficial por canal y no copia la API usada internamente por la app.
+  Fuentes: http://tv.unsl.edu.ar/ , https://www.youtube.com/channel/UCZZWwoQL1ZpRU-8hdsrUpew
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
