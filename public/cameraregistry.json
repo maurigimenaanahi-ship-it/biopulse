@@ -14421,5 +14421,61 @@
       "verifiedBy": "Codex via Universidad Nacional de Tucuman official homepage social link, Medios UNT YouTube channel ID/canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radio-panorama-sde-live",
+    "providerId": "radio-panorama",
+    "title": "Santiago del Estero - Radio Panorama 100.1 en vivo",
+    "description": "Senal audiovisual local de Radio Panorama 100.1 para Santiago del Estero. Puede incluir estudio, entrevistas, coberturas especiales, moviles y eventos territoriales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCCIr6Ilt39hLsXgjmvPueaw",
+      "sourceUrl": "https://www.youtube.com/@RadioPanorama100.1"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio Panorama 100.1 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "news", "radio", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Radio Panorama public YouTube channel, Diario Panorama coverage article references and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-panorama-play-sde-live",
+    "providerId": "panorama-play",
+    "title": "Santiago del Estero - Panorama Play en vivo",
+    "description": "Senal audiovisual local de Panorama Play / Diario Panorama para Santiago del Estero. Puede incluir noticias, eventos, coberturas especiales y contenidos territoriales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCg1eZDppU-NZ5zISl4xIe0w",
+      "sourceUrl": "https://www.youtube.com/user/diariopanoramacom"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Panorama Play / Diario Panorama / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Diario Panorama public YouTube channel, Diario Panorama coverage article sameAs reference and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
   }
 ]

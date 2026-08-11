@@ -2189,6 +2189,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "unsl-tv") return "UNSL TV";
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
+  if (provider === "radio-panorama") return "Radio Panorama";
+  if (provider === "panorama-play") return "Panorama Play";
   if (provider === "lagaceta-play") return "LA GACETA Play";
   if (provider === "medios-unt") return "Medios UNT";
   if (provider === "mia-tucuman") return "Mia Tucuman";

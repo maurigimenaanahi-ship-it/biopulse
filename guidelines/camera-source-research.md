@@ -350,6 +350,12 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Medios UNT / Universidad Nacional de Tucuman / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCzE2-vSVDB9lOXrhVfEdhTQ`. La portada oficial de la UNT enlaza `@mediosuntoficial`; el canal de YouTube resolvio a ID `UCzE2-vSVDB9lOXrhVfEdhTQ` y el endpoint live_stream respondio 200. Registrar como senal institucional/local disponible cuando la fuente emite, no como camara fija 24/7.
   Fuentes: https://www.unt.edu.ar/ , https://www.youtube.com/@mediosuntoficial
 
+- Santiago del Estero / Radio Panorama 100.1 / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCCIr6Ilt39hLsXgjmvPueaw`. El canal publico `@RadioPanorama100.1` resolvio a ese ID; Diario Panorama documenta coberturas en vivo de Radio Panorama y el endpoint live_stream respondio 200. Registrar como senal local independiente de Canal 7 / Diario Panorama HLS.
+  Fuentes: https://www.youtube.com/@RadioPanorama100.1 , https://www.diariopanorama.com/noticia/523976/celebra-472-anos-santiago-vivo-segui-vigilia-desfile-festival-diario-panorama
+
+- Santiago del Estero / Panorama Play / Diario Panorama / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCg1eZDppU-NZ5zISl4xIe0w`. La referencia publica de Diario Panorama apunta a `youtube.com/user/diariopanoramacom`, que resolvio como canal `Panorama Play`; el endpoint live_stream respondio 200. Mantenerlo como senal local distinta de Canal 7 HLS y Radio Panorama.
+  Fuentes: https://www.youtube.com/user/diariopanoramacom , https://www.diariopanorama.com/noticia/523976/celebra-472-anos-santiago-vivo-segui-vigilia-desfile-festival-diario-panorama
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
