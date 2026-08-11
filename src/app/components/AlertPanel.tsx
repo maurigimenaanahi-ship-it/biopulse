@@ -2174,6 +2174,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal23-formosa") return "Canal 23 Formosa";
   if (provider === "canal7-formosa") return "Canal 7 Formosa";
   if (provider === "cpetv") return "CPEtv";
+  if (provider === "cpa-unlpam") return "CPA UNLPam";
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
   if (provider === "canal5-chepes") return "Canal 5 TV Chepes";
@@ -2189,6 +2190,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "lagaceta-play") return "LA GACETA Play";
+  if (provider === "medios-unt") return "Medios UNT";
   if (provider === "mia-tucuman") return "Mia Tucuman";
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";

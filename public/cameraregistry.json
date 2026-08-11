@@ -14365,5 +14365,61 @@
       "verifiedBy": "Codex via Canal 7 Formosa public YouTube channel, live search result, oEmbed author check and live_stream embed response",
       "verifiedAt": "2026-08-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cpa-unlpam-live",
+    "providerId": "cpa-unlpam",
+    "title": "Santa Rosa - CPA UNLPam en vivo",
+    "description": "Senal audiovisual institucional del Centro de Produccion Audiovisual de la Universidad Nacional de La Pampa. Puede incluir transmisiones universitarias, contenidos locales, entrevistas y cobertura territorial; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCPPX4q7rCLL9gj7MI5Uscdg",
+      "sourceUrl": "https://tv.unlpam.edu.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: CPA UNLPam / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "santa-rosa", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via CPA UNLPam official site YouTube link, YouTube channel ID/canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-medios-unt-tucuman-live",
+    "providerId": "medios-unt",
+    "title": "San Miguel de Tucuman - Medios UNT en vivo",
+    "description": "Senal audiovisual institucional de Medios UNT / Universidad Nacional de Tucuman. Puede incluir transmisiones universitarias, actividades publicas, entrevistas, contenidos locales y cobertura territorial; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8241, "lon": -65.2226 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCzE2-vSVDB9lOXrhVfEdhTQ",
+      "sourceUrl": "https://www.unt.edu.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Medios UNT / Universidad Nacional de Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "san-miguel-de-tucuman", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Universidad Nacional de Tucuman official homepage social link, Medios UNT YouTube channel ID/canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
   }
 ]

@@ -344,6 +344,12 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Formosa / Canal 7 Formosa / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCgVnImiV94StEjm-NHll0KA`. La busqueda publica de YouTube mostro transmisiones recientes/en vivo de "Canal 7 Formosa", oEmbed confirmo autor `Canal 7 Formosa` y el endpoint live_stream respondio 200. No confundir con Canal 7 Ibarreta: ese sitio oficial fue revisado y en portada publica principalmente audio FM, por lo que queda fuera de este lote.
   Fuentes: https://www.youtube.com/@canal7formosa105 , https://www.youtube.com/embed/live_stream?channel=UCgVnImiV94StEjm-NHll0KA
 
+- CPA UNLPam / Universidad Nacional de La Pampa / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCPPX4q7rCLL9gj7MI5Uscdg`. La plataforma oficial `tv.unlpam.edu.ar` publica el canal de YouTube del CPA UNLPam y una seccion "En Vivo"; el canal `@CPAUNLPam` y el endpoint live_stream respondieron 200. Registrar como senal institucional/local disponible cuando la fuente emite, no como camara fija 24/7.
+  Fuentes: https://tv.unlpam.edu.ar/ , https://www.youtube.com/@CPAUNLPam
+
+- Medios UNT / Universidad Nacional de Tucuman / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCzE2-vSVDB9lOXrhVfEdhTQ`. La portada oficial de la UNT enlaza `@mediosuntoficial`; el canal de YouTube resolvio a ID `UCzE2-vSVDB9lOXrhVfEdhTQ` y el endpoint live_stream respondio 200. Registrar como senal institucional/local disponible cuando la fuente emite, no como camara fija 24/7.
+  Fuentes: https://www.unt.edu.ar/ , https://www.youtube.com/@mediosuntoficial
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
