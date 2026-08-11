@@ -338,6 +338,12 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - UNSL TV / Universidad Nacional de San Luis / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCZZWwoQL1ZpRU-8hdsrUpew`. La app oficial `tv.unsl.edu.ar` publica la identidad UNSL TV y referencia el canal de YouTube; BioPulse usa solo el embed oficial por canal y no copia la API usada internamente por la app.
   Fuentes: http://tv.unsl.edu.ar/ , https://www.youtube.com/channel/UCZZWwoQL1ZpRU-8hdsrUpew
 
+- Formosa / Canal 23 Formosa / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCLhBOPrfgpb4N00DZB5GI4A`. El canal publico `@canal23formosa` fue identificado desde busqueda de YouTube, oEmbed confirmo autor "Canal 23 Formosa" y el endpoint live_stream respondio 200. Registrar como senal local, no como camara fija 24/7. El dominio historico `canal23formosa.com.ar` no resolvio DNS durante la validacion.
+  Fuentes: https://www.youtube.com/@canal23formosa , https://www.youtube.com/embed/live_stream?channel=UCLhBOPrfgpb4N00DZB5GI4A
+
+- Formosa / Canal 7 Formosa / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCgVnImiV94StEjm-NHll0KA`. La busqueda publica de YouTube mostro transmisiones recientes/en vivo de "Canal 7 Formosa", oEmbed confirmo autor `Canal 7 Formosa` y el endpoint live_stream respondio 200. No confundir con Canal 7 Ibarreta: ese sitio oficial fue revisado y en portada publica principalmente audio FM, por lo que queda fuera de este lote.
+  Fuentes: https://www.youtube.com/@canal7formosa105 , https://www.youtube.com/embed/live_stream?channel=UCgVnImiV94StEjm-NHll0KA
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion

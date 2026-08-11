@@ -14309,5 +14309,61 @@
       "verifiedBy": "Codex via UNSL TV official app, public YouTube channel reference and live_stream embed response",
       "verifiedAt": "2026-08-10"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal23-formosa-live",
+    "providerId": "canal23-formosa",
+    "title": "Formosa - Canal 23 Formosa en vivo",
+    "description": "Senal audiovisual local de Canal 23 Formosa. Puede incluir noticias, actos, cobertura territorial, moviles y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCLhBOPrfgpb4N00DZB5GI4A",
+      "sourceUrl": "https://www.youtube.com/@canal23formosa"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 23 Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal 23 Formosa public YouTube channel, channel ID from YouTube search result, oEmbed author check and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal7-formosa-live",
+    "providerId": "canal7-formosa",
+    "title": "Formosa - Canal 7 Formosa en vivo",
+    "description": "Senal audiovisual local de Canal 7 Formosa. Puede incluir programacion, noticias, estudio, moviles y coberturas provinciales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCgVnImiV94StEjm-NHll0KA",
+      "sourceUrl": "https://www.youtube.com/@canal7formosa105"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 7 Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal 7 Formosa public YouTube channel, live search result, oEmbed author check and live_stream embed response",
+      "verifiedAt": "2026-08-10"
+    }
   }
 ]

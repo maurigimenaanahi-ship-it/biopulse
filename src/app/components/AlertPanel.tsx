@@ -2171,6 +2171,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "lapacho-tv") return "Lapacho TV";
   if (provider === "agenfor-canal3") return "Canal 3 Formosa";
   if (provider === "quientv-formosa") return "Quien TV Formosa";
+  if (provider === "canal23-formosa") return "Canal 23 Formosa";
+  if (provider === "canal7-formosa") return "Canal 7 Formosa";
   if (provider === "cpetv") return "CPEtv";
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
