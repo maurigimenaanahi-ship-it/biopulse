@@ -356,6 +356,18 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Santiago del Estero / Panorama Play / Diario Panorama / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCg1eZDppU-NZ5zISl4xIe0w`. La referencia publica de Diario Panorama apunta a `youtube.com/user/diariopanoramacom`, que resolvio como canal `Panorama Play`; el endpoint live_stream respondio 200. Mantenerlo como senal local distinta de Canal 7 HLS y Radio Panorama.
   Fuentes: https://www.youtube.com/user/diariopanoramacom , https://www.diariopanorama.com/noticia/523976/celebra-472-anos-santiago-vivo-segui-vigilia-desfile-festival-diario-panorama
 
+- Salta / Gobierno de Salta / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCjdyNlQZo44LzlRwMmGzpig`. La web oficial del Gobierno de Salta enlaza `GobiernodeSaltaOficial`, una nota oficial publica transmisiones en vivo por YouTube y el canal resolvio a `@GobiernodeSaltaOficial`; el endpoint live_stream respondio 200. Registrar como senal institucional disponible cuando la fuente emite.
+  Fuentes: https://www.salta.gob.ar/prensa/noticias/dialogosgob-cristina-fiore-viniuales-sera-entrevistada-sobre-la-gestion-en-educacion-cultura-ciencia-y-tecnologia-102723 , https://www.youtube.com/@GobiernodeSaltaOficial
+
+- Salta / Concejo Deliberante / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UC7DOA9nw77PPQgNHOyz-Iww`. El sitio oficial del Concejo enlaza `@ConcejoSalta`, una nota oficial indica seguimiento de sesiones por su canal de YouTube y el endpoint live_stream respondio 200. Registrar como senal institucional disponible cuando la fuente emite.
+  Fuentes: https://cdsalta.gob.ar/index.php/2026/04/01/se-realiza-esta-tarde-una-nueva-sesion-ordinaria-del-presente-periodo-legislativo-del-cd-23/ , https://www.youtube.com/@ConcejoSalta
+
+- Catamarca / Poder Judicial / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCotB-rJ-SnmSgTKTEAln4SA`. El sitio oficial del Poder Judicial enlaza `@PoderJudicialCatamarca` y documenta transmisiones en vivo por el canal oficial de YouTube; el endpoint live_stream respondio 200. Registrar como senal institucional disponible cuando la fuente emite.
+  Fuentes: https://juscatamarca.gob.ar/event/inicia-un-nuevo-juicio-por-jurados-en-la-oficina-de-gestion-de-audiencias/ , https://www.youtube.com/@PoderJudicialCatamarca
+
+- Catamarca / Cultura Catamarca / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UClvQGfbj1T_ofautTOYAaEg`. El canal `@culturacatamarca` se identifica como Ministerio de Cultura, Turismo y Deporte Catamarca; distintas referencias publicas sobre Poncho/Ponchito indican transmisiones en vivo por ese canal y el endpoint live_stream respondio 200. Registrar como senal institucional/cultural disponible cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@culturacatamarca , https://inforama.com.ar/actualidad/2026/07/17/el-poncho-se-transmitira-en-vivo-se-podran-ver-los-shows-de-los-artistas-nacionales/ , https://www.youtube.com/@culturacatamarca/streams
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
