@@ -389,6 +389,18 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Tucuman / Legislatura, Poder Judicial, Gobierno y Canal 5 / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@legislaturatucuman951`, `@ComunicacionPublicaCSJT`, `@prensatucuman` y `@canal5tucuman`. La pagina oficial de Sesiones Online de la Legislatura publica transmision en directo, el Poder Judicial documenta su canal de Comunicacion Publica, y referencias publicas del Gobierno provincial indican transmision por `@prensatucuman`; los cuatro endpoints live_stream respondieron 200. Registrar como senales disponibles cuando la fuente emite.
   Fuentes: https://www.legislaturadetucuman.gob.ar/sesionOnline , https://www.justucuman.gov.ar/direccion-comunicacion/quienes-somos , https://www.youtube.com/@prensatucuman , https://www.youtube.com/@canal5tucuman
 
+- Corrientes / Gobierno, Poder Judicial y Diputados / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobiernodeCorrientess`, `@canaloficial-poderjudicial8777` y `@c.diputadosdecorrientes`. Los tres endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@GobiernodeCorrientess , https://www.youtube.com/@canaloficial-poderjudicial8777 , https://www.youtube.com/@c.diputadosdecorrientes
+
+- Entre Rios / Gobierno, Diputados, Senado y Poder Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobiernoER`, `@C%C3%A1maradeDiputadosEntreRios`, `@senadoerntrerios` y `@prensajuser`. Los cuatro endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@GobiernoER , https://www.youtube.com/@C%C3%A1maradeDiputadosEntreRios , https://www.youtube.com/@senadoerntrerios , https://www.youtube.com/@prensajuser
+
+- Misiones / Gobierno y Camara de Representantes Digital / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobiernodeMisiones-z8y` y `@camaraderepresentantesdigi6763`. Los dos endpoints live_stream respondieron 200. Se descartaron resultados homonimos de Paraguay o nacionales. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@GobiernodeMisiones-z8y , https://www.youtube.com/@camaraderepresentantesdigi6763
+
+- San Juan / Servicio Informativo del Gobierno, Camara de Diputados y Poder Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@sisanjuanok`, `@camaradediputadosdesanjuan660` y `@poderjudicialdesanjuan1880`. Los tres endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@sisanjuanok , https://www.youtube.com/@camaradediputadosdesanjuan660 , https://www.youtube.com/@poderjudicialdesanjuan1880
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion

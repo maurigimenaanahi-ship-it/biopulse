@@ -15065,5 +15065,341 @@
       "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-12"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-corrientes-live",
+    "providerId": "gobierno-corrientes",
+    "title": "Corrientes - Gobierno de Corrientes en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de Corrientes. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8309 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCx4F9M2SzHQa4QrZPPktxTg",
+      "sourceUrl": "https://www.youtube.com/@GobiernodeCorrientess"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Corrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-corrientes-live",
+    "providerId": "poder-judicial-corrientes",
+    "title": "Corrientes - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Poder Judicial de Corrientes. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8309 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCG4guav0FZ1f9ykskVJ81sw",
+      "sourceUrl": "https://www.youtube.com/@canaloficial-poderjudicial8777"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de Corrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diputados-corrientes-live",
+    "providerId": "diputados-corrientes",
+    "title": "Corrientes - Camara de Diputados en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Diputados de Corrientes. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8309 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCaKzoDdrgujAXRX83vAukqw",
+      "sourceUrl": "https://www.youtube.com/@c.diputadosdecorrientes"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Diputados de Corrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-entre-rios-live",
+    "providerId": "gobierno-entre-rios",
+    "title": "Entre Rios - Gobierno de Entre Rios en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de Entre Rios. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7413, "lon": -60.5115 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCtkbcdxIE7fQjVjgXXhXLrw",
+      "sourceUrl": "https://www.youtube.com/@GobiernoER"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Entre Rios / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diputados-entre-rios-live",
+    "providerId": "diputados-entre-rios",
+    "title": "Entre Rios - Camara de Diputados en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Diputados de Entre Rios. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7413, "lon": -60.5115 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC_oaQGOSpuSk8huuosmQ_pQ",
+      "sourceUrl": "https://www.youtube.com/@C%C3%A1maradeDiputadosEntreRios"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Diputados de Entre Rios / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-senado-entre-rios-live",
+    "providerId": "senado-entre-rios",
+    "title": "Entre Rios - Camara de Senadores en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Senadores de Entre Rios. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7413, "lon": -60.5115 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCj0dNRrNFOyz5g-LoUEG8Mg",
+      "sourceUrl": "https://www.youtube.com/@senadoerntrerios"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Senadores de Entre Rios / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-entre-rios-live",
+    "providerId": "poder-judicial-entre-rios",
+    "title": "Entre Rios - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Superior Tribunal de Justicia de Entre Rios. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7413, "lon": -60.5115 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCboKgdqvrqnHLt1s4-PRDGQ",
+      "sourceUrl": "https://www.youtube.com/@prensajuser"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Superior Tribunal de Justicia de Entre Rios / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-misiones-live",
+    "providerId": "gobierno-misiones",
+    "title": "Misiones - Gobierno de Misiones en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de Misiones. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCkvikZrVh7Gp1yLAWUYPLng",
+      "sourceUrl": "https://www.youtube.com/@GobiernodeMisiones-z8y"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Misiones / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-representantes-misiones-live",
+    "providerId": "representantes-misiones",
+    "title": "Misiones - Camara de Representantes en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Representantes Digital de Misiones. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC6ozO-443NEWcsVOPuKfWJg",
+      "sourceUrl": "https://www.youtube.com/@camaraderepresentantesdigi6763"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Representantes de Misiones / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-san-juan-live",
+    "providerId": "gobierno-san-juan",
+    "title": "San Juan - Gobierno de San Juan en vivo",
+    "description": "Senal audiovisual institucional del Servicio Informativo del Gobierno de San Juan. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCJM0vXxotCWVHJCJJ1hBbqQ",
+      "sourceUrl": "https://www.youtube.com/@sisanjuanok"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de San Juan / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diputados-san-juan-live",
+    "providerId": "diputados-san-juan",
+    "title": "San Juan - Camara de Diputados en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Diputados de San Juan. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCdaBPf51idsbBbJ4yPmlucQ",
+      "sourceUrl": "https://www.youtube.com/@camaradediputadosdesanjuan660"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Diputados de San Juan / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-san-juan-live",
+    "providerId": "poder-judicial-san-juan",
+    "title": "San Juan - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Poder Judicial de San Juan. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCvt_SfGJ1104ASOSjunQ_3A",
+      "sourceUrl": "https://www.youtube.com/@poderjudicialdesanjuan1880"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de San Juan / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
   }
 ]

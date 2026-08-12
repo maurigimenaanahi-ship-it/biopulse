@@ -2221,6 +2221,18 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "ciudadtv-chaco") return "Ciudad TV Chaco";
   if (provider === "canal-somos-uno") return "Canal Somos Uno";
   if (provider === "canal2misiones") return "Canal 2 Misiones";
+  if (provider === "gobierno-corrientes") return "Gobierno de Corrientes";
+  if (provider === "poder-judicial-corrientes") return "Poder Judicial Corrientes";
+  if (provider === "diputados-corrientes") return "Diputados Corrientes";
+  if (provider === "gobierno-entre-rios") return "Gobierno de Entre Rios";
+  if (provider === "diputados-entre-rios") return "Diputados Entre Rios";
+  if (provider === "senado-entre-rios") return "Senado Entre Rios";
+  if (provider === "poder-judicial-entre-rios") return "Poder Judicial Entre Rios";
+  if (provider === "gobierno-misiones") return "Gobierno de Misiones";
+  if (provider === "representantes-misiones") return "Representantes Misiones";
+  if (provider === "gobierno-san-juan") return "Gobierno de San Juan";
+  if (provider === "diputados-san-juan") return "Diputados San Juan";
+  if (provider === "poder-judicial-san-juan") return "Poder Judicial San Juan";
   if (provider === "elocho-tucuman") return "El Ocho Tucuman";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
