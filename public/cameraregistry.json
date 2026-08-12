@@ -14589,5 +14589,89 @@
       "verifiedBy": "Codex via Cultura Catamarca public YouTube channel, Poncho/Ponchito public live transmission references, channel ID/canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-12"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-xama-tv-san-juan-live",
+    "providerId": "xama-tv",
+    "title": "San Juan - Xama TV UNSJ en vivo",
+    "description": "Senal audiovisual publica de Xama TV, canal de la Universidad Nacional de San Juan. Puede incluir noticias, programas institucionales, ciencia, cultura, entrevistas y transmisiones territoriales; BioPulse usa el reproductor oficial publicado en xama.tv sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "xama-tv",
+      "url": "https://xama.tv/",
+      "sourceUrl": "https://xama.tv/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Xama TV / Universidad Nacional de San Juan",
+      "termsUrl": "https://xama.tv/terminos-y-condiciones/"
+    },
+    "tags": ["san-juan", "university", "public-tv", "official", "local", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Xama TV official page, UNSJ official references, iframe headers and public player response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-independiente-tv-la-rioja-live",
+    "providerId": "elindependiente-larioja",
+    "title": "La Rioja - Independiente TV en vivo",
+    "description": "Senal audiovisual local de Medios El Independiente / Radio Independiente 99.1 para La Rioja. Puede incluir noticias, entrevistas, eventos y coberturas especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC4o_yFUklFwv6zz9Peh0fMA",
+      "sourceUrl": "https://www.elindependiente.com.ar/pagina.php?id=344116"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Medios El Independiente / Independiente TV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Independiente source article, public YouTube channel result and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-eltribuno-salta-live",
+    "providerId": "eltribuno-salta",
+    "title": "Salta - El Tribuno en vivo",
+    "description": "Senal audiovisual local del diario El Tribuno de Salta. Puede incluir noticias, entrevistas, coberturas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7829, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCTYpmn1630BfqLH2jmVYzAg",
+      "sourceUrl": "https://www.youtube.com/@eltribunodigital"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Tribuno Salta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via El Tribuno public YouTube channel, channel ID/canonical handle references and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
   }
 ]

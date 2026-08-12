@@ -368,6 +368,15 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Catamarca / Cultura Catamarca / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UClvQGfbj1T_ofautTOYAaEg`. El canal `@culturacatamarca` se identifica como Ministerio de Cultura, Turismo y Deporte Catamarca; distintas referencias publicas sobre Poncho/Ponchito indican transmisiones en vivo por ese canal y el endpoint live_stream respondio 200. Registrar como senal institucional/cultural disponible cuando la fuente emite.
   Fuentes: https://www.youtube.com/@culturacatamarca , https://inforama.com.ar/actualidad/2026/07/17/el-poncho-se-transmitira-en-vivo-se-podran-ver-los-shows-de-los-artistas-nacionales/ , https://www.youtube.com/@culturacatamarca/streams
 
+- San Juan / Xama TV / Universidad Nacional de San Juan: aplicada como `html_embed` usando la pagina oficial `https://xama.tv/`, que publica seccion `EN VIVO`, stream propio y datos de contacto del canal UNSJ. El sitio respondio 200 sin `X-Frame-Options` ni CSP que bloquee iframe; BioPulse allowlistea solo `https://xama.tv/` y no reproduce el FLV directo. Registrar como senal publica universitaria/local, no como camara fija 24/7.
+  Fuentes: https://xama.tv/ , https://www.unsj.edu.ar/home/noticias_detalles/5426/2 , https://www.unsj.edu.ar/en/home/noticias_detalles/6069/2
+
+- La Rioja / Independiente TV / Medios El Independiente: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UC4o_yFUklFwv6zz9Peh0fMA`. La pagina de El Independiente documenta Radio Independiente 99.1, streaming, AAP y el canal de YouTube Independiente TV; busqueda publica de YouTube resolvio el canal `Independiente TV` con ese ID y el endpoint live_stream respondio 200. Registrar como senal local disponible cuando la fuente emite.
+  Fuentes: https://www.elindependiente.com.ar/pagina.php?id=344116 , https://www.youtube.com/@independientetv772
+
+- Salta / El Tribuno Salta / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCTYpmn1630BfqLH2jmVYzAg`. El canal publico `@eltribunodigital` corresponde a El Tribuno Salta y el endpoint live_stream respondio 200. Registrar como senal local disponible cuando la fuente emite, independiente de Gobierno de Salta, Concejo Salta, Canal 7 y PUE!.
+  Fuentes: https://www.youtube.com/@eltribunodigital , https://www.eltribuno.com/ttag/el-tribuno
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
