@@ -14673,5 +14673,397 @@
       "verifiedBy": "Codex via El Tribuno public YouTube channel, channel ID/canonical handle references and live_stream embed response",
       "verifiedAt": "2026-08-12"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-formosa-live",
+    "providerId": "gobierno-formosa",
+    "title": "Formosa - Gobierno de Formosa en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de la Provincia de Formosa. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCrTFFAVWWsY7vpZWB0LvZbQ",
+      "sourceUrl": "https://www.youtube.com/@GobiernodeFormosaOficial"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diputados-formosa-live",
+    "providerId": "diputados-formosa",
+    "title": "Formosa - Camara de Diputados en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Diputados de Formosa. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCFNa_SeBIdWqBlwJLN_XHbg",
+      "sourceUrl": "https://www.legislaturaformosa.gob.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Diputados de Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Legislatura Formosa official site, public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-formosa-live",
+    "providerId": "poder-judicial-formosa",
+    "title": "Formosa - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Poder Judicial de Formosa. Puede incluir comunicaciones, capacitaciones, audiencias publicas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCo-5HW0urj3kcWul4MCUW7w",
+      "sourceUrl": "https://www.jusformosa.gob.ar/index.php/index.php"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Poder Judicial Formosa official site YouTube link, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-lapampa-live",
+    "providerId": "gobierno-lapampa",
+    "title": "La Pampa - Gobierno de La Pampa en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de La Pampa. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCbqtLPTDd2eXDh-rHuWfJ6g",
+      "sourceUrl": "https://www.lapampa.gob.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de La Pampa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Gobierno de La Pampa official site, public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-lapampa-live",
+    "providerId": "legislatura-lapampa",
+    "title": "La Pampa - Legislatura en vivo",
+    "description": "Senal audiovisual institucional de la Legislatura de La Pampa. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC1lFJeCgKA5m5fxgmk29ukw",
+      "sourceUrl": "https://camaradediputados.lapampa.gob.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Legislatura La Pampa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via La Pampa official sites, public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-lapampa-live",
+    "providerId": "poder-judicial-lapampa",
+    "title": "La Pampa - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Poder Judicial de La Pampa. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC6YEM_1vRWwEFpo7RQKRa7g",
+      "sourceUrl": "https://justicia.lapampa.gob.ar/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de La Pampa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via La Pampa official sites, public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-san-luis-live",
+    "providerId": "poder-judicial-san-luis",
+    "title": "San Luis - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Poder Judicial de San Luis. Puede incluir audiencias publicas, juicios, conferencias y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.295, "lon": -66.3356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCYNGMiIU6kLggFuvjrUCZgQ",
+      "sourceUrl": "https://www.youtube.com/@PoderJudicialSanLuis"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diputados-san-luis-live",
+    "providerId": "diputados-san-luis",
+    "title": "San Luis - Camara de Diputados en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Diputados de la Provincia de San Luis. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.295, "lon": -66.3356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCm2Wryf2GiBXWEjUHUJhEqw",
+      "sourceUrl": "https://www.youtube.com/@dipusanluis"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Diputados de San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-san-luis-live",
+    "providerId": "municipalidad-san-luis",
+    "title": "San Luis - Municipalidad de San Luis en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de San Luis. Puede incluir actos municipales, conferencias, alertas locales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.295, "lon": -66.3356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCzdJVr-UnaooteB5xaaDD9w",
+      "sourceUrl": "https://www.youtube.com/@MunicipalidaddeSanLuisoficial"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-agencia-san-luis-live",
+    "providerId": "agencia-san-luis",
+    "title": "San Luis - Agencia San Luis en vivo",
+    "description": "Senal audiovisual local de Agencia San Luis. Puede incluir noticias, entrevistas, coberturas territoriales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.295, "lon": -66.3356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCfXrdkstTnJin6agIB1kDXQ",
+      "sourceUrl": "https://www.youtube.com/@agencia.sanluis"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Agencia San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "news", "official", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-tucuman-live",
+    "providerId": "legislatura-tucuman",
+    "title": "Tucuman - Legislatura en vivo",
+    "description": "Senal audiovisual institucional de la Honorable Legislatura de Tucuman. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8083, "lon": -65.2176 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCpg4_5EjXCt10wpqZZJEJZQ",
+      "sourceUrl": "https://www.legislaturadetucuman.gob.ar/sesionOnline"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Honorable Legislatura de Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Legislatura de Tucuman official Sesiones Online page, public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-tucuman-live",
+    "providerId": "poder-judicial-tucuman",
+    "title": "Tucuman - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional del Poder Judicial de Tucuman. Puede incluir audiencias publicas, comunicaciones judiciales, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8083, "lon": -65.2176 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCaSRbypepm2QYnHj5SwYUHw",
+      "sourceUrl": "https://www.justucuman.gov.ar/direccion-comunicacion/quienes-somos"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Poder Judicial de Tucuman official Comunicacion Publica page, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-tucuman-live",
+    "providerId": "gobierno-tucuman",
+    "title": "Tucuman - Gobierno de Tucuman en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de Tucuman. Puede incluir actos oficiales, conferencias, alertas, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8083, "lon": -65.2176 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCtBwaoM-apSyKeFfx4q1emg",
+      "sourceUrl": "https://www.youtube.com/@prensatucuman"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public references to Gobierno de Tucuman YouTube @prensatucuman, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal5-tucuman-live",
+    "providerId": "canal5-tucuman",
+    "title": "Tucuman - Canal 5 Tucuman en vivo",
+    "description": "Senal audiovisual local de Canal 5 Tucuman HD TDA 28.3. Puede incluir noticias, deportes, coberturas territoriales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8083, "lon": -65.2176 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCyIIdM_Vvd9DoRQ40v_5cJw",
+      "sourceUrl": "https://www.youtube.com/@canal5tucuman"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 5 Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-12"
+    }
   }
 ]

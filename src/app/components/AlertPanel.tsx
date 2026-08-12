@@ -2175,8 +2175,14 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "quientv-formosa") return "Quien TV Formosa";
   if (provider === "canal23-formosa") return "Canal 23 Formosa";
   if (provider === "canal7-formosa") return "Canal 7 Formosa";
+  if (provider === "gobierno-formosa") return "Gobierno de Formosa";
+  if (provider === "diputados-formosa") return "Diputados Formosa";
+  if (provider === "poder-judicial-formosa") return "Poder Judicial Formosa";
   if (provider === "cpetv") return "CPEtv";
   if (provider === "cpa-unlpam") return "CPA UNLPam";
+  if (provider === "gobierno-lapampa") return "Gobierno de La Pampa";
+  if (provider === "legislatura-lapampa") return "Legislatura La Pampa";
+  if (provider === "poder-judicial-lapampa") return "Poder Judicial La Pampa";
   if (provider === "tvco") return "TVCO";
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
   if (provider === "canal5-chepes") return "Canal 5 TV Chepes";
@@ -2193,6 +2199,10 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "concejo-salta") return "Concejo Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "unsl-tv") return "UNSL TV";
+  if (provider === "poder-judicial-san-luis") return "Poder Judicial San Luis";
+  if (provider === "diputados-san-luis") return "Diputados San Luis";
+  if (provider === "municipalidad-san-luis") return "Municipalidad de San Luis";
+  if (provider === "agencia-san-luis") return "Agencia San Luis";
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "radio-panorama") return "Radio Panorama";
@@ -2200,6 +2210,10 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "lagaceta-play") return "LA GACETA Play";
   if (provider === "medios-unt") return "Medios UNT";
   if (provider === "mia-tucuman") return "Mia Tucuman";
+  if (provider === "legislatura-tucuman") return "Legislatura Tucuman";
+  if (provider === "poder-judicial-tucuman") return "Poder Judicial Tucuman";
+  if (provider === "gobierno-tucuman") return "Gobierno de Tucuman";
+  if (provider === "canal5-tucuman") return "Canal 5 Tucuman";
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";

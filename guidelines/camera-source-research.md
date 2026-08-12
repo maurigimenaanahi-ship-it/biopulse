@@ -377,6 +377,18 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Salta / El Tribuno Salta / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UCTYpmn1630BfqLH2jmVYzAg`. El canal publico `@eltribunodigital` corresponde a El Tribuno Salta y el endpoint live_stream respondio 200. Registrar como senal local disponible cuando la fuente emite, independiente de Gobierno de Salta, Concejo Salta, Canal 7 y PUE!.
   Fuentes: https://www.youtube.com/@eltribunodigital , https://www.eltribuno.com/ttag/el-tribuno
 
+- Formosa / Gobierno, Camara de Diputados y Poder Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobiernodeFormosaOficial`, `@camaradediputadosdeformosa7836` y `@PoderJudicialFormosaOficial`. La web oficial de Legislatura publica iframe de YouTube y el sitio del Poder Judicial enlaza su canal; los tres endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite, no como camaras fijas 24/7.
+  Fuentes: https://www.youtube.com/@GobiernodeFormosaOficial , https://www.legislaturaformosa.gob.ar/ , https://www.jusformosa.gob.ar/index.php/index.php
+
+- La Pampa / Gobierno, Legislatura y Poder Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@gobiernodelapampa2831`, `@legislaturalapampa` y `@poderjudicialdelapampa`. La web oficial provincial lista Gobierno, Poder Legislativo y Poder Judicial como sitios institucionales, y los endpoints live_stream respondieron 200. No duplicar TVPP/Canal 3 porque BioPulse ya tiene esa senal por HLS.
+  Fuentes: https://www.lapampa.gob.ar/ , https://camaradediputados.lapampa.gob.ar/ , https://justicia.lapampa.gob.ar/ , https://www.youtube.com/@gobiernodelapampa2831 , https://www.youtube.com/@legislaturalapampa , https://www.youtube.com/@poderjudicialdelapampa
+
+- San Luis / Poder Judicial, Camara de Diputados, Municipalidad de San Luis y Agencia San Luis / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@PoderJudicialSanLuis`, `@dipusanluis`, `@MunicipalidaddeSanLuisoficial` y `@agencia.sanluis`. Los cuatro endpoints live_stream respondieron 200 y se registran como senales locales/institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@PoderJudicialSanLuis , https://www.youtube.com/@dipusanluis , https://www.youtube.com/@MunicipalidaddeSanLuisoficial , https://www.youtube.com/@agencia.sanluis
+
+- Tucuman / Legislatura, Poder Judicial, Gobierno y Canal 5 / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@legislaturatucuman951`, `@ComunicacionPublicaCSJT`, `@prensatucuman` y `@canal5tucuman`. La pagina oficial de Sesiones Online de la Legislatura publica transmision en directo, el Poder Judicial documenta su canal de Comunicacion Publica, y referencias publicas del Gobierno provincial indican transmision por `@prensatucuman`; los cuatro endpoints live_stream respondieron 200. Registrar como senales disponibles cuando la fuente emite.
+  Fuentes: https://www.legislaturadetucuman.gob.ar/sesionOnline , https://www.justucuman.gov.ar/direccion-comunicacion/quienes-somos , https://www.youtube.com/@prensatucuman , https://www.youtube.com/@canal5tucuman
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
