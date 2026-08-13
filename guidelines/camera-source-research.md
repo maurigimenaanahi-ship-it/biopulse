@@ -413,6 +413,12 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Santiago del Estero / Poder Judicial y Santiago Ciudad / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@oficinadeprensapoderjudici5280` y `@santiagociudad7009`. El canal Santiago Ciudad fue referenciado publicamente como canal del municipio capitalino de Santiago del Estero; ambos endpoints live_stream respondieron 200. La busqueda "Legislatura Tv" fue descartada porque el canal canonico era `@LegislaturaTVMendoza`, no Santiago del Estero.
   Fuentes: https://www.youtube.com/@oficinadeprensapoderjudici5280 , https://www.youtube.com/@santiagociudad7009 , https://www.lv12.com.ar/dia/rinden-homenaje-jorge-veliz-el-dia-la-guaracha-santiaguena-n176722
 
+- Chaco / Gobierno, Poder Legislativo, Legislatura y Centro de Estudios Judiciales / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobDelChaco`, `@PRENSAPODERLEGISLATIVOCHACO`, `@legislaturachacoweb` y `@CentroEstudiosJudicialesChaco`. Los cuatro endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@GobDelChaco , https://www.youtube.com/@PRENSAPODERLEGISLATIVOCHACO , https://www.youtube.com/@legislaturachacoweb , https://www.youtube.com/@CentroEstudiosJudicialesChaco
+
+- Salta / Poder Judicial, Camara de Diputados y Senado / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@prensajudicialsalta`, `@C%C3%A1maradeDiputadosdeSalta` y `@senadosalta`. Los tres endpoints live_stream respondieron 200; el segundo canal judicial salteno y el canal alternativo `@senadosalta2116` quedaron fuera de esta tanda para evitar duplicar senales institucionales sin necesidad.
+  Fuentes: https://www.youtube.com/@prensajudicialsalta , https://www.youtube.com/@C%C3%A1maradeDiputadosdeSalta , https://www.youtube.com/@senadosalta
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion

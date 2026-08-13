@@ -2206,6 +2206,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "eltribuno-salta") return "El Tribuno Salta";
   if (provider === "gobierno-salta") return "Gobierno de Salta";
   if (provider === "concejo-salta") return "Concejo Salta";
+  if (provider === "poder-judicial-salta") return "Poder Judicial Salta";
+  if (provider === "diputados-salta") return "Diputados Salta";
+  if (provider === "senado-salta") return "Senado Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "unsl-tv") return "UNSL TV";
   if (provider === "poder-judicial-san-luis") return "Poder Judicial San Luis";
@@ -2231,6 +2234,10 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "xama-tv") return "Xama TV";
   if (provider === "ciudadtv-chaco") return "Ciudad TV Chaco";
   if (provider === "canal-somos-uno") return "Canal Somos Uno";
+  if (provider === "gobierno-chaco") return "Gobierno del Chaco";
+  if (provider === "poder-legislativo-chaco") return "Poder Legislativo Chaco";
+  if (provider === "legislatura-chaco") return "Legislatura Chaco";
+  if (provider === "centro-estudios-judiciales-chaco") return "Centro Estudios Judiciales Chaco";
   if (provider === "canal2misiones") return "Canal 2 Misiones";
   if (provider === "gobierno-corrientes") return "Gobierno de Corrientes";
   if (provider === "poder-judicial-corrientes") return "Poder Judicial Corrientes";

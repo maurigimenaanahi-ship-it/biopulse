@@ -15709,5 +15709,201 @@
       "verifiedBy": "Codex via public YouTube channel search, local public reference to the Santiago del Estero capital municipality channel, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-13"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-chaco-live",
+    "providerId": "gobierno-chaco",
+    "title": "Chaco - Gobierno del Chaco en vivo",
+    "description": "Senal audiovisual institucional del Gobierno del Chaco. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4519, "lon": -58.9866 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCTGwOrqCohfNpK_YHcvDEnw",
+      "sourceUrl": "https://www.youtube.com/@GobDelChaco"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno del Chaco / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-legislativo-chaco-live",
+    "providerId": "poder-legislativo-chaco",
+    "title": "Chaco - Poder Legislativo en vivo",
+    "description": "Senal audiovisual institucional de Prensa del Poder Legislativo del Chaco. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4519, "lon": -58.9866 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCQ0qn9ILr5BXj5Pw0x32bLA",
+      "sourceUrl": "https://www.youtube.com/@PRENSAPODERLEGISLATIVOCHACO"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Legislativo Chaco / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-chaco-live",
+    "providerId": "legislatura-chaco",
+    "title": "Chaco - Legislatura Chaco en vivo",
+    "description": "Senal audiovisual institucional de Legislatura Chaco. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4519, "lon": -58.9866 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCxEm6uS2qICFQJzcVdW0tVQ",
+      "sourceUrl": "https://www.youtube.com/@legislaturachacoweb"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Legislatura Chaco / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-centro-estudios-judiciales-chaco-live",
+    "providerId": "centro-estudios-judiciales-chaco",
+    "title": "Chaco - Centro de Estudios Judiciales en vivo",
+    "description": "Senal audiovisual institucional del Centro de Estudios Judiciales Chaco. Puede incluir comunicaciones judiciales, capacitaciones, audiencias publicas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4519, "lon": -58.9866 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC9ym0sUgejAYtcX31VbwioQ",
+      "sourceUrl": "https://www.youtube.com/@CentroEstudiosJudicialesChaco"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Centro de Estudios Judiciales Chaco / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-salta-live",
+    "providerId": "poder-judicial-salta",
+    "title": "Salta - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional de la Oficina de Prensa y Comunicaciones del Poder Judicial de Salta. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7829, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCsGEX-O10qpw3Ik-UBRnShg",
+      "sourceUrl": "https://www.youtube.com/@prensajudicialsalta"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de Salta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-diputados-salta-live",
+    "providerId": "diputados-salta",
+    "title": "Salta - Camara de Diputados en vivo",
+    "description": "Senal audiovisual institucional de la Camara de Diputados de Salta. Puede incluir sesiones ordinarias, entrevistas legislativas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7829, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCsnG0KeevsvKUdMqZmoqs9A",
+      "sourceUrl": "https://www.youtube.com/@C%C3%A1maradeDiputadosdeSalta"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Camara de Diputados de Salta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-senado-salta-live",
+    "providerId": "senado-salta",
+    "title": "Salta - Senado en vivo",
+    "description": "Senal audiovisual institucional de Prensa Senado Salta. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7829, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCtAVTuWAKFw8tUrcjHz57Yw",
+      "sourceUrl": "https://www.youtube.com/@senadosalta"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Senado de Salta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]
