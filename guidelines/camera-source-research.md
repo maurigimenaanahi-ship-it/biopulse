@@ -401,6 +401,18 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - San Juan / Servicio Informativo del Gobierno, Camara de Diputados y Poder Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@sisanjuanok`, `@camaradediputadosdesanjuan660` y `@poderjudicialdesanjuan1880`. Los tres endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
   Fuentes: https://www.youtube.com/@sisanjuanok , https://www.youtube.com/@camaradediputadosdesanjuan660 , https://www.youtube.com/@poderjudicialdesanjuan1880
 
+- Catamarca / Gobierno, Senado y Catamarca Capital / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobiernodeCatamarca`, `@senadodecatamarca` y `@CatamarcaCapital`. Los tres endpoints live_stream respondieron 200. No duplicar Camara de Diputados porque BioPulse ya tiene Canal Parlamentario Catamarca con ese canal.
+  Fuentes: https://www.youtube.com/@GobiernodeCatamarca , https://www.youtube.com/@senadodecatamarca , https://www.youtube.com/@CatamarcaCapital
+
+- Jujuy / Gobierno, Legislatura y Poder Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@GobiernodeJujuyOK`, `@legislaturadejujuy7305` y `@PrensaJusticiaJujuy`. Los tres endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@GobiernodeJujuyOK , https://www.youtube.com/@legislaturadejujuy7305 , https://www.youtube.com/@PrensaJusticiaJujuy
+
+- La Rioja / Gobierno, Legislatura y Funcion Judicial / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@gobiernodelariojaargentina`, `@legislaturalr` y `@funcionjudiciallarioja5851`. Los tres endpoints live_stream respondieron 200. Registrar como senales institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@gobiernodelariojaargentina , https://www.youtube.com/@legislaturalr , https://www.youtube.com/@funcionjudiciallarioja5851
+
+- Santiago del Estero / Poder Judicial y Santiago Ciudad / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@oficinadeprensapoderjudici5280` y `@santiagociudad7009`. El canal Santiago Ciudad fue referenciado publicamente como canal del municipio capitalino de Santiago del Estero; ambos endpoints live_stream respondieron 200. La busqueda "Legislatura Tv" fue descartada porque el canal canonico era `@LegislaturaTVMendoza`, no Santiago del Estero.
+  Fuentes: https://www.youtube.com/@oficinadeprensapoderjudici5280 , https://www.youtube.com/@santiagociudad7009 , https://www.lv12.com.ar/dia/rinden-homenaje-jorge-veliz-el-dia-la-guaracha-santiaguena-n176722
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion

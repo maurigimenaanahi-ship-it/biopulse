@@ -15401,5 +15401,313 @@
       "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-12"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-catamarca-live",
+    "providerId": "gobierno-catamarca",
+    "title": "Catamarca - Gobierno de Catamarca en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de Catamarca. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4689, "lon": -65.7794 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCzzPwe-cLOGtPGEC_RfpmVw",
+      "sourceUrl": "https://www.youtube.com/@GobiernodeCatamarca"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Catamarca / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-senado-catamarca-live",
+    "providerId": "senado-catamarca",
+    "title": "Catamarca - Senado en vivo",
+    "description": "Senal audiovisual institucional del Senado de Catamarca. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4689, "lon": -65.7794 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC2HnM2bfuyDnqg1BTeBd8Eg",
+      "sourceUrl": "https://www.youtube.com/@senadodecatamarca"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Senado de Catamarca / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-catamarca-capital-live",
+    "providerId": "catamarca-capital",
+    "title": "Catamarca - Catamarca Capital en vivo",
+    "description": "Senal audiovisual institucional/local de Catamarca Capital. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4689, "lon": -65.7794 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCMAeIcE5sQa7chR-J13zlDw",
+      "sourceUrl": "https://www.youtube.com/@CatamarcaCapital"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Catamarca Capital / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-jujuy-live",
+    "providerId": "gobierno-jujuy",
+    "title": "Jujuy - Gobierno de Jujuy en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de Jujuy. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCJpTTamTMwx0b7zu12M5Y9Q",
+      "sourceUrl": "https://www.youtube.com/@GobiernodeJujuyOK"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Jujuy / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-jujuy-live",
+    "providerId": "legislatura-jujuy",
+    "title": "Jujuy - Legislatura en vivo",
+    "description": "Senal audiovisual institucional de la Legislatura de Jujuy. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC4DBq_mP12clM1yNG6dseAQ",
+      "sourceUrl": "https://www.youtube.com/@legislaturadejujuy7305"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Legislatura de Jujuy / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-jujuy-live",
+    "providerId": "poder-judicial-jujuy",
+    "title": "Jujuy - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional de Prensa Justicia Jujuy / Poder Judicial de Jujuy. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCeemswXcqzk0srEZ8NufxmA",
+      "sourceUrl": "https://www.youtube.com/@PrensaJusticiaJujuy"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de Jujuy / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-larioja-live",
+    "providerId": "gobierno-larioja",
+    "title": "La Rioja - Gobierno de La Rioja en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de La Rioja. Puede incluir actos oficiales, conferencias, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC5PoXnPGr5fLeyaFpWBWMSw",
+      "sourceUrl": "https://www.youtube.com/@gobiernodelariojaargentina"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-larioja-live",
+    "providerId": "legislatura-larioja",
+    "title": "La Rioja - Legislatura en vivo",
+    "description": "Senal audiovisual institucional de la Legislatura de La Rioja. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCdVmZM0qL7qBF_n9Xr94ztA",
+      "sourceUrl": "https://www.youtube.com/@legislaturalr"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Legislatura de La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-funcion-judicial-larioja-live",
+    "providerId": "funcion-judicial-larioja",
+    "title": "La Rioja - Funcion Judicial en vivo",
+    "description": "Senal audiovisual institucional de la Funcion Judicial de La Rioja. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UClLoa6VVxMXwKOqO_p18kag",
+      "sourceUrl": "https://www.youtube.com/@funcionjudiciallarioja5851"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Funcion Judicial de La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-poder-judicial-sde-live",
+    "providerId": "poder-judicial-sde",
+    "title": "Santiago del Estero - Poder Judicial en vivo",
+    "description": "Senal audiovisual institucional de la Oficina de Prensa del Poder Judicial de Santiago del Estero. Puede incluir comunicaciones, audiencias publicas, juicios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCHv-_jYCPDHmCRoP79HP2nA",
+      "sourceUrl": "https://www.youtube.com/@oficinadeprensapoderjudici5280"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Poder Judicial de Santiago del Estero / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "government", "judiciary", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-santiago-ciudad-live",
+    "providerId": "santiago-ciudad",
+    "title": "Santiago del Estero - Santiago Ciudad en vivo",
+    "description": "Senal audiovisual local del canal Santiago Ciudad, referenciado publicamente como canal del municipio capitalino de Santiago del Estero. Puede incluir eventos, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCbRCp23lsS5cFAEHoMuVzZw",
+      "sourceUrl": "https://www.youtube.com/@santiagociudad7009"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Santiago Ciudad / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "municipality", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, local public reference to the Santiago del Estero capital municipality channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]

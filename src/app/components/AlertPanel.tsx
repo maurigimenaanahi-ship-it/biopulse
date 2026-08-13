@@ -2165,6 +2165,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "uncatv") return "UNCA TV";
   if (provider === "poder-judicial-catamarca") return "Poder Judicial Catamarca";
   if (provider === "cultura-catamarca") return "Cultura Catamarca";
+  if (provider === "gobierno-catamarca") return "Gobierno de Catamarca";
+  if (provider === "senado-catamarca") return "Senado Catamarca";
+  if (provider === "catamarca-capital") return "Catamarca Capital";
   if (provider === "unlar-tv") return "UNLaR TV";
   if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
@@ -2187,11 +2190,17 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal9larioja") return "Canal 9 La Rioja";
   if (provider === "canal5-chepes") return "Canal 5 TV Chepes";
   if (provider === "elindependiente-larioja") return "Independiente TV";
+  if (provider === "gobierno-larioja") return "Gobierno de La Rioja";
+  if (provider === "legislatura-larioja") return "Legislatura La Rioja";
+  if (provider === "funcion-judicial-larioja") return "Funcion Judicial La Rioja";
   if (provider === "eltribuno-jujuy") return "El Tribuno de Jujuy";
   if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
   if (provider === "canal6-libertador") return "Canal 6 Libertador";
   if (provider === "canal13jujuy") return "Canal 13 Jujuy";
+  if (provider === "gobierno-jujuy") return "Gobierno de Jujuy";
+  if (provider === "legislatura-jujuy") return "Legislatura Jujuy";
+  if (provider === "poder-judicial-jujuy") return "Poder Judicial Jujuy";
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "canal7salta") return "Canal 7 Salta";
   if (provider === "eltribuno-salta") return "El Tribuno Salta";
@@ -2207,6 +2216,8 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "radio-panorama") return "Radio Panorama";
   if (provider === "panorama-play") return "Panorama Play";
+  if (provider === "poder-judicial-sde") return "Poder Judicial SDE";
+  if (provider === "santiago-ciudad") return "Santiago Ciudad";
   if (provider === "lagaceta-play") return "LA GACETA Play";
   if (provider === "medios-unt") return "Medios UNT";
   if (provider === "mia-tucuman") return "Mia Tucuman";
