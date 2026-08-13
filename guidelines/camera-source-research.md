@@ -419,6 +419,18 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Salta / Poder Judicial, Camara de Diputados y Senado / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@prensajudicialsalta`, `@C%C3%A1maradeDiputadosdeSalta` y `@senadosalta`. Los tres endpoints live_stream respondieron 200; el segundo canal judicial salteno y el canal alternativo `@senadosalta2116` quedaron fuera de esta tanda para evitar duplicar senales institucionales sin necesidad.
   Fuentes: https://www.youtube.com/@prensajudicialsalta , https://www.youtube.com/@C%C3%A1maradeDiputadosdeSalta , https://www.youtube.com/@senadosalta
 
+- Formosa / Municipio, Formosa Tu Ciudad y Facultad de Recursos Naturales UNaF / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@municipioformosa3197`, `@formosatuciudad7146` y `@FacultadRecursosNaturalesUNaF`. Los tres endpoints live_stream respondieron 200; la Facultad de Recursos Naturales se registra por su valor ambiental/territorial y por pertenecer a la Universidad Nacional de Formosa.
+  Fuentes: https://www.youtube.com/@municipioformosa3197 , https://www.youtube.com/@formosatuciudad7146 , https://www.youtube.com/@FacultadRecursosNaturalesUNaF
+
+- La Pampa / Santa Rosa, General Pico, Concejo Pico y UNLPAM TV / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@municipalidaddesantarosa5872`, `@municipalidaddegeneralpico100`, `@direcciondecomunicacionpic3866`, `@concejopico` y `@UNLPAMTV`. Los cinco endpoints live_stream respondieron 200. Se conservan Municipalidad de General Pico y Direccion de Comunicacion Pico como senales separadas porque son canales publicos distintos del mismo territorio.
+  Fuentes: https://www.youtube.com/@municipalidaddesantarosa5872 , https://www.youtube.com/@municipalidaddegeneralpico100 , https://www.youtube.com/@direcciondecomunicacionpic3866 , https://www.youtube.com/@concejopico , https://www.youtube.com/@UNLPAMTV
+
+- Misiones / Municipalidad de Posadas, HCD Posadas, UNaM Television y Canal Doce / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@muniposadas`, `@HCDPosadasOk`, `@unam.tvargentina` y `@CanalDoceMisiones`. Los cuatro endpoints live_stream respondieron 200; se descartaron resultados de Paraguay o nacionales cuando aparecieron por homonimia.
+  Fuentes: https://www.youtube.com/@muniposadas , https://www.youtube.com/@HCDPosadasOk , https://www.youtube.com/@unam.tvargentina , https://www.youtube.com/@CanalDoceMisiones
+
+- Santiago del Estero / Nuevo Diario, UNSE TeVe y Municipalidad de La Banda / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@nuevodiariosantiagodeleste1049`, `@unseteve` y `@MunicipalidaddeLaBanda`. Los tres endpoints live_stream respondieron 200; UNSE TeVe se identifica como centro audiovisual de la Universidad Nacional de Santiago del Estero.
+  Fuentes: https://www.youtube.com/@nuevodiariosantiagodeleste1049 , https://www.youtube.com/@unseteve , https://www.youtube.com/@MunicipalidaddeLaBanda
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion

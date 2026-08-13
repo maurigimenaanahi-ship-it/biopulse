@@ -15905,5 +15905,425 @@
       "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-13"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipio-formosa-live",
+    "providerId": "municipio-formosa",
+    "title": "Formosa - Municipio Formosa en vivo",
+    "description": "Senal audiovisual institucional del Municipio de Formosa. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCxaIutrYsWi8_vmVoRJ5u-Q",
+      "sourceUrl": "https://www.youtube.com/@municipioformosa3197"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipio Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-formosa-tu-ciudad-live",
+    "providerId": "formosa-tu-ciudad",
+    "title": "Formosa - Formosa Tu Ciudad en vivo",
+    "description": "Senal audiovisual local Formosa Tu Ciudad. Puede incluir eventos, comunicados, coberturas urbanas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCatB08nq_mvXRv68Vf8jLEQ",
+      "sourceUrl": "https://www.youtube.com/@formosatuciudad7146"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Formosa Tu Ciudad / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "city", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unaf-recursos-naturales-live",
+    "providerId": "unaf-recursos-naturales",
+    "title": "Formosa - Facultad de Recursos Naturales UNaF en vivo",
+    "description": "Senal audiovisual institucional de la Facultad de Recursos Naturales de la Universidad Nacional de Formosa. Puede incluir actividades academicas, ambientales, conferencias y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC30xodRrkZKhybe3egw6QyA",
+      "sourceUrl": "https://www.youtube.com/@FacultadRecursosNaturalesUNaF"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Facultad de Recursos Naturales UNaF / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "university", "environment", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-santa-rosa-lapampa-live",
+    "providerId": "municipalidad-santa-rosa-lapampa",
+    "title": "La Pampa - Municipalidad de Santa Rosa en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Santa Rosa, La Pampa. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCSiCD6qdI1rJzvOihykpR9Q",
+      "sourceUrl": "https://www.youtube.com/@municipalidaddesantarosa5872"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Santa Rosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "santa-rosa", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-general-pico-live",
+    "providerId": "municipalidad-general-pico",
+    "title": "La Pampa - Municipalidad de General Pico en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de General Pico. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -35.6566, "lon": -63.7568 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "General Pico" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCu1OWDR9x9yjzHzSrToy7Dw",
+      "sourceUrl": "https://www.youtube.com/@municipalidaddegeneralpico100"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de General Pico / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "general-pico", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-direccion-comunicacion-pico-live",
+    "providerId": "direccion-comunicacion-pico",
+    "title": "La Pampa - Comunicacion Pico en vivo",
+    "description": "Senal audiovisual de la Direccion de Comunicacion de General Pico, La Pampa. Puede incluir comunicados municipales, coberturas locales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -35.6566, "lon": -63.7568 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "General Pico" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCeUtRnUAVYGMRFp74dlWekQ",
+      "sourceUrl": "https://www.youtube.com/@direcciondecomunicacionpic3866"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Direccion de Comunicacion Pico / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "general-pico", "municipality", "communications", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-concejo-pico-live",
+    "providerId": "concejo-pico",
+    "title": "La Pampa - Concejo Pico en vivo",
+    "description": "Senal audiovisual institucional del Concejo Deliberante de General Pico. Puede incluir sesiones, actos legislativos municipales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -35.6566, "lon": -63.7568 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "General Pico" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCpD1iWna20J2sxsWoA5LJRA",
+      "sourceUrl": "https://www.youtube.com/@concejopico"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Concejo Deliberante de General Pico / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "general-pico", "legislature", "municipality", "official", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unlpam-tv-live",
+    "providerId": "unlpam-tv",
+    "title": "La Pampa - UNLPAM TV en vivo",
+    "description": "Senal audiovisual institucional de UNLPAM TV. Puede incluir actividades universitarias, conferencias, contenidos educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCbeWt6XOjYJ8BZHkbCqhy2A",
+      "sourceUrl": "https://www.youtube.com/@UNLPAMTV"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNLPAM TV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "santa-rosa", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-posadas-live",
+    "providerId": "municipalidad-posadas",
+    "title": "Misiones - Municipalidad de Posadas en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Posadas. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCcXrKgakomoM5HFGYoGNf6g",
+      "sourceUrl": "https://www.youtube.com/@muniposadas"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Posadas / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "posadas", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-hcd-posadas-live",
+    "providerId": "hcd-posadas",
+    "title": "Misiones - Concejo Deliberante Posadas en vivo",
+    "description": "Senal audiovisual institucional del Honorable Concejo Deliberante de Posadas. Puede incluir sesiones, actividad legislativa municipal y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC7Nfr13PyP84jWgU5FS9LGg",
+      "sourceUrl": "https://www.youtube.com/@HCDPosadasOk"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Honorable Concejo Deliberante Posadas / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "posadas", "legislature", "municipality", "official", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unam-tv-misiones-live",
+    "providerId": "unam-tv-misiones",
+    "title": "Misiones - UNaM Television en vivo",
+    "description": "Senal audiovisual institucional de UNaM Television, canal de la Universidad Nacional de Misiones. Puede incluir contenidos educativos, culturales, institucionales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCLubjDVviCejQDT4FlMbmRg",
+      "sourceUrl": "https://www.youtube.com/@unam.tvargentina"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNaM Television / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "posadas", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal-doce-misiones-live",
+    "providerId": "canal-doce-misiones",
+    "title": "Misiones - Canal Doce Misiones en vivo",
+    "description": "Senal audiovisual local de Canal Doce Misiones, canal de television abierta con sede en Posadas y cobertura provincial. Puede incluir noticias, informacion territorial y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC1B2v9IM39N2b58Kje0fjwg",
+      "sourceUrl": "https://www.youtube.com/@CanalDoceMisiones"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal Doce Misiones / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "posadas", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-nuevo-diario-sde-live",
+    "providerId": "nuevo-diario-sde",
+    "title": "Santiago del Estero - Nuevo Diario en vivo",
+    "description": "Senal audiovisual local de Nuevo Diario Santiago del Estero. Puede incluir noticias, entrevistas, coberturas territoriales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCRHWwTVH-VIwA4uDcrVYZQA",
+      "sourceUrl": "https://www.youtube.com/@nuevodiariosantiagodeleste1049"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Nuevo Diario Santiago del Estero / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unseteve-sde-live",
+    "providerId": "unseteve-sde",
+    "title": "Santiago del Estero - UNSE TeVe en vivo",
+    "description": "Senal audiovisual institucional de UNSE TeVe, centro audiovisual de la Universidad Nacional de Santiago del Estero. Puede incluir contenidos educativos, institucionales, culturales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCN4TjpS0mDcLcExuv2zA-5g",
+      "sourceUrl": "https://www.youtube.com/@unseteve"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNSE TeVe / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-la-banda-live",
+    "providerId": "municipalidad-la-banda",
+    "title": "Santiago del Estero - Municipalidad de La Banda en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de La Banda. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7333, "lon": -64.2428 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "La Banda" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCyKA_2h9ewimiKTCyUAYqWA",
+      "sourceUrl": "https://www.youtube.com/@MunicipalidaddeLaBanda"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de La Banda / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "la-banda", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]
