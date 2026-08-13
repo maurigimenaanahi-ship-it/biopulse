@@ -17221,5 +17221,397 @@
       "verifiedBy": "Codex via Municipalidad de Fernandez official website, public YouTube channel, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-13"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-buenos-aires-ciudad-live",
+    "providerId": "buenos-aires-ciudad",
+    "title": "CABA - Buenos Aires Ciudad en vivo",
+    "description": "Senal audiovisual institucional de Buenos Aires Ciudad. Puede incluir comunicados, eventos publicos, contenidos urbanos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -34.6037, "lon": -58.3816 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCjzWUPQiX2gtZ6jZNUK9abA",
+      "sourceUrl": "https://www.youtube.com/@BuenosAiresCiudad"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Buenos Aires Ciudad / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["caba", "buenos-aires", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-studio16-tinogasta-live",
+    "providerId": "studio16-tinogasta",
+    "title": "Catamarca - Studio 16 Tinogasta en vivo",
+    "description": "Senal audiovisual local de Studio 16 Tinogasta. Puede incluir noticias, entrevistas, contenidos locales y transmisiones especiales del oeste catamarqueno; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.0633, "lon": -67.5649 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "Tinogasta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCPxGAS4BNzXuSWjZ1MAccvA",
+      "sourceUrl": "https://www.youtube.com/@studio16tinogasta"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Studio 16 Tinogasta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "tinogasta", "local-tv", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source search, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-uncaus-tv-live",
+    "providerId": "uncaus-tv",
+    "title": "Chaco - UNCAus TV en vivo",
+    "description": "Senal audiovisual universitaria de la Universidad Nacional del Chaco Austral. Puede incluir actos academicos, comunicados, contenidos educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.7852, "lon": -60.4388 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Presidencia Roque Saenz Pena" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCnsGdihJds7hiHTMdDfxURg",
+      "sourceUrl": "https://www.youtube.com/user/UNCAusUniversidad"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNCAus Universidad / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "saenz-pena", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via UNCAus official page, public YouTube channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municorrientes-live",
+    "providerId": "muni-corrientes",
+    "title": "Corrientes - MuniCorrientes en vivo",
+    "description": "Senal audiovisual institucional del Municipio de Corrientes. Puede incluir comunicados municipales, actos publicos, servicios urbanos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8306 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCN2RqXK5FXp3CAEDSO4Tnzw",
+      "sourceUrl": "https://www.youtube.com/@municorrientes"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: MuniCorrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public references, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-concejo-parana-live",
+    "providerId": "concejo-parana",
+    "title": "Entre Rios - Concejo Deliberante de Parana en vivo",
+    "description": "Senal audiovisual institucional del Concejo Deliberante de Parana. Puede incluir sesiones, reuniones legislativas municipales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7333, "lon": -60.5297 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCk0pmGfqkrtyJwNO1Ow0yvQ",
+      "sourceUrl": "https://www.youtube.com/@ConcejoDeliberanteParana"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Concejo Deliberante Parana / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "parana", "legislature", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cosmovision-formosa-live",
+    "providerId": "cosmovision-formosa",
+    "title": "Formosa - CosmovisionTV en vivo",
+    "description": "Senal audiovisual local de Cosmovision Multimedios Formosa. Puede incluir contenidos de actualidad, politica, sociedad, cultura y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCLalERCfMWXs9Z32jvums1A",
+      "sourceUrl": "https://www.youtube.com/@cosmovisionfsa"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: CosmovisionTV Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "local-tv", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Cosmovision official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-palpala-live",
+    "providerId": "municipalidad-palpala",
+    "title": "Jujuy - Municipalidad de Palpala en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Palpala. Puede incluir comunicados municipales, actividades locales, servicios urbanos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.2661, "lon": -65.212 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "Palpala" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCpK8SY_aEXdDyrjczhrGH2w",
+      "sourceUrl": "https://www.youtube.com/channel/UCpK8SY_aEXdDyrjczhrGH2w"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Palpala / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "palpala", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via municipal website/reference, public YouTube channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-undec-tv-live",
+    "providerId": "undec-tv",
+    "title": "La Rioja - UNdeC TV en vivo",
+    "description": "Senal audiovisual universitaria de la Universidad Nacional de Chilecito. Puede incluir sesiones del Consejo Superior, actividades academicas, contenidos educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.165, "lon": -67.4974 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "Chilecito" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC2ajwnavHVhBdto9j911e9A",
+      "sourceUrl": "https://www.youtube.com/@UNdeCTV"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNdeC TV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "chilecito", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via UNdeC official page, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-obera-live",
+    "providerId": "gobierno-obera",
+    "title": "Misiones - Gobierno de la Ciudad de Obera en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de la Ciudad de Obera. Puede incluir comunicados municipales, actividades locales, servicios urbanos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4871, "lon": -55.1199 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Obera" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCEMm7xmNZ_JiYtb6QAxXWFw",
+      "sourceUrl": "https://www.youtube.com/channel/UCEMm7xmNZ_JiYtb6QAxXWFw"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Obera / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "obera", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Obera official website, public YouTube channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-rectorado-unsa-live",
+    "providerId": "rectorado-unsa",
+    "title": "Salta - Rectorado UNSa en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional de Salta. Puede incluir actividades academicas, comunicados, conferencias y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7288, "lon": -65.4081 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCgXFKyGY6vkI2sWimErwmZg",
+      "sourceUrl": "https://www.youtube.com/channel/UCgXFKyGY6vkI2sWimErwmZg"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Rectorado UNSa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via UNSa official website, linked YouTube video, resolved channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-hcd-rawson-san-juan-live",
+    "providerId": "hcd-rawson-san-juan",
+    "title": "San Juan - Concejo Deliberante de Rawson en vivo",
+    "description": "Senal audiovisual institucional del Concejo Deliberante de Rawson, San Juan. Puede incluir sesiones legislativas municipales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5884, "lon": -68.5356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "Rawson" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCLm1vtkkFmwxUoRbRLGfMgg",
+      "sourceUrl": "https://www.youtube.com/@concejodeliberantederawson5797"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Concejo Deliberante de Rawson / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "rawson", "legislature", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via HCD Rawson official page, public YouTube channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cultura-san-luis-live",
+    "providerId": "cultura-san-luis",
+    "title": "San Luis - Cultura San Luis en vivo",
+    "description": "Senal audiovisual institucional/cultural de San Luis. Puede incluir actividades culturales, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.295, "lon": -66.3356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCwuddotu4FsMtkPD1UNM_2w",
+      "sourceUrl": "https://www.youtube.com/channel/UCwuddotu4FsMtkPD1UNM_2w"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Cultura San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "culture", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Agencia San Luis public reference, public YouTube channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-rosario-live",
+    "providerId": "municipalidad-rosario",
+    "title": "Santa Fe - Municipalidad de Rosario en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Rosario. Puede incluir comunicados municipales, servicios urbanos, campanas, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -32.9468, "lon": -60.6393 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Rosario" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCI78RIh-5tXl2DTGTqdRBEA",
+      "sourceUrl": "https://www.youtube.com/user/Munirosario"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Rosario / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santa-fe", "rosario", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Rosario official website, public YouTube channel and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radio-unse-live",
+    "providerId": "radio-unse",
+    "title": "Santiago del Estero - Radio UNSE en vivo",
+    "description": "Senal audiovisual/radial institucional de Radio Universidad de la Universidad Nacional de Santiago del Estero. Puede incluir programas en vivo, entrevistas, contenidos universitarios y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCTHLq2iPcsDmaUxVOzGzGhQ",
+      "sourceUrl": "https://www.youtube.com/@RadioUNSE"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio UNSE / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "university", "radio", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Radio Universidad UNSE official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]
