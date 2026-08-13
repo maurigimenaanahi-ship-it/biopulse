@@ -2157,6 +2157,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal-ciudad-ba") return "Canal de la Ciudad";
   if (provider === "legislatura-caba") return "Legislatura CABA";
   if (provider === "buenos-aires-ciudad") return "Buenos Aires Ciudad";
+  if (provider === "la2x4-ba") return "La 2x4 BA";
   if (provider === "chapelco") return "Chapelco";
   if (provider === "agvp-santa-cruz") return "AGVP Santa Cruz";
   if (provider === "cerrocastor") return "Cerro Castor";
@@ -2175,9 +2176,11 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "el-ancasti") return "El Ancasti";
   if (provider === "esquiu-play") return "Esquiu Play";
   if (provider === "studio16-tinogasta") return "Studio 16 Tinogasta";
+  if (provider === "tveo-catamarca") return "Tveo Catamarca";
   if (provider === "unlar-tv") return "UNLaR TV";
   if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
+  if (provider === "canal3lapampa-youtube") return "Canal 3 La Pampa";
   if (provider === "canal13larioja") return "Canal 13 La Rioja";
   if (provider === "canal10tucuman") return "Canal 10 Tucuman";
   if (provider === "lapacho-tv") return "Lapacho TV";
@@ -2193,6 +2196,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "unaf-recursos-naturales") return "Recursos Naturales UNaF";
   if (provider === "quientv-formosa-youtube") return "Quien TV Formosa";
   if (provider === "cosmovision-formosa") return "CosmovisionTV Formosa";
+  if (provider === "unaf-tv") return "UNaF TV";
   if (provider === "cpetv") return "CPEtv";
   if (provider === "cpa-unlpam") return "CPA UNLPam";
   if (provider === "gobierno-lapampa") return "Gobierno de La Pampa";
@@ -2214,6 +2218,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "ciudad-tv-larioja") return "Ciudad TV La Rioja";
   if (provider === "parlamento-larioja") return "Parlamento La Rioja";
   if (provider === "undec-tv") return "UNdeC TV";
+  if (provider === "lateplay-larioja") return "LatePlay La Rioja";
   if (provider === "eltribuno-jujuy") return "El Tribuno de Jujuy";
   if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
@@ -2226,6 +2231,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "universidad-nacional-jujuy") return "Universidad Nacional de Jujuy";
   if (provider === "unjutv") return "UNJuTV";
   if (provider === "municipalidad-palpala") return "Municipalidad de Palpala";
+  if (provider === "canal2-perico") return "Canal 2 Perico";
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "canal7salta") return "Canal 7 Salta";
   if (provider === "eltribuno-salta") return "El Tribuno Salta";
@@ -2237,6 +2243,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "municipalidad-salta") return "Municipalidad de Salta";
   if (provider === "canal-i-salta") return "Canal i Salta";
   if (provider === "rectorado-unsa") return "Rectorado UNSa";
+  if (provider === "el-once-salta") return "El Once TV Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "unsl-tv") return "UNSL TV";
   if (provider === "poder-judicial-san-luis") return "Poder Judicial San Luis";
@@ -2247,6 +2254,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "unvime") return "UNViMe";
   if (provider === "concejo-san-luis") return "Concejo San Luis";
   if (provider === "cultura-san-luis") return "Cultura San Luis";
+  if (provider === "merlo-tv") return "Merlo TV";
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "radio-panorama") return "Radio Panorama";
@@ -2258,7 +2266,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "municipalidad-la-banda") return "Municipalidad La Banda";
   if (provider === "municipalidad-fernandez-sde") return "Municipalidad de Fernandez";
   if (provider === "radio-unse") return "Radio UNSE";
+  if (provider === "exclusiva1037") return "Exclusiva 103.7";
   if (provider === "lagaceta-play") return "LA GACETA Play";
+  if (provider === "lv12-tucuman") return "LV12 Tucuman";
   if (provider === "medios-unt") return "Medios UNT";
   if (provider === "mia-tucuman") return "Mia Tucuman";
   if (provider === "legislatura-tucuman") return "Legislatura Tucuman";
@@ -2274,6 +2284,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
   if (provider === "xama-tv") return "Xama TV";
   if (provider === "uncaus-tv") return "UNCAus TV";
+  if (provider === "stream-chaco-tv") return "Stream Chaco TV";
   if (provider === "ciudadtv-chaco") return "Ciudad TV Chaco";
   if (provider === "canal-somos-uno") return "Canal Somos Uno";
   if (provider === "gobierno-chaco") return "Gobierno del Chaco";
@@ -2287,6 +2298,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "diputados-corrientes") return "Diputados Corrientes";
   if (provider === "municipalidad-corrientes") return "Municipalidad Corrientes";
   if (provider === "muni-corrientes") return "MuniCorrientes";
+  if (provider === "telenord-corrientes") return "Telenord Corrientes";
   if (provider === "senado-corrientes") return "Senado Corrientes";
   if (provider === "unne") return "UNNE";
   if (provider === "uner") return "UNER";
@@ -2296,6 +2308,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "poder-judicial-entre-rios") return "Poder Judicial Entre Rios";
   if (provider === "municipalidad-parana") return "Municipalidad de Parana";
   if (provider === "concejo-parana") return "Concejo Parana";
+  if (provider === "concejo-concordia") return "Concejo Concordia";
   if (provider === "gobierno-misiones") return "Gobierno de Misiones";
   if (provider === "representantes-misiones") return "Representantes Misiones";
   if (provider === "municipalidad-posadas") return "Municipalidad de Posadas";
@@ -2303,6 +2316,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "unam-tv-misiones") return "UNaM Television";
   if (provider === "canal-doce-misiones") return "Canal Doce Misiones";
   if (provider === "gobierno-obera") return "Gobierno de Obera";
+  if (provider === "municipalidad-eldorado") return "Municipalidad de Eldorado";
   if (provider === "gobierno-san-juan") return "Gobierno de San Juan";
   if (provider === "diputados-san-juan") return "Diputados San Juan";
   if (provider === "poder-judicial-san-juan") return "Poder Judicial San Juan";
@@ -2310,6 +2324,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "ciudad-san-juan") return "Ciudad San Juan";
   if (provider === "canal13-san-juan") return "Canal 13 San Juan";
   if (provider === "hcd-rawson-san-juan") return "HCD Rawson";
+  if (provider === "este-digital") return "EsteDigital";
   if (provider === "elocho-tucuman") return "El Ocho Tucuman";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
@@ -2322,6 +2337,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "nautica-news") return "Nautica News";
   if (provider === "gobierno-santa-fe") return "Gobierno de Santa Fe";
   if (provider === "municipalidad-rosario") return "Municipalidad de Rosario";
+  if (provider === "municipalidad-santa-fe") return "Municipalidad de Santa Fe";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "mendoza-capital") return "Ciudad de Mendoza";
