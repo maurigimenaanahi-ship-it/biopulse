@@ -16997,5 +16997,229 @@
       "verifiedBy": "Codex via Municipalidad de la Capital de San Juan official website, public YouTube channel, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-13"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-caba-live",
+    "providerId": "legislatura-caba",
+    "title": "CABA - Legislatura en vivo",
+    "description": "Senal audiovisual institucional de la Legislatura de la Ciudad Autonoma de Buenos Aires. Puede incluir sesiones, reuniones de comision, audiencias publicas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -34.6118, "lon": -58.3739 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCpukvbam8pP4_wajUHL-kng",
+      "sourceUrl": "https://www.youtube.com/@legiscaba"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Legislatura CABA / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["caba", "buenos-aires", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Legislatura CABA official pages, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipio-resistencia-live",
+    "providerId": "municipio-resistencia",
+    "title": "Chaco - Municipio de Resistencia en vivo",
+    "description": "Senal audiovisual institucional del Municipio de Resistencia. Puede incluir comunicados municipales, actividades urbanas, actos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4514, "lon": -58.9867 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCkkGPcBwau8fy5cXyyc-KTQ",
+      "sourceUrl": "https://www.youtube.com/@MuniResistencia"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipio de Resistencia / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "resistencia", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Resistencia official website, public YouTube channel title, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-parana-live",
+    "providerId": "municipalidad-parana",
+    "title": "Entre Rios - Municipalidad de Parana en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Parana. Puede incluir comunicados municipales, actividades urbanas, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7333, "lon": -60.5297 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCGXcZ7I9eBZv80qYjpz4BdA",
+      "sourceUrl": "https://www.youtube.com/@MunicipalidadParana"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Parana / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "parana", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Parana official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-quientv-formosa-youtube-live",
+    "providerId": "quientv-formosa-youtube",
+    "title": "Formosa - Quien TV Formosa en YouTube",
+    "description": "Senal audiovisual local de Quien TV Formosa en YouTube. Puede incluir programas periodisticos, entrevistas y transmisiones en vivo de interes local; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCGFASkHoqQcYKMaGF8mWpKQ",
+      "sourceUrl": "https://www.youtube.com/@quientvformosa"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Quien TV Formosa / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["formosa", "local-tv", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public local source reference, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal-i-salta-live",
+    "providerId": "canal-i-salta",
+    "title": "Salta - Canal i Salta en vivo",
+    "description": "Senal audiovisual local de Canal i Salta. Puede incluir noticias, moviles en vivo, contenidos locales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7821, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCzd6bLY3q7RKuu1SZBXk7yQ",
+      "sourceUrl": "https://www.youtube.com/@canalisalta"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal i Salta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "local-tv", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Canal i official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal13-san-juan-live",
+    "providerId": "canal13-san-juan",
+    "title": "San Juan - Canal 13 San Juan TV en vivo",
+    "description": "Senal audiovisual local de Canal 13 San Juan TV. Puede incluir noticias, moviles en vivo, cobertura territorial y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCxzVNQpuuVnG5M5F9KFwWpg",
+      "sourceUrl": "https://www.youtube.com/@Canal13SanJuanTV"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 13 San Juan TV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "local-tv", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Diario 13 San Juan official site, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-gobierno-santa-fe-live",
+    "providerId": "gobierno-santa-fe",
+    "title": "Santa Fe - Gobierno provincial en vivo",
+    "description": "Senal audiovisual institucional del Gobierno de la Provincia de Santa Fe. Puede incluir actos oficiales, comunicados, conferencias y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.6333, "lon": -60.7 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Santa Fe" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCLIGTH3W44i85f2Ya4Oyr1Q",
+      "sourceUrl": "https://www.youtube.com/@GobSantaFe"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Gobierno de Santa Fe / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santa-fe", "government", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Santa Fe official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-fernandez-sde-live",
+    "providerId": "municipalidad-fernandez-sde",
+    "title": "Santiago del Estero - Municipalidad de Fernandez en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Fernandez, Santiago del Estero. Puede incluir comunicados municipales, actividades locales, actos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.9205, "lon": -63.8933 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Fernandez" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCEAN0bcnQjS4ksXUVzuoJJg",
+      "sourceUrl": "https://www.youtube.com/@municipalidaddefernandez"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Fernandez / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "fernandez", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Fernandez official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]

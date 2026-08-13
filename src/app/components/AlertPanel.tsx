@@ -2155,6 +2155,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "webcamtaxi") return "Webcamtaxi";
   if (provider === "worldcam") return "WorldCam";
   if (provider === "canal-ciudad-ba") return "Canal de la Ciudad";
+  if (provider === "legislatura-caba") return "Legislatura CABA";
   if (provider === "chapelco") return "Chapelco";
   if (provider === "agvp-santa-cruz") return "AGVP Santa Cruz";
   if (provider === "cerrocastor") return "Cerro Castor";
@@ -2188,6 +2189,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "municipio-formosa") return "Municipio Formosa";
   if (provider === "formosa-tu-ciudad") return "Formosa Tu Ciudad";
   if (provider === "unaf-recursos-naturales") return "Recursos Naturales UNaF";
+  if (provider === "quientv-formosa-youtube") return "Quien TV Formosa";
   if (provider === "cpetv") return "CPEtv";
   if (provider === "cpa-unlpam") return "CPA UNLPam";
   if (provider === "gobierno-lapampa") return "Gobierno de La Pampa";
@@ -2228,6 +2230,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "diputados-salta") return "Diputados Salta";
   if (provider === "senado-salta") return "Senado Salta";
   if (provider === "municipalidad-salta") return "Municipalidad de Salta";
+  if (provider === "canal-i-salta") return "Canal i Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "unsl-tv") return "UNSL TV";
   if (provider === "poder-judicial-san-luis") return "Poder Judicial San Luis";
@@ -2246,6 +2249,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "nuevo-diario-sde") return "Nuevo Diario SDE";
   if (provider === "unseteve-sde") return "UNSE TeVe";
   if (provider === "municipalidad-la-banda") return "Municipalidad La Banda";
+  if (provider === "municipalidad-fernandez-sde") return "Municipalidad de Fernandez";
   if (provider === "lagaceta-play") return "LA GACETA Play";
   if (provider === "medios-unt") return "Medios UNT";
   if (provider === "mia-tucuman") return "Mia Tucuman";
@@ -2267,6 +2271,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "poder-legislativo-chaco") return "Poder Legislativo Chaco";
   if (provider === "legislatura-chaco") return "Legislatura Chaco";
   if (provider === "centro-estudios-judiciales-chaco") return "Centro Estudios Judiciales Chaco";
+  if (provider === "municipio-resistencia") return "Municipio de Resistencia";
   if (provider === "canal2misiones") return "Canal 2 Misiones";
   if (provider === "gobierno-corrientes") return "Gobierno de Corrientes";
   if (provider === "poder-judicial-corrientes") return "Poder Judicial Corrientes";
@@ -2279,6 +2284,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "diputados-entre-rios") return "Diputados Entre Rios";
   if (provider === "senado-entre-rios") return "Senado Entre Rios";
   if (provider === "poder-judicial-entre-rios") return "Poder Judicial Entre Rios";
+  if (provider === "municipalidad-parana") return "Municipalidad de Parana";
   if (provider === "gobierno-misiones") return "Gobierno de Misiones";
   if (provider === "representantes-misiones") return "Representantes Misiones";
   if (provider === "municipalidad-posadas") return "Municipalidad de Posadas";
@@ -2290,6 +2296,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "poder-judicial-san-juan") return "Poder Judicial San Juan";
   if (provider === "municipalidad-chimbas") return "Municipalidad de Chimbas";
   if (provider === "ciudad-san-juan") return "Ciudad San Juan";
+  if (provider === "canal13-san-juan") return "Canal 13 San Juan";
   if (provider === "elocho-tucuman") return "El Ocho Tucuman";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";
@@ -2300,6 +2307,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "infopico") return "InfoPico";
   if (provider === "fenix951") return "Fenix Multiplataforma";
   if (provider === "nautica-news") return "Nautica News";
+  if (provider === "gobierno-santa-fe") return "Gobierno de Santa Fe";
   if (provider === "innovacion-cipolletti") return "Innovacion Cipolletti";
   if (provider === "paseos-turismo") return "Paseos y Turismo";
   if (provider === "mendoza-capital") return "Ciudad de Mendoza";
