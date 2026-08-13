@@ -16885,5 +16885,117 @@
       "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-13"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal-ciudad-ba-live",
+    "providerId": "canal-ciudad-ba",
+    "title": "CABA - Canal de la Ciudad en vivo",
+    "description": "Senal publica de television de la Ciudad Autonoma de Buenos Aires. Emite programacion local, noticias, cultura y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -34.6037, "lon": -58.3816 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCOV_Vx1baZJY9Tfvgm-UI3w",
+      "sourceUrl": "https://www.youtube.com/@canalciudadba"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal de la Ciudad / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["caba", "buenos-aires", "public-tv", "local", "official", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Buenos Aires official page, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-uner-live",
+    "providerId": "uner",
+    "title": "Entre Rios - Universidad Nacional de Entre Rios en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional de Entre Rios. Puede incluir contenidos universitarios, actividades academicas, entrevistas, comunicados y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7413, "lon": -60.5115 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCgt1g00BxRQu7lxf-7wh8-A",
+      "sourceUrl": "https://www.youtube.com/@uneroficial"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Universidad Nacional de Entre Rios / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "parana", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via UNER Medios, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-salta-live",
+    "providerId": "municipalidad-salta",
+    "title": "Salta - Municipalidad de Salta en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Salta. Puede incluir comunicados municipales, actos publicos, contenidos urbanos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7821, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCohZywbgDOWBIRyjWM6XXNg",
+      "sourceUrl": "https://www.youtube.com/@MunicipalidadSaltaok"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Salta / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de Salta official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-ciudad-san-juan-live",
+    "providerId": "ciudad-san-juan",
+    "title": "San Juan - Ciudad San Juan en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de la Capital de San Juan. Puede incluir comunicados municipales, sesiones, contenidos urbanos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCYBoJLTAzpNk4x-gPMA9Kig",
+      "sourceUrl": "https://www.youtube.com/@CiudadSanJuan"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Ciudad San Juan / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via Municipalidad de la Capital de San Juan official website, public YouTube channel, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]

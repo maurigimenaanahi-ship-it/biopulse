@@ -2154,6 +2154,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "skyline") return "Skyline";
   if (provider === "webcamtaxi") return "Webcamtaxi";
   if (provider === "worldcam") return "WorldCam";
+  if (provider === "canal-ciudad-ba") return "Canal de la Ciudad";
   if (provider === "chapelco") return "Chapelco";
   if (provider === "agvp-santa-cruz") return "AGVP Santa Cruz";
   if (provider === "cerrocastor") return "Cerro Castor";
@@ -2226,6 +2227,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "poder-judicial-salta") return "Poder Judicial Salta";
   if (provider === "diputados-salta") return "Diputados Salta";
   if (provider === "senado-salta") return "Senado Salta";
+  if (provider === "municipalidad-salta") return "Municipalidad de Salta";
   if (provider === "san-luis-mas") return "San Luis+";
   if (provider === "unsl-tv") return "UNSL TV";
   if (provider === "poder-judicial-san-luis") return "Poder Judicial San Luis";
@@ -2272,6 +2274,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "municipalidad-corrientes") return "Municipalidad Corrientes";
   if (provider === "senado-corrientes") return "Senado Corrientes";
   if (provider === "unne") return "UNNE";
+  if (provider === "uner") return "UNER";
   if (provider === "gobierno-entre-rios") return "Gobierno de Entre Rios";
   if (provider === "diputados-entre-rios") return "Diputados Entre Rios";
   if (provider === "senado-entre-rios") return "Senado Entre Rios";
@@ -2286,6 +2289,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "diputados-san-juan") return "Diputados San Juan";
   if (provider === "poder-judicial-san-juan") return "Poder Judicial San Juan";
   if (provider === "municipalidad-chimbas") return "Municipalidad de Chimbas";
+  if (provider === "ciudad-san-juan") return "Ciudad San Juan";
   if (provider === "elocho-tucuman") return "El Ocho Tucuman";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";

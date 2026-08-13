@@ -452,6 +452,9 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Tucuman / Municipalidad SMT, Concejo SMT, Municipalidad de Yerba Buena y Universidad San Pablo-T / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@MunicipalidadTucuman`, `@concejodeliberanteSMT`, `@YerbabuenaGobArOk` y `@UnivSanPabloT`. Los cuatro endpoints live_stream respondieron 200. Registrar como senales locales disponibles cuando la fuente emite.
   Fuentes: https://www.youtube.com/@MunicipalidadTucuman , https://www.youtube.com/@concejodeliberanteSMT , https://www.youtube.com/@YerbabuenaGobArOk , https://www.youtube.com/@UnivSanPabloT
 
+- CABA, Entre Rios, Salta y San Juan / señales piso 11 / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con Canal de la Ciudad (`@canalciudadba`), UNER (`@uneroficial`), Municipalidad de Salta (`@MunicipalidadSaltaok`) y Ciudad San Juan (`@CiudadSanJuan`). Los cuatro endpoints live_stream respondieron 200. Canal de la Ciudad fue respaldado por pagina oficial de Buenos Aires Ciudad; UNER por UNER Medios; Municipalidad de Salta por `municipalidadsalta.gob.ar`; Ciudad San Juan por pagina municipal oficial. Registrar como senales locales/institucionales disponibles cuando la fuente emite, no como camaras fijas 24/7.
+  Fuentes: https://buenosaires.gob.ar/gcaba_historico/secretariadecomunicacion/canal-de-la-ciudad-0 , https://www.youtube.com/@canalciudadba , https://medios.uner.edu.ar/uner-lanza-su-canal-de-streaming/amp/ , https://www.youtube.com/@uneroficial , https://municipalidadsalta.gob.ar/ , https://www.youtube.com/@MunicipalidadSaltaok , https://www.municipiosanjuan.gob.ar/municipio/inicio-de-sesiones , https://www.youtube.com/@CiudadSanJuan
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
