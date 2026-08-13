@@ -16325,5 +16325,565 @@
       "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
       "verifiedAt": "2026-08-13"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-valle-viejo-live",
+    "providerId": "municipalidad-valle-viejo",
+    "title": "Catamarca - Municipalidad de Valle Viejo en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Valle Viejo, Catamarca. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.478, "lon": -65.707 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "Valle Viejo" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCA0_fG1WGao0hk9Gfjup2yA",
+      "sourceUrl": "https://www.youtube.com/@municipalidaddevalleviejo554"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Valle Viejo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "valle-viejo", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-el-ancasti-catamarca-live",
+    "providerId": "el-ancasti",
+    "title": "Catamarca - El Ancasti en vivo",
+    "description": "Senal audiovisual local de El Ancasti Catamarca. Puede incluir noticias, entrevistas, coberturas territoriales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4689, "lon": -65.7794 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCzqgsZ0rFvy77Z8MZZUt9sA",
+      "sourceUrl": "https://www.youtube.com/@elancastiok"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: El Ancasti / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-esquiu-play-catamarca-live",
+    "providerId": "esquiu-play",
+    "title": "Catamarca - Esquiu Play en vivo",
+    "description": "Senal audiovisual local de Esquiu Play Catamarca. Puede incluir noticias, entrevistas, coberturas territoriales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4689, "lon": -65.7794 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCVJ4V2QLlrWpOMJ_N5Ck6Og",
+      "sourceUrl": "https://www.youtube.com/@elesquiuvideos"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Esquiu Play / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-corrientes-live",
+    "providerId": "municipalidad-corrientes",
+    "title": "Corrientes - Municipalidad de Corrientes en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Corrientes. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8309 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCQIaXdSQ5qI3AUMItIErjjA",
+      "sourceUrl": "https://www.youtube.com/@municipalidaddecorrientess"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Corrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-senado-corrientes-live",
+    "providerId": "senado-corrientes",
+    "title": "Corrientes - Senado en vivo",
+    "description": "Senal audiovisual institucional del Senado de Corrientes. Puede incluir actividades parlamentarias, sesiones, actos culturales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8309 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCG53mcv5LYAOzJrLGnGTy-A",
+      "sourceUrl": "https://www.youtube.com/@senadocorrientesok"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Senado Corrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unne-live",
+    "providerId": "unne",
+    "title": "Corrientes - UNNE en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional del Nordeste. Puede incluir contenidos educativos, institucionales, ambientales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8309 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCvoEq1RwqjoXVdHftofMJnQ",
+      "sourceUrl": "https://www.youtube.com/@unneargentina"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Universidad Nacional del Nordeste / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-jujuy-live",
+    "providerId": "municipalidad-jujuy",
+    "title": "Jujuy - Municipalidad de San Salvador de Jujuy en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de San Salvador de Jujuy. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCkVdReeh7ZbEY8ODsusVNJg",
+      "sourceUrl": "https://www.youtube.com/@munijujuy"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de San Salvador de Jujuy / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "san-salvador-de-jujuy", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-universidad-nacional-jujuy-live",
+    "providerId": "universidad-nacional-jujuy",
+    "title": "Jujuy - Universidad Nacional de Jujuy en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional de Jujuy. Puede incluir actividades academicas, conferencias, contenidos educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCCgBjdnOuNzZSNgnVnRaf-A",
+      "sourceUrl": "https://www.youtube.com/@UniversidadNacionaldeJujuy"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Universidad Nacional de Jujuy / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unjutv-live",
+    "providerId": "unjutv",
+    "title": "Jujuy - UNJuTV en vivo",
+    "description": "Senal audiovisual institucional/local de UNJuTV. Puede incluir contenidos universitarios, culturales, educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCkZNYP0HziM_8VmQpqD1WGA",
+      "sourceUrl": "https://www.youtube.com/@UNJuTV"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNJuTV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["jujuy", "university", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-larioja-live",
+    "providerId": "municipalidad-larioja",
+    "title": "La Rioja - Municipalidad de La Rioja en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de la Ciudad de La Rioja. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCcuvYfVbwtl-38w_wk8ybgA",
+      "sourceUrl": "https://www.youtube.com/@municipalidaddelarioja3163"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-ciudad-tv-larioja-live",
+    "providerId": "ciudad-tv-larioja",
+    "title": "La Rioja - Ciudad TV La Rioja en vivo",
+    "description": "Senal audiovisual local de Ciudad TV La Rioja, canal de television de la Municipalidad de La Rioja. Puede incluir noticias municipales, comunicados, coberturas urbanas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCakQgNrbPuk8OdwI3IhT8gQ",
+      "sourceUrl": "https://www.youtube.com/@ciudadtvlarioja5590"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Ciudad TV La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "municipality", "news", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-parlamento-larioja-live",
+    "providerId": "parlamento-larioja",
+    "title": "La Rioja - Parlamento de La Rioja en vivo",
+    "description": "Senal audiovisual institucional del Parlamento de La Rioja. Puede incluir sesiones, actos legislativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4135, "lon": -66.8565 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCpAY_YgIajM3YH4Bx3SdXSw",
+      "sourceUrl": "https://www.youtube.com/@parlamentodelarioja"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Parlamento de La Rioja / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-rioja", "government", "legislature", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-chimbas-live",
+    "providerId": "municipalidad-chimbas",
+    "title": "San Juan - Municipalidad de Chimbas en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Chimbas, San Juan. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.4833, "lon": -68.5333 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "Chimbas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UChRVBqIZZfD3SX3OGHfnxaQ",
+      "sourceUrl": "https://www.youtube.com/@MUNICIPALIDADDECHIMBAS"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Chimbas / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "chimbas", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response; discarded similarly named San Juan Tuxtepec channel",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-villa-mercedes-live",
+    "providerId": "municipalidad-villa-mercedes",
+    "title": "San Luis - Municipalidad de Villa Mercedes en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Villa Mercedes, San Luis. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.6757, "lon": -65.4578 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "Villa Mercedes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCAzY-6RpyLrO2LJvmT5OPMw",
+      "sourceUrl": "https://www.youtube.com/@Muni_vm"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Villa Mercedes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "villa-mercedes", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-unvime-live",
+    "providerId": "unvime",
+    "title": "San Luis - Universidad Nacional Villa Mercedes en vivo",
+    "description": "Senal audiovisual institucional de la Universidad Nacional Villa Mercedes. Puede incluir actividades academicas, conferencias, contenidos educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.6757, "lon": -65.4578 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "Villa Mercedes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCA6V_qdr50ivgzwnjhOYM2Q",
+      "sourceUrl": "https://www.youtube.com/@unvimeoficial"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Universidad Nacional Villa Mercedes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "villa-mercedes", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-concejo-san-luis-live",
+    "providerId": "concejo-san-luis",
+    "title": "San Luis - Concejo Deliberante en vivo",
+    "description": "Senal audiovisual institucional del Concejo Deliberante de San Luis. Puede incluir sesiones, actos legislativos municipales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.295, "lon": -66.3356 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC00XFuEvKN35SFIIX_PipBA",
+      "sourceUrl": "https://www.youtube.com/@ConcejoDeliberanteSanLuis"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Concejo Deliberante San Luis / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "legislature", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-smt-live",
+    "providerId": "municipalidad-smt",
+    "title": "Tucuman - Municipalidad de San Miguel de Tucuman en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de San Miguel de Tucuman. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8083, "lon": -65.2176 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCzl9B4L_CuPA15HrGLVdxrA",
+      "sourceUrl": "https://www.youtube.com/@MunicipalidadTucuman"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de San Miguel de Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "san-miguel-de-tucuman", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-concejo-smt-live",
+    "providerId": "concejo-smt",
+    "title": "Tucuman - Concejo Deliberante de SMT en vivo",
+    "description": "Senal audiovisual institucional del Concejo Deliberante de San Miguel de Tucuman. Puede incluir sesiones, actos legislativos municipales y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8083, "lon": -65.2176 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCoqxEOH_i733V-E1Fkl76cw",
+      "sourceUrl": "https://www.youtube.com/@concejodeliberanteSMT"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Concejo Deliberante de San Miguel de Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "san-miguel-de-tucuman", "legislature", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-municipalidad-yerba-buena-live",
+    "providerId": "municipalidad-yerba-buena",
+    "title": "Tucuman - Municipalidad de Yerba Buena en vivo",
+    "description": "Senal audiovisual institucional de la Municipalidad de Yerba Buena, Tucuman. Puede incluir actos municipales, comunicados, eventos publicos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8167, "lon": -65.3167 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "Yerba Buena" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCpo3JGZxNXGkCyXxRYiaekA",
+      "sourceUrl": "https://www.youtube.com/@YerbabuenaGobArOk"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Municipalidad de Yerba Buena / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "yerba-buena", "municipality", "official", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-universidad-san-pablo-t-live",
+    "providerId": "universidad-san-pablo-t",
+    "title": "Tucuman - Universidad San Pablo-T en vivo",
+    "description": "Senal audiovisual institucional de la Universidad San Pablo-T. Puede incluir actividades academicas, conferencias, contenidos educativos y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.839, "lon": -65.31 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Pablo" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCMgMnc0Lo9fWQNibe1dwsSA",
+      "sourceUrl": "https://www.youtube.com/@UnivSanPabloT"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Universidad San Pablo-T / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "san-pablo", "university", "institutional", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public YouTube channel search, channel description, canonical handle and live_stream embed response",
+      "verifiedAt": "2026-08-13"
+    }
   }
 ]

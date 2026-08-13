@@ -2168,6 +2168,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gobierno-catamarca") return "Gobierno de Catamarca";
   if (provider === "senado-catamarca") return "Senado Catamarca";
   if (provider === "catamarca-capital") return "Catamarca Capital";
+  if (provider === "municipalidad-valle-viejo") return "Municipalidad Valle Viejo";
+  if (provider === "el-ancasti") return "El Ancasti";
+  if (provider === "esquiu-play") return "Esquiu Play";
   if (provider === "unlar-tv") return "UNLaR TV";
   if (provider === "radio-valle-viejo") return "Radio TV Valle Viejo";
   if (provider === "canal3lapampa") return "Canal 3 La Pampa";
@@ -2201,6 +2204,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gobierno-larioja") return "Gobierno de La Rioja";
   if (provider === "legislatura-larioja") return "Legislatura La Rioja";
   if (provider === "funcion-judicial-larioja") return "Funcion Judicial La Rioja";
+  if (provider === "municipalidad-larioja") return "Municipalidad La Rioja";
+  if (provider === "ciudad-tv-larioja") return "Ciudad TV La Rioja";
+  if (provider === "parlamento-larioja") return "Parlamento La Rioja";
   if (provider === "eltribuno-jujuy") return "El Tribuno de Jujuy";
   if (provider === "jujuyfm") return "Jujuy FM";
   if (provider === "fm-sol-jujuy") return "FM Sol Jujuy";
@@ -2209,6 +2215,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gobierno-jujuy") return "Gobierno de Jujuy";
   if (provider === "legislatura-jujuy") return "Legislatura Jujuy";
   if (provider === "poder-judicial-jujuy") return "Poder Judicial Jujuy";
+  if (provider === "municipalidad-jujuy") return "Municipalidad Jujuy";
+  if (provider === "universidad-nacional-jujuy") return "Universidad Nacional de Jujuy";
+  if (provider === "unjutv") return "UNJuTV";
   if (provider === "pue-salta") return "PUE! Salta";
   if (provider === "canal7salta") return "Canal 7 Salta";
   if (provider === "eltribuno-salta") return "El Tribuno Salta";
@@ -2223,6 +2232,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "diputados-san-luis") return "Diputados San Luis";
   if (provider === "municipalidad-san-luis") return "Municipalidad de San Luis";
   if (provider === "agencia-san-luis") return "Agencia San Luis";
+  if (provider === "municipalidad-villa-mercedes") return "Municipalidad Villa Mercedes";
+  if (provider === "unvime") return "UNViMe";
+  if (provider === "concejo-san-luis") return "Concejo San Luis";
   if (provider === "gobierno-sde") return "Gobierno SDE";
   if (provider === "canal7-santiago") return "Canal 7 Santiago";
   if (provider === "radio-panorama") return "Radio Panorama";
@@ -2239,6 +2251,10 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "poder-judicial-tucuman") return "Poder Judicial Tucuman";
   if (provider === "gobierno-tucuman") return "Gobierno de Tucuman";
   if (provider === "canal5-tucuman") return "Canal 5 Tucuman";
+  if (provider === "municipalidad-smt") return "Municipalidad SMT";
+  if (provider === "concejo-smt") return "Concejo SMT";
+  if (provider === "municipalidad-yerba-buena") return "Municipalidad Yerba Buena";
+  if (provider === "universidad-san-pablo-t") return "Universidad San Pablo-T";
   if (provider === "multivision-federal") return "Multivision Federal";
   if (provider === "lightfm") return "Light FM";
   if (provider === "canal4sanjuan") return "Canal 4 San Juan";
@@ -2253,6 +2269,9 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gobierno-corrientes") return "Gobierno de Corrientes";
   if (provider === "poder-judicial-corrientes") return "Poder Judicial Corrientes";
   if (provider === "diputados-corrientes") return "Diputados Corrientes";
+  if (provider === "municipalidad-corrientes") return "Municipalidad Corrientes";
+  if (provider === "senado-corrientes") return "Senado Corrientes";
+  if (provider === "unne") return "UNNE";
   if (provider === "gobierno-entre-rios") return "Gobierno de Entre Rios";
   if (provider === "diputados-entre-rios") return "Diputados Entre Rios";
   if (provider === "senado-entre-rios") return "Senado Entre Rios";
@@ -2266,6 +2285,7 @@ function cameraSourceLabel(cam: CameraRegistryItem) {
   if (provider === "gobierno-san-juan") return "Gobierno de San Juan";
   if (provider === "diputados-san-juan") return "Diputados San Juan";
   if (provider === "poder-judicial-san-juan") return "Poder Judicial San Juan";
+  if (provider === "municipalidad-chimbas") return "Municipalidad de Chimbas";
   if (provider === "elocho-tucuman") return "El Ocho Tucuman";
   if (provider === "laslenas") return "Las Lenas";
   if (provider === "lu24") return "LU24";

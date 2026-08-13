@@ -431,6 +431,27 @@ Cuando varias camaras muestran una misma esquina, zona o paisaje desde angulos c
 - Santiago del Estero / Nuevo Diario, UNSE TeVe y Municipalidad de La Banda / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@nuevodiariosantiagodeleste1049`, `@unseteve` y `@MunicipalidaddeLaBanda`. Los tres endpoints live_stream respondieron 200; UNSE TeVe se identifica como centro audiovisual de la Universidad Nacional de Santiago del Estero.
   Fuentes: https://www.youtube.com/@nuevodiariosantiagodeleste1049 , https://www.youtube.com/@unseteve , https://www.youtube.com/@MunicipalidaddeLaBanda
 
+- Catamarca / Municipalidad de Valle Viejo, El Ancasti y Esquiu Play / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@municipalidaddevalleviejo554`, `@elancastiok` y `@elesquiuvideos`. Los tres endpoints live_stream respondieron 200. Registrar como senales locales disponibles cuando la fuente emite, no como camaras fijas 24/7.
+  Fuentes: https://www.youtube.com/@municipalidaddevalleviejo554 , https://www.youtube.com/@elancastiok , https://www.youtube.com/@elesquiuvideos
+
+- Corrientes / Municipalidad, Senado y UNNE / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@municipalidaddecorrientess`, `@senadocorrientesok` y `@unneargentina`. Los tres endpoints live_stream respondieron 200. La UNNE se agrega por cobertura institucional/regional del nordeste.
+  Fuentes: https://www.youtube.com/@municipalidaddecorrientess , https://www.youtube.com/@senadocorrientesok , https://www.youtube.com/@unneargentina
+
+- Jujuy / Municipalidad de San Salvador de Jujuy, Universidad Nacional de Jujuy y UNJuTV / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@munijujuy`, `@UniversidadNacionaldeJujuy` y `@UNJuTV`. Los tres endpoints live_stream respondieron 200. Registrar como senales locales/institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@munijujuy , https://www.youtube.com/@UniversidadNacionaldeJujuy , https://www.youtube.com/@UNJuTV
+
+- La Rioja / Municipalidad de La Rioja, Ciudad TV La Rioja y Parlamento de La Rioja / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@municipalidaddelarioja3163`, `@ciudadtvlarioja5590` y `@parlamentodelarioja`. Los tres endpoints live_stream respondieron 200. Ciudad TV se identifica como canal municipal y Parlamento como senal legislativa provincial.
+  Fuentes: https://www.youtube.com/@municipalidaddelarioja3163 , https://www.youtube.com/@ciudadtvlarioja5590 , https://www.youtube.com/@parlamentodelarioja
+
+- San Juan / Municipalidad de Chimbas / YouTube: aplicada como `html_embed` usando YouTube `embed/live_stream?channel=UChRVBqIZZfD3SX3OGHfnxaQ`. El canal `@MUNICIPALIDADDECHIMBAS` se identifica como municipalidad de Chimbas, San Juan, Argentina, y el endpoint live_stream respondio 200. Se descarto `@GOBIERNOAUTONOMOMUNICIPA-mh6jp` porque correspondia a San Juan Bautista Tuxtepec, Mexico, no a San Juan Argentina.
+  Fuentes: https://www.youtube.com/@MUNICIPALIDADDECHIMBAS , https://www.youtube.com/@GOBIERNOAUTONOMOMUNICIPA-mh6jp
+
+- San Luis / Municipalidad de Villa Mercedes, UNViMe y Concejo Deliberante San Luis / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@Muni_vm`, `@unvimeoficial` y `@ConcejoDeliberanteSanLuis`. Los tres endpoints live_stream respondieron 200. Registrar como senales locales/institucionales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@Muni_vm , https://www.youtube.com/@unvimeoficial , https://www.youtube.com/@ConcejoDeliberanteSanLuis
+
+- Tucuman / Municipalidad SMT, Concejo SMT, Municipalidad de Yerba Buena y Universidad San Pablo-T / YouTube: aplicadas como `html_embed` usando YouTube `embed/live_stream` con los canales `@MunicipalidadTucuman`, `@concejodeliberanteSMT`, `@YerbabuenaGobArOk` y `@UnivSanPabloT`. Los cuatro endpoints live_stream respondieron 200. Registrar como senales locales disponibles cuando la fuente emite.
+  Fuentes: https://www.youtube.com/@MunicipalidadTucuman , https://www.youtube.com/@concejodeliberanteSMT , https://www.youtube.com/@YerbabuenaGobArOk , https://www.youtube.com/@UnivSanPabloT
+
 - EarthCam, Surfline, WeatherBug, Pano AI y redes privadas/comerciales: no usar sin API, permiso explicito o terminos compatibles.
 
 ## Regla de implementacion
