@@ -21701,5 +21701,565 @@
       "verifiedBy": "Codex via YouTube search result, duplicate channelId check and live_stream embed response",
       "verifiedAt": "2026-08-14"
     }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-a24-caba-live",
+    "providerId": "a24-caba",
+    "title": "CABA - A24 en vivo",
+    "description": "Senal audiovisual nacional con base operativa en CABA. Puede incluir actualidad, entrevistas, alertas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -34.6037, "lon": -58.3816 },
+    "coverage": { "countryISO2": "AR", "admin1": "CABA", "locality": "Buenos Aires" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCR9120YBAqMfntqgRTKmkjQ",
+      "sourceUrl": "https://www.youtube.com/channel/UCR9120YBAqMfntqgRTKmkjQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: A24 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["caba", "buenos-aires", "news", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-prp-en-vivo-catamarca-live",
+    "providerId": "prp-en-vivo-catamarca",
+    "title": "Catamarca - PRP en Vivo",
+    "description": "Senal audiovisual local de PRP Studio Multimedia en Catamarca. Puede incluir programacion local, entrevistas, cobertura territorial y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -28.4696, "lon": -65.7852 },
+    "coverage": { "countryISO2": "AR", "admin1": "Catamarca", "locality": "San Fernando del Valle de Catamarca" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCTxuQm3eOMKLWQuKjkC2oxQ",
+      "sourceUrl": "https://www.youtube.com/channel/UCTxuQm3eOMKLWQuKjkC2oxQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: PRP en Vivo / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["catamarca", "local", "streaming", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-che-chaco-live",
+    "providerId": "che-chaco",
+    "title": "Chaco - CHE CHACO en vivo",
+    "description": "Senal audiovisual local de CHE CHACO. Puede incluir actualidad, cobertura de Resistencia y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4514, "lon": -58.9867 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chaco", "locality": "Resistencia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCGqjzzsxTgs2Ta1dYYwKi4g",
+      "sourceUrl": "https://www.youtube.com/channel/UCGqjzzsxTgs2Ta1dYYwKi4g"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: CHE CHACO / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chaco", "resistencia", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-seta-tv-chubut-live",
+    "providerId": "seta-tv-chubut",
+    "title": "Chubut - SETA TV en vivo",
+    "description": "Senal audiovisual local de SETA TV en Chubut. Puede incluir streaming, entrevistas, produccion local y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -45.8641, "lon": -67.482 },
+    "coverage": { "countryISO2": "AR", "admin1": "Chubut", "locality": "Comodoro Rivadavia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCUG6Nb4jv8XAK3swdSFM3-Q",
+      "sourceUrl": "https://www.youtube.com/channel/UCUG6Nb4jv8XAK3swdSFM3-Q"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SETA TV / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["chubut", "comodoro-rivadavia", "streaming", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal-c-cordoba-live",
+    "providerId": "canal-c-cordoba",
+    "title": "Cordoba - Canal C en vivo",
+    "description": "Senal audiovisual local de Canal C Argentina en Cordoba. Puede incluir actualidad provincial, entrevistas, programacion local y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.4201, "lon": -64.1888 },
+    "coverage": { "countryISO2": "AR", "admin1": "Cordoba", "locality": "Cordoba" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCncnuCzrFwWxO4Z-c1vQB2A",
+      "sourceUrl": "https://www.youtube.com/channel/UCncnuCzrFwWxO4Z-c1vQB2A"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal C Argentina / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["cordoba", "local-tv", "news", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-5tv-corrientes-live",
+    "providerId": "5tv-corrientes",
+    "title": "Corrientes - 5TV en vivo",
+    "description": "Senal audiovisual local de 5TV Corrientes. Puede incluir actualidad provincial, entrevistas, programacion local y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.4692, "lon": -58.8306 },
+    "coverage": { "countryISO2": "AR", "admin1": "Corrientes", "locality": "Corrientes" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCV2wWPUa5DN2EYjibVyqEjA",
+      "sourceUrl": "https://www.youtube.com/channel/UCV2wWPUa5DN2EYjibVyqEjA"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: 5TV Corrientes / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["corrientes", "local-tv", "news", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-entre-rios-noticias-live",
+    "providerId": "entre-rios-noticias",
+    "title": "Entre Rios - Entre Rios Noticias en vivo",
+    "description": "Senal audiovisual local de Entre Rios Noticias. Puede incluir actualidad provincial, entrevistas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.7413, "lon": -60.5115 },
+    "coverage": { "countryISO2": "AR", "admin1": "Entre Rios", "locality": "Parana" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCIgV1XNeNCNfT14VpRDNCnQ",
+      "sourceUrl": "https://www.youtube.com/channel/UCIgV1XNeNCNfT14VpRDNCnQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Entre Rios Noticias / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["entre-rios", "parana", "news", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-radio-formosa-video-live",
+    "providerId": "radio-formosa-video",
+    "title": "Formosa - Radio Formosa video en vivo",
+    "description": "Player audiovisual oficial de Radio Formosa. Puede incluir estudio en vivo, programacion local, entrevistas y transmisiones especiales; BioPulse usa el reproductor embebido de la fuente sin copiar ni rehostear video.",
+    "geo": { "lat": -26.1849, "lon": -58.1731 },
+    "coverage": { "countryISO2": "AR", "admin1": "Formosa", "locality": "Formosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "radio-formosa-video",
+      "url": "https://playerv.livecastv.com/video/radioformosa/3/true/false/c3RtdmlkZW82LmxpdmVjYXN0di5jb20rMQ==/16:9//sim",
+      "sourceUrl": "https://radioformosa.com.ar/video/"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio Formosa / LivecastV",
+      "termsUrl": "https://radioformosa.com.ar/"
+    },
+    "tags": ["formosa", "local", "radio", "livecastv", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via official Radio Formosa video page and LivecastV player response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-canal4-jujuy-official-player",
+    "providerId": "canal4-jujuy-player",
+    "title": "Jujuy - Canal 4 player oficial en vivo",
+    "description": "Player oficial de Canal 4 Jujuy publicado por El Cuatro. BioPulse usa la pagina de reproductor autorizada por la fuente y verifica el estado habilitado sin copiar ni rehostear video.",
+    "geo": { "lat": -24.1858, "lon": -65.2995 },
+    "coverage": { "countryISO2": "AR", "admin1": "Jujuy", "locality": "San Salvador de Jujuy" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "canal4-jujuy-player",
+      "url": "https://canal4jujuy.elcuatro.com/player",
+      "sourceUrl": "https://canal4jujuy.elcuatro.com/player"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Canal 4 Jujuy / El Cuatro",
+      "termsUrl": "https://canal4jujuy.elcuatro.com/player"
+    },
+    "tags": ["jujuy", "san-salvador-de-jujuy", "local-tv", "official-player", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via official player status enabled response and player page response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-cpetv-canal2-youtube-live",
+    "providerId": "cpetv-canal2-youtube",
+    "title": "La Pampa - CPEtv Canal 2 en vivo",
+    "description": "Senal audiovisual local de CPEtv Canal 2 en Santa Rosa, La Pampa. Puede incluir programacion local, actualidad y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -36.6203, "lon": -64.2906 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Pampa", "locality": "Santa Rosa" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCHwwsB_z_OtgVtC1UQomUMQ",
+      "sourceUrl": "https://www.youtube.com/channel/UCHwwsB_z_OtgVtC1UQomUMQ"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: CPEtv Canal 2 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["la-pampa", "santa-rosa", "local-tv", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-la-torre-larioja-twitch-live",
+    "providerId": "la-torre-larioja",
+    "title": "La Rioja - La Torre FM en vivo",
+    "description": "Senal audiovisual publica de La Torre FM 101.9, radio publica provincial de La Rioja. Puede incluir programacion local, actualidad y transmisiones especiales; BioPulse usa el reproductor oficial de Twitch sin copiar ni rehostear video.",
+    "geo": { "lat": -29.4131, "lon": -66.8558 },
+    "coverage": { "countryISO2": "AR", "admin1": "La Rioja", "locality": "La Rioja" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "twitch",
+      "url": "https://player.twitch.tv/?channel=radiolatorre1019",
+      "sourceUrl": "https://www.twitch.tv/radiolatorre1019"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: La Torre FM / Twitch",
+      "termsUrl": "https://www.twitch.tv/p/en/legal/terms-of-service/"
+    },
+    "tags": ["la-rioja", "local", "radio", "twitch", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channel check and Twitch player response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-617-live-mendoza-live",
+    "providerId": "617-live-mendoza",
+    "title": "Mendoza - 617 Live en vivo",
+    "description": "Senal audiovisual local de 617 Live en Mendoza. Puede incluir actualidad, entrevistas, programacion local y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -32.8895, "lon": -68.8458 },
+    "coverage": { "countryISO2": "AR", "admin1": "Mendoza", "locality": "Mendoza" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCWG7Il08pVTX2GV9s7D9XJw",
+      "sourceUrl": "https://www.youtube.com/channel/UCWG7Il08pVTX2GV9s7D9XJw"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: 617 Live / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["mendoza", "local", "streaming", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-playmas-misiones-live",
+    "providerId": "playmas-misiones",
+    "title": "Misiones - Play+ en vivo",
+    "description": "Senal audiovisual local de Play+ en Misiones. Puede incluir radio, video, actualidad y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.3621, "lon": -55.9009 },
+    "coverage": { "countryISO2": "AR", "admin1": "Misiones", "locality": "Posadas" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCCRBYjPJ7RDGYbL-uMcRyLw",
+      "sourceUrl": "https://www.youtube.com/channel/UCCRBYjPJ7RDGYbL-uMcRyLw"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Play+ / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["misiones", "posadas", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-fm-ya-salta-live",
+    "providerId": "fm-ya-salta",
+    "title": "Salta - FM Ya 91.3 en vivo",
+    "description": "Senal audiovisual local de FM Ya 91.3, radio del Nuevo Diario de Salta. Puede incluir programacion local, noticias y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -24.7821, "lon": -65.4232 },
+    "coverage": { "countryISO2": "AR", "admin1": "Salta", "locality": "Salta" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCnis8UHsWnn7m5Aqahqxp9Q",
+      "sourceUrl": "https://www.youtube.com/channel/UCnis8UHsWnn7m5Aqahqxp9Q"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: FM Ya 91.3 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["salta", "radio", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-pelado-stream-san-juan-live",
+    "providerId": "pelado-stream-san-juan",
+    "title": "San Juan - Pelado Stream en vivo",
+    "description": "Senal audiovisual local de Pelado Stream en San Juan. Puede incluir actualidad, entrevistas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.5375, "lon": -68.5364 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Juan", "locality": "San Juan" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCX5l1nMjgKOYv1ikzbUgBSw",
+      "sourceUrl": "https://www.youtube.com/channel/UCX5l1nMjgKOYv1ikzbUgBSw"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Pelado Stream / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-juan", "local", "streaming", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-sdn-radio-san-luis-live",
+    "providerId": "sdn-radio-san-luis",
+    "title": "San Luis - SDN Radio en vivo",
+    "description": "Senal audiovisual local de Servicio de Noticias / SDN Radio en San Luis. Puede incluir programacion local, noticias y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -33.3017, "lon": -66.3378 },
+    "coverage": { "countryISO2": "AR", "admin1": "San Luis", "locality": "San Luis" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UC67sn8psgPFmGHbKPvoZt8A",
+      "sourceUrl": "https://www.youtube.com/channel/UC67sn8psgPFmGHbKPvoZt8A"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: SDN Radio / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["san-luis", "radio", "news", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-uno-santa-fe-live",
+    "providerId": "uno-santa-fe",
+    "title": "Santa Fe - UNO Santa Fe en vivo",
+    "description": "Senal audiovisual local de UNO Santa Fe. Puede incluir actualidad provincial, entrevistas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -31.6333, "lon": -60.7 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santa Fe", "locality": "Santa Fe" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCy1J23_w3DxOl2o3MN7nPBw",
+      "sourceUrl": "https://www.youtube.com/channel/UCy1J23_w3DxOl2o3MN7nPBw"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: UNO Santa Fe / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santa-fe", "local", "news", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-lv11-sde-live",
+    "providerId": "lv11-sde",
+    "title": "Santiago del Estero - LV11 en vivo",
+    "description": "Senal audiovisual local de Radio LV11 en Santiago del Estero. Puede incluir radio en vivo, actualidad provincial y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -27.7834, "lon": -64.2642 },
+    "coverage": { "countryISO2": "AR", "admin1": "Santiago del Estero", "locality": "Santiago del Estero" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCBZP8Yc3p2CTVP3dakiYg_g",
+      "sourceUrl": "https://www.youtube.com/channel/UCBZP8Yc3p2CTVP3dakiYg_g"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Radio LV11 / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["santiago-del-estero", "radio", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-legislatura-tdf-live",
+    "providerId": "legislatura-tdf",
+    "title": "Tierra del Fuego - Legislatura TDF en vivo",
+    "description": "Senal audiovisual institucional de Prensa Legislativa TDF. Puede incluir sesiones, actividad publica y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -54.8019, "lon": -68.303 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tierra del Fuego", "locality": "Ushuaia" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCUqi2Dzv3qPliJQsRw8al2w",
+      "sourceUrl": "https://www.youtube.com/channel/UCUqi2Dzv3qPliJQsRw8al2w"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: Prensa Legislativa TDF / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tierra-del-fuego", "ushuaia", "institutional", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
+  },
+  {
+    "schema": "biopulse.camera.v1",
+    "id": "ar-america-tucuman-live",
+    "providerId": "america-tucuman",
+    "title": "Tucuman - America Tucuman en vivo",
+    "description": "Senal audiovisual local de America Tucuman. Puede incluir actualidad provincial, entrevistas y transmisiones especiales; BioPulse usa el iframe oficial de YouTube live_stream asociado al canal sin copiar ni rehostear video.",
+    "geo": { "lat": -26.8241, "lon": -65.2226 },
+    "coverage": { "countryISO2": "AR", "admin1": "Tucuman", "locality": "San Miguel de Tucuman" },
+    "mediaType": "embed",
+    "fetch": {
+      "kind": "html_embed",
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/live_stream?channel=UCZ8sgVyD7HqDor8ujB-TZpg",
+      "sourceUrl": "https://www.youtube.com/channel/UCZ8sgVyD7HqDor8ujB-TZpg"
+    },
+    "usage": {
+      "isPublic": true,
+      "attributionText": "Fuente: America Tucuman / YouTube",
+      "termsUrl": "https://www.youtube.com/t/terms"
+    },
+    "tags": ["tucuman", "san-miguel-de-tucuman", "local", "youtube", "embed"],
+    "priority": 1,
+    "validation": {
+      "status": "verified",
+      "verifiedBy": "Codex via public source, duplicate channelId check and live_stream embed response",
+      "verifiedAt": "2026-08-20"
+    }
   }
 ]

@@ -31,6 +31,8 @@ const PROVIDER_POLICIES = new Map([
   ["canal7-santiago", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 7|diario panorama|santiago/i }],
   ["canal7salta", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 7|salta/i }],
   ["xama-tv", { licenseClass: "embed-only", publishSignal: "operator-page", allowedKinds: ["html_embed"], attribution: /xama|san juan|unsj/i }],
+  ["radio-formosa-video", { licenseClass: "embed-only", publishSignal: "operator-page", allowedKinds: ["html_embed"], attribution: /radio formosa|livecastv/i }],
+  ["canal4-jujuy-player", { licenseClass: "embed-only", publishSignal: "operator-page", allowedKinds: ["html_embed"], attribution: /canal 4|jujuy/i }],
   ["canal13jujuy", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["stream_url"], attribution: /canal 13|jujuy|genex/i }],
   ["chapelco", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["provider_api"], attribution: /chapelco|varitech/i }],
   ["catedral", { licenseClass: "display-only", publishSignal: "operator-page", allowedKinds: ["image_url", "html_embed"], attribution: /catedral|varitech/i }],
@@ -49,6 +51,8 @@ const EMBED_HOSTS = new Set([
   "geo.dailymotion.com",
   "ipcamlive.com",
   "www.ipcamlive.com",
+  "playerv.livecastv.com",
+  "canal4jujuy.elcuatro.com",
   "streamable.com",
 ]);
 
